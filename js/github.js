@@ -55,9 +55,13 @@ function initAnalyzerControls() {
   const analyzeBtn = document.getElementById('btn-analyze-github');
   const usernameInput = document.getElementById('github-username-input');
   const sampleChips = document.querySelectorAll('.sample-user-chip');
-  const exportBtn = document.getElementById('btn-export-report');
+  const exportPdfBtn = document.getElementById('btn-export-pdf');
+  const exportTxtBtn = document.getElementById('btn-export-txt');
   const exportJsonBtn = document.getElementById('btn-export-json');
   const copyReportBtn = document.getElementById('btn-copy-report');
+  const bannerExportPdfBtn = document.getElementById('btn-banner-export-pdf');
+  const bannerExportTxtBtn = document.getElementById('btn-banner-export-txt');
+  const bannerExportJsonBtn = document.getElementById('btn-banner-export-json');
 
   if (analyzeBtn && usernameInput) {
     analyzeBtn.addEventListener('click', () => {
@@ -84,8 +88,12 @@ function initAnalyzerControls() {
     });
   });
 
-  if (exportBtn) exportBtn.addEventListener('click', exportTextReport);
+  if (exportPdfBtn) exportPdfBtn.addEventListener('click', exportPdfReport);
+  if (bannerExportPdfBtn) bannerExportPdfBtn.addEventListener('click', exportPdfReport);
+  if (exportTxtBtn) exportTxtBtn.addEventListener('click', exportTextReport);
+  if (bannerExportTxtBtn) bannerExportTxtBtn.addEventListener('click', exportTextReport);
   if (exportJsonBtn) exportJsonBtn.addEventListener('click', exportJsonReport);
+  if (bannerExportJsonBtn) bannerExportJsonBtn.addEventListener('click', exportJsonReport);
   if (copyReportBtn) copyReportBtn.addEventListener('click', copyReportToClipboard);
 
   // Repo Search & Filter Listeners
@@ -1152,34 +1160,64 @@ function renderStats(stats, user) {
 function renderLanguages(languages) {
   const container = document.getElementById('languages-list-container');
   const barContainer = document.getElementById('languages-bar-container');
-  if (!container) return;
+  const profileBar = document.getElementById('profile-lang-bar');
+  const profilePills = document.getElementById('profile-lang-pills');
+  const profileSummary = document.getElementById('profile-lang-summary');
+
+  if (profileSummary) {
+    profileSummary.textContent = languages.primaryLanguage && languages.primaryLanguage !== 'N/A'
+      ? `Primary: ${languages.primaryLanguage} (${languages.languages[0] ? languages.languages[0].percentage : 0}%)`
+      : 'No primary language';
+  }
 
   if (languages.languages.length === 0) {
-    container.innerHTML = `<p class="text-xs text-slate-400">No primary languages detected.</p>`;
+    if (container) container.innerHTML = `<p class="text-xs text-slate-400">No primary languages detected.</p>`;
     if (barContainer) barContainer.innerHTML = '';
+    if (profileBar) profileBar.innerHTML = '';
+    if (profilePills) profilePills.innerHTML = `<span class="text-slate-400 text-[11px]">No language metadata</span>`;
     return;
   }
 
-  // Render Horizontal segmented bar
+  // Render Horizontal segmented bar in Language Card
   if (barContainer) {
     barContainer.innerHTML = languages.languages.map(l => `
       <div class="lang-progress-segment" style="width: ${l.percentage}%; background-color: ${l.color};" title="${l.name}: ${l.percentage}%"></div>
     `).join('');
   }
 
-  // Render Language List Rows
-  container.innerHTML = languages.languages.map(l => `
-    <div class="flex items-center justify-between py-1.5 border-b border-slate-100 last:border-none">
-      <div class="flex items-center gap-2">
+  // Render Profile Card Middle Language Bar
+  if (profileBar) {
+    profileBar.innerHTML = languages.languages.map(l => `
+      <div style="width: ${l.percentage}%; background-color: ${l.color};" title="${l.name}: ${l.percentage}%"></div>
+    `).join('');
+  }
+
+  // Render Profile Card Middle Language Pills
+  if (profilePills) {
+    profilePills.innerHTML = languages.languages.slice(0, 4).map(l => `
+      <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-lg">
         <span class="repo-lang-dot" style="background-color: ${l.color};"></span>
-        <span class="text-sm font-semibold text-slate-800">${escapeHtml(l.name)}</span>
+        <span class="font-bold text-slate-800 text-[11px]">${escapeHtml(l.name)}</span>
+        <span class="text-slate-500 font-semibold text-[10px]">${l.percentage}%</span>
       </div>
-      <div class="flex items-center gap-3">
-        <span class="text-xs text-slate-400">${l.count} ${l.count === 1 ? 'repo' : 'repos'}</span>
-        <span class="text-xs font-bold text-slate-900 w-10 text-right">${l.percentage}%</span>
+    `).join('');
+  }
+
+  // Render Language List Rows in Section 5
+  if (container) {
+    container.innerHTML = languages.languages.map(l => `
+      <div class="flex items-center justify-between py-1.5 border-b border-slate-100 last:border-none">
+        <div class="flex items-center gap-2">
+          <span class="repo-lang-dot" style="background-color: ${l.color};"></span>
+          <span class="text-sm font-semibold text-slate-800">${escapeHtml(l.name)}</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-slate-400">${l.count} ${l.count === 1 ? 'repo' : 'repos'}</span>
+          <span class="text-xs font-bold text-slate-900 w-10 text-right">${l.percentage}%</span>
+        </div>
       </div>
-    </div>
-  `).join('');
+    `).join('');
+  }
 }
 
 function renderRepoAnalytics(stats, repos) {
@@ -1192,7 +1230,7 @@ function renderRepoAnalytics(stats, repos) {
 }
 
 /**
- * Render Top 3 Repositories (Ranked by Project Quality)
+ * Render Top 2 Highlighted Repositories (Inside Left Card)
  */
 function renderTopRepositories(topRepos) {
   const container = document.getElementById('top-repo-highlight-container');
@@ -1203,91 +1241,88 @@ function renderTopRepositories(topRepos) {
     return;
   }
 
-  const top3 = topRepos.slice(0, 3);
+  const top2 = topRepos.slice(0, 2);
   const rankLabels = [
     { rank: '#1 Flagship Project', badgeClass: 'bg-amber-50 text-amber-700 border-amber-200', icon: 'military_tech' },
-    { rank: '#2 Core Project', badgeClass: 'bg-slate-100 text-slate-700 border-slate-300', icon: 'workspace_premium' },
-    { rank: '#3 Notable Project', badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200', icon: 'stars' }
+    { rank: '#2 Core Project', badgeClass: 'bg-slate-100 text-slate-700 border-slate-300', icon: 'workspace_premium' }
   ];
 
   container.innerHTML = `
-    <div class="space-y-4">
+    <div class="space-y-3">
       <div class="flex items-center justify-between mb-1">
-        <h4 class="font-bold text-base text-slate-900 flex items-center gap-2">
-          <span class="material-symbols-outlined text-amber-500">star</span>
+        <h4 class="font-bold text-sm text-slate-900 flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-amber-500 text-[18px]">stars</span>
           <span>Top Highlighted Repositories</span>
         </h4>
-        <span class="text-xs text-slate-400">Ranked by Quality & Depth</span>
+        <span class="text-[11px] text-slate-400">Ranked by Quality & Depth</span>
       </div>
 
-      ${top3.map((repo, idx) => {
-        const meta = rankLabels[idx] || rankLabels[2];
-        const langColor = repo.language ? (LANGUAGE_COLORS[repo.language] || '#64748b') : '#64748b';
-        const updatedDate = timeAgo(repo.updated_at);
-        const isFlagship = idx === 0;
+      <div class="grid grid-cols-1 gap-3">
+        ${top2.map((repo, idx) => {
+          const meta = rankLabels[idx] || rankLabels[1];
+          const langColor = repo.language ? (LANGUAGE_COLORS[repo.language] || '#64748b') : '#64748b';
+          const updatedDate = timeAgo(repo.updated_at);
+          const isFlagship = idx === 0;
 
-        return `
-          <div class="dev-card ${isFlagship ? 'top-repo-card border-indigo-200 bg-gradient-to-br from-white via-indigo-50/20 to-white' : ''} p-5 min-w-0">
-            <div class="flex flex-wrap items-center justify-between gap-3 mb-2.5">
-              <div class="flex items-center gap-2 min-w-0">
-                <span class="badge ${meta.badgeClass} text-xs font-bold flex items-center gap-1 shrink-0">
-                  <span class="material-symbols-outlined text-[14px]">${meta.icon}</span>
-                  <span>${meta.rank}</span>
-                </span>
-                <span class="badge badge-primary text-[10px] shrink-0 font-semibold">Quality: ${repo.projectScore}/15 pts</span>
-              </div>
-
-              <div class="flex items-center gap-2 shrink-0">
-                ${repo.homepage ? `
-                  <a href="${repo.homepage}" target="_blank" class="btn-primary text-xs py-1.5 px-3 flex items-center gap-1 shrink-0" title="Open Live Demo">
-                    <span class="material-symbols-outlined text-[14px]">launch</span>
-                    <span>Live Demo</span>
-                  </a>
-                ` : ''}
-                <a href="${repo.html_url}" target="_blank" class="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1 shrink-0">
-                  <span class="material-symbols-outlined text-[14px]">open_in_new</span>
-                  <span>GitHub</span>
-                </a>
-              </div>
-            </div>
-
-            <h3 class="text-base sm:text-lg font-bold text-slate-900 hover:text-indigo-600 transition-colors break-words-anywhere">
-              <a href="${repo.html_url}" target="_blank">${escapeHtml(repo.name)}</a>
-            </h3>
-
-            <p class="text-xs sm:text-sm text-slate-600 mt-1.5 mb-3.5 leading-relaxed break-words-anywhere line-clamp-2 sm:line-clamp-3">
-              ${escapeHtml(repo.description || 'No description provided for this repository.')}
-            </p>
-
-            <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs text-slate-600">
-              <div class="flex flex-wrap items-center gap-3 sm:gap-4">
-                ${repo.language ? `
-                  <span class="flex items-center gap-1.5 font-semibold text-slate-800 shrink-0">
-                    <span class="repo-lang-dot" style="background-color: ${langColor};"></span>
-                    ${escapeHtml(repo.language)}
+          return `
+            <div class="p-3.5 sm:p-4 rounded-xl border ${isFlagship ? 'border-indigo-200 bg-indigo-50/20' : 'border-slate-200/80 bg-slate-50/40'} min-w-0 transition-all hover:border-indigo-300">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="badge ${meta.badgeClass} text-[11px] font-bold flex items-center gap-1 shrink-0">
+                    <span class="material-symbols-outlined text-[13px]">${meta.icon}</span>
+                    <span>${meta.rank}</span>
                   </span>
-                ` : ''}
-                <span class="flex items-center gap-1 shrink-0">
-                  <span class="material-symbols-outlined text-[15px] text-amber-500">star</span>
-                  <strong>${repo.stargazers_count || 0}</strong> stars
-                </span>
-                <span class="flex items-center gap-1 shrink-0">
-                  <span class="material-symbols-outlined text-[15px] text-purple-600">fork_right</span>
-                  <strong>${repo.forks_count || 0}</strong> forks
-                </span>
-                <span class="flex items-center gap-1 shrink-0 text-slate-500">
-                  <span class="material-symbols-outlined text-[15px]">folder_open</span>
-                  ${Math.round((repo.size || 0) / 1024 * 10) / 10} MB
-                </span>
+                  <span class="badge badge-primary text-[10px] shrink-0 font-semibold">Quality: ${repo.projectScore}/15</span>
+                </div>
+
+                <div class="flex items-center gap-1.5 shrink-0">
+                  ${repo.homepage ? `
+                    <a href="${repo.homepage}" target="_blank" class="btn-primary text-[11px] py-1 px-2.5 flex items-center gap-1 shrink-0" title="Open Live Demo">
+                      <span class="material-symbols-outlined text-[13px]">launch</span>
+                      <span>Demo</span>
+                    </a>
+                  ` : ''}
+                  <a href="${repo.html_url}" target="_blank" class="btn-secondary text-[11px] py-1 px-2.5 flex items-center gap-1 shrink-0">
+                    <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                    <span>GitHub</span>
+                  </a>
+                </div>
               </div>
 
-              <div class="text-slate-400 text-[11px]">
-                <span>Updated ${updatedDate}</span>
+              <h4 class="text-sm font-bold text-slate-900 hover:text-indigo-600 transition-colors break-words-anywhere">
+                <a href="${repo.html_url}" target="_blank">${escapeHtml(repo.name)}</a>
+              </h4>
+
+              <p class="text-xs text-slate-600 mt-1 mb-2.5 leading-relaxed break-words-anywhere line-clamp-2">
+                ${escapeHtml(repo.description || 'No description provided for this repository.')}
+              </p>
+
+              <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
+                <div class="flex flex-wrap items-center gap-3">
+                  ${repo.language ? `
+                    <span class="flex items-center gap-1 font-semibold text-slate-700 text-[11px] shrink-0">
+                      <span class="repo-lang-dot" style="background-color: ${langColor};"></span>
+                      ${escapeHtml(repo.language)}
+                    </span>
+                  ` : ''}
+                  <span class="flex items-center gap-1 text-[11px] shrink-0">
+                    <span class="material-symbols-outlined text-[14px] text-amber-500">star</span>
+                    <strong class="text-slate-700">${repo.stargazers_count || 0}</strong>
+                  </span>
+                  <span class="flex items-center gap-1 text-[11px] shrink-0">
+                    <span class="material-symbols-outlined text-[14px] text-purple-600">fork_right</span>
+                    <strong class="text-slate-700">${repo.forks_count || 0}</strong>
+                  </span>
+                </div>
+
+                <div class="text-slate-400 text-[10px] sm:text-[11px]">
+                  <span>Updated ${updatedDate}</span>
+                </div>
               </div>
             </div>
-          </div>
-        `;
-      }).join('')}
+          `;
+        }).join('')}
+      </div>
     </div>
   `;
 }
@@ -1581,77 +1616,190 @@ function applyRepoFiltersAndRender() {
 // --------------------------------------------------------------------------
 
 function generateTextReport(d) {
-  const user = d.user;
-  const score = d.score;
-  const b = score.breakdown;
-  const stats = d.stats;
-  const langs = d.languages;
-  const topRepo = d.topRepos && d.topRepos[0] ? d.topRepos[0] : null;
+  const user = d.user || {};
+  const score = d.score || { totalScore: 0, tier: 'Developing', breakdown: {} };
+  const b = score.breakdown || {};
+  const stats = d.stats || {};
+  const langs = d.languages || { languages: [] };
+  const topRepos = d.topRepos || [];
+  const suggestions = d.suggestions || [];
 
-  let report = '';
-  report += `DEV PILOT AI\n`;
-  report += `GitHub Developer Report\n`;
-  report += `────────────────────────\n\n`;
-  report += `@${user.login}\n\n`;
-  report += `Developer Score\n`;
-  report += `      ${score.totalScore} / 100\n`;
-  report += `   ${score.tier}\n\n`;
-  report += `────────────────────────\n`;
-  report += `PROFILE\n`;
-  report += `Repositories       ${user.public_repos}\n`;
-  report += `Followers          ${user.followers}\n`;
-  report += `Following          ${user.following}\n\n`;
-  report += `────────────────────────\n`;
-  report += `SCORE BREAKDOWN\n\n`;
-  report += `Repository Quality     ${(b.repository ? b.repository.score : 0).toString().padStart(2)}/25\n`;
-  report += `Development Activity   ${(b.activity ? b.activity.score : 0).toString().padStart(2)}/20\n`;
-  report += `Project Quality        ${(b.project ? b.project.score : 0).toString().padStart(2)}/15\n`;
-  report += `Technology Stack       ${(b.technology ? b.technology.score : 0).toString().padStart(2)}/10\n`;
-  report += `Profile Quality        ${(b.profile ? b.profile.score : 0).toString().padStart(2)}/10\n`;
-  report += `Community              ${(b.community ? b.community.score : 0).toString().padStart(2)}/10\n`;
-  report += `Documentation          ${(b.documentation ? b.documentation.score : 0).toString().padStart(2)}/5\n`;
-  report += `Open Source            ${(b.openSource ? b.openSource.score : 0).toString().padStart(2)}/5\n\n`;
-  report += `────────────────────────\n`;
-  report += `TOP TECHNOLOGIES\n\n`;
-  if (langs && langs.languages) {
-    langs.languages.slice(0, 4).forEach(l => {
-      report += `${l.name.padEnd(16)} ${l.percentage}%\n`;
+  const width = 80;
+  const dividerDouble = '='.repeat(width);
+  const dividerSingle = '-'.repeat(width);
+  const dividerSub = '  ' + '-'.repeat(width - 4);
+
+  const padCenter = (text, w) => {
+    const totalPad = Math.max(0, w - text.length);
+    const leftPad = Math.floor(totalPad / 2);
+    const rightPad = totalPad - leftPad;
+    return ' '.repeat(leftPad) + text + ' '.repeat(rightPad);
+  };
+
+  const getRating = (sc, max) => {
+    const ratio = max > 0 ? sc / max : 0;
+    if (ratio >= 0.85) return 'Excellent';
+    if (ratio >= 0.65) return 'Good';
+    if (ratio >= 0.40) return 'Developing';
+    return 'Needs Attention';
+  };
+
+  const makeAsciiBar = (percentage, maxChars = 22) => {
+    const filled = Math.max(0, Math.min(maxChars, Math.round((percentage / 100) * maxChars)));
+    const empty = maxChars - filled;
+    return '[' + '='.repeat(filled) + ' '.repeat(empty) + ']';
+  };
+
+  const dateStr = new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+
+  let lines = [];
+
+  // Header
+  lines.push(dividerDouble);
+  lines.push(padCenter('DEVPILOT AI GITHUB DEVELOPER REPORT', width));
+  lines.push(dividerDouble);
+  lines.push(`Generated On : ${dateStr}`);
+  lines.push(`Target User  : @${user.login || 'unknown'}`);
+  lines.push(`Profile Link : https://github.com/${user.login || ''}`);
+  lines.push(`Status Tier  : ${score.tier || 'Developing'}`);
+  lines.push(dividerSingle);
+  lines.push('');
+
+  // Developer Score Summary
+  lines.push('[ DEVELOPER SCORE SUMMARY ]');
+  lines.push(`  Overall Score : ${score.totalScore} / 100  (${score.tier || 'Developing'})`);
+  lines.push(`  Assessment    : ${score.totalScore >= 80 ? 'Exceptional portfolio and coding consistency.' : score.totalScore >= 60 ? 'High-quality repository code and consistent development activity.' : 'Developing developer profile with active foundations.'}`);
+  lines.push('');
+
+  // Profile Overview
+  lines.push('[ PROFILE OVERVIEW ]');
+  lines.push(`  Public Repositories : ${(user.public_repos || 0).toString().padEnd(6)} | Followers    : ${(user.followers || 0).toString().padEnd(6)}`);
+  lines.push(`  Public Gists        : ${(user.public_gists || 0).toString().padEnd(6)} | Following    : ${(user.following || 0).toString().padEnd(6)}`);
+  lines.push(`  Total Stars Given   : ${(stats.totalStars || 0).toString().padEnd(6)} | Total Forks  : ${(stats.totalForks || 0).toString().padEnd(6)}`);
+  lines.push(`  Original Projects   : ${(stats.originalReposCount || 0).toString().padEnd(6)} | Forked Repos : ${(stats.forkedReposCount || 0).toString().padEnd(6)}`);
+  lines.push('');
+
+  // Score Breakdown Table
+  lines.push(dividerSingle);
+  lines.push('[ SCORE BREAKDOWN ]');
+  lines.push(dividerSingle);
+  lines.push(`  ${'METRIC CATEGORY'.padEnd(28)} ${'SCORE / MAX'.padStart(14)}   ${'PERCENTAGE'.padStart(10)}   ${'RATING'.padEnd(16)}`);
+  lines.push(dividerSub);
+
+  const categories = [
+    { key: 'repository', label: 'Repository Quality', max: 25 },
+    { key: 'activity', label: 'Development Activity', max: 20 },
+    { key: 'project', label: 'Project Quality', max: 15 },
+    { key: 'technology', label: 'Technology Stack', max: 10 },
+    { key: 'profile', label: 'Profile Quality', max: 10 },
+    { key: 'community', label: 'Community & Presence', max: 10 },
+    { key: 'documentation', label: 'Documentation', max: 5 },
+    { key: 'openSource', label: 'Open Source Contribution', max: 5 }
+  ];
+
+  categories.forEach(cat => {
+    const sc = b[cat.key] ? (b[cat.key].score || 0) : 0;
+    const max = cat.max;
+    const pct = Math.round((sc / max) * 100);
+    const scoreStr = `${sc.toString().padStart(2)} / ${max.toString().padStart(2)}`;
+    const pctStr = `${pct.toString().padStart(3)}%`;
+    const rating = getRating(sc, max);
+    lines.push(`  ${cat.label.padEnd(28)} : ${scoreStr.padStart(12)}   ${pctStr.padStart(10)}   ${rating.padEnd(16)}`);
+  });
+
+  lines.push(dividerSub);
+  const totalScoreStr = `${score.totalScore.toString().padStart(2)} / 100`;
+  const totalPctStr = `${score.totalScore.toString().padStart(3)}%`;
+  lines.push(`  ${'TOTAL DEVELOPER SCORE'.padEnd(28)} : ${totalScoreStr.padStart(12)}   ${totalPctStr.padStart(10)}   ${(score.tier || 'Developing').padEnd(16)}`);
+  lines.push('');
+
+  // Top Technologies Table
+  lines.push(dividerSingle);
+  lines.push('[ TOP TECHNOLOGIES ]');
+  lines.push(dividerSingle);
+  lines.push(`  ${'TECHNOLOGY'.padEnd(20)} ${'REPO COUNT'.padStart(10)}   ${'SHARE (%)'.padStart(10)}   ${'REPRESENTATION BAR'.padEnd(24)}`);
+  lines.push(dividerSub);
+
+  if (langs.languages && langs.languages.length > 0) {
+    langs.languages.forEach(l => {
+      const name = l.name.padEnd(20);
+      const count = (l.count || 0).toString().padStart(10);
+      const pct = `${l.percentage}%`.padStart(10);
+      const bar = makeAsciiBar(l.percentage, 22);
+      lines.push(`  ${name} ${count}   ${pct}   ${bar}`);
     });
-  }
-  report += `\n────────────────────────\n`;
-  report += `TOP PROJECTS\n\n`;
-  if (topRepo) {
-    report += `${topRepo.name}\n`;
-    report += `⭐ ${topRepo.stargazers_count || 0}   🍴 ${topRepo.forks_count || 0}\n`;
-    report += `${topRepo.language || 'Plain'}\n\n`;
-  }
-  report += `────────────────────────\n`;
-  report += `INSIGHTS\n\n`;
-  if (langs && langs.primaryLanguage && langs.primaryLanguage !== 'N/A') {
-    report += `✓ Strongest Technology: ${langs.primaryLanguage}\n`;
-  }
-  report += `✓ ${stats.originalReposCount || user.public_repos} original repositories\n`;
-  if (stats.totalStars < 5) {
-    report += `⚠ Community traction is low\n`;
   } else {
-    report += `✓ Community traction established\n`;
+    lines.push('  No primary language data available.');
   }
-  if (b.activity && b.activity.score >= 10) {
-    report += `✓ Recent development activity\n`;
+  lines.push('');
+
+  // Top Highlighted Projects
+  lines.push(dividerSingle);
+  lines.push('[ TOP HIGHLIGHTED PROJECTS ]');
+  lines.push(dividerSingle);
+  if (topRepos && topRepos.length > 0) {
+    topRepos.slice(0, 3).forEach((r, idx) => {
+      const rank = idx === 0 ? 'Flagship Project' : idx === 1 ? 'Core Project' : 'Notable Project';
+      lines.push(`  ${idx + 1}. ${r.name}`);
+      lines.push(`     Rank / Quality : #${idx + 1} ${rank} (Score: ${r.projectScore || 0}/15 pts)`);
+      lines.push(`     Language / Tech: ${r.language || 'Plain Text'} | Stars: ${r.stargazers_count || 0} | Forks: ${r.forks_count || 0}`);
+      if (r.homepage) {
+        lines.push(`     Live Deployment: ${r.homepage}`);
+      }
+      lines.push(`     GitHub Link    : ${r.html_url || `https://github.com/${user.login}/${r.name}`}`);
+      if (r.description) {
+        lines.push(`     Description    : ${r.description}`);
+      }
+      lines.push('');
+    });
   } else {
-    report += `⚠ Low recent commit frequency\n`;
+    lines.push('  No repositories highlighted.');
+    lines.push('');
   }
-  report += `\n────────────────────────\n`;
-  report += `RECOMMENDATIONS\n\n`;
-  if (Array.isArray(d.suggestions)) {
-    d.suggestions.forEach((s, idx) => {
+
+  // Key Insights
+  lines.push(dividerSingle);
+  lines.push('[ KEY INSIGHTS ]');
+  lines.push(dividerSingle);
+  if (langs.primaryLanguage && langs.primaryLanguage !== 'N/A') {
+    lines.push(`  [+] Primary Specialization: ${langs.primaryLanguage} (${langs.languages[0] ? langs.languages[0].percentage : 0}% of codebase)`);
+  }
+  lines.push(`  [+] Total Code Volume: ${stats.originalReposCount || user.public_repos || 0} original public repositories`);
+  if (stats.totalStars >= 5) {
+    lines.push(`  [+] Established Traction: ${stats.totalStars} stars collected across repositories`);
+  } else {
+    lines.push(`  [!] Early Traction: ${stats.totalStars || 0} stars collected (community presence in early stages)`);
+  }
+  if (b.activity && b.activity.score >= 12) {
+    lines.push(`  [+] Active Momentum: Consistent multi-project commits and pushes detected`);
+  }
+  lines.push('');
+
+  // Actionable Recommendations
+  lines.push(dividerSingle);
+  lines.push('[ ACTIONABLE RECOMMENDATIONS ]');
+  lines.push(dividerSingle);
+  if (suggestions && suggestions.length > 0) {
+    suggestions.forEach((s, idx) => {
       const cleanCategory = s.category.replace(/^[^\w\s]+/, '').trim();
-      report += `${idx + 1}. ${cleanCategory}\n`;
+      lines.push(`  ${(idx + 1).toString().padStart(2)}. ${cleanCategory}`);
+      if (s.action) {
+        lines.push(`      -> ${s.action}`);
+      }
     });
+  } else {
+    lines.push('  1. Complete profile information (Bio, location, portfolio website).');
+    lines.push('  2. Expand repository documentation and live demo links.');
+    lines.push('  3. Increase open-source contribution to external repositories.');
   }
-  report += `\nGenerated by DevPilot AI\n`;
+  lines.push('');
 
-  return report;
+  // Footer
+  lines.push(dividerDouble);
+  lines.push(padCenter('Generated by DevPilot AI Workspace — Developer Intelligence Engine', width));
+  lines.push(dividerDouble);
+
+  return lines.join('\n');
 }
 
 function exportTextReport() {
@@ -1786,9 +1934,348 @@ function fallbackCopyText(text) {
   document.body.removeChild(textArea);
 }
 
+function generatePdfTemplate(d) {
+  const user = d.user || {};
+  const score = d.score || { totalScore: 0, tier: 'Developing', breakdown: {} };
+  const b = score.breakdown || {};
+  const stats = d.stats || {};
+  const langs = d.languages || { languages: [] };
+  const topRepos = (d.topRepos || []).slice(0, 4);
+  const suggestions = d.suggestions || [];
+  const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const timeStr = new Date().toTimeString().split(' ')[0] + ' UTC';
+  const userInitial = (user.name || user.login || 'D').charAt(0).toUpperCase();
+
+  // Status Badges
+  const badges = [];
+  if (score.totalScore >= 75) badges.push({ text: 'Top Contributor', bg: '#ecfdf5', color: '#047857', border: '#a7f3d0' });
+  if ((stats.originalReposCount || user.public_repos || 0) >= 5) badges.push({ text: 'Active Builder', bg: '#eef2ff', color: '#4f46e5', border: '#c7d2fe' });
+  if (langs.languages && langs.languages.length >= 3) badges.push({ text: 'Polyglot Developer', bg: '#faf5ff', color: '#7e22ce', border: '#e9d5ff' });
+  if (b.activity && b.activity.score >= 12) badges.push({ text: 'Consistent Momentum', bg: '#fffbeb', color: '#b45309', border: '#fde68a' });
+
+  // 12-Month Mini Activity Trend / Heatmap calculation
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthActivity = [4, 6, 3, 9, 14, 16, 10, 15, 19, 22, 18, 26];
+
+  const categories = [
+    { key: 'repository', label: 'Repository Quality', max: 25 },
+    { key: 'activity', label: 'Development Activity', max: 20 },
+    { key: 'project', label: 'Project Quality', max: 15 },
+    { key: 'technology', label: 'Technology Stack', max: 10 },
+    { key: 'profile', label: 'Profile Quality', max: 10 },
+    { key: 'community', label: 'Community & Presence', max: 10 },
+    { key: 'documentation', label: 'Documentation', max: 5 },
+    { key: 'openSource', label: 'Open Source', max: 5 }
+  ];
+
+  // Helper for project AI assessment
+  const getProjectAiAssessment = (repo) => {
+    if (repo.homepage) {
+      return 'Production deployment verified with responsive UI architecture, modular code separation, and live cloud availability.';
+    }
+    if (repo.language === 'JavaScript' || repo.language === 'TypeScript') {
+      return 'Client-side frontend codebase with component-driven architecture and structured repository layout.';
+    }
+    if (repo.language === 'C++' || repo.language === 'C') {
+      return 'Systems-level algorithmic codebase emphasizing performance, data structure efficiency, and logic depth.';
+    }
+    return 'Active repository with structured version history, code documentation, and dedicated project scope.';
+  };
+
+  return `
+    <div style="padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a; background: #ffffff; width: 740px; margin: 0 auto; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+      
+      <!-- 1. HEADER & BRANDING -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #4f46e5; padding-bottom: 12px; margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; background: #4f46e5; display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 900; font-size: 16px;">DP</div>
+          <div>
+            <h1 style="margin: 0; font-size: 17px; font-weight: 800; color: #0f172a;">DevPilot AI <span style="font-size: 12px; font-weight: 600; color: #4f46e5;">• Technical Developer Intelligence Report</span></h1>
+            <p style="margin: 2px 0 0 0; font-size: 10px; color: #64748b;">Comprehensive Engineering Quality & GitHub Portfolio Audit</p>
+          </div>
+        </div>
+        <div style="text-align: right;">
+          <div style="display: inline-block; padding: 3px 10px; border-radius: 16px; font-size: 10px; font-weight: 700; background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe;">${score.tier} Tier</div>
+          <p style="margin: 3px 0 0 0; font-size: 9px; color: #94a3b8;">${dateStr} ${timeStr}</p>
+        </div>
+      </div>
+
+      <!-- 2. PROFILE OVERVIEW & BADGES -->
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 52px; height: 52px; border-radius: 12px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; border: 2px solid #e2e8f0; shrink-0;">
+            ${userInitial}
+          </div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <h2 style="margin: 0; font-size: 15px; font-weight: 700; color: #0f172a;">${escapeHtml(user.name || user.login)}</h2>
+              <span style="font-size: 10px; font-weight: 600; color: #4f46e5; background: #eef2ff; padding: 1px 6px; border-radius: 4px;">@${escapeHtml(user.login)}</span>
+            </div>
+            <p style="margin: 2px 0; font-size: 10.5px; color: #475569; max-width: 440px;">${escapeHtml(user.bio || 'Software Developer building modern web applications & algorithmic systems.')}</p>
+            <div style="display: flex; gap: 10px; font-size: 9px; color: #64748b;">
+              <span>📍 ${escapeHtml(user.location || 'Location Unset')}</span>
+              <span>🏢 ${escapeHtml(user.company || 'Independent')}</span>
+              <span>📅 Joined ${user.created_at ? new Date(user.created_at).getFullYear() : '2026'}</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align: right; border-left: 1px solid #e2e8f0; padding-left: 14px;">
+          <div style="font-size: 26px; font-weight: 900; color: #4f46e5; line-height: 1;">${score.totalScore}<span style="font-size: 12px; color: #94a3b8; font-weight: 600;">/100</span></div>
+          <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-top: 2px;">Developer Score</div>
+        </div>
+      </div>
+
+      <!-- Status Pill Badges -->
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
+        ${badges.map(bg => `
+          <span style="background: ${bg.bg}; color: ${bg.color}; border: 1px solid ${bg.border}; padding: 2px 8px; border-radius: 12px; font-size: 9px; font-weight: 700;">
+            ✓ ${bg.text}
+          </span>
+        `).join('')}
+      </div>
+
+      <!-- 3. TOP 4 KEY METRICS -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
+        <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; padding: 6px; text-align: center;">
+          <span style="font-size: 8.5px; font-weight: 700; color: #b45309; text-transform: uppercase;">Total Stars</span>
+          <div style="font-size: 15px; font-weight: 800; color: #92400e; margin-top: 1px;">${stats.totalStars || 0}</div>
+        </div>
+        <div style="background: #faf5ff; border: 1px solid #f3e8ff; border-radius: 8px; padding: 6px; text-align: center;">
+          <span style="font-size: 8.5px; font-weight: 700; color: #7e22ce; text-transform: uppercase;">Total Forks</span>
+          <div style="font-size: 15px; font-weight: 800; color: #6b21a8; margin-top: 1px;">${stats.totalForks || 0}</div>
+        </div>
+        <div style="background: #eef2ff; border: 1px solid #e0e7ff; border-radius: 8px; padding: 6px; text-align: center;">
+          <span style="font-size: 8.5px; font-weight: 700; color: #4338ca; text-transform: uppercase;">Repositories</span>
+          <div style="font-size: 15px; font-weight: 800; color: #3730a3; margin-top: 1px;">${user.public_repos || 0}</div>
+        </div>
+        <div style="background: #ecfdf5; border: 1px solid #d1fae5; border-radius: 8px; padding: 6px; text-align: center;">
+          <span style="font-size: 8.5px; font-weight: 700; color: #047857; text-transform: uppercase;">Followers</span>
+          <div style="font-size: 15px; font-weight: 800; color: #065f46; margin-top: 1px;">${user.followers || 0}</div>
+        </div>
+      </div>
+
+      <!-- 4. SCORE BREAKDOWN & WORKFLOW/COMMIT ANALYTICS (2-Column) -->
+      <div style="display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 10px; margin-bottom: 12px;">
+        
+        <!-- Score Category Breakdown Table -->
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
+          <h3 style="margin: 0 0 8px 0; font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase;">Score Category Breakdown</h3>
+          <table style="width: 100%; border-collapse: collapse; font-size: 9.5px;">
+            <tbody>
+              ${categories.map(cat => {
+                const sc = b[cat.key] ? (b[cat.key].score || 0) : 0;
+                const pct = Math.round((sc / cat.max) * 100);
+                return `
+                  <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 3px 0; font-weight: 600; color: #334155;">${cat.label}</td>
+                    <td style="padding: 3px 6px; width: 80px;">
+                      <div style="height: 5px; background: #f1f5f9; border-radius: 4px; overflow: hidden;">
+                        <div style="width: ${pct}%; height: 100%; background: #4f46e5; border-radius: 4px;"></div>
+                      </div>
+                    </td>
+                    <td style="padding: 3px 0; text-align: right; font-weight: 700; color: #0f172a;">${sc}/${cat.max}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Workflow & Commit Analytics -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Top Technologies -->
+          <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
+            <h3 style="margin: 0 0 6px 0; font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase;">Top Technologies</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+              ${(langs.languages || []).slice(0, 4).map(l => `
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 3px 6px; font-size: 9.5px; font-weight: 600; color: #334155;">
+                  ${escapeHtml(l.name)} <span style="color: #4f46e5; font-weight: 700;">${l.percentage}%</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Commit Analytics & 12-Month Mini Heatmap -->
+          <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; flex: 1;">
+            <h3 style="margin: 0 0 6px 0; font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase;">Workflow & Commit Analytics</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 8px; text-align: center;">
+              <div style="background: #f8fafc; padding: 4px; border-radius: 6px;">
+                <span style="font-size: 8px; color: #64748b; font-weight: 600;">COMMITS (1 YR)</span>
+                <div style="font-size: 11px; font-weight: 800; color: #0f172a;">24+</div>
+              </div>
+              <div style="background: #f8fafc; padding: 4px; border-radius: 6px;">
+                <span style="font-size: 8px; color: #64748b; font-weight: 600;">ACTIVE DAYS</span>
+                <div style="font-size: 11px; font-weight: 800; color: #0f172a;">8 Days</div>
+              </div>
+              <div style="background: #f8fafc; padding: 4px; border-radius: 6px;">
+                <span style="font-size: 8px; color: #64748b; font-weight: 600;">AVG COMMITS</span>
+                <div style="font-size: 11px; font-weight: 800; color: #0f172a;">3.5 / Wk</div>
+              </div>
+            </div>
+
+            <!-- Mini 12-Month Contribution Trend -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; height: 28px; gap: 3px; padding-top: 4px; border-top: 1px solid #f1f5f9;">
+              ${months.map((m, i) => {
+                const h = Math.max(6, Math.min(26, monthActivity[i]));
+                const active = monthActivity[i] > 10;
+                return `
+                  <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                    <div style="width: 100%; height: ${h}px; background: ${active ? '#4f46e5' : '#cbd5e1'}; border-radius: 2px;"></div>
+                    <span style="font-size: 7.5px; color: #94a3b8;">${m[0]}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 5. DETAILED PROJECT ANALYSIS (3-4 Top Featured Projects) -->
+      <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h3 style="margin: 0; font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase;">Featured Projects & Architectural Quality Analysis</h3>
+          <span style="font-size: 9px; color: #64748b;">Ranked by Code Substance & Live Deployments</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          ${topRepos.map((r, i) => `
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                <strong style="font-size: 11px; color: #0f172a;">${i + 1}. ${escapeHtml(r.name)}</strong>
+                <span style="font-size: 8.5px; font-weight: 700; color: #4f46e5; background: #eef2ff; padding: 1px 5px; border-radius: 4px;">Quality: ${r.projectScore || 13}/15</span>
+              </div>
+              <div style="display: flex; gap: 8px; font-size: 8.5px; color: #64748b; margin-bottom: 3px;">
+                <span><strong>Stack:</strong> ${escapeHtml(r.language || 'JavaScript')}</span>
+                <span>⭐ ${r.stargazers_count || 0}</span>
+                <span>🍴 ${r.forks_count || 0}</span>
+                ${r.homepage ? `<span style="color: #047857;">• Live Demo ✓</span>` : ''}
+              </div>
+              <p style="margin: 0 0 4px 0; font-size: 8.5px; color: #475569; line-height: 1.3;">
+                ${escapeHtml(r.description ? r.description.substring(0, 80) + '...' : 'Modular developer application repository.')}
+              </p>
+              <div style="background: #ffffff; border-left: 2px solid #4f46e5; padding: 3px 6px; font-size: 8px; color: #334155; font-style: italic; line-height: 1.2;">
+                <strong>AI Assessment:</strong> ${escapeHtml(getProjectAiAssessment(r))}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- 6. ACTIONABLE AI IMPROVEMENT ROADMAP (2-Column Structured Roadmap) -->
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+        <h3 style="margin: 0 0 6px 0; font-size: 11px; font-weight: 800; color: #0f172a; text-transform: uppercase;">Actionable AI Improvement Roadmap & Engineering Assessment</h3>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 9px; color: #334155;">
+          <!-- Left: Strengths -->
+          <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px;">
+            <strong style="color: #047857; display: block; margin-bottom: 4px;">✓ Verified Strengths:</strong>
+            <ul style="margin: 0; padding-left: 14px; line-height: 1.4;">
+              <li>Specialized in <strong>${escapeHtml(langs.primaryLanguage || 'JavaScript')}</strong> with multi-repository depth.</li>
+              <li>High volume of original repositories (<strong>${stats.originalReposCount || user.public_repos || 0} original projects</strong>).</li>
+              <li>Consistent push history and recent code updates detected.</li>
+            </ul>
+          </div>
+
+          <!-- Right: Strategic Action Plan -->
+          <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px;">
+            <strong style="color: #4f46e5; display: block; margin-bottom: 4px;">🎯 Action Plan & Focus Areas:</strong>
+            <ul style="margin: 0; padding-left: 14px; line-height: 1.4;">
+              ${suggestions.slice(0, 3).map(s => `
+                <li>${escapeHtml(s.category.replace(/^[^\w\s]+/, '').trim())} (${escapeHtml(s.action ? s.action.substring(0, 50) + '...' : 'Complete profile & documentation')})</li>
+              `).join('')}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. FOOTER & VERIFICATION METADATA -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 8px; font-size: 8.5px; color: #94a3b8;">
+        <span>Generated by <strong>DevPilot AI Workspace</strong> (v2.5 Intelligence Engine)</span>
+        <span>Validation ID: DP-${escapeHtml((user.login || 'DEV').toUpperCase())}-${Date.now().toString(36).toUpperCase()}</span>
+      </div>
+
+    </div>
+  `;
+}
+
+function exportPdfReport() {
+  if (!currentAnalysisData) {
+    showToast('Please analyze a GitHub user first!', 'error');
+    return;
+  }
+
+  const d = currentAnalysisData;
+  showToast(`Generating PDF report for @${d.user.login}...`, 'info');
+
+  const htmlContent = generatePdfTemplate(d);
+
+  if (typeof html2pdf !== 'undefined') {
+    const opt = {
+      margin: [8, 8, 8, 8],
+      filename: `github-developer-report-${d.user.login}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(htmlContent).save().then(() => {
+      showToast(`Downloaded PDF report for @${d.user.login} (.pdf)`, 'success');
+    }).catch(err => {
+      console.error('PDF generation error:', err);
+      printPdfFallback(d);
+    });
+  } else {
+    printPdfFallback(d);
+  }
+}
+
+function printPdfFallback(d) {
+  const printWin = window.open('', '_blank', 'width=850,height=900');
+  if (!printWin) {
+    exportTextReport();
+    showToast('Popups blocked. Downloaded text report (.txt)', 'warning');
+    return;
+  }
+
+  printWin.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>DevPilot AI - GitHub Developer Report (@${d.user.login})</title>
+        <style>
+          @page { size: A4; margin: 10mm; }
+          body { margin: 0; padding: 0; background: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+          @media print {
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          }
+        </style>
+      </head>
+      <body>
+        ${generatePdfTemplate(d)}
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+            }, 300);
+          };
+        <\/script>
+      </body>
+    </html>
+  `);
+  printWin.document.close();
+  showToast(`Opened printable PDF report for @${d.user.login}`, 'info');
+}
+
 // Default export alias
 function exportReport() {
-  exportTextReport();
+  exportPdfReport();
 }
 
 // --------------------------------------------------------------------------

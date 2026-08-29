@@ -173,10 +173,14 @@
 
           <!-- Export Action Buttons Group -->
           <div class="flex items-center gap-2">
-            <button class="btn-secondary text-sm py-2 px-3.5 shrink-0" id="btn-export-report" title="Download Text Report (.txt)">
+            <button class="btn-primary text-sm py-2 px-3.5 shrink-0" id="btn-export-pdf" title="Download PDF Developer Report (.pdf)">
+              <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+              <span class="hidden sm:inline">Export PDF</span>
+              <span class="sm:hidden">PDF</span>
+            </button>
+            <button class="btn-secondary text-sm py-2 px-3 shrink-0" id="btn-export-txt" title="Download Text Report (.txt)">
               <span class="material-symbols-outlined text-[18px]">description</span>
-              <span class="hidden sm:inline">Export Report (.txt)</span>
-              <span class="sm:hidden">Report</span>
+              <span class="hidden sm:inline">TXT</span>
             </button>
             <button class="btn-secondary text-sm py-2 px-3 shrink-0" id="btn-export-json" title="Download Raw JSON Data (.json)">
               <span class="material-symbols-outlined text-[18px]">data_object</span>
@@ -324,110 +328,7 @@
       <!-- ========================================================================= -->
       <div class="analyzer-state" id="state-content">
         
-        <!-- Top Grid: Section 2 (Profile Overview) & Section 3 (Developer Score) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 mb-6 items-start">
-          
-          <!-- 2. PROFILE OVERVIEW CARD (8 cols) -->
-          <div class="lg:col-span-8 dev-card p-6 sm:p-7 min-w-0">
-            <!-- Top Profile Row: Avatar, Info, and Action Button -->
-            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-              <div class="flex items-start gap-4 min-w-0 flex-1">
-                <img id="user-avatar" src="" alt="Avatar" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-slate-200 shrink-0 shadow-sm"/>
-                <div class="min-w-0 flex-1">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <h2 class="text-xl sm:text-2xl font-bold text-slate-900 truncate" id="user-name">Developer Name</h2>
-                    <span class="badge badge-primary text-xs shrink-0" id="user-login">@username</span>
-                  </div>
-                  <p class="text-xs sm:text-sm text-slate-600 mt-1.5 leading-relaxed max-w-xl break-words-anywhere" id="user-bio">
-                    Software engineer building open source tools.
-                  </p>
-                  
-                  <!-- Metadata row: Location • Organization • Website • Joined Date -->
-                  <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-2.5 text-xs text-slate-500">
-                    <span class="flex items-center gap-1 shrink-0">
-                      <span class="material-symbols-outlined text-[15px] text-slate-400">location_on</span>
-                      <span id="user-location">Location</span>
-                    </span>
-                    <span class="flex items-center gap-1 shrink-0">
-                      <span class="material-symbols-outlined text-[15px] text-slate-400">business</span>
-                      <span id="user-company">Company</span>
-                    </span>
-                    <span class="flex items-center gap-1 shrink-0">
-                      <span class="material-symbols-outlined text-[15px] text-slate-400">link</span>
-                      <a href="#" target="_blank" id="user-blog" class="text-indigo-600 hover:underline truncate max-w-[180px]">Website</a>
-                    </span>
-                    <span class="flex items-center gap-1 shrink-0">
-                      <span class="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
-                      <span id="user-joined">Joined 2022</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <a href="#" target="_blank" id="user-github-link" class="btn-secondary text-xs py-2 px-3.5 self-start sm:self-auto shrink-0 flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[16px]">open_in_new</span>
-                <span>GitHub Profile</span>
-              </a>
-            </div>
-
-            <!-- Bottom Profile Stats (Close to profile info with clean consistent gap) -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-slate-100 text-center">
-              <div class="p-3 sm:p-3.5 bg-slate-50 border border-slate-100 rounded-xl flex flex-col justify-center min-h-[64px]">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Repositories</p>
-                <h4 class="text-lg sm:text-xl font-bold text-slate-900 mt-0.5" id="user-stat-repos">0</h4>
-              </div>
-              <div class="p-3 sm:p-3.5 bg-slate-50 border border-slate-100 rounded-xl flex flex-col justify-center min-h-[64px]">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Followers</p>
-                <h4 class="text-lg sm:text-xl font-bold text-slate-900 mt-0.5" id="user-stat-followers">0</h4>
-              </div>
-              <div class="p-3 sm:p-3.5 bg-slate-50 border border-slate-100 rounded-xl flex flex-col justify-center min-h-[64px]">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Following</p>
-                <h4 class="text-lg sm:text-xl font-bold text-slate-900 mt-0.5" id="user-stat-following">0</h4>
-              </div>
-              <div class="p-3 sm:p-3.5 bg-slate-50 border border-slate-100 rounded-xl flex flex-col justify-center min-h-[64px]">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Public Gists</p>
-                <h4 class="text-lg sm:text-xl font-bold text-slate-900 mt-0.5" id="user-stat-gists">0</h4>
-              </div>
-            </div>
-          </div>
-
-          <!-- 3. DEVELOPER SCORE VISUALIZER (4 cols) -->
-          <div class="lg:col-span-4 dev-card p-6 min-w-0">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-indigo-600 text-[20px]">military_tech</span>
-                <span>Developer Score</span>
-              </h3>
-              <span class="badge badge-primary text-xs" id="score-rank-tier">Developing</span>
-            </div>
-
-            <!-- Circular Score SVG -->
-            <div class="score-circle-container my-1">
-              <svg class="score-svg" viewBox="0 0 170 170">
-                <defs>
-                  <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#6366F1" />
-                    <stop offset="100%" stop-color="#8B5CF6" />
-                  </linearGradient>
-                </defs>
-                <circle class="score-circle-bg" cx="85" cy="85" r="70"></circle>
-                <circle class="score-circle-progress" id="score-circle-progress" cx="85" cy="85" r="70"></circle>
-              </svg>
-              <div class="score-center-text">
-                <div class="score-number" id="score-overall-number">0</div>
-                <div class="score-label">Score / 100</div>
-              </div>
-            </div>
-
-            <!-- 8-Category Score Breakdown Container (Rendered dynamically by js/github.js) -->
-            <div class="space-y-2 pt-3 border-t border-slate-100 text-xs" id="score-breakdown-container">
-              <!-- Rendered by renderScoreBreakdown() in js/github.js -->
-            </div>
-          </div>
-
-        </div>
-
-        <!-- 4. GITHUB KEY STATS CARDS (4 Cards, equal height, never cut off) -->
+        <!-- 1. GITHUB KEY STATS CARDS (4-Column Grid at the VERY TOP) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-6">
           <div class="dev-card flex items-center gap-4 p-5 min-h-[96px] min-w-0">
             <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
@@ -470,18 +371,149 @@
           </div>
         </div>
 
-        <!-- Mid Grid: Section 5 (Top Languages) & Section 6/8/9 (Repo Analytics, Top Repo, Timeline) -->
+        <!-- 2. MAIN 2-COLUMN BALANCED SECTION (Equal Height Stretched Cards) -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 mb-6 items-stretch">
           
-          <!-- 5. TOP LANGUAGES (4 cols) -->
+          <!-- LEFT CARD (8 cols) - Profile Info + Mini Stats + Languages + Top Highlighted Repositories -->
+          <div class="lg:col-span-8 dev-card p-6 sm:p-7 min-w-0 flex flex-col justify-between h-full space-y-5">
+            <div>
+              <!-- Top Profile Row: Avatar, Info, and Action Button -->
+              <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div class="flex items-start gap-4 min-w-0 flex-1">
+                  <img id="user-avatar" src="" alt="Avatar" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-slate-200 shrink-0 shadow-sm"/>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <h2 class="text-xl sm:text-2xl font-bold text-slate-900 truncate" id="user-name">Developer Name</h2>
+                      <span class="badge badge-primary text-xs shrink-0" id="user-login">@username</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-600 mt-1.5 leading-relaxed max-w-xl break-words-anywhere" id="user-bio">
+                      Software engineer building open source tools.
+                    </p>
+                    
+                    <!-- Metadata row: Location • Organization • Website • Joined Date -->
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-2.5 text-xs text-slate-500">
+                      <span class="flex items-center gap-1 shrink-0">
+                        <span class="material-symbols-outlined text-[15px] text-slate-400">location_on</span>
+                        <span id="user-location">Location</span>
+                      </span>
+                      <span class="flex items-center gap-1 shrink-0">
+                        <span class="material-symbols-outlined text-[15px] text-slate-400">business</span>
+                        <span id="user-company">Company</span>
+                      </span>
+                      <span class="flex items-center gap-1 shrink-0">
+                        <span class="material-symbols-outlined text-[15px] text-slate-400">link</span>
+                        <a href="#" target="_blank" id="user-blog" class="text-indigo-600 hover:underline truncate max-w-[180px]">Website</a>
+                      </span>
+                      <span class="flex items-center gap-1 shrink-0">
+                        <span class="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
+                        <span id="user-joined">Joined 2022</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <a href="#" target="_blank" id="user-github-link" class="btn-secondary text-xs py-2 px-3.5 self-start sm:self-auto shrink-0 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+                  <span>GitHub Profile</span>
+                </a>
+              </div>
+
+              <!-- Mini-Metrics Stats Bar -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-5 pt-4 border-t border-slate-100 text-center">
+                <div class="p-2.5 sm:p-3 bg-slate-50 border border-slate-100 rounded-xl flex flex-col justify-center">
+                  <p class="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Repositories</p>
+                  <h4 class="text-base sm:text-lg font-bold text-slate-900 mt-0.5" id="user-stat-repos">0</h4>
+                </div>
+                <div class="p-2.5 sm:p-3 bg-slate-50 border border-slate-100 rounded-xl flex flex-col justify-center">
+                  <p class="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Followers</p>
+                  <h4 class="text-base sm:text-lg font-bold text-slate-900 mt-0.5" id="user-stat-followers">0</h4>
+                </div>
+                <div class="p-2.5 sm:p-3 bg-slate-50 border border-slate-100 rounded-xl flex flex-col justify-center">
+                  <p class="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Following</p>
+                  <h4 class="text-base sm:text-lg font-bold text-slate-900 mt-0.5" id="user-stat-following">0</h4>
+                </div>
+                <div class="p-2.5 sm:p-3 bg-slate-50 border border-slate-100 rounded-xl flex flex-col justify-center">
+                  <p class="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Public Gists</p>
+                  <h4 class="text-base sm:text-lg font-bold text-slate-900 mt-0.5" id="user-stat-gists">0</h4>
+                </div>
+              </div>
+
+              <!-- Top Languages Progress Bar -->
+              <div class="mt-5 pt-4 border-t border-slate-100">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px] text-indigo-600">code_blocks</span>
+                    <span>Top Languages</span>
+                  </span>
+                  <span class="text-[11px] text-slate-400" id="profile-lang-summary">Primary: JavaScript</span>
+                </div>
+                <div class="lang-progress-bar h-2.5 rounded-full overflow-hidden flex bg-slate-100 mb-2" id="profile-lang-bar">
+                  <!-- Segmented progress bar populated by js/github.js -->
+                </div>
+                <div class="flex flex-wrap items-center gap-2.5 text-xs text-slate-600" id="profile-lang-pills">
+                  <!-- Language pills populated by js/github.js -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Top Highlighted Repositories Section (Nested inside left card to fill space perfectly) -->
+            <div class="pt-4 border-t border-slate-100">
+              <div id="top-repo-highlight-container" class="min-w-0">
+                <!-- Rendered dynamically by renderTopRepositories() in js/github.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT CARD (4 cols) - Developer Score & Full Metric List -->
+          <div class="lg:col-span-4 dev-card p-6 min-w-0 flex flex-col justify-between h-full">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-indigo-600 text-[20px]">military_tech</span>
+                  <span>Developer Score</span>
+                </h3>
+                <span class="badge badge-primary text-xs" id="score-rank-tier">Developing</span>
+              </div>
+
+              <!-- Circular Score SVG -->
+              <div class="score-circle-container my-1">
+                <svg class="score-svg" viewBox="0 0 170 170">
+                  <defs>
+                    <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#6366F1" />
+                      <stop offset="100%" stop-color="#8B5CF6" />
+                    </linearGradient>
+                  </defs>
+                  <circle class="score-circle-bg" cx="85" cy="85" r="70"></circle>
+                  <circle class="score-circle-progress" id="score-circle-progress" cx="85" cy="85" r="70"></circle>
+                </svg>
+                <div class="score-center-text">
+                  <div class="score-number" id="score-overall-number">0</div>
+                  <div class="score-label">Score / 100</div>
+                </div>
+              </div>
+
+              <!-- 8-Category Score Breakdown Container -->
+              <div class="space-y-2 pt-3 border-t border-slate-100 text-xs" id="score-breakdown-container">
+                <!-- Rendered by renderScoreBreakdown() in js/github.js -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 3. SECONDARY GRID: Repository Analytics, Timeline & Languages Breakdown -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 mb-6 items-stretch">
+          
+          <!-- TOP LANGUAGES DIRECTORY (4 cols) -->
           <div class="lg:col-span-4 dev-card flex flex-col justify-between p-5 min-w-0">
             <div>
               <div class="flex items-center justify-between mb-4">
                 <h3 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
                   <span class="material-symbols-outlined text-indigo-600 text-[20px]">donut_small</span>
-                  <span>Top Languages</span>
+                  <span>Languages Breakdown</span>
                 </h3>
-                <span class="text-xs text-slate-400 font-medium">By Repo Count</span>
+                <span class="text-xs text-slate-400 font-medium">By Repository Count</span>
               </div>
 
               <!-- Segmented horizontal bar -->
@@ -496,19 +528,11 @@
             </div>
           </div>
 
-          <!-- 6 & 8 & 9. REPO ANALYTICS, TOP REPO & TIMELINE (8 cols) -->
-          <div class="lg:col-span-8 space-y-5 min-w-0">
-            
-            <!-- Section 8: Highlighted Top Repository Card -->
-            <div id="top-repo-highlight-container" class="min-w-0">
-              <!-- Rendered by js/github.js -->
-            </div>
-
-            <!-- Section 6 & 9: Repository Statistics & Timeline Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              
-              <!-- Repo Breakdown Card -->
-              <div class="dev-card p-4 min-w-0">
+          <!-- REPO METRICS & TIMELINE (8 cols) -->
+          <div class="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
+            <!-- Repo Breakdown Card -->
+            <div class="dev-card p-4 min-w-0 flex flex-col justify-between">
+              <div>
                 <h4 class="font-bold text-sm text-slate-900 mb-3 flex items-center gap-1.5">
                   <span class="material-symbols-outlined text-indigo-600 text-[18px]">pie_chart</span>
                   <span>Repository Metrics</span>
@@ -527,25 +551,23 @@
                     <p class="font-bold text-slate-900 text-sm mt-0.5" id="repo-stat-archived">0</p>
                   </div>
                 </div>
-                <div class="mt-3 pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
-                  <div class="flex justify-between items-center gap-2">
-                    <span class="text-slate-400 shrink-0">Most Starred:</span>
-                    <strong class="text-slate-800 truncate text-right" id="repo-stat-most-starred">-</strong>
-                  </div>
-                  <div class="flex justify-between items-center gap-2">
-                    <span class="text-slate-400 shrink-0">Most Forked:</span>
-                    <strong class="text-slate-800 truncate text-right" id="repo-stat-most-forked">-</strong>
-                  </div>
+              </div>
+              <div class="mt-3 pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
+                <div class="flex justify-between items-center gap-2">
+                  <span class="text-slate-400 shrink-0">Most Starred:</span>
+                  <strong class="text-slate-800 truncate text-right" id="repo-stat-most-starred">-</strong>
+                </div>
+                <div class="flex justify-between items-center gap-2">
+                  <span class="text-slate-400 shrink-0">Most Forked:</span>
+                  <strong class="text-slate-800 truncate text-right" id="repo-stat-most-forked">-</strong>
                 </div>
               </div>
-
-              <!-- Section 9: Oldest vs Latest Repository Timeline -->
-              <div id="repo-timeline-container" class="min-w-0">
-                <!-- Rendered by js/github.js -->
-              </div>
-
             </div>
 
+            <!-- Oldest vs Latest Repository Timeline -->
+            <div id="repo-timeline-container" class="min-w-0">
+              <!-- Rendered by js/github.js -->
+            </div>
           </div>
 
         </div>
@@ -642,12 +664,22 @@
             <div class="dev-card bg-brand-subtle border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 min-w-0">
               <div class="min-w-0">
                 <h4 class="font-bold text-sm text-indigo-950">Export Developer Report</h4>
-                <p class="text-xs text-indigo-900/80 mt-0.5">Download complete structured metrics, developer score, and insights in JSON format.</p>
+                <p class="text-xs text-indigo-900/80 mt-0.5">Download complete structured metrics, developer score, and insights in PDF, TXT, or JSON format.</p>
               </div>
-              <button class="btn-primary text-xs py-2 px-4 shrink-0 self-start sm:self-auto" id="btn-export-json">
-                <span class="material-symbols-outlined text-[16px]">file_download</span>
-                <span>Export JSON Report</span>
-              </button>
+              <div class="flex items-center gap-2">
+                <button class="btn-primary text-xs py-2 px-4 shrink-0" id="btn-banner-export-pdf">
+                  <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+                  <span>Export PDF Report</span>
+                </button>
+                <button class="btn-secondary text-xs py-2 px-3 shrink-0" id="btn-banner-export-txt">
+                  <span class="material-symbols-outlined text-[16px]">description</span>
+                  <span>TXT</span>
+                </button>
+                <button class="btn-secondary text-xs py-2 px-3 shrink-0" id="btn-banner-export-json">
+                  <span class="material-symbols-outlined text-[16px]">data_object</span>
+                  <span>JSON</span>
+                </button>
+              </div>
             </div>
 
           </div>
@@ -659,8 +691,9 @@
     </div>
   </main>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="../js/utils.js"></script>
   <script src="../js/app.js"></script>
-  <script src="../js/github.js"></script>
+  <script src="../js/github.js?v=2.1"></script>
 </body>
 </html>
