@@ -732,50 +732,50 @@ function renderTopRepo(topRepo) {
   const updatedDate = timeAgo(topRepo.updated_at);
 
   container.innerHTML = `
-    <div class="dev-card top-repo-card">
-      <div class="flex items-center justify-between mb-3">
+    <div class="dev-card top-repo-card p-5 sm:p-6 min-w-0">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
         <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-indigo-600">star</span>
-          <span class="badge badge-primary text-xs">Featured Top Project</span>
+          <span class="material-symbols-outlined text-indigo-600 text-[20px]">star</span>
+          <span class="badge badge-primary text-xs font-bold">Featured Top Project</span>
         </div>
-        <a href="${topRepo.html_url}" target="_blank" class="btn-secondary text-xs py-1.5 px-3">
+        <a href="${topRepo.html_url}" target="_blank" class="btn-secondary text-xs py-1.5 px-3.5 flex items-center gap-1.5 shrink-0">
           <span class="material-symbols-outlined text-[15px]">open_in_new</span>
           <span>View on GitHub</span>
         </a>
       </div>
 
-      <h3 class="text-xl font-bold text-slate-900 hover:text-indigo-600 transition-colors">
+      <h3 class="text-lg sm:text-xl font-bold text-slate-900 hover:text-indigo-600 transition-colors break-words-anywhere">
         <a href="${topRepo.html_url}" target="_blank">${escapeHtml(topRepo.name)}</a>
       </h3>
 
-      <p class="text-sm text-slate-600 mt-2 mb-4 leading-relaxed">
+      <p class="text-xs sm:text-sm text-slate-600 mt-2 mb-4 leading-relaxed break-words-anywhere">
         ${escapeHtml(topRepo.description || 'No description provided for this repository.')}
       </p>
 
-      <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-indigo-100 text-xs text-slate-600">
-        <div class="flex items-center gap-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-3.5 border-t border-indigo-100/80 text-xs text-slate-600">
+        <div class="flex flex-wrap items-center gap-3 sm:gap-4">
           ${topRepo.language ? `
-            <span class="flex items-center gap-1.5 font-semibold text-slate-800">
+            <span class="flex items-center gap-1.5 font-semibold text-slate-800 shrink-0">
               <span class="repo-lang-dot" style="background-color: ${langColor};"></span>
               ${escapeHtml(topRepo.language)}
             </span>
           ` : ''}
-          <span class="flex items-center gap-1">
+          <span class="flex items-center gap-1 shrink-0">
             <span class="material-symbols-outlined text-[16px] text-amber-500">star</span>
             <strong>${topRepo.stargazers_count}</strong> stars
           </span>
-          <span class="flex items-center gap-1">
-            <span class="material-symbols-outlined text-[16px]">fork_right</span>
+          <span class="flex items-center gap-1 shrink-0">
+            <span class="material-symbols-outlined text-[16px] text-purple-600">fork_right</span>
             <strong>${topRepo.forks_count}</strong> forks
           </span>
-          <span class="flex items-center gap-1">
-            <span class="material-symbols-outlined text-[16px]">adjust</span>
+          <span class="flex items-center gap-1 shrink-0">
+            <span class="material-symbols-outlined text-[16px] text-slate-500">adjust</span>
             <strong>${topRepo.open_issues_count}</strong> issues
           </span>
         </div>
 
-        <div class="flex items-center gap-3 text-slate-400">
-          <span>Created: ${createdDate}</span>
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-slate-400 text-[11px] sm:text-xs">
+          <span>Created ${createdDate}</span>
           <span>•</span>
           <span>Updated ${updatedDate}</span>
         </div>
@@ -798,26 +798,30 @@ function renderTimeline(oldestRepo, latestRepo) {
 
   container.innerHTML = `
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-        <div class="flex items-center gap-2 text-indigo-600 mb-1">
-          <span class="material-symbols-outlined text-[18px]">history_edu</span>
-          <span class="text-xs font-bold uppercase tracking-wider">Oldest Repository</span>
+      <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl min-w-0 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-2 text-indigo-600 mb-1.5">
+            <span class="material-symbols-outlined text-[18px]">history_edu</span>
+            <span class="text-[11px] font-bold uppercase tracking-wider">Oldest Repository</span>
+          </div>
+          <h4 class="font-bold text-sm text-slate-900 truncate">
+            <a href="${oldestRepo.html_url}" target="_blank" class="hover:text-indigo-600" title="${escapeHtml(oldestRepo.name)}">${escapeHtml(oldestRepo.name)}</a>
+          </h4>
         </div>
-        <h4 class="font-bold text-sm text-slate-900 truncate">
-          <a href="${oldestRepo.html_url}" target="_blank" class="hover:text-indigo-600">${escapeHtml(oldestRepo.name)}</a>
-        </h4>
-        <p class="text-xs text-slate-500 mt-1">Created: <strong>${oldestDate}</strong></p>
+        <p class="text-xs text-slate-500 mt-2">Created: <strong class="text-slate-700">${oldestDate}</strong></p>
       </div>
 
-      <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-        <div class="flex items-center gap-2 text-emerald-600 mb-1">
-          <span class="material-symbols-outlined text-[18px]">update</span>
-          <span class="text-xs font-bold uppercase tracking-wider">Latest Activity</span>
+      <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl min-w-0 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-2 text-emerald-600 mb-1.5">
+            <span class="material-symbols-outlined text-[18px]">update</span>
+            <span class="text-[11px] font-bold uppercase tracking-wider">Latest Activity</span>
+          </div>
+          <h4 class="font-bold text-sm text-slate-900 truncate">
+            <a href="${latestRepo.html_url}" target="_blank" class="hover:text-emerald-600" title="${escapeHtml(latestRepo.name)}">${escapeHtml(latestRepo.name)}</a>
+          </h4>
         </div>
-        <h4 class="font-bold text-sm text-slate-900 truncate">
-          <a href="${latestRepo.html_url}" target="_blank" class="hover:text-emerald-600">${escapeHtml(latestRepo.name)}</a>
-        </h4>
-        <p class="text-xs text-slate-500 mt-1">Updated: <strong>${latestDate}</strong></p>
+        <p class="text-xs text-slate-500 mt-2">Updated: <strong class="text-slate-700">${latestDate}</strong></p>
       </div>
     </div>
   `;
@@ -844,17 +848,17 @@ function renderActivity(events) {
         <div class="timeline-dot">
           <span class="material-symbols-outlined text-[12px] text-indigo-600">${parsed.icon}</span>
         </div>
-        <div class="dev-card p-3.5">
+        <div class="dev-card p-3.5 min-w-0">
           <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 min-w-0 flex-1">
               <span class="event-badge ${parsed.badgeClass}">${parsed.label}</span>
-              <a href="https://github.com/${e.repo.name}" target="_blank" class="text-xs font-bold text-slate-900 hover:text-indigo-600 truncate max-w-[200px]">
+              <a href="https://github.com/${e.repo.name}" target="_blank" class="text-xs font-bold text-slate-900 hover:text-indigo-600 truncate max-w-[200px]" title="${e.repo.name}">
                 ${e.repo.name}
               </a>
             </div>
-            <span class="text-[11px] text-slate-400">${timeAgo(e.created_at)}</span>
+            <span class="text-[11px] text-slate-400 shrink-0">${timeAgo(e.created_at)}</span>
           </div>
-          <p class="text-xs text-slate-600">${escapeHtml(parsed.description)}</p>
+          <p class="text-xs text-slate-600 leading-relaxed break-words-anywhere">${escapeHtml(parsed.description)}</p>
         </div>
       </div>
     `;
@@ -923,13 +927,13 @@ function renderInsights(insights) {
   if (!container) return;
 
   container.innerHTML = insights.map(i => `
-    <div class="dev-card p-4 flex items-start gap-3.5 border-l-4 border-l-indigo-600">
+    <div class="dev-card p-4 flex items-start gap-3.5 border-l-4 border-l-indigo-600 min-w-0">
       <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
         <span class="material-symbols-outlined text-[18px]">${i.icon}</span>
       </div>
-      <div>
-        <h4 class="text-sm font-bold text-slate-900 mb-0.5">${escapeHtml(i.title)}</h4>
-        <p class="text-xs text-slate-600 leading-relaxed">${formatMarkdown(i.text)}</p>
+      <div class="min-w-0 flex-1">
+        <h4 class="text-sm font-bold text-slate-900 mb-0.5 truncate">${escapeHtml(i.title)}</h4>
+        <p class="text-xs text-slate-600 leading-relaxed break-words-anywhere">${formatMarkdown(i.text)}</p>
       </div>
     </div>
   `).join('');
@@ -940,13 +944,15 @@ function renderSuggestions(suggestions) {
   if (!container) return;
 
   container.innerHTML = suggestions.map(s => `
-    <div class="dev-card p-4">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-bold text-slate-900">${escapeHtml(s.category)}</span>
-        <span class="badge ${s.priorityClass} text-[10px]">${s.priority} Priority</span>
+    <div class="dev-card p-4 min-w-0 flex flex-col justify-between">
+      <div>
+        <div class="flex flex-wrap items-center justify-between gap-1.5 mb-2">
+          <span class="text-xs font-bold text-slate-900">${escapeHtml(s.category)}</span>
+          <span class="badge ${s.priorityClass} text-[10px] shrink-0">${s.priority} Priority</span>
+        </div>
+        <p class="text-xs font-semibold text-slate-700 mb-1">Status: <span class="text-slate-500 font-normal">${escapeHtml(s.status)}</span></p>
+        <p class="text-xs text-slate-600 leading-relaxed break-words-anywhere">${escapeHtml(s.suggestion)}</p>
       </div>
-      <p class="text-xs font-semibold text-slate-700 mb-1">Status: <span class="text-slate-500 font-normal">${escapeHtml(s.status)}</span></p>
-      <p class="text-xs text-slate-600 leading-relaxed">${escapeHtml(s.suggestion)}</p>
     </div>
   `).join('');
 }
@@ -1016,12 +1022,12 @@ function applyRepoFiltersAndRender() {
   container.innerHTML = filtered.map(repo => {
     const langColor = repo.language ? (LANGUAGE_COLORS[repo.language] || '#64748b') : '#64748b';
     return `
-      <div class="dev-card repo-card">
-        <div>
-          <div class="flex items-start justify-between gap-2 mb-2">
-            <div class="flex items-center gap-2 truncate">
-              <span class="material-symbols-outlined text-indigo-600 text-[18px]">folder</span>
-              <a href="${repo.html_url}" target="_blank" class="font-bold text-sm text-slate-900 hover:text-indigo-600 transition-colors truncate">
+      <div class="dev-card repo-card min-w-0">
+        <div class="min-w-0">
+          <div class="flex items-start justify-between gap-2 mb-2 min-w-0">
+            <div class="flex items-center gap-1.5 min-w-0 flex-1">
+              <span class="material-symbols-outlined text-indigo-600 text-[18px] shrink-0">folder</span>
+              <a href="${repo.html_url}" target="_blank" class="font-bold text-sm text-slate-900 hover:text-indigo-600 transition-colors truncate min-w-0" title="${escapeHtml(repo.name)}">
                 ${escapeHtml(repo.name)}
               </a>
             </div>
@@ -1030,20 +1036,20 @@ function applyRepoFiltersAndRender() {
               ${repo.archived ? `<span class="badge badge-neutral text-[10px]">Archived</span>` : ''}
             </div>
           </div>
-          <p class="text-xs text-slate-500 line-clamp-2 mb-4 leading-relaxed">
+          <p class="text-xs text-slate-500 line-clamp-2 mb-4 leading-relaxed break-words-anywhere">
             ${escapeHtml(repo.description || 'No description provided.')}
           </p>
         </div>
 
-        <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <div class="flex items-center gap-1.5">
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 min-w-0">
+          <div class="flex items-center gap-1.5 min-w-0 truncate">
             ${repo.language ? `
               <span class="repo-lang-dot" style="background-color: ${langColor};"></span>
-              <span class="font-medium text-slate-700">${escapeHtml(repo.language)}</span>
+              <span class="font-medium text-slate-700 truncate">${escapeHtml(repo.language)}</span>
             ` : `<span class="text-slate-400">Plain</span>`}
           </div>
 
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-3 shrink-0">
             <span class="flex items-center gap-0.5" title="Stars">
               <span class="material-symbols-outlined text-[14px] text-amber-500">star</span>
               ${repo.stargazers_count}

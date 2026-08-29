@@ -143,541 +143,543 @@
 
   <!-- Main Content Area -->
   <main class="md:ml-[260px] min-h-screen p-4 sm:p-6 lg:p-8 flex flex-col" id="main-content">
-    
-    <!-- 1. HEADER BAR -->
-    <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-200">
-      <div class="flex items-center gap-3">
-        <button class="mobile-nav-toggle md:hidden" id="mobile-menu-trigger" aria-label="Open Sidebar">
-          <span class="material-symbols-outlined">menu</span>
-        </button>
-        <div>
-          <h1 class="page-title text-2xl sm:text-3xl font-extrabold text-slate-900">GitHub Analyzer</h1>
-          <p class="page-subtitle text-slate-500 text-sm mt-0.5">Analyze your GitHub profile, repositories, languages, and coding activity in real time.</p>
-        </div>
-      </div>
-
-      <!-- Top-Right Search & Action Controls -->
-      <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-        <!-- Username Input Group -->
-        <div class="flex items-center gap-2">
-          <div class="relative flex-1 sm:w-64">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">person_search</span>
-            <input type="text" id="github-username-input" placeholder="Enter GitHub username" class="pl-9 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all w-full" value="torvalds"/>
-          </div>
-          <button class="btn-primary text-sm py-2 px-4 shrink-0" id="btn-analyze-github">
-            <span class="material-symbols-outlined text-[18px]">search_insights</span>
-            <span>Analyze</span>
-          </button>
-        </div>
-
-        <!-- Export Action Button -->
-        <button class="btn-secondary text-sm py-2 px-3 shrink-0" id="btn-export-report" title="Export Full Report">
-          <span class="material-symbols-outlined text-[18px]">download</span>
-          <span class="hidden sm:inline">Export Report</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Quick Sample Profiles Bar -->
-    <div class="flex items-center gap-2 overflow-x-auto pb-3 mb-6 text-xs text-slate-500">
-      <span class="font-semibold text-slate-400 uppercase tracking-wider shrink-0">Try Popular Profiles:</span>
-      <button class="sample-user-chip" data-username="torvalds">
-        <span>Linus Torvalds</span>
-      </button>
-      <button class="sample-user-chip" data-username="shadcn">
-        <span>shadcn</span>
-      </button>
-      <button class="sample-user-chip" data-username="gaearon">
-        <span>Dan Abramov</span>
-      </button>
-      <button class="sample-user-chip" data-username="sindresorhus">
-        <span>Sindre Sorhus</span>
-      </button>
-      <button class="sample-user-chip" data-username="antfu">
-        <span>Anthony Fu</span>
-      </button>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- STATE 1: INITIAL STATE -->
-    <!-- ========================================================================= -->
-    <div class="analyzer-state active" id="state-initial">
-      <div class="dev-card text-center py-16 px-6 max-w-2xl mx-auto my-6">
-        <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
-          <span class="material-symbols-outlined text-3xl">insights</span>
-        </div>
-        <h2 class="text-2xl font-bold text-slate-900 mb-2">Ready to Analyze Any GitHub Developer</h2>
-        <p class="text-sm text-slate-500 max-w-md mx-auto mb-8 leading-relaxed">
-          Enter any public GitHub username above to generate instant developer scorecards, language distribution charts, and repository intelligence.
-        </p>
-        <div class="flex flex-wrap items-center justify-center gap-3">
-          <button class="btn-primary text-sm py-2 px-5 sample-user-chip" data-username="torvalds">
-            <span class="material-symbols-outlined text-[18px]">play_arrow</span>
-            <span>Analyze @torvalds (Linux)</span>
-          </button>
-          <button class="btn-secondary text-sm py-2 px-5 sample-user-chip" data-username="shadcn">
-            <span class="material-symbols-outlined text-[18px]">play_arrow</span>
-            <span>Analyze @shadcn (UI)</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- STATE 2: LOADING SKELETONS -->
-    <!-- ========================================================================= -->
-    <div class="analyzer-state" id="state-loading">
-      <div class="space-y-6 animate-pulse">
-        <!-- Top Profile & Score Skeleton -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div class="lg:col-span-8 dev-card p-6">
-            <div class="flex items-center gap-4 mb-6">
-              <div class="w-20 h-20 rounded-full skeleton shrink-0"></div>
-              <div class="space-y-2 flex-1">
-                <div class="h-6 w-48 skeleton"></div>
-                <div class="h-4 w-32 skeleton"></div>
-                <div class="h-3 w-64 skeleton"></div>
-              </div>
-            </div>
-            <div class="grid grid-cols-4 gap-3 pt-4 border-t border-slate-100">
-              <div class="h-12 skeleton"></div>
-              <div class="h-12 skeleton"></div>
-              <div class="h-12 skeleton"></div>
-              <div class="h-12 skeleton"></div>
-            </div>
-          </div>
-          <div class="lg:col-span-4 dev-card p-6 flex flex-col items-center justify-center">
-            <div class="w-36 h-36 rounded-full skeleton mb-4"></div>
-            <div class="h-4 w-32 skeleton"></div>
-          </div>
-        </div>
-
-        <!-- Stats Cards Skeleton -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="dev-card h-24 skeleton"></div>
-          <div class="dev-card h-24 skeleton"></div>
-          <div class="dev-card h-24 skeleton"></div>
-          <div class="dev-card h-24 skeleton"></div>
-        </div>
-
-        <!-- Repos Skeleton -->
-        <div class="dev-card h-64 skeleton"></div>
-      </div>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- STATE 3: ERROR STATE -->
-    <!-- ========================================================================= -->
-    <div class="analyzer-state" id="state-error">
-      <div class="dev-card text-center py-14 px-6 max-w-xl mx-auto my-6 border-red-200 bg-red-50/20">
-        <div class="w-14 h-14 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4">
-          <span class="material-symbols-outlined text-3xl">error</span>
-        </div>
-        <h3 class="text-xl font-bold text-slate-900 mb-2">GitHub User Not Found</h3>
-        <p class="text-sm text-slate-600 max-w-md mx-auto mb-6" id="error-message-text">
-          Could not find the requested user. Please check the spelling and try again.
-        </p>
-        <button class="btn-primary text-sm py-2 px-5" onclick="document.getElementById('github-username-input').focus()">
-          <span class="material-symbols-outlined text-[18px]">search</span>
-          <span>Try Another Username</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- STATE 4: RATE LIMIT STATE -->
-    <!-- ========================================================================= -->
-    <div class="analyzer-state" id="state-ratelimit">
-      <div class="dev-card text-center py-14 px-6 max-w-xl mx-auto my-6 border-amber-200 bg-amber-50/20">
-        <div class="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
-          <span class="material-symbols-outlined text-3xl">hourglass_empty</span>
-        </div>
-        <h3 class="text-xl font-bold text-slate-900 mb-2">GitHub API Rate Limit Reached</h3>
-        <p class="text-sm text-slate-600 max-w-md mx-auto mb-2">
-          GitHub limits unauthenticated REST API requests to 60 requests per hour.
-        </p>
-        <p class="text-xs font-semibold text-amber-700 mb-6" id="ratelimit-reset-time">
-          Limit will reset shortly.
-        </p>
-        <div class="flex items-center justify-center gap-3">
-          <a href="settings.html" class="btn-primary text-sm py-2 px-4">
-            <span class="material-symbols-outlined text-[18px]">key</span>
-            <span>Add GitHub Token in Settings</span>
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- STATE 5: CONTENT DASHBOARD (RENDERED ON SUCCESS) -->
-    <!-- ========================================================================= -->
-    <div class="analyzer-state" id="state-content">
+    <div class="analyzer-container">
       
-      <!-- Top Grid: Section 2 (Profile Overview) & Section 3 (Developer Score) -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
-        
-        <!-- 2. PROFILE OVERVIEW CARD (8 cols) -->
-        <div class="lg:col-span-8 dev-card flex flex-col justify-between">
-          <div>
-            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
-              <div class="flex items-start gap-4">
-                <img id="user-avatar" src="" alt="Avatar" class="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 shrink-0 shadow-sm"/>
-                <div>
-                  <div class="flex items-center gap-2">
-                    <h2 class="text-xl font-bold text-slate-900" id="user-name">Developer Name</h2>
-                    <span class="badge badge-primary text-xs" id="user-login">@username</span>
-                  </div>
-                  <p class="text-xs text-slate-500 mt-1 leading-relaxed max-w-lg" id="user-bio">
-                    Software engineer building open source tools.
-                  </p>
-                  
-                  <!-- Metadata row -->
-                  <div class="flex flex-wrap items-center gap-3 mt-3 text-xs text-slate-500">
-                    <span class="flex items-center gap-1">
-                      <span class="material-symbols-outlined text-[15px] text-slate-400">location_on</span>
-                      <span id="user-location">Location</span>
-                    </span>
-                    <span class="flex items-center gap-1">
-                      <span class="material-symbols-outlined text-[15px] text-slate-400">business</span>
-                      <span id="user-company">Company</span>
-                    </span>
-                    <span class="flex items-center gap-1">
-                      <span class="material-symbols-outlined text-[15px] text-slate-400">link</span>
-                      <a href="#" target="_blank" id="user-blog" class="text-indigo-600 hover:underline">Website</a>
-                    </span>
-                    <span class="flex items-center gap-1">
-                      <span class="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
-                      <span id="user-joined">Joined 2022</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <a href="#" target="_blank" id="user-github-link" class="btn-secondary text-xs py-2 px-3 self-start shrink-0">
-                <span class="material-symbols-outlined text-[16px]">open_in_new</span>
-                <span>GitHub Profile</span>
-              </a>
-            </div>
-          </div>
-
-          <!-- Bottom Profile Stats -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-100 text-center">
-            <div class="p-2 bg-slate-50 rounded-xl">
-              <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Repositories</p>
-              <h4 class="text-xl font-bold text-slate-900 mt-0.5" id="user-stat-repos">0</h4>
-            </div>
-            <div class="p-2 bg-slate-50 rounded-xl">
-              <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Followers</p>
-              <h4 class="text-xl font-bold text-slate-900 mt-0.5" id="user-stat-followers">0</h4>
-            </div>
-            <div class="p-2 bg-slate-50 rounded-xl">
-              <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Following</p>
-              <h4 class="text-xl font-bold text-slate-900 mt-0.5" id="user-stat-following">0</h4>
-            </div>
-            <div class="p-2 bg-slate-50 rounded-xl">
-              <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Public Gists</p>
-              <h4 class="text-xl font-bold text-slate-900 mt-0.5" id="user-stat-gists">0</h4>
-            </div>
+      <!-- 1. HEADER BAR -->
+      <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-200">
+        <div class="flex items-center gap-3 min-w-0">
+          <button class="mobile-nav-toggle md:hidden" id="mobile-menu-trigger" aria-label="Open Sidebar">
+            <span class="material-symbols-outlined">menu</span>
+          </button>
+          <div class="min-w-0">
+            <h1 class="page-title text-2xl sm:text-3xl font-extrabold text-slate-900 truncate">GitHub Analyzer</h1>
+            <p class="page-subtitle text-slate-500 text-xs sm:text-sm mt-0.5">Analyze your GitHub profile, repositories, languages, and coding activity in real time.</p>
           </div>
         </div>
 
-        <!-- 3. DEVELOPER SCORE VISUALIZER (4 cols) -->
-        <div class="lg:col-span-4 dev-card flex flex-col justify-between">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-indigo-600 text-[20px]">military_tech</span>
-              <span>Developer Score</span>
-            </h3>
-            <span class="badge badge-primary text-xs" id="score-rank-tier">Architect</span>
-          </div>
-
-          <!-- Circular Score SVG -->
-          <div class="score-circle-container my-2">
-            <svg class="score-svg" viewBox="0 0 170 170">
-              <circle class="score-circle-bg" cx="85" cy="85" r="70"></circle>
-              <circle class="score-circle-progress" id="score-circle-progress" cx="85" cy="85" r="70"></circle>
-            </svg>
-            <div class="score-center-text">
-              <div class="score-number" id="score-overall-number">88</div>
-              <div class="score-label">Score / 100</div>
+        <!-- Top-Right Search & Action Controls -->
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
+          <!-- Username Input Group -->
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1 sm:w-60 md:w-64">
+              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">person_search</span>
+              <input type="text" id="github-username-input" placeholder="Enter GitHub username" class="pl-9 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all w-full" value="torvalds"/>
             </div>
-          </div>
-
-          <!-- Sub-Metric Progress Bars -->
-          <div class="space-y-2.5 pt-2 border-t border-slate-100 text-xs">
-            <div>
-              <div class="flex justify-between font-semibold text-slate-700 mb-1">
-                <span>Repository Quality</span>
-                <span id="subscore-repo-text">85%</span>
-              </div>
-              <div class="sub-score-bar-bg">
-                <div class="sub-score-bar-fill bg-indigo-600" id="subscore-repo-bar" style="width: 85%;"></div>
-              </div>
-            </div>
-
-            <div>
-              <div class="flex justify-between font-semibold text-slate-700 mb-1">
-                <span>Commit & Push Activity</span>
-                <span id="subscore-activity-text">90%</span>
-              </div>
-              <div class="sub-score-bar-bg">
-                <div class="sub-score-bar-fill bg-emerald-500" id="subscore-activity-bar" style="width: 90%;"></div>
-              </div>
-            </div>
-
-            <div>
-              <div class="flex justify-between font-semibold text-slate-700 mb-1">
-                <span>Community & Presence</span>
-                <span id="subscore-community-text">78%</span>
-              </div>
-              <div class="sub-score-bar-bg">
-                <div class="sub-score-bar-fill bg-amber-500" id="subscore-community-bar" style="width: 78%;"></div>
-              </div>
-            </div>
-
-            <div>
-              <div class="flex justify-between font-semibold text-slate-700 mb-1">
-                <span>Star & Fork Popularity</span>
-                <span id="subscore-popularity-text">92%</span>
-              </div>
-              <div class="sub-score-bar-bg">
-                <div class="sub-score-bar-fill bg-purple-500" id="subscore-popularity-bar" style="width: 92%;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- 4. GITHUB KEY STATS CARDS -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
-        <div class="dev-card flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-2xl">star</span>
-          </div>
-          <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Stars</p>
-            <h3 class="text-2xl font-bold text-slate-900 mt-0.5" id="card-stat-stars">0</h3>
-          </div>
-        </div>
-
-        <div class="dev-card flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-2xl">fork_right</span>
-          </div>
-          <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Forks</p>
-            <h3 class="text-2xl font-bold text-slate-900 mt-0.5" id="card-stat-forks">0</h3>
-          </div>
-        </div>
-
-        <div class="dev-card flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-2xl">folder</span>
-          </div>
-          <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Repos</p>
-            <h3 class="text-2xl font-bold text-slate-900 mt-0.5" id="card-stat-repos">0</h3>
-          </div>
-        </div>
-
-        <div class="dev-card flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-2xl">group</span>
-          </div>
-          <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Followers</p>
-            <h3 class="text-2xl font-bold text-slate-900 mt-0.5" id="card-stat-followers">0</h3>
-          </div>
-        </div>
-      </div>
-
-      <!-- Mid Grid: Section 5 (Top Languages) & Section 6/8/9 (Repo Analytics, Top Repo, Timeline) -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
-        
-        <!-- 5. TOP LANGUAGES (4 cols) -->
-        <div class="lg:col-span-4 dev-card flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-indigo-600 text-[20px]">donut_small</span>
-                <span>Top Languages</span>
-              </h3>
-              <span class="text-xs text-slate-400">By Repo Count</span>
-            </div>
-
-            <!-- Segmented horizontal bar -->
-            <div class="lang-progress-container mb-4" id="languages-bar-container">
-              <!-- Rendered by js/github.js -->
-            </div>
-
-            <!-- Language List -->
-            <div class="space-y-1" id="languages-list-container">
-              <!-- Rendered by js/github.js -->
-            </div>
-          </div>
-        </div>
-
-        <!-- 6 & 8 & 9. REPO ANALYTICS, TOP REPO & TIMELINE (8 cols) -->
-        <div class="lg:col-span-8 space-y-6">
-          
-          <!-- Section 8: Highlighted Top Repository Card -->
-          <div id="top-repo-highlight-container">
-            <!-- Rendered by js/github.js -->
-          </div>
-
-          <!-- Section 6 & 9: Repository Statistics & Timeline Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            <!-- Repo Breakdown Card -->
-            <div class="dev-card p-4">
-              <h4 class="font-bold text-sm text-slate-900 mb-3 flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-indigo-600 text-[18px]">pie_chart</span>
-                <span>Repository Metrics</span>
-              </h4>
-              <div class="grid grid-cols-3 gap-2 text-center text-xs">
-                <div class="p-2 bg-slate-50 rounded-lg">
-                  <p class="text-slate-400 font-semibold">Original</p>
-                  <p class="font-bold text-slate-900 text-sm mt-0.5" id="repo-stat-original">0</p>
-                </div>
-                <div class="p-2 bg-slate-50 rounded-lg">
-                  <p class="text-slate-400 font-semibold">Forks</p>
-                  <p class="font-bold text-slate-900 text-sm mt-0.5" id="repo-stat-forked">0</p>
-                </div>
-                <div class="p-2 bg-slate-50 rounded-lg">
-                  <p class="text-slate-400 font-semibold">Archived</p>
-                  <p class="font-bold text-slate-900 text-sm mt-0.5" id="repo-stat-archived">0</p>
-                </div>
-              </div>
-              <div class="mt-3 pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
-                <div class="flex justify-between">
-                  <span class="text-slate-400">Most Starred:</span>
-                  <strong class="text-slate-800 truncate max-w-[140px]" id="repo-stat-most-starred">-</strong>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-slate-400">Most Forked:</span>
-                  <strong class="text-slate-800 truncate max-w-[140px]" id="repo-stat-most-forked">-</strong>
-                </div>
-              </div>
-            </div>
-
-            <!-- Section 9: Oldest vs Latest Repository Timeline -->
-            <div id="repo-timeline-container">
-              <!-- Rendered by js/github.js -->
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      <!-- 7. REPOSITORY LIST & FILTERS -->
-      <div class="dev-card mb-6">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <div>
-            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <span class="material-symbols-outlined text-indigo-600">inventory_2</span>
-              <span>Repositories Directory</span>
-            </h3>
-            <p class="text-xs text-slate-500 mt-0.5" id="repos-filtered-count">Showing public repositories</p>
-          </div>
-
-          <!-- Filters: Search, Language & Sort -->
-          <div class="flex flex-wrap items-center gap-2.5">
-            <div class="relative">
-              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[16px]">search</span>
-              <input type="text" id="repo-list-search" placeholder="Search repository..." class="pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-all w-44 sm:w-56"/>
-            </div>
-
-            <select id="repo-list-lang-filter" class="text-xs py-1.5 px-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 text-slate-700">
-              <option value="All">All Languages</option>
-            </select>
-
-            <select id="repo-list-sort" class="text-xs py-1.5 px-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 text-slate-700">
-              <option value="stars">Sort by Stars</option>
-              <option value="forks">Sort by Forks</option>
-              <option value="updated">Sort by Updated</option>
-              <option value="name">Sort by Name</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Repos Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" id="repos-list-grid">
-          <!-- Rendered by js/github.js -->
-        </div>
-      </div>
-
-      <!-- Bottom Grid: Section 10 (Activity) & Section 12/13 (AI Insights & Suggestions) -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
-        
-        <!-- 10. RECENT PUBLIC ACTIVITY SECTION (5 cols) -->
-        <div class="lg:col-span-5">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-              <span class="material-symbols-outlined text-indigo-600">history</span>
-              <span>Recent Public Activity</span>
-            </h3>
-            <span class="badge badge-primary text-[10px]">Real-Time Events</span>
-          </div>
-
-          <div class="timeline-container" id="recent-activity-container">
-            <!-- Rendered by js/github.js -->
-          </div>
-        </div>
-
-        <!-- 12 & 13. AI INSIGHTS & IMPROVEMENT SUGGESTIONS (7 cols) -->
-        <div class="lg:col-span-7 space-y-6">
-          
-          <!-- Section 12: AI Developer Insights -->
-          <div>
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                <span class="material-symbols-outlined text-indigo-600">psychology</span>
-                <span>🤖 AI Developer Insights</span>
-              </h3>
-              <span class="text-xs text-slate-400">Automated Profile Analysis</span>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5" id="ai-insights-container">
-              <!-- Rendered by js/github.js -->
-            </div>
-          </div>
-
-          <!-- Section 13: Actionable Improvement Suggestions -->
-          <div>
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                <span class="material-symbols-outlined text-indigo-600">tips_and_updates</span>
-                <span>Improvement Recommendations</span>
-              </h3>
-              <span class="text-xs text-slate-400">Actionable Steps</span>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5" id="suggestions-container">
-              <!-- Rendered by js/github.js -->
-            </div>
-          </div>
-
-          <!-- 14. Export Actions Banner -->
-          <div class="dev-card bg-brand-subtle border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5">
-            <div>
-              <h4 class="font-bold text-sm text-indigo-950">Export Developer Report</h4>
-              <p class="text-xs text-indigo-900/80 mt-0.5">Download complete structured metrics, developer score, and insights in JSON format.</p>
-            </div>
-            <button class="btn-primary text-xs py-2 px-4 shrink-0" id="btn-export-json">
-              <span class="material-symbols-outlined text-[16px]">file_download</span>
-              <span>Export JSON Report</span>
+            <button class="btn-primary text-sm py-2 px-4 shrink-0" id="btn-analyze-github">
+              <span class="material-symbols-outlined text-[18px]">search_insights</span>
+              <span>Analyze</span>
             </button>
           </div>
 
+          <!-- Export Action Button -->
+          <button class="btn-secondary text-sm py-2 px-3.5 shrink-0" id="btn-export-report" title="Export Full Report">
+            <span class="material-symbols-outlined text-[18px]">download</span>
+            <span class="hidden sm:inline">Export Report</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Sample Profiles Bar -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-3 mb-6 text-xs text-slate-500 max-w-full custom-scrollbar">
+        <span class="font-semibold text-slate-400 uppercase tracking-wider shrink-0 mr-1">Try Popular Profiles:</span>
+        <button class="sample-user-chip" data-username="torvalds">
+          <span>Linus Torvalds</span>
+        </button>
+        <button class="sample-user-chip" data-username="shadcn">
+          <span>shadcn</span>
+        </button>
+        <button class="sample-user-chip" data-username="gaearon">
+          <span>Dan Abramov</span>
+        </button>
+        <button class="sample-user-chip" data-username="sindresorhus">
+          <span>Sindre Sorhus</span>
+        </button>
+        <button class="sample-user-chip" data-username="antfu">
+          <span>Anthony Fu</span>
+        </button>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- STATE 1: INITIAL STATE -->
+      <!-- ========================================================================= -->
+      <div class="analyzer-state active" id="state-initial">
+        <div class="dev-card text-center py-16 px-6 max-w-2xl mx-auto my-6">
+          <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
+            <span class="material-symbols-outlined text-3xl">insights</span>
+          </div>
+          <h2 class="text-2xl font-bold text-slate-900 mb-2">Ready to Analyze Any GitHub Developer</h2>
+          <p class="text-sm text-slate-500 max-w-md mx-auto mb-8 leading-relaxed">
+            Enter any public GitHub username above to generate instant developer scorecards, language distribution charts, and repository intelligence.
+          </p>
+          <div class="flex flex-wrap items-center justify-center gap-3">
+            <button class="btn-primary text-sm py-2 px-5 sample-user-chip" data-username="torvalds">
+              <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+              <span>Analyze @torvalds (Linux)</span>
+            </button>
+            <button class="btn-secondary text-sm py-2 px-5 sample-user-chip" data-username="shadcn">
+              <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+              <span>Analyze @shadcn (UI)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- STATE 2: LOADING SKELETONS -->
+      <!-- ========================================================================= -->
+      <div class="analyzer-state" id="state-loading">
+        <div class="space-y-6 animate-pulse">
+          <!-- Top Profile & Score Skeleton -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6">
+            <div class="lg:col-span-8 dev-card p-6">
+              <div class="flex items-center gap-4 mb-6">
+                <div class="w-20 h-20 rounded-full skeleton shrink-0"></div>
+                <div class="space-y-2 flex-1 min-w-0">
+                  <div class="h-6 w-48 skeleton"></div>
+                  <div class="h-4 w-32 skeleton"></div>
+                  <div class="h-3 w-64 skeleton"></div>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-100">
+                <div class="h-12 skeleton"></div>
+                <div class="h-12 skeleton"></div>
+                <div class="h-12 skeleton"></div>
+                <div class="h-12 skeleton"></div>
+              </div>
+            </div>
+            <div class="lg:col-span-4 dev-card p-6 flex flex-col items-center justify-center">
+              <div class="w-36 h-36 rounded-full skeleton mb-4"></div>
+              <div class="h-4 w-32 skeleton"></div>
+            </div>
+          </div>
+
+          <!-- Stats Cards Skeleton -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            <div class="dev-card h-24 skeleton"></div>
+            <div class="dev-card h-24 skeleton"></div>
+            <div class="dev-card h-24 skeleton"></div>
+            <div class="dev-card h-24 skeleton"></div>
+          </div>
+
+          <!-- Repos Skeleton -->
+          <div class="dev-card h-64 skeleton"></div>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- STATE 3: ERROR STATE -->
+      <!-- ========================================================================= -->
+      <div class="analyzer-state" id="state-error">
+        <div class="dev-card text-center py-14 px-6 max-w-xl mx-auto my-6 border-red-200 bg-red-50/20">
+          <div class="w-14 h-14 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4">
+            <span class="material-symbols-outlined text-3xl">error</span>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">GitHub User Not Found</h3>
+          <p class="text-sm text-slate-600 max-w-md mx-auto mb-6" id="error-message-text">
+            Could not find the requested user. Please check the spelling and try again.
+          </p>
+          <button class="btn-primary text-sm py-2 px-5" onclick="document.getElementById('github-username-input').focus()">
+            <span class="material-symbols-outlined text-[18px]">search</span>
+            <span>Try Another Username</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- STATE 4: RATE LIMIT STATE -->
+      <!-- ========================================================================= -->
+      <div class="analyzer-state" id="state-ratelimit">
+        <div class="dev-card text-center py-14 px-6 max-w-xl mx-auto my-6 border-amber-200 bg-amber-50/20">
+          <div class="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
+            <span class="material-symbols-outlined text-3xl">hourglass_empty</span>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">GitHub API Rate Limit Reached</h3>
+          <p class="text-sm text-slate-600 max-w-md mx-auto mb-2">
+            GitHub limits unauthenticated REST API requests to 60 requests per hour.
+          </p>
+          <p class="text-xs font-semibold text-amber-700 mb-6" id="ratelimit-reset-time">
+            Limit will reset shortly.
+          </p>
+          <div class="flex items-center justify-center gap-3">
+            <a href="settings.html" class="btn-primary text-sm py-2 px-4">
+              <span class="material-symbols-outlined text-[18px]">key</span>
+              <span>Add GitHub Token in Settings</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- STATE 5: CONTENT DASHBOARD (RENDERED ON SUCCESS) -->
+      <!-- ========================================================================= -->
+      <div class="analyzer-state" id="state-content">
+        
+        <!-- Top Grid: Section 2 (Profile Overview) & Section 3 (Developer Score) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 mb-6 items-stretch">
+          
+          <!-- 2. PROFILE OVERVIEW CARD (8 cols) -->
+          <div class="lg:col-span-8 dev-card flex flex-col justify-between p-5 sm:p-6 min-w-0">
+            <div>
+              <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-5">
+                <div class="flex items-start gap-3.5 sm:gap-4 min-w-0 flex-1">
+                  <img id="user-avatar" src="" alt="Avatar" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-slate-200 shrink-0 shadow-sm"/>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <h2 class="text-xl sm:text-2xl font-bold text-slate-900 truncate" id="user-name">Developer Name</h2>
+                      <span class="badge badge-primary text-xs shrink-0" id="user-login">@username</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed max-w-xl break-words-anywhere" id="user-bio">
+                      Software engineer building open source tools.
+                    </p>
+                    
+                    <!-- Metadata row -->
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 text-xs text-slate-500">
+                      <span class="flex items-center gap-1 shrink-0">
+                        <span class="material-symbols-outlined text-[15px] text-slate-400">location_on</span>
+                        <span id="user-location">Location</span>
+                      </span>
+                      <span class="flex items-center gap-1 shrink-0">
+                        <span class="material-symbols-outlined text-[15px] text-slate-400">business</span>
+                        <span id="user-company">Company</span>
+                      </span>
+                      <span class="flex items-center gap-1 shrink-0">
+                        <span class="material-symbols-outlined text-[15px] text-slate-400">link</span>
+                        <a href="#" target="_blank" id="user-blog" class="text-indigo-600 hover:underline truncate max-w-[180px]">Website</a>
+                      </span>
+                      <span class="flex items-center gap-1 shrink-0">
+                        <span class="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
+                        <span id="user-joined">Joined 2022</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <a href="#" target="_blank" id="user-github-link" class="btn-secondary text-xs py-2 px-3.5 self-start sm:self-auto shrink-0 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+                  <span>GitHub Profile</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Bottom Profile Stats -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 pt-4 border-t border-slate-100 text-center">
+              <div class="p-2.5 bg-slate-50 rounded-xl">
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Repositories</p>
+                <h4 class="text-lg sm:text-xl font-bold text-slate-900 mt-0.5" id="user-stat-repos">0</h4>
+              </div>
+              <div class="p-2.5 bg-slate-50 rounded-xl">
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Followers</p>
+                <h4 class="text-lg sm:text-xl font-bold text-slate-900 mt-0.5" id="user-stat-followers">0</h4>
+              </div>
+              <div class="p-2.5 bg-slate-50 rounded-xl">
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Following</p>
+                <h4 class="text-lg sm:text-xl font-bold text-slate-900 mt-0.5" id="user-stat-following">0</h4>
+              </div>
+              <div class="p-2.5 bg-slate-50 rounded-xl">
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Public Gists</p>
+                <h4 class="text-lg sm:text-xl font-bold text-slate-900 mt-0.5" id="user-stat-gists">0</h4>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. DEVELOPER SCORE VISUALIZER (4 cols) -->
+          <div class="lg:col-span-4 dev-card flex flex-col justify-between p-5 sm:p-6 min-w-0">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-indigo-600 text-[20px]">military_tech</span>
+                <span>Developer Score</span>
+              </h3>
+              <span class="badge badge-primary text-xs" id="score-rank-tier">Architect</span>
+            </div>
+
+            <!-- Circular Score SVG -->
+            <div class="score-circle-container my-1">
+              <svg class="score-svg" viewBox="0 0 170 170">
+                <circle class="score-circle-bg" cx="85" cy="85" r="70"></circle>
+                <circle class="score-circle-progress" id="score-circle-progress" cx="85" cy="85" r="70"></circle>
+              </svg>
+              <div class="score-center-text">
+                <div class="score-number" id="score-overall-number">88</div>
+                <div class="score-label">Score / 100</div>
+              </div>
+            </div>
+
+            <!-- Sub-Metric Progress Bars -->
+            <div class="space-y-2.5 pt-2 border-t border-slate-100 text-xs">
+              <div>
+                <div class="flex justify-between font-semibold text-slate-700 mb-1">
+                  <span>Repository Quality</span>
+                  <span id="subscore-repo-text">85%</span>
+                </div>
+                <div class="sub-score-bar-bg">
+                  <div class="sub-score-bar-fill bg-indigo-600" id="subscore-repo-bar" style="width: 85%;"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between font-semibold text-slate-700 mb-1">
+                  <span>Commit & Push Activity</span>
+                  <span id="subscore-activity-text">90%</span>
+                </div>
+                <div class="sub-score-bar-bg">
+                  <div class="sub-score-bar-fill bg-emerald-500" id="subscore-activity-bar" style="width: 90%;"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between font-semibold text-slate-700 mb-1">
+                  <span>Community & Presence</span>
+                  <span id="subscore-community-text">78%</span>
+                </div>
+                <div class="sub-score-bar-bg">
+                  <div class="sub-score-bar-fill bg-amber-500" id="subscore-community-bar" style="width: 78%;"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between font-semibold text-slate-700 mb-1">
+                  <span>Star & Fork Popularity</span>
+                  <span id="subscore-popularity-text">92%</span>
+                </div>
+                <div class="sub-score-bar-bg">
+                  <div class="sub-score-bar-fill bg-purple-500" id="subscore-popularity-bar" style="width: 92%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 4. GITHUB KEY STATS CARDS (4 Cards, equal height, never cut off) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-6">
+          <div class="dev-card flex items-center gap-4 p-5 min-h-[96px] min-w-0">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-2xl">star</span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">Total Stars</p>
+              <h3 class="text-2xl font-bold text-slate-900 mt-0.5 truncate" id="card-stat-stars">0</h3>
+            </div>
+          </div>
+
+          <div class="dev-card flex items-center gap-4 p-5 min-h-[96px] min-w-0">
+            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-2xl">fork_right</span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">Total Forks</p>
+              <h3 class="text-2xl font-bold text-slate-900 mt-0.5 truncate" id="card-stat-forks">0</h3>
+            </div>
+          </div>
+
+          <div class="dev-card flex items-center gap-4 p-5 min-h-[96px] min-w-0">
+            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-2xl">folder</span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">Total Repos</p>
+              <h3 class="text-2xl font-bold text-slate-900 mt-0.5 truncate" id="card-stat-repos">0</h3>
+            </div>
+          </div>
+
+          <div class="dev-card flex items-center gap-4 p-5 min-h-[96px] min-w-0">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-2xl">group</span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">Followers</p>
+              <h3 class="text-2xl font-bold text-slate-900 mt-0.5 truncate" id="card-stat-followers">0</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mid Grid: Section 5 (Top Languages) & Section 6/8/9 (Repo Analytics, Top Repo, Timeline) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 mb-6 items-stretch">
+          
+          <!-- 5. TOP LANGUAGES (4 cols) -->
+          <div class="lg:col-span-4 dev-card flex flex-col justify-between p-5 min-w-0">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-indigo-600 text-[20px]">donut_small</span>
+                  <span>Top Languages</span>
+                </h3>
+                <span class="text-xs text-slate-400 font-medium">By Repo Count</span>
+              </div>
+
+              <!-- Segmented horizontal bar -->
+              <div class="lang-progress-container mb-4" id="languages-bar-container">
+                <!-- Rendered by js/github.js -->
+              </div>
+
+              <!-- Language List -->
+              <div class="space-y-1" id="languages-list-container">
+                <!-- Rendered by js/github.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- 6 & 8 & 9. REPO ANALYTICS, TOP REPO & TIMELINE (8 cols) -->
+          <div class="lg:col-span-8 space-y-5 min-w-0">
+            
+            <!-- Section 8: Highlighted Top Repository Card -->
+            <div id="top-repo-highlight-container" class="min-w-0">
+              <!-- Rendered by js/github.js -->
+            </div>
+
+            <!-- Section 6 & 9: Repository Statistics & Timeline Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              <!-- Repo Breakdown Card -->
+              <div class="dev-card p-4 min-w-0">
+                <h4 class="font-bold text-sm text-slate-900 mb-3 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-indigo-600 text-[18px]">pie_chart</span>
+                  <span>Repository Metrics</span>
+                </h4>
+                <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                  <div class="p-2 bg-slate-50 rounded-lg min-w-0">
+                    <p class="text-slate-400 font-semibold truncate">Original</p>
+                    <p class="font-bold text-slate-900 text-sm mt-0.5" id="repo-stat-original">0</p>
+                  </div>
+                  <div class="p-2 bg-slate-50 rounded-lg min-w-0">
+                    <p class="text-slate-400 font-semibold truncate">Forks</p>
+                    <p class="font-bold text-slate-900 text-sm mt-0.5" id="repo-stat-forked">0</p>
+                  </div>
+                  <div class="p-2 bg-slate-50 rounded-lg min-w-0">
+                    <p class="text-slate-400 font-semibold truncate">Archived</p>
+                    <p class="font-bold text-slate-900 text-sm mt-0.5" id="repo-stat-archived">0</p>
+                  </div>
+                </div>
+                <div class="mt-3 pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
+                  <div class="flex justify-between items-center gap-2">
+                    <span class="text-slate-400 shrink-0">Most Starred:</span>
+                    <strong class="text-slate-800 truncate text-right" id="repo-stat-most-starred">-</strong>
+                  </div>
+                  <div class="flex justify-between items-center gap-2">
+                    <span class="text-slate-400 shrink-0">Most Forked:</span>
+                    <strong class="text-slate-800 truncate text-right" id="repo-stat-most-forked">-</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 9: Oldest vs Latest Repository Timeline -->
+              <div id="repo-timeline-container" class="min-w-0">
+                <!-- Rendered by js/github.js -->
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- 7. REPOSITORY LIST & FILTERS -->
+        <div class="dev-card p-5 sm:p-6 mb-6 min-w-0">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+            <div class="min-w-0">
+              <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-indigo-600">inventory_2</span>
+                <span>Repositories Directory</span>
+              </h3>
+              <p class="text-xs text-slate-500 mt-0.5" id="repos-filtered-count">Showing public repositories</p>
+            </div>
+
+            <!-- Filters: Search, Language & Sort -->
+            <div class="flex flex-wrap items-center gap-2.5">
+              <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[16px]">search</span>
+                <input type="text" id="repo-list-search" placeholder="Search repository..." class="pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-all w-44 sm:w-56"/>
+              </div>
+
+              <select id="repo-list-lang-filter" class="text-xs py-1.5 px-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 text-slate-700">
+                <option value="All">All Languages</option>
+              </select>
+
+              <select id="repo-list-sort" class="text-xs py-1.5 px-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 text-slate-700">
+                <option value="stars">Sort by Stars</option>
+                <option value="forks">Sort by Forks</option>
+                <option value="updated">Sort by Updated</option>
+                <option value="name">Sort by Name</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Repos Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" id="repos-list-grid">
+            <!-- Rendered by js/github.js -->
+          </div>
+        </div>
+
+        <!-- Bottom Grid: Section 10 (Activity) & Section 12/13 (AI Insights & Suggestions) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 mb-8 items-start">
+          
+          <!-- 10. RECENT PUBLIC ACTIVITY SECTION (5 cols) -->
+          <div class="lg:col-span-5 min-w-0">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-indigo-600">history</span>
+                <span>Recent Public Activity</span>
+              </h3>
+              <span class="badge badge-primary text-[10px]">Real-Time Events</span>
+            </div>
+
+            <div class="timeline-container" id="recent-activity-container">
+              <!-- Rendered by js/github.js -->
+            </div>
+          </div>
+
+          <!-- 12 & 13. AI INSIGHTS & IMPROVEMENT SUGGESTIONS (7 cols) -->
+          <div class="lg:col-span-7 space-y-6 min-w-0">
+            
+            <!-- Section 12: AI Developer Insights -->
+            <div class="min-w-0">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <span class="material-symbols-outlined text-indigo-600">psychology</span>
+                  <span>🤖 AI Developer Insights</span>
+                </h3>
+                <span class="text-xs text-slate-400">Automated Profile Analysis</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5" id="ai-insights-container">
+                <!-- Rendered by js/github.js -->
+              </div>
+            </div>
+
+            <!-- Section 13: Actionable Improvement Suggestions -->
+            <div class="min-w-0">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <span class="material-symbols-outlined text-indigo-600">tips_and_updates</span>
+                  <span>Improvement Recommendations</span>
+                </h3>
+                <span class="text-xs text-slate-400">Actionable Steps</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5" id="suggestions-container">
+                <!-- Rendered by js/github.js -->
+              </div>
+            </div>
+
+            <!-- 14. Export Actions Banner -->
+            <div class="dev-card bg-brand-subtle border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 min-w-0">
+              <div class="min-w-0">
+                <h4 class="font-bold text-sm text-indigo-950">Export Developer Report</h4>
+                <p class="text-xs text-indigo-900/80 mt-0.5">Download complete structured metrics, developer score, and insights in JSON format.</p>
+              </div>
+              <button class="btn-primary text-xs py-2 px-4 shrink-0 self-start sm:self-auto" id="btn-export-json">
+                <span class="material-symbols-outlined text-[16px]">file_download</span>
+                <span>Export JSON Report</span>
+              </button>
+            </div>
+
+          </div>
+
         </div>
 
       </div>
 
     </div>
-
   </main>
 
   <script src="../js/utils.js"></script>

@@ -6,12 +6,16 @@
 #main-content {
   margin-left: 0;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 @media (min-width: 768px) {
   #main-content {
     margin-left: var(--sidebar-width);
     width: calc(100% - var(--sidebar-width));
+    max-width: calc(100% - var(--sidebar-width));
   }
 }
 
