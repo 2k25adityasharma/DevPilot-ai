@@ -1,184 +1,124 @@
 <!DOCTYPE html>
-
-<html lang="en"><head>
+<html class="js preload" lang="en" style="">
+<head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>DevPilot-AI Dashboard</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+<!-- Reveal-on-ready gate: hides the whole page until Tailwind CDN + fonts are ready -->
+<style>
+  html.preload {
+    visibility: hidden;
+    opacity: 0;
+  }
+  html.app-ready {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.25s ease-in;
+  }
+</style>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" id="tailwind-cdn"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
-    tailwind.config = {
-      darkMode: "class",
-      theme: {
-        extend: {
-          "colors": {
-                  "surface-container": "#efecf8",
-                  "inverse-primary": "#c0c1ff",
-                  "error": "#ba1a1a",
-                  "surface-container-highest": "#e4e1ed",
-                  "surface-dim": "#dbd8e4",
-                  "background": "#fcf8ff",
-                  "secondary-container": "#e3e1ed",
-                  "primary-container": "#6063ee",
-                  "on-secondary": "#ffffff",
-                  "tertiary-fixed": "#ffdcc5",
-                  "outline-variant": "#c7c4d7",
-                  "error-container": "#ffdad6",
-                  "on-secondary-fixed": "#1a1b23",
-                  "tertiary-container": "#b55d00",
-                  "on-secondary-container": "#64636d",
-                  "on-tertiary-container": "#fffbff",
-                  "secondary": "#5d5d67",
-                  "secondary-fixed-dim": "#c7c5d1",
-                  "surface": "#fcf8ff",
-                  "on-surface": "#1b1b23",
-                  "on-secondary-fixed-variant": "#46464f",
-                  "surface-variant": "#e4e1ed",
-                  "inverse-surface": "#303038",
-                  "on-primary-fixed": "#07006c",
-                  "on-primary": "#ffffff",
-                  "on-background": "#1b1b23",
-                  "surface-container-lowest": "#ffffff",
-                  "on-tertiary-fixed-variant": "#703700",
-                  "inverse-on-surface": "#f2effb",
-                  "on-surface-variant": "#464554",
-                  "primary": "#4648d4",
-                  "on-tertiary": "#ffffff",
-                  "tertiary-fixed-dim": "#ffb783",
-                  "primary-fixed": "#e1e0ff",
-                  "on-error": "#ffffff",
-                  "surface-bright": "#fcf8ff",
-                  "surface-container-low": "#f5f2fe",
-                  "secondary-fixed": "#e3e1ed",
-                  "outline": "#767586",
-                  "on-error-container": "#93000a",
-                  "surface-tint": "#494bd6",
-                  "surface-container-high": "#e9e6f3",
-                  "on-primary-fixed-variant": "#2f2ebe",
-                  "tertiary": "#904900",
-                  "on-primary-container": "#fffbff",
-                  "on-tertiary-fixed": "#301400",
-                  "primary-fixed-dim": "#c0c1ff"
-          },
-          "borderRadius": {
-                  "DEFAULT": "0.25rem",
-                  "lg": "0.5rem",
-                  "xl": "0.75rem",
-                  "full": "9999px"
-          },
-          "spacing": {
-                  "sidebar-width": "260px",
-                  "stack-lg": "24px",
-                  "stack-md": "16px",
-                  "gutter": "24px",
-                  "container-padding": "32px",
-                  "stack-sm": "8px",
-                  "navbar-height": "72px"
-          },
-          "fontFamily": {
-                  "body-md": [
-                          "Inter"
-                  ],
-                  "title-md": [
-                          "Plus Jakarta Sans"
-                  ],
-                  "headline-lg-mobile": [
-                          "Plus Jakarta Sans"
-                  ],
-                  "label-md": [
-                          "Inter"
-                  ],
-                  "headline-xl": [
-                          "Plus Jakarta Sans"
-                  ],
-                  "label-sm": [
-                          "Inter"
-                  ],
-                  "body-lg": [
-                          "Inter"
-                  ],
-                  "stats-lg": [
-                          "Plus Jakarta Sans"
-                  ],
-                  "headline-lg": [
-                          "Plus Jakarta Sans"
-                  ]
-          },
-          "fontSize": {
-                  "body-md": [
-                          "14px",
-                          {
-                                  "lineHeight": "20px",
-                                  "fontWeight": "400"
-                          }
-                  ],
-                  "title-md": [
-                          "18px",
-                          {
-                                  "lineHeight": "24px",
-                                  "fontWeight": "600"
-                          }
-                  ],
-                  "headline-lg-mobile": [
-                          "20px",
-                          {
-                                  "lineHeight": "28px",
-                                  "fontWeight": "600"
-                          }
-                  ],
-                  "label-md": [
-                          "13px",
-                          {
-                                  "lineHeight": "18px",
-                                  "fontWeight": "500"
-                          }
-                  ],
-                  "headline-xl": [
-                          "32px",
-                          {
-                                  "lineHeight": "40px",
-                                  "letterSpacing": "-0.02em",
-                                  "fontWeight": "700"
-                          }
-                  ],
-                  "label-sm": [
-                          "11px",
-                          {
-                                  "lineHeight": "16px",
-                                  "letterSpacing": "0.05em",
-                                  "fontWeight": "600"
-                          }
-                  ],
-                  "body-lg": [
-                          "16px",
-                          {
-                                  "lineHeight": "24px",
-                                  "fontWeight": "400"
-                          }
-                  ],
-                  "stats-lg": [
-                          "36px",
-                          {
-                                  "lineHeight": "44px",
-                                  "fontWeight": "700"
-                          }
-                  ],
-                  "headline-lg": [
-                          "24px",
-                          {
-                                  "lineHeight": "32px",
-                                  "letterSpacing": "-0.01em",
-                                  "fontWeight": "600"
-                          }
-                  ]
-          }
-  },
-      },
-    }
-  </script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "error-container": "#ffdad6",
+                "on-primary-container": "#fffbff",
+                "surface-variant": "#e4e1ed",
+                "tertiary-container": "#b55d00",
+                "surface-container": "#efecf8",
+                "primary": "#4648d4",
+                "on-tertiary": "#ffffff",
+                "on-tertiary-fixed-variant": "#703700",
+                "tertiary-fixed": "#ffdcc5",
+                "background": "#fcf8ff",
+                "error": "#ba1a1a",
+                "on-primary-fixed-variant": "#2f2ebe",
+                "outline-variant": "#c7c4d7",
+                "surface-container-highest": "#e4e1ed",
+                "surface-bright": "#fcf8ff",
+                "surface-container-low": "#f5f2fe",
+                "primary-container": "#6063ee",
+                "secondary-container": "#e3e1ed",
+                "surface-dim": "#dbd8e4",
+                "secondary-fixed-dim": "#c7c5d1",
+                "surface-tint": "#494bd6",
+                "on-error-container": "#93000a",
+                "on-tertiary-fixed": "#301400",
+                "secondary-fixed": "#e3e1ed",
+                "tertiary-fixed-dim": "#ffb783",
+                "outline": "#767586",
+                "secondary": "#5d5d67",
+                "on-secondary": "#ffffff",
+                "on-error": "#ffffff",
+                "on-surface-variant": "#464554",
+                "on-secondary-container": "#64636d",
+                "tertiary": "#904900",
+                "on-primary-fixed": "#07006c",
+                "surface-container-high": "#e9e6f3",
+                "surface-container-lowest": "#ffffff",
+                "on-tertiary-container": "#fffbff",
+                "on-surface": "#1b1b23",
+                "on-secondary-fixed-variant": "#46464f",
+                "primary-fixed-dim": "#c0c1ff",
+                "inverse-surface": "#303038",
+                "primary-fixed": "#e1e0ff",
+                "on-secondary-fixed": "#1a1b23",
+                "inverse-primary": "#c0c1ff",
+                "surface": "#fcf8ff",
+                "on-background": "#1b1b23",
+                "on-primary": "#ffffff",
+                "inverse-on-surface": "#f2effb"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "container-padding": "32px",
+                "gutter": "24px",
+                "stack-sm": "8px",
+                "stack-lg": "24px",
+                "stack-md": "16px",
+                "navbar-height": "72px",
+                "sidebar-width": "260px",
+                "sidebar-collapsed-width": "72px"
+        },
+        "fontFamily": {
+                "stats-lg": ["Plus Jakarta Sans"],
+                "label-sm": ["Inter"],
+                "body-md": ["Inter"],
+                "headline-lg": ["Plus Jakarta Sans"],
+                "title-md": ["Plus Jakarta Sans"],
+                "label-md": ["Inter"],
+                "headline-lg-mobile": ["Plus Jakarta Sans"],
+                "headline-xl": ["Plus Jakarta Sans"],
+                "body-lg": ["Inter"]
+        },
+        "fontSize": {
+                "stats-lg": ["36px", { "lineHeight": "44px", "fontWeight": "700" }],
+                "label-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                "title-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+                "headline-lg-mobile": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+        }
+},
+    },
+  }
+</script>
 <style>
     body {
       background-color: #fcf8ff; /* background */
@@ -210,7 +150,112 @@
         opacity: 0;
         visibility: hidden;
     }
+
+    /* Sidebar Transitions */
+    #sidebar {
+        transition: transform 300ms ease, width 300ms ease;
+    }
+    #main-content, #top-nav {
+        transition: margin-left 300ms ease, width 300ms ease;
+    }
+    
+    .sidebar-text {
+        transition: opacity 200ms ease, width 200ms ease;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+    
+    .sidebar-collapsed .sidebar-text {
+        opacity: 0;
+        width: 0;
+        display: none;
+    }
+    
+    .sidebar-collapsed #sidebar {
+        width: 72px;
+    }
+    
+    @media (min-width: 768px) {
+        .sidebar-collapsed #main-content {
+            margin-left: 72px;
+        }
+        .sidebar-collapsed #top-nav {
+            width: calc(100% - 72px);
+        }
+    }
+    
+    /* Mobile Overlay */
+    #mobile-overlay {
+        transition: opacity 300ms ease, visibility 300ms;
+    }
+    #mobile-overlay.hidden {
+        opacity: 0;
+        visibility: hidden;
+    }
+    
+    /* Tooltips */
+    .tooltip .tooltip-text {
+        visibility: hidden;
+        width: max-content;
+        background-color: #303038;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 4px 8px;
+        position: absolute;
+        z-index: 100;
+        left: 110%; /* Place to the right of the icon */
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 12px;
+    }
+
+    .sidebar-collapsed .tooltip:hover .tooltip-text {
+        visibility: visible;
+        opacity: 1;
+    }
+    
+    /* Prevent flicker logic (transitions off while collapsing state is being applied) */
+    html.js .preload * {
+        transition: none !important;
+    }
   </style>
+<script>
+    (function () {
+      const htmlDoc = document.documentElement;
+      htmlDoc.classList.add('js', 'preload');
+
+      // Early sidebar-collapsed state, before paint, to prevent layout flicker
+      const isCollapsed = localStorage.getItem('devpilot-sidebar-collapsed') === 'true';
+      if (isCollapsed && window.innerWidth >= 768) {
+        htmlDoc.classList.add('sidebar-collapsed');
+      }
+
+      function reveal() {
+        htmlDoc.classList.remove('preload');
+        htmlDoc.classList.add('app-ready');
+      }
+
+      // Wait for Tailwind CDN to finish generating utility classes
+      const tailwindReady = new Promise((resolve) => {
+        if (window.tailwind) { resolve(); return; }
+        const s = document.getElementById('tailwind-cdn');
+        s.addEventListener('load', resolve);
+        s.addEventListener('error', resolve);
+      });
+
+      // Wait for icon/text fonts to finish loading
+      const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+
+      Promise.all([tailwindReady, fontsReady]).then(reveal);
+
+      // Safety fallback so the page never stays hidden forever
+      window.addEventListener('load', () => setTimeout(reveal, 300));
+      setTimeout(reveal, 1500);
+    })();
+</script>
 </head>
 <body class="font-body-md text-on-surface antialiased bg-background">
 <!-- Command Palette Modal -->
@@ -239,100 +284,122 @@
 </div>
 </div>
 </div>
+<!-- Mobile Overlay -->
+<div class="fixed inset-0 z-40 bg-inverse-surface/40 backdrop-blur-sm hidden md:hidden" id="mobile-overlay"></div>
 <!-- SideNavBar -->
-<aside class="hidden md:flex fixed left-0 top-0 h-full w-[260px] bg-surface border-r border-outline-variant flex-col py-stack-lg z-50">
+<aside class="fixed left-0 top-0 h-full w-[260px] bg-surface border-r border-outline-variant flex flex-col py-stack-lg z-50 transform md:translate-x-0" id="sidebar">
+<!-- Toggle Button -->
+<button aria-label="Toggle Sidebar" class="absolute -right-3.5 top-6 w-7 h-7 bg-surface border border-outline-variant rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary transition-colors z-50 hidden md:flex shadow-sm" id="sidebar-toggle">
+<span class="material-symbols-outlined text-[18px]" id="sidebar-toggle-icon">chevron_left</span>
+</button>
+<div class="flex-1 flex flex-col overflow-hidden">
 <!-- Brand Logo -->
-<div class="px-gutter mb-8 flex items-center gap-3">
-<div class="w-8 h-8 rounded bg-brand-gradient flex items-center justify-center text-on-primary">
-<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">terminal</span>
+<div class="px-gutter mb-8 flex items-center gap-3 overflow-hidden">
+<div class="min-w-[32px] w-8 h-8 rounded bg-brand-gradient flex items-center justify-center text-on-primary shrink-0">
+<span class="material-symbols-outlined text-xl" style='font-variation-settings: "FILL" 1;'>terminal</span>
 </div>
-<div>
+<div class="sidebar-text">
 <h1 class="text-headline-lg font-headline-lg font-bold text-primary tracking-tight leading-none">DevPilot AI</h1>
-<p class="text-label-sm font-label-sm text-on-surface-variant uppercase mt-0.5">Developer Workspace</p>
+<p class="text-label-sm font-label-sm text-on-surface-variant uppercase mt-0.5">Workspace</p>
 </div>
 </div>
 <!-- Navigation Links -->
-<nav class="flex-1 overflow-y-auto custom-scrollbar px-3 space-y-1">
+<nav class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar px-3 space-y-1">
 <!-- Active Tab -->
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-secondary-container text-on-secondary-container border-l-[3px] border-primary transition-transform hover:scale-[0.98] duration-200" href="#">
-<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">dashboard</span>
-<span class="font-label-md text-label-md">Dashboard</span>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-secondary-container text-on-secondary-container border-l-[3px] border-primary transition-transform hover:scale-[0.98] duration-200 tooltip relative group" href="#">
+<span class="material-symbols-outlined text-primary shrink-0" style='font-variation-settings: "FILL" 1;'>dashboard</span>
+<span class="font-label-md text-label-md sidebar-text">Dashboard</span>
+<span class="tooltip-text">Dashboard</span>
 </a>
 <!-- Inactive Tabs -->
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent" href="#">
-<span class="material-symbols-outlined">code</span>
-<span class="font-label-md text-label-md">GitHub</span>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<span class="material-symbols-outlined shrink-0">code</span>
+<span class="font-label-md text-label-md sidebar-text">GitHub</span>
+<span class="tooltip-text">GitHub</span>
 </a>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent" href="#">
-<span class="material-symbols-outlined">smart_toy</span>
-<span class="font-label-md text-label-md">AI Chat</span>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<span class="material-symbols-outlined shrink-0">smart_toy</span>
+<span class="font-label-md text-label-md sidebar-text">AI Chat</span>
+<span class="tooltip-text">AI Chat</span>
 </a>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent" href="#">
-<span class="material-symbols-outlined">description</span>
-<span class="font-label-md text-label-md">Resume</span>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<span class="material-symbols-outlined shrink-0">description</span>
+<span class="font-label-md text-label-md sidebar-text">Resume</span>
+<span class="tooltip-text">Resume</span>
 </a>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent" href="#">
-<span class="material-symbols-outlined">map</span>
-<span class="font-label-md text-label-md">Roadmap</span>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<span class="material-symbols-outlined shrink-0">map</span>
+<span class="font-label-md text-label-md sidebar-text">Roadmap</span>
+<span class="tooltip-text">Roadmap</span>
 </a>
-<div class="pt-4 pb-2 px-3">
+<div class="pt-4 pb-2 px-3 sidebar-text">
 <p class="text-label-sm font-label-sm text-outline uppercase">Resources</p>
 </div>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent" href="#">
-<span class="material-symbols-outlined">edit_note</span>
-<span class="font-label-md text-label-md">Notes</span>
+<div class="hidden pt-4 pb-2 px-3 justify-center items-center sidebar-collapsed-only">
+<div class="w-4 h-[1px] bg-outline-variant"></div>
+</div>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<span class="material-symbols-outlined shrink-0">edit_note</span>
+<span class="font-label-md text-label-md sidebar-text">Notes</span>
+<span class="tooltip-text">Notes</span>
 </a>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent" href="#">
-<span class="material-symbols-outlined">terminal</span>
-<span class="font-label-md text-label-md">Snippets</span>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<span class="material-symbols-outlined shrink-0">terminal</span>
+<span class="font-label-md text-label-md sidebar-text">Snippets</span>
+<span class="tooltip-text">Snippets</span>
 </a>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent" href="#">
-<span class="material-symbols-outlined">bolt</span>
-<span class="font-label-md text-label-md">Prompts</span>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<span class="material-symbols-outlined shrink-0">bolt</span>
+<span class="font-label-md text-label-md sidebar-text">Prompts</span>
+<span class="tooltip-text">Prompts</span>
 </a>
-<div class="pt-4 pb-2 px-3">
+<div class="pt-4 pb-2 px-3 sidebar-text">
 <p class="text-label-sm font-label-sm text-outline uppercase">Tracking</p>
 </div>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent" href="#">
-<span class="material-symbols-outlined">check_circle</span>
-<span class="font-label-md text-label-md">Habits</span>
+<div class="hidden pt-4 pb-2 px-3 justify-center items-center sidebar-collapsed-only">
+<div class="w-4 h-[1px] bg-outline-variant"></div>
+</div>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<span class="material-symbols-outlined shrink-0">check_circle</span>
+<span class="font-label-md text-label-md sidebar-text">Habits</span>
+<span class="tooltip-text">Habits</span>
 </a>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent" href="#">
-<span class="material-symbols-outlined">timer</span>
-<span class="font-label-md text-label-md">Timer</span>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<span class="material-symbols-outlined shrink-0">timer</span>
+<span class="font-label-md text-label-md sidebar-text">Timer</span>
+<span class="tooltip-text">Timer</span>
 </a>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent" href="#">
-<span class="material-symbols-outlined">analytics</span>
-<span class="font-label-md text-label-md">Analytics</span>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<span class="material-symbols-outlined shrink-0">analytics</span>
+<span class="font-label-md text-label-md sidebar-text">Analytics</span>
+<span class="tooltip-text">Analytics</span>
 </a>
 </nav>
+</div>
 <!-- Motivational Card -->
-<div class="mt-auto px-4 pt-4">
-<div class="bg-brand-gradient rounded-xl p-4 text-on-primary relative overflow-hidden shadow-ambient">
-<!-- decorative subtle background element -->
-<div class="absolute top-0 right-0 opacity-10 w-24 h-24 transform translate-x-1/3 -translate-y-1/3 rounded-full bg-white blur-xl"></div>
-<p class="font-title-md text-title-md leading-tight mb-2 relative z-10">Code. Learn.<br/>Build. Repeat.</p>
-<p class="text-label-sm font-label-sm opacity-80 relative z-10">Consistency is key.</p>
-<button class="mt-3 w-full bg-white/20 hover:bg-white/30 text-white rounded-lg py-1.5 font-label-md text-label-md transition-colors backdrop-blur-sm relative z-10">
-                View Progress
-            </button>
-</div>
-</div>
-</aside>
+<div class="mt-auto px-4 pt-4 sidebar-text"><div class="bg-brand-gradient rounded-xl p-4 text-on-primary relative overflow-hidden shadow-ambient"><div class="absolute top-0 right-0 opacity-10 w-24 h-24 transform translate-x-1/3 -translate-y-1/3 rounded-full bg-white blur-xl"></div><p class="font-title-md text-title-md leading-tight mb-2 relative z-10">Code. Learn.<br/>Build. Repeat.</p><p class="text-label-sm font-label-sm opacity-80 relative z-10">Consistency is key.</p><button class="mt-3 w-full bg-white/20 hover:bg-white/30 text-white rounded-lg py-1.5 font-label-md text-label-md transition-colors backdrop-blur-sm relative z-10">View Progress</button></div></div></aside>
 <!-- TopNavBar -->
-<header class="hidden md:flex fixed top-0 right-0 w-[calc(100%-260px)] h-[72px] bg-background/80 backdrop-blur-md border-b border-outline-variant justify-between items-center px-gutter z-40">
+<header class="flex fixed top-0 right-0 w-full md:w-[calc(100%-260px)] h-[72px] bg-background/80 backdrop-blur-md border-b border-outline-variant justify-between items-center px-gutter z-40" id="top-nav">
+<!-- Mobile Menu Trigger -->
+<button aria-label="Open Menu" class="md:hidden p-2 text-on-surface-variant hover:bg-surface-container-low rounded-lg mr-2" id="mobile-menu-trigger">
+<span class="material-symbols-outlined">menu</span>
+</button>
 <!-- Search -->
-<div class="flex-1 max-w-md">
+<div class="flex-1 max-w-md hidden sm:block">
 <div class="relative group" id="search-trigger">
 <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors pointer-events-none">search</span>
 <input class="w-full bg-surface-container-low border border-outline-variant rounded-full py-2 pl-10 pr-16 text-body-md font-body-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer" id="dummy-search" placeholder="Search anything..." readonly="" type="text"/>
 <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 bg-surface-container px-2 py-0.5 rounded text-label-sm font-label-sm text-on-surface-variant border border-outline-variant/50 pointer-events-none">
-<span>Ctrl</span> <span>/</span> <span>K</span>
+<span class="">Ctrl</span> <span class="">/</span> <span class="">K</span>
 </div>
 </div>
 </div>
+<div class="flex-1 sm:hidden"></div>
 <!-- Actions & Profile -->
 <div class="flex items-center gap-2">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all sm:hidden">
+<span class="material-symbols-outlined">search</span>
+</button>
 <button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all">
 <span class="material-symbols-outlined">light_mode</span>
 </button>
@@ -340,27 +407,27 @@
 <span class="material-symbols-outlined">notifications</span>
 <span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border border-background"></span>
 </button>
-<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all mr-2">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all mr-2 hidden sm:block">
 <span class="material-symbols-outlined">settings</span>
 </button>
-<button class="bg-primary hover:bg-primary/90 text-on-primary px-4 py-2 rounded-lg font-label-md text-label-md shadow-sm transition-transform hover:-translate-y-0.5 mr-4 flex items-center gap-2">
+<button class="bg-primary hover:bg-primary/90 text-on-primary px-3 sm:px-4 py-2 rounded-lg font-label-md text-label-md shadow-sm transition-transform hover:-translate-y-0.5 sm:mr-4 flex items-center gap-2">
 <span class="material-symbols-outlined text-[18px]">smart_toy</span>
-              Ask AI
-          </button>
-<div class="h-8 w-px bg-outline-variant mx-2"></div>
+<span class="hidden sm:inline">Ask AI</span>
+</button>
+<div class="hidden sm:block h-8 w-px bg-outline-variant mx-2"></div>
 <!-- Profile Dropdown Trigger -->
-<button class="flex items-center gap-3 hover:bg-surface-container-low p-1.5 rounded-lg transition-colors ml-2">
+<button class="flex items-center gap-3 hover:bg-surface-container-low p-1.5 rounded-lg transition-colors sm:ml-2">
 <img class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A professional headshot of a young male software developer named Aditya Sharma, smiling gently, softly lit studio lighting, modern minimalist background, clean high-key aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3Q8xabx5cJEw0VTctBeSj9V5_iaOu1vV8ZOHu5e501AnzsP7nzu2LWpiKGnqTG7fFgyhMNsnDIC-U_BRGX6FXOC2754nA8qSdkme6FD5comHfVFBKlDUUgR1y01odGe37CqF0XAeVKv-VNKqBEbyt61mx_vwwSpBxNlyHDV35gGQYvLm8J0XkIlby3tGkEBD0HS1tzAk971nd_Q9r9w3WP_vG4NqK9anYq4shSNZr6xCTzQl4BayA"/>
 <div class="text-left hidden lg:block">
 <p class="font-label-md text-label-md text-on-surface leading-none">Aditya Sharma</p>
 <p class="text-label-sm font-label-sm text-on-surface-variant">Pro Plan</p>
 </div>
-<span class="material-symbols-outlined text-outline">expand_more</span>
+<span class="material-symbols-outlined text-outline hidden sm:block">expand_more</span>
 </button>
 </div>
 </header>
 <!-- Main Content -->
-<main class="md:ml-[260px] pt-[72px] min-h-screen p-container-padding">
+<main class="md:ml-[260px] pt-[72px] min-h-screen p-container-padding" id="main-content">
 <!-- Main Content Header -->
 <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-8 gap-4">
 <div>
@@ -370,7 +437,7 @@
 <!-- Streak Card -->
 <div class="bg-surface border border-outline-variant rounded-xl p-3 flex items-center gap-4 shadow-ambient">
 <div class="w-10 h-10 rounded-full bg-tertiary-fixed flex items-center justify-center">
-<span class="material-symbols-outlined text-tertiary-container" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+<span class="material-symbols-outlined text-tertiary-container" style='font-variation-settings: "FILL" 1;'>local_fire_department</span>
 </div>
 <div>
 <p class="font-title-md text-title-md leading-tight">12 Day Streak</p>
@@ -383,7 +450,7 @@
 <!-- Today's Goal (Large Card - Spans 8 cols) -->
 <div class="lg:col-span-8 bg-surface border border-outline-variant rounded-[16px] p-6 shadow-ambient flex flex-col justify-between relative overflow-hidden">
 <!-- Background Image Integration -->
-<div class="absolute inset-0 z-0 opacity-20 pointer-events-none" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDN_k6LWOfDASPzpqVAGtM91azvx9B92xuVq9p3Tg4uOVcuX6zl2269IaDUEqRA3tMfArRAR9VgCLEgW1UR3R9UGYsjwwEeQP4LAEMWkTAoUSjse05h8vnWaNZO-aceyYNjI6bmECUiR7lfrTryw4VwowdaCdkhDKeeWukqHb0Ry0gLkEXT9wGOJb5BUoRNfwXRNB3RgfTeHcexm5758_AZ3SyTrvyIabWl2RJ6_e9ieZNPCqoq9k9r0ocLJ7WNBOLnaw'); background-size: cover; background-position: center; mix-blend-mode: overlay;"></div>
+<div class="absolute inset-0 z-0 opacity-20 pointer-events-none" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDN_k6LWOfDASPzpqVAGtM91azvx9B92xuVq9p3Tg4uOVcuX6zl2269IaDUEqRA3tMfArRAR9VgCLEgW1UR3R9UGYsjwwEeQP4LAEMWkTAoUSjse05h8vnWaNZO-aceyYNjI6bmECUiR7lfrTryw4VwowdaCdkhDKeeWukqHb0Ry0gLkEXT9wGOJb5BUoRNfwXRNB3RgfTeHcexm5758_AZ3SyTrvyIabWl2RJ6_e9ieZNPCqoq9k9r0ocLJ7WNBOLnaw"); background-size: cover; background-position: center center; mix-blend-mode: overlay;'></div>
 <div class="relative z-10 flex justify-between items-start mb-6">
 <div>
 <p class="font-label-sm text-label-sm text-primary uppercase tracking-wider mb-2 flex items-center gap-1">
@@ -625,7 +692,7 @@
 <span class="bg-surface-container px-2 py-1 rounded text-label-sm font-label-sm text-on-surface-variant">Study</span>
 </label>
 <!-- Task 2 (Unchecked) -->
-<label class="flex items-start gap-3 p-3 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer border border-transparent hover:border-outline-variant/30 bg-surface-container-lowest shadow-sm border border-outline-variant/20 task-item">
+<label class="flex items-start gap-3 p-3 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer border border-transparent hover:border-outline-variant/30 bg-surface-container-lowest shadow-sm border-outline-variant/20 task-item">
 <div class="relative flex items-center justify-center mt-0.5">
 <input class="peer appearance-none w-5 h-5 border-2 border-outline rounded-md checked:bg-primary checked:border-primary transition-all task-checkbox" type="checkbox"/>
 <span class="material-symbols-outlined absolute text-white text-[16px] opacity-0 peer-checked:opacity-100 pointer-events-none">check</span>
@@ -724,7 +791,7 @@
 <div class="flex justify-between items-center mb-4">
 <h3 class="font-title-md text-title-md text-on-surface">Contribution Activity</h3>
 <div class="flex items-center gap-2 text-label-sm text-outline">
-<span>Less</span>
+<span class="">Less</span>
 <div class="flex gap-1">
 <div class="w-3 h-3 rounded-sm bg-surface-container-high"></div>
 <div class="w-3 h-3 rounded-sm bg-primary/20"></div>
@@ -732,33 +799,12 @@
 <div class="w-3 h-3 rounded-sm bg-primary/70"></div>
 <div class="w-3 h-3 rounded-sm bg-primary"></div>
 </div>
-<span>More</span>
+<span class="">More</span>
 </div>
 </div>
-<!-- CSS Grid based heatmap -->
+<!-- CSS Grid based heatmap (built via JS, no document.write) -->
 <div class="overflow-x-auto pb-2 custom-scrollbar">
-<div class="flex gap-1" style="min-width: max-content;">
-<!-- Generate some fake columns for the heatmap -->
-<script>
-            document.write('<div class="flex gap-1">');
-            for(let i=0; i<30; i++) {
-                document.write('<div class="flex flex-col gap-1">');
-                for(let j=0; j<7; j++) {
-                    const intensities = ['bg-surface-container-high', 'bg-primary/20', 'bg-primary/40', 'bg-primary/70', 'bg-primary'];
-                    const rand = Math.random();
-                    let cls = intensities[0];
-                    if (rand > 0.9) cls = intensities[4];
-                    else if (rand > 0.7) cls = intensities[3];
-                    else if (rand > 0.5) cls = intensities[2];
-                    else if (rand > 0.3) cls = intensities[1];
-                    
-                    document.write(`<div class="w-3.5 h-3.5 rounded-sm ${cls}" title="Activity"></div>`);
-                }
-                document.write('</div>');
-            }
-            document.write('</div>');
-        </script>
-</div>
+<div class="flex gap-1" style="min-width: max-content;" id="heatmap-container"></div>
 </div>
 </div>
 <!-- Productivity Summary (Wide Footer) -->
@@ -783,26 +829,121 @@
 <div class="hidden md:block w-px h-10 bg-outline-variant"></div>
 <div>
 <p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Tasks Completed</p>
-<p class="font-headline-lg text-headline-lg text-on-surface"><span id="tasks-completed-count">1</span> <span class="text-outline text-title-md">/ <span id="tasks-total-count">4</span></span></p>
+<p class="font-headline-lg text-headline-lg text-on-surface"><span class="" id="tasks-completed-count">1</span> <span class="text-outline text-title-md">/ <span class="" id="tasks-total-count">4</span></span></p>
 </div>
 </div>
 <button class="w-full md:w-auto bg-brand-gradient hover:opacity-90 text-on-primary px-6 py-3 rounded-xl font-label-md text-label-md font-semibold shadow-md transition-transform hover:-translate-y-0.5 flex items-center justify-center gap-2" id="start-focus-btn">
 <span class="material-symbols-outlined">timer</span>
-<span id="focus-btn-text">Start Focus Session</span>
+<span class="" id="focus-btn-text">Start Focus Session</span>
 </button>
 </div>
 </main>
 <script>
     // Interactive features script
     document.addEventListener('DOMContentLoaded', () => {
+
+        // --- Build heatmap safely (no document.write, avoids render-blocking mid-stream write) ---
+        const heatmapContainer = document.getElementById('heatmap-container');
+        if (heatmapContainer) {
+            const intensities = ['bg-surface-container-high', 'bg-primary/20', 'bg-primary/40', 'bg-primary/70', 'bg-primary'];
+            for (let i = 0; i < 30; i++) {
+                const col = document.createElement('div');
+                col.className = 'flex flex-col gap-1';
+                for (let j = 0; j < 7; j++) {
+                    const rand = Math.random();
+                    let cls = intensities[0];
+                    if (rand > 0.9) cls = intensities[4];
+                    else if (rand > 0.7) cls = intensities[3];
+                    else if (rand > 0.5) cls = intensities[2];
+                    else if (rand > 0.3) cls = intensities[1];
+                    const cell = document.createElement('div');
+                    cell.className = `w-3.5 h-3.5 rounded-sm ${cls}`;
+                    cell.title = 'Activity';
+                    col.appendChild(cell);
+                }
+                heatmapContainer.appendChild(col);
+            }
+        }
+
+        // --- Sidebar Logic ---
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebarToggleIcon = document.getElementById('sidebar-toggle-icon');
+        const mobileMenuTrigger = document.getElementById('mobile-menu-trigger');
+        const mobileOverlay = document.getElementById('mobile-overlay');
+        const htmlDoc = document.documentElement;
         
+        function toggleSidebar() {
+            htmlDoc.classList.toggle('sidebar-collapsed');
+            const isColl = htmlDoc.classList.contains('sidebar-collapsed');
+            
+            localStorage.setItem('devpilot-sidebar-collapsed', isColl);
+            
+            // Update icons for toggle button
+            sidebarToggleIcon.textContent = isColl ? 'chevron_right' : 'chevron_left';
+            
+            // Toggle visibility of specific elements based on collapse state
+            document.querySelectorAll('.sidebar-collapsed-only').forEach(el => {
+                if(isColl) {
+                    el.classList.remove('hidden');
+                    el.classList.add('flex');
+                } else {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex');
+                }
+            });
+        }
+        
+        function toggleMobileMenu() {
+            const isClosed = sidebar.classList.contains('-translate-x-full');
+            if (isClosed) {
+                sidebar.classList.remove('-translate-x-full');
+                mobileOverlay.classList.remove('hidden');
+                htmlDoc.classList.remove('sidebar-collapsed'); // Ensure full width on mobile
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                mobileOverlay.classList.add('hidden');
+            }
+        }
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', toggleSidebar);
+            // Set initial state of the icon and specific elements based on localStorage
+            const isColl = htmlDoc.classList.contains('sidebar-collapsed');
+            sidebarToggleIcon.textContent = isColl ? 'chevron_right' : 'chevron_left';
+            document.querySelectorAll('.sidebar-collapsed-only').forEach(el => {
+                if(isColl) {
+                    el.classList.remove('hidden');
+                    el.classList.add('flex');
+                }
+            });
+        }
+        
+        if (mobileMenuTrigger) {
+            mobileMenuTrigger.addEventListener('click', toggleMobileMenu);
+        }
+        if (mobileOverlay) {
+            mobileOverlay.addEventListener('click', toggleMobileMenu);
+        }
+        
+        // Responsive handling to close mobile menu if resized to desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                sidebar.classList.remove('-translate-x-full');
+                mobileOverlay.classList.add('hidden');
+            } else {
+                 sidebar.classList.add('-translate-x-full');
+            }
+        });
+
+
         // 1. Task Checking Logic
         const taskList = document.getElementById('task-list');
         const checkboxes = taskList.querySelectorAll('.task-checkbox');
         const completedCountEl = document.getElementById('tasks-completed-count');
         const totalCountEl = document.getElementById('tasks-total-count');
         
-        totalCountEl.textContent = checkboxes.length;
+        if(totalCountEl) totalCountEl.textContent = checkboxes.length;
 
         function updateTasks() {
             let completed = 0;
@@ -819,7 +960,7 @@
                     text.classList.add('text-on-surface');
                 }
             });
-            completedCountEl.textContent = completed;
+            if(completedCountEl) completedCountEl.textContent = completed;
             
             // Save state
             const state = Array.from(checkboxes).map(cb => cb.checked);
@@ -845,15 +986,17 @@
         const dummySearch = document.getElementById('dummy-search');
 
         function openPalette() {
-            cmdPalette.classList.remove('hidden');
-            setTimeout(() => cmdInput.focus(), 50);
+            if(cmdPalette) {
+                cmdPalette.classList.remove('hidden');
+                setTimeout(() => cmdInput && cmdInput.focus(), 50);
+            }
         }
 
         function closePalette() {
-            cmdPalette.classList.add('hidden');
+            if(cmdPalette) cmdPalette.classList.add('hidden');
         }
 
-        searchTrigger.addEventListener('click', openPalette);
+        if(searchTrigger) searchTrigger.addEventListener('click', openPalette);
         
         // Keyboard shortcut Cmd/Ctrl + K
         document.addEventListener('keydown', (e) => {
@@ -861,12 +1004,12 @@
                 e.preventDefault();
                 openPalette();
             }
-            if (e.key === 'Escape' && !cmdPalette.classList.contains('hidden')) {
+            if (e.key === 'Escape' && cmdPalette && !cmdPalette.classList.contains('hidden')) {
                 closePalette();
             }
         });
 
-        cmdPalette.addEventListener('click', (e) => {
+        if(cmdPalette) cmdPalette.addEventListener('click', (e) => {
             if (e.target === cmdPalette) closePalette();
         });
 
@@ -879,25 +1022,27 @@
         let focusTimer;
         let seconds = 0;
 
-        focusBtn.addEventListener('click', () => {
-            if (!isFocusing) {
-                isFocusing = true;
-                focusBtn.classList.replace('bg-brand-gradient', 'bg-error');
-                focusBtnText.textContent = "Stop Focus Session";
-                focusBtn.querySelector('.material-symbols-outlined').textContent = "stop";
-                
-                focusTimer = setInterval(() => {
-                    seconds++;
-                    // In a real app we'd update the actual focus time visually
-                }, 1000);
-            } else {
-                isFocusing = false;
-                focusBtn.classList.replace('bg-error', 'bg-brand-gradient');
-                focusBtnText.textContent = "Start Focus Session";
-                focusBtn.querySelector('.material-symbols-outlined').textContent = "timer";
-                clearInterval(focusTimer);
-            }
-        });
+        if(focusBtn) {
+            focusBtn.addEventListener('click', () => {
+                if (!isFocusing) {
+                    isFocusing = true;
+                    focusBtn.classList.replace('bg-brand-gradient', 'bg-error');
+                    focusBtnText.textContent = "Stop Focus Session";
+                    focusBtn.querySelector('.material-symbols-outlined').textContent = "stop";
+                    
+                    focusTimer = setInterval(() => {
+                        seconds++;
+                        // In a real app we'd update the actual focus time visually
+                    }, 1000);
+                } else {
+                    isFocusing = false;
+                    focusBtn.classList.replace('bg-error', 'bg-brand-gradient');
+                    focusBtnText.textContent = "Start Focus Session";
+                    focusBtn.querySelector('.material-symbols-outlined').textContent = "timer";
+                    clearInterval(focusTimer);
+                }
+            });
+        }
     });
 </script>
 </body></html>
