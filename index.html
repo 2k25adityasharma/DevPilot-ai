@@ -23,6 +23,10 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/global.css"/>
+<link rel="stylesheet" href="css/components.css"/>
+<link rel="stylesheet" href="css/dashboard.css"/>
+<link rel="stylesheet" href="css/responsive.css"/>
 <script id="tailwind-config">
   tailwind.config = {
     darkMode: "class",
@@ -306,31 +310,26 @@
 <!-- Navigation Links -->
 <nav class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar px-3 space-y-1">
 <!-- Active Tab -->
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-secondary-container text-on-secondary-container border-l-[3px] border-primary transition-transform hover:scale-[0.98] duration-200 tooltip relative group" href="#">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-secondary-container text-on-secondary-container border-l-[3px] border-primary transition-transform hover:scale-[0.98] duration-200 tooltip relative group" href="index.html">
 <span class="material-symbols-outlined text-primary shrink-0" style='font-variation-settings: "FILL" 1;'>dashboard</span>
 <span class="font-label-md text-label-md sidebar-text">Dashboard</span>
 <span class="tooltip-text">Dashboard</span>
 </a>
 <!-- Inactive Tabs -->
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="pages/github.html">
 <span class="material-symbols-outlined shrink-0">code</span>
 <span class="font-label-md text-label-md sidebar-text">GitHub</span>
 <span class="tooltip-text">GitHub</span>
 </a>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="pages/chat.html">
 <span class="material-symbols-outlined shrink-0">smart_toy</span>
 <span class="font-label-md text-label-md sidebar-text">AI Chat</span>
 <span class="tooltip-text">AI Chat</span>
 </a>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="pages/resume.html">
 <span class="material-symbols-outlined shrink-0">description</span>
 <span class="font-label-md text-label-md sidebar-text">Resume</span>
 <span class="tooltip-text">Resume</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
-<span class="material-symbols-outlined shrink-0">map</span>
-<span class="font-label-md text-label-md sidebar-text">Roadmap</span>
-<span class="tooltip-text">Roadmap</span>
 </a>
 <div class="pt-4 pb-2 px-3 sidebar-text">
 <p class="text-label-sm font-label-sm text-outline uppercase">Resources</p>
@@ -338,17 +337,17 @@
 <div class="hidden pt-4 pb-2 px-3 justify-center items-center sidebar-collapsed-only">
 <div class="w-4 h-[1px] bg-outline-variant"></div>
 </div>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="pages/notes.html">
 <span class="material-symbols-outlined shrink-0">edit_note</span>
 <span class="font-label-md text-label-md sidebar-text">Notes</span>
 <span class="tooltip-text">Notes</span>
 </a>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="pages/snippets.html">
 <span class="material-symbols-outlined shrink-0">terminal</span>
 <span class="font-label-md text-label-md sidebar-text">Snippets</span>
 <span class="tooltip-text">Snippets</span>
 </a>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="pages/prompts.html">
 <span class="material-symbols-outlined shrink-0">bolt</span>
 <span class="font-label-md text-label-md sidebar-text">Prompts</span>
 <span class="tooltip-text">Prompts</span>
@@ -359,20 +358,20 @@
 <div class="hidden pt-4 pb-2 px-3 justify-center items-center sidebar-collapsed-only">
 <div class="w-4 h-[1px] bg-outline-variant"></div>
 </div>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="pages/habits.html">
 <span class="material-symbols-outlined shrink-0">check_circle</span>
 <span class="font-label-md text-label-md sidebar-text">Habits</span>
 <span class="tooltip-text">Habits</span>
 </a>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="pages/timer.html">
 <span class="material-symbols-outlined shrink-0">timer</span>
 <span class="font-label-md text-label-md sidebar-text">Timer</span>
 <span class="tooltip-text">Timer</span>
 </a>
-<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="#">
-<span class="material-symbols-outlined shrink-0">analytics</span>
-<span class="font-label-md text-label-md sidebar-text">Analytics</span>
-<span class="tooltip-text">Analytics</span>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="pages/settings.html">
+<span class="material-symbols-outlined shrink-0">settings</span>
+<span class="font-label-md text-label-md sidebar-text">Settings</span>
+<span class="tooltip-text">Settings</span>
 </a>
 </nav>
 </div>
@@ -838,211 +837,8 @@
 </button>
 </div>
 </main>
-<script>
-    // Interactive features script
-    document.addEventListener('DOMContentLoaded', () => {
-
-        // --- Build heatmap safely (no document.write, avoids render-blocking mid-stream write) ---
-        const heatmapContainer = document.getElementById('heatmap-container');
-        if (heatmapContainer) {
-            const intensities = ['bg-surface-container-high', 'bg-primary/20', 'bg-primary/40', 'bg-primary/70', 'bg-primary'];
-            for (let i = 0; i < 30; i++) {
-                const col = document.createElement('div');
-                col.className = 'flex flex-col gap-1';
-                for (let j = 0; j < 7; j++) {
-                    const rand = Math.random();
-                    let cls = intensities[0];
-                    if (rand > 0.9) cls = intensities[4];
-                    else if (rand > 0.7) cls = intensities[3];
-                    else if (rand > 0.5) cls = intensities[2];
-                    else if (rand > 0.3) cls = intensities[1];
-                    const cell = document.createElement('div');
-                    cell.className = `w-3.5 h-3.5 rounded-sm ${cls}`;
-                    cell.title = 'Activity';
-                    col.appendChild(cell);
-                }
-                heatmapContainer.appendChild(col);
-            }
-        }
-
-        // --- Sidebar Logic ---
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebar-toggle');
-        const sidebarToggleIcon = document.getElementById('sidebar-toggle-icon');
-        const mobileMenuTrigger = document.getElementById('mobile-menu-trigger');
-        const mobileOverlay = document.getElementById('mobile-overlay');
-        const htmlDoc = document.documentElement;
-        
-        function toggleSidebar() {
-            htmlDoc.classList.toggle('sidebar-collapsed');
-            const isColl = htmlDoc.classList.contains('sidebar-collapsed');
-            
-            localStorage.setItem('devpilot-sidebar-collapsed', isColl);
-            
-            // Update icons for toggle button
-            sidebarToggleIcon.textContent = isColl ? 'chevron_right' : 'chevron_left';
-            
-            // Toggle visibility of specific elements based on collapse state
-            document.querySelectorAll('.sidebar-collapsed-only').forEach(el => {
-                if(isColl) {
-                    el.classList.remove('hidden');
-                    el.classList.add('flex');
-                } else {
-                    el.classList.add('hidden');
-                    el.classList.remove('flex');
-                }
-            });
-        }
-        
-        function toggleMobileMenu() {
-            const isClosed = sidebar.classList.contains('-translate-x-full');
-            if (isClosed) {
-                sidebar.classList.remove('-translate-x-full');
-                mobileOverlay.classList.remove('hidden');
-                htmlDoc.classList.remove('sidebar-collapsed'); // Ensure full width on mobile
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                mobileOverlay.classList.add('hidden');
-            }
-        }
-
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', toggleSidebar);
-            // Set initial state of the icon and specific elements based on localStorage
-            const isColl = htmlDoc.classList.contains('sidebar-collapsed');
-            sidebarToggleIcon.textContent = isColl ? 'chevron_right' : 'chevron_left';
-            document.querySelectorAll('.sidebar-collapsed-only').forEach(el => {
-                if(isColl) {
-                    el.classList.remove('hidden');
-                    el.classList.add('flex');
-                }
-            });
-        }
-        
-        if (mobileMenuTrigger) {
-            mobileMenuTrigger.addEventListener('click', toggleMobileMenu);
-        }
-        if (mobileOverlay) {
-            mobileOverlay.addEventListener('click', toggleMobileMenu);
-        }
-        
-        // Responsive handling to close mobile menu if resized to desktop
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 768) {
-                sidebar.classList.remove('-translate-x-full');
-                mobileOverlay.classList.add('hidden');
-            } else {
-                 sidebar.classList.add('-translate-x-full');
-            }
-        });
-
-
-        // 1. Task Checking Logic
-        const taskList = document.getElementById('task-list');
-        const checkboxes = taskList.querySelectorAll('.task-checkbox');
-        const completedCountEl = document.getElementById('tasks-completed-count');
-        const totalCountEl = document.getElementById('tasks-total-count');
-        
-        if(totalCountEl) totalCountEl.textContent = checkboxes.length;
-
-        function updateTasks() {
-            let completed = 0;
-            checkboxes.forEach(cb => {
-                const label = cb.closest('label');
-                const text = label.querySelector('.task-text');
-                
-                if (cb.checked) {
-                    completed++;
-                    text.classList.add('line-through', 'text-on-surface-variant');
-                    text.classList.remove('text-on-surface');
-                } else {
-                    text.classList.remove('line-through', 'text-on-surface-variant');
-                    text.classList.add('text-on-surface');
-                }
-            });
-            if(completedCountEl) completedCountEl.textContent = completed;
-            
-            // Save state
-            const state = Array.from(checkboxes).map(cb => cb.checked);
-            localStorage.setItem('taskState', JSON.stringify(state));
-        }
-
-        // Load saved state
-        const savedState = JSON.parse(localStorage.getItem('taskState'));
-        if (savedState && savedState.length === checkboxes.length) {
-            checkboxes.forEach((cb, i) => cb.checked = savedState[i]);
-        }
-        
-        checkboxes.forEach(cb => {
-            cb.addEventListener('change', updateTasks);
-        });
-        
-        updateTasks(); // Init
-
-        // 2. Command Palette Logic
-        const cmdPalette = document.getElementById('command-palette');
-        const cmdInput = document.getElementById('command-input');
-        const searchTrigger = document.getElementById('search-trigger');
-        const dummySearch = document.getElementById('dummy-search');
-
-        function openPalette() {
-            if(cmdPalette) {
-                cmdPalette.classList.remove('hidden');
-                setTimeout(() => cmdInput && cmdInput.focus(), 50);
-            }
-        }
-
-        function closePalette() {
-            if(cmdPalette) cmdPalette.classList.add('hidden');
-        }
-
-        if(searchTrigger) searchTrigger.addEventListener('click', openPalette);
-        
-        // Keyboard shortcut Cmd/Ctrl + K
-        document.addEventListener('keydown', (e) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                e.preventDefault();
-                openPalette();
-            }
-            if (e.key === 'Escape' && cmdPalette && !cmdPalette.classList.contains('hidden')) {
-                closePalette();
-            }
-        });
-
-        if(cmdPalette) cmdPalette.addEventListener('click', (e) => {
-            if (e.target === cmdPalette) closePalette();
-        });
-
-
-        // 3. Focus Session Timer
-        const focusBtn = document.getElementById('start-focus-btn');
-        const focusBtnText = document.getElementById('focus-btn-text');
-        const focusTimeDisplay = document.getElementById('focus-time-display');
-        let isFocusing = false;
-        let focusTimer;
-        let seconds = 0;
-
-        if(focusBtn) {
-            focusBtn.addEventListener('click', () => {
-                if (!isFocusing) {
-                    isFocusing = true;
-                    focusBtn.classList.replace('bg-brand-gradient', 'bg-error');
-                    focusBtnText.textContent = "Stop Focus Session";
-                    focusBtn.querySelector('.material-symbols-outlined').textContent = "stop";
-                    
-                    focusTimer = setInterval(() => {
-                        seconds++;
-                        // In a real app we'd update the actual focus time visually
-                    }, 1000);
-                } else {
-                    isFocusing = false;
-                    focusBtn.classList.replace('bg-error', 'bg-brand-gradient');
-                    focusBtnText.textContent = "Start Focus Session";
-                    focusBtn.querySelector('.material-symbols-outlined').textContent = "timer";
-                    clearInterval(focusTimer);
-                }
-            });
-        }
-    });
-</script>
-</body></html>
+<script src="js/utils.js"></script>
+<script src="js/app.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

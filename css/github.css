@@ -1,0 +1,75 @@
+/* ==========================================================================
+   DevPilot-AI - GitHub Page CSS
+   ========================================================================== */
+
+/* Timeline Container */
+.timeline-container {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.timeline-container::before {
+  content: '';
+  position: absolute;
+  left: 9px;
+  top: 12px;
+  bottom: 12px;
+  width: 2px;
+  background: var(--color-outline-variant);
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -2rem;
+  top: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Repo Card */
+.repo-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.repo-lang-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.lang-js { background-color: #f7df1e; }
+.lang-ts { background-color: #3178c6; }
+.lang-python { background-color: #3572A5; }
+.lang-cpp { background-color: #f34b7d; }
+.lang-html { background-color: #e34c26; }
+.lang-rust { background-color: #dea584; }
+
+.commit-hash {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.75rem;
+  background: var(--color-surface-container);
+  color: var(--color-on-surface-variant);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-outline-variant);
+}

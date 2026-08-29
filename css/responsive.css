@@ -1,0 +1,98 @@
+/* ==========================================================================
+   DevPilot-AI - Responsive CSS Utilities
+   ========================================================================== */
+
+/* Main content positioning */
+#main-content {
+  margin-left: 0;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  #main-content {
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+  }
+}
+
+/* Mobile Sidebar Drawer */
+@media (max-width: 767px) {
+  #sidebar {
+    transform: translateX(-100%);
+    width: 280px !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  }
+  
+  #sidebar.mobile-open {
+    transform: translateX(0) !important;
+  }
+  
+  .subpage-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .grid-responsive-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .grid-responsive-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .grid-responsive-4 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1024px) {
+  .grid-responsive-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Sub-page top mobile floating nav button */
+.mobile-nav-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  color: var(--color-on-surface);
+  box-shadow: var(--shadow-subtle);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.mobile-nav-toggle:hover {
+  background-color: var(--color-surface-container);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+@media (min-width: 768px) {
+  .mobile-nav-toggle {
+    display: none !important;
+  }
+}
+
+/* Print Styles for Resume and Docs */
+@media print {
+  #sidebar, #top-nav, .no-print, .mobile-nav-toggle, #toast-container {
+    display: none !important;
+  }
+  
+  #main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding: 0 !important;
+  }
+
+  body {
+    background: #ffffff !important;
+  }
+}
