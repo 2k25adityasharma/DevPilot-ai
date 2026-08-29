@@ -38,14 +38,54 @@ document.addEventListener('DOMContentLoaded', () => {
   checkUrlParameters();
 });
 
-// Check if username was passed via query param (e.g. ?user=2k25adityasharma)
+/**
+ * Extracts a clean GitHub username from either a plain username or full GitHub URL
+ * Supports: '2k25adityasharma', '@2k25adityasharma', 'https://github.com/2k25adityasharma',
+ * 'github.com/2k25adityasharma/repo', etc.
+ */
+function extractGitHubUsername(input) {
+  if (!input) return '';
+  let str = input.trim();
+
+  // If starts with github.com or www.github.com without protocol
+  if (!str.startsWith('http://') && !str.startsWith('https://') && (str.startsWith('github.com') || str.startsWith('www.github.com'))) {
+    str = 'https://' + str;
+  }
+
+  // URL extraction
+  if (str.startsWith('http://') || str.startsWith('https://')) {
+    try {
+      const parsed = new URL(str);
+      if (parsed.hostname.includes('github.com')) {
+        const segments = parsed.pathname.split('/').filter(Boolean);
+        if (segments.length > 0) {
+          return segments[0].replace(/^@/, '').trim();
+        }
+      }
+    } catch (e) {}
+  }
+
+  // Regex fallback for any github.com/username patterns
+  const match = str.match(/(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9_-]+)/i);
+  if (match && match[1]) {
+    return match[1].replace(/^@/, '').trim();
+  }
+
+  // Handle plain username or @username (strip @, query params, hash, trailing slashes)
+  return str.replace(/^@/, '').split('?')[0].split('#')[0].replace(/\/+$/, '').trim();
+}
+
+// Check if username was passed via query param (e.g. ?user=2k25adityasharma or ?url=https://github.com/...)
 function checkUrlParameters() {
   const urlParams = new URLSearchParams(window.location.search);
-  const userParam = urlParams.get('user') || urlParams.get('username');
+  const rawParam = urlParams.get('user') || urlParams.get('username') || urlParams.get('url') || urlParams.get('profile');
   const input = document.getElementById('github-username-input');
-  if (userParam) {
-    if (input) input.value = userParam;
-    analyzeGitHubUser(userParam);
+  if (rawParam) {
+    const extracted = extractGitHubUsername(rawParam);
+    if (extracted) {
+      if (input) input.value = extracted;
+      analyzeGitHubUser(extracted);
+    }
   } else {
     if (input) input.value = '';
   }
@@ -65,22 +105,34 @@ function initAnalyzerControls() {
 
   if (analyzeBtn && usernameInput) {
     analyzeBtn.addEventListener('click', () => {
-      const username = usernameInput.value.trim();
-      if (username) analyzeGitHubUser(username);
-      else showToast('Please enter a valid GitHub username', 'error');
+      const raw = usernameInput.value.trim();
+      const username = extractGitHubUsername(raw);
+      if (username) {
+        usernameInput.value = username;
+        analyzeGitHubUser(username);
+      } else {
+        showToast('Please enter a valid GitHub username or profile link', 'error');
+      }
     });
 
     usernameInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
-        const username = usernameInput.value.trim();
-        if (username) analyzeGitHubUser(username);
+        const raw = usernameInput.value.trim();
+        const username = extractGitHubUsername(raw);
+        if (username) {
+          usernameInput.value = username;
+          analyzeGitHubUser(username);
+        } else {
+          showToast('Please enter a valid GitHub username or profile link', 'error');
+        }
       }
     });
   }
 
   sampleChips.forEach(chip => {
     chip.addEventListener('click', () => {
-      const username = chip.getAttribute('data-username');
+      const raw = chip.getAttribute('data-username');
+      const username = extractGitHubUsername(raw);
       if (username) {
         if (usernameInput) usernameInput.value = username;
         analyzeGitHubUser(username);
@@ -159,9 +211,12 @@ function getApiHeaders() {
 /**
  * Main Analysis Orchestration Function
  */
-async function analyzeGitHubUser(username) {
-  const cleanUsername = username.replace(/^@/, '').trim();
-  if (!cleanUsername) return;
+async function analyzeGitHubUser(rawInput) {
+  const cleanUsername = extractGitHubUsername(rawInput);
+  if (!cleanUsername) {
+    showToast('Please enter a valid GitHub username or profile link', 'error');
+    return;
+  }
 
   // Set URL query param smoothly
   const newUrl = `${window.location.pathname}?user=${encodeURIComponent(cleanUsername)}`;
