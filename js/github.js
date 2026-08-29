@@ -57,6 +57,7 @@ function initAnalyzerControls() {
   const sampleChips = document.querySelectorAll('.sample-user-chip');
   const exportBtn = document.getElementById('btn-export-report');
   const exportJsonBtn = document.getElementById('btn-export-json');
+  const copyReportBtn = document.getElementById('btn-copy-report');
 
   if (analyzeBtn && usernameInput) {
     analyzeBtn.addEventListener('click', () => {
@@ -83,8 +84,9 @@ function initAnalyzerControls() {
     });
   });
 
-  if (exportBtn) exportBtn.addEventListener('click', exportReport);
-  if (exportJsonBtn) exportJsonBtn.addEventListener('click', exportReport);
+  if (exportBtn) exportBtn.addEventListener('click', exportTextReport);
+  if (exportJsonBtn) exportJsonBtn.addEventListener('click', exportJsonReport);
+  if (copyReportBtn) copyReportBtn.addEventListener('click', copyReportToClipboard);
 
   // Repo Search & Filter Listeners
   const repoSearch = document.getElementById('repo-list-search');
@@ -1652,7 +1654,29 @@ function generateTextReport(d) {
   return report;
 }
 
-function exportReport() {
+function exportTextReport() {
+  if (!currentAnalysisData) {
+    showToast('Please analyze a GitHub user first!', 'error');
+    return;
+  }
+
+  const d = currentAnalysisData;
+  const textContent = generateTextReport(d);
+
+  const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+  const downloadUrl = URL.createObjectURL(blob);
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute('href', downloadUrl);
+  downloadAnchor.setAttribute('download', `github-report-${d.user.login}.txt`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+  URL.revokeObjectURL(downloadUrl);
+
+  showToast(`Downloaded text report for @${d.user.login} (.txt)`, 'success');
+}
+
+function exportJsonReport() {
   if (!currentAnalysisData) {
     showToast('Please analyze a GitHub user first!', 'error');
     return;
@@ -1716,15 +1740,55 @@ function exportReport() {
     textReport: generateTextReport(d)
   };
 
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportPayload, null, 2));
+  const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json;charset=utf-8' });
+  const downloadUrl = URL.createObjectURL(blob);
   const downloadAnchor = document.createElement('a');
-  downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute("download", `github-analysis-${d.user.login}-v2.json`);
+  downloadAnchor.setAttribute('href', downloadUrl);
+  downloadAnchor.setAttribute('download', `github-analysis-${d.user.login}-v2.json`);
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
   downloadAnchor.remove();
+  URL.revokeObjectURL(downloadUrl);
 
-  showToast(`Exported v2.0 analysis report for @${d.user.login}`, 'success');
+  showToast(`Downloaded JSON data for @${d.user.login} (.json)`, 'success');
+}
+
+function copyReportToClipboard() {
+  if (!currentAnalysisData) {
+    showToast('Please analyze a GitHub user first!', 'error');
+    return;
+  }
+
+  const d = currentAnalysisData;
+  const textContent = generateTextReport(d);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(textContent).then(() => {
+      showToast(`Copied @${d.user.login}'s report to clipboard!`, 'success');
+    }).catch(() => {
+      fallbackCopyText(textContent);
+    });
+  } else {
+    fallbackCopyText(textContent);
+  }
+}
+
+function fallbackCopyText(text) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  document.body.appendChild(textArea);
+  textArea.select();
+  try {
+    document.execCommand('copy');
+    showToast('Copied report to clipboard!', 'success');
+  } catch (err) {
+    showToast('Failed to copy to clipboard', 'error');
+  }
+  document.body.removeChild(textArea);
+}
+
+// Default export alias
+function exportReport() {
+  exportTextReport();
 }
 
 // --------------------------------------------------------------------------
