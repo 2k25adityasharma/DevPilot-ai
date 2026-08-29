@@ -1,6 +1,6 @@
 /**
- * DevPilot-AI - Modern GitHub Analyzer Engine
- * Integrates live with the GitHub Public REST API
+ * DevPilot-AI - Modern GitHub Analyzer Engine (v2.0)
+ * Upgraded 100-Point Transparent Scoring Engine with Real GitHub REST API Integration
  */
 
 // Global analysis state
@@ -38,14 +38,16 @@ document.addEventListener('DOMContentLoaded', () => {
   checkUrlParameters();
 });
 
-// Check if username was passed via query param (e.g. ?user=torvalds)
+// Check if username was passed via query param (e.g. ?user=2k25adityasharma)
 function checkUrlParameters() {
   const urlParams = new URLSearchParams(window.location.search);
   const userParam = urlParams.get('user') || urlParams.get('username');
+  const input = document.getElementById('github-username-input');
   if (userParam) {
-    const input = document.getElementById('github-username-input');
     if (input) input.value = userParam;
     analyzeGitHubUser(userParam);
+  } else {
+    if (input) input.value = '';
   }
 }
 
@@ -123,17 +125,19 @@ function showState(stateName) {
   });
 }
 
-// Get Auth Headers (Check if user configured a GitHub token in Settings)
+// Get Auth Headers (Optional personal token from Settings for higher rate limits)
 function getApiHeaders() {
   const headers = {
     'Accept': 'application/vnd.github.v3+json'
   };
   try {
-    const userSettings = Storage.get('user_settings');
-    if (userSettings && userSettings.apiKeys && userSettings.apiKeys.githubToken) {
-      const token = userSettings.apiKeys.githubToken.trim();
-      if (token && !token.includes('mock')) {
-        headers['Authorization'] = `token ${token}`;
+    if (typeof Storage !== 'undefined' && Storage.get) {
+      const userSettings = Storage.get('user_settings');
+      if (userSettings && userSettings.apiKeys && userSettings.apiKeys.githubToken) {
+        const token = userSettings.apiKeys.githubToken.trim();
+        if (token && !token.includes('mock')) {
+          headers['Authorization'] = `token ${token}`;
+        }
       }
     }
   } catch (e) {
@@ -167,7 +171,7 @@ async function analyzeGitHubUser(username) {
     // 1. Fetch User Details
     const user = await fetchGitHubUser(cleanUsername);
 
-    // 2. Fetch Repositories
+    // 2. Fetch Repositories with pagination support
     const repos = await fetchRepositories(cleanUsername, user.public_repos);
 
     // 3. Fetch Recent Public Events
@@ -176,9 +180,10 @@ async function analyzeGitHubUser(username) {
     // 4. Compute Metrics
     const stats = calculateStats(repos, user);
     const languages = calculateLanguages(repos);
-    const score = calculateDeveloperScore(user, repos, events, stats);
-    const insights = generateInsights(user, repos, stats, languages, score);
-    const suggestions = generateSuggestions(user, repos, stats, languages);
+    const topRepos = rankRepositories(repos);
+    const score = calculateDeveloperScore(user, repos, events, stats, languages, topRepos);
+    const insights = generateInsights(user, repos, stats, languages, score, topRepos);
+    const suggestions = generateSuggestions(user, repos, stats, languages, score, topRepos);
 
     // 5. Store current analysis state
     currentAnalysisData = {
@@ -187,6 +192,7 @@ async function analyzeGitHubUser(username) {
       events,
       stats,
       languages,
+      topRepos,
       score,
       insights,
       suggestions,
@@ -200,7 +206,7 @@ async function analyzeGitHubUser(username) {
     renderStats(stats, user);
     renderLanguages(languages);
     renderRepoAnalytics(stats, repos);
-    renderTopRepo(stats.topRepo);
+    renderTopRepositories(topRepos);
     renderTimeline(stats.oldestRepo, stats.latestRepo);
     renderActivity(events);
     renderInsights(insights);
@@ -268,24 +274,41 @@ async function fetchGitHubUser(username) {
 }
 
 async function fetchRepositories(username, totalPublicRepos = 100) {
-  // GitHub returns up to 100 items per page
   const perPage = 100;
-  const res = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}/repos?per_page=${perPage}&sort=updated`, {
-    headers: getApiHeaders()
-  });
+  const maxPages = Math.min(3, Math.ceil((totalPublicRepos || 100) / perPage));
+  let allRepos = [];
 
-  if (!res.ok) {
-    const error = new Error(res.statusText);
-    error.status = res.status;
-    throw error;
+  for (let page = 1; page <= maxPages; page++) {
+    try {
+      const res = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}/repos?per_page=${perPage}&page=${page}&sort=updated`, {
+        headers: getApiHeaders()
+      });
+
+      if (!res.ok) {
+        if (page === 1) {
+          const error = new Error(res.statusText);
+          error.status = res.status;
+          throw error;
+        }
+        break;
+      }
+
+      const repos = await res.json();
+      if (!Array.isArray(repos) || repos.length === 0) break;
+      allRepos = allRepos.concat(repos);
+      if (repos.length < perPage) break;
+    } catch (err) {
+      if (page === 1) throw err;
+      break;
+    }
   }
 
-  return await res.json();
+  return allRepos;
 }
 
 async function fetchEvents(username) {
   try {
-    const res = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}/events/public?per_page=30`, {
+    const res = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}/events/public?per_page=100`, {
       headers: getApiHeaders()
     });
 
@@ -390,204 +413,627 @@ function calculateLanguages(repos) {
   return {
     languages: sortedLangs,
     primaryLanguage: sortedLangs[0] ? sortedLangs[0].name : 'N/A',
-    totalLanguages: sortedLangs.length
+    totalLanguages: sortedLangs.length,
+    totalWithLang
   };
 }
 
-function calculateDeveloperScore(user, repos, events, stats) {
-  // 1. Repository Quality Score (Max 25 pts)
-  // Evaluates original repo count, description presence, and stars
-  const repoCount = repos.length;
-  const descCount = repos.filter(r => r.description && r.description.trim().length > 10).length;
-  const descRatio = repoCount > 0 ? (descCount / repoCount) : 0;
-  const originalRatio = repoCount > 0 ? (stats.originalReposCount / repoCount) : 0;
-  const repoScore = Math.min(25, Math.round(
-    (Math.min(repoCount, 20) / 20 * 8) + 
-    (descRatio * 9) + 
-    (originalRatio * 8)
-  ));
+/**
+ * Score individual repository based on quality factors (0 to 15 points)
+ */
+function calculateSingleRepoScore(repo) {
+  let score = 0;
+  
+  // 1. Description quality (+3 pts)
+  if (repo.description && repo.description.trim().length >= 10) {
+    score += 3;
+  } else if (repo.description && repo.description.trim().length > 0) {
+    score += 1.5;
+  }
 
-  // 2. Activity Score (Max 25 pts)
-  // Evaluates recent events, push density, and update recency
-  const recentEventsCount = events.length;
-  const pushEventsCount = events.filter(e => e.type === 'PushEvent').length;
-  const lastActive = stats.latestRepo ? (new Date() - new Date(stats.latestRepo.updated_at)) / (1000 * 60 * 60 * 24) : 999;
-  const recencyBonus = lastActive < 7 ? 8 : lastActive < 30 ? 5 : 2;
-  const activityScore = Math.min(25, Math.round(
-    (Math.min(recentEventsCount, 30) / 30 * 9) +
-    (Math.min(pushEventsCount, 15) / 15 * 8) +
-    recencyBonus
-  ));
+  // 2. Live Demo Deployment URL (+3 pts)
+  if (repo.homepage && repo.homepage.trim().length > 0 && repo.homepage.startsWith('http')) {
+    score += 3;
+  }
 
-  // 3. Community & Profile Score (Max 25 pts)
-  // Followers, Bio, Location, Website, and Public Gists
+  // 3. Code substance / Size (+3 pts)
+  if (repo.size > 500) score += 3;
+  else if (repo.size > 50) score += 2;
+  else if (repo.size > 0) score += 1;
+
+  // 4. Recency of updates (+2 pts)
+  const daysSinceUpdate = repo.updated_at ? (new Date() - new Date(repo.updated_at)) / (1000 * 60 * 60 * 24) : 999;
+  if (daysSinceUpdate < 90) score += 2;
+  else if (daysSinceUpdate < 180) score += 1;
+
+  // 5. Stars & Forks (+3 pts)
+  const stars = repo.stargazers_count || 0;
+  const forks = repo.forks_count || 0;
+  if (stars >= 10 || forks >= 5) score += 3;
+  else if (stars >= 1 || forks >= 1) score += 1.5;
+
+  // 6. Topics & Tags (+1 pt)
+  if (Array.isArray(repo.topics) && repo.topics.length > 0) {
+    score += 1;
+  }
+
+  return Math.min(15, Math.round(score));
+}
+
+/**
+ * Rank repositories using transparent quality formula
+ */
+function rankRepositories(repos) {
+  if (!Array.isArray(repos) || repos.length === 0) return [];
+  
+  const scored = repos.map(repo => ({
+    ...repo,
+    projectScore: calculateSingleRepoScore(repo)
+  }));
+
+  // Sort descending by projectScore, then stargazers_count, then updated_at
+  return scored.sort((a, b) => {
+    if (b.projectScore !== a.projectScore) return b.projectScore - a.projectScore;
+    if ((b.stargazers_count || 0) !== (a.stargazers_count || 0)) return (b.stargazers_count || 0) - (a.stargazers_count || 0);
+    return new Date(b.updated_at) - new Date(a.updated_at);
+  });
+}
+
+// --------------------------------------------------------------------------
+// 100-Point Modular Scoring Engine (v2.0)
+// --------------------------------------------------------------------------
+
+/**
+ * 1. Profile Quality (10 points max)
+ */
+function calculateProfileScore(user, repos) {
+  let score = 0;
+  const reasons = [];
+
+  // Name (2 pts)
+  if (user.name && user.name.trim().length > 0) {
+    score += 2;
+    reasons.push('Full name provided (+2)');
+  } else {
+    reasons.push('Name missing (0/2)');
+  }
+
+  // Bio (2 pts)
+  if (user.bio && user.bio.trim().length > 0) {
+    score += 2;
+    reasons.push('Bio provided (+2)');
+  } else {
+    reasons.push('Bio missing (0/2)');
+  }
+
+  // Location (1 pt)
+  if (user.location && user.location.trim().length > 0) {
+    score += 1;
+    reasons.push('Location listed (+1)');
+  } else {
+    reasons.push('Location missing (0/1)');
+  }
+
+  // Portfolio / Blog (2 pts)
+  if (user.blog && user.blog.trim().length > 0) {
+    score += 2;
+    reasons.push('Portfolio/website linked (+2)');
+  } else {
+    reasons.push('Portfolio link missing (0/2)');
+  }
+
+  // Profile Completeness (up to 3 pts)
+  let completeness = 0;
+  if (user.avatar_url && !user.avatar_url.includes('identicons')) completeness += 1;
+  if (user.company || user.twitter_username || user.hireable) completeness += 1;
+  if (user.public_repos >= 3) completeness += 1;
+
+  score += completeness;
+  reasons.push(`Account completeness signals (+${completeness}/3)`);
+
+  const finalScore = Math.min(10, Math.max(0, Math.round(score)));
+  return {
+    score: finalScore,
+    max: 10,
+    label: 'Profile Quality',
+    why: reasons.join(' • ')
+  };
+}
+
+/**
+ * 2. Repository Quality (25 points max)
+ */
+function calculateRepositoryScore(repos, stats) {
+  if (!Array.isArray(repos) || repos.length === 0) {
+    return {
+      score: 0,
+      max: 25,
+      label: 'Repository Quality',
+      why: 'No public repositories found on this account.'
+    };
+  }
+
+  const total = repos.length;
+  const withDesc = repos.filter(r => r.description && r.description.trim().length >= 10).length;
+  const withDemo = repos.filter(r => r.homepage && r.homepage.trim().length > 0 && r.homepage.startsWith('http')).length;
+  const withSubstance = repos.filter(r => (r.size || 0) > 10).length;
+  const recentUpdates = repos.filter(r => {
+    const months = (new Date() - new Date(r.updated_at)) / (1000 * 60 * 60 * 24 * 30);
+    return months <= 6;
+  }).length;
+
+  const descRatio = withDesc / total;
+  const demoRatio = withDemo / total;
+  const originalRatio = stats.originalReposCount / total;
+  const substanceRatio = withSubstance / total;
+  const recentRatio = recentUpdates / total;
+
+  // Weighted calculation (max 25)
+  const descPts = descRatio * 7;                     // up to 7 pts
+  const demoPts = Math.min(5, demoRatio * 10);       // up to 5 pts
+  const originalPts = originalRatio * 4;             // up to 4 pts
+  const substancePts = substanceRatio * 4;           // up to 4 pts
+  const recentPts = recentRatio * 5;                 // up to 5 pts
+
+  const finalScore = Math.min(25, Math.max(0, Math.round(descPts + demoPts + originalPts + substancePts + recentPts)));
+
+  return {
+    score: finalScore,
+    max: 25,
+    label: 'Repository Quality',
+    why: `${total} public repositories (${stats.originalReposCount} original). ${withDesc}/${total} have descriptions (${Math.round(descRatio * 100)}%), ${withDemo} live demo deployments, ${recentUpdates} updated within the last 6 months.`
+  };
+}
+
+/**
+ * 3. Development Activity (20 points max)
+ * Measures active days distribution, unique repository breadth, activity time span consistency, and capped commit volume
+ */
+function calculateActivityScore(user, repos, events, stats) {
+  if (!Array.isArray(events) || events.length === 0) {
+    const lastActiveDays = stats.latestRepo ? (new Date() - new Date(stats.latestRepo.updated_at)) / (1000 * 60 * 60 * 24) : 999;
+    const fallbackPts = lastActiveDays < 7 ? 6 : lastActiveDays < 30 ? 4 : lastActiveDays < 90 ? 2 : 1;
+    return {
+      score: fallbackPts,
+      max: 20,
+      label: 'Development Activity',
+      why: `Evaluated from repository update timestamps: latest activity recorded ${stats.latestRepo ? timeAgo(stats.latestRepo.updated_at) : 'N/A'}.`
+    };
+  }
+
+  const pushEvents = events.filter(e => e.type === 'PushEvent');
+  const distinctRepos = new Set(events.map(e => e.repo.name)).size;
+  const distinctDays = new Set(events.map(e => e.created_at.slice(0, 10))).size;
+
+  // 1. Active Days Distribution (up to 7 pts)
+  let activeDaysPts = 1.0;
+  if (distinctDays >= 15) activeDaysPts = 7.0;
+  else if (distinctDays >= 8) activeDaysPts = 6.0;
+  else if (distinctDays >= 4) activeDaysPts = 4.5;
+  else if (distinctDays >= 2) activeDaysPts = 2.5;
+
+  // 2. Multi-Repository Breadth (up to 5 pts)
+  let breadthPts = 1.5;
+  if (distinctRepos >= 5) breadthPts = 5.0;
+  else if (distinctRepos >= 3) breadthPts = 4.0;
+  else if (distinctRepos === 2) breadthPts = 3.0;
+
+  // 3. Consistency & Activity Time Span (up to 5 pts)
+  const timestamps = events.map(e => new Date(e.created_at).getTime()).sort((a, b) => a - b);
+  const timeSpanDays = (timestamps[timestamps.length - 1] - timestamps[0]) / (1000 * 60 * 60 * 24);
+  let timeSpanPts = 1.0;
+  if (timeSpanDays >= 30) timeSpanPts = 5.0;
+  else if (timeSpanDays >= 14) timeSpanPts = 4.0;
+  else if (timeSpanDays >= 7) timeSpanPts = 2.5;
+  else if (timeSpanDays >= 3) timeSpanPts = 1.5;
+
+  // 4. Commit / Push Volume (up to 3 pts - capped so volume alone cannot inflate score)
+  let volumePts = 1.0;
+  if (pushEvents.length >= 16) volumePts = 3.0;
+  else if (pushEvents.length >= 6) volumePts = 2.0;
+
+  const finalScore = Math.min(20, Math.max(0, Math.round(activeDaysPts + breadthPts + timeSpanPts + volumePts)));
+
+  return {
+    score: finalScore,
+    max: 20,
+    label: 'Development Activity',
+    why: `${distinctDays} active days across ${distinctRepos} repositories spanning ~${Math.max(1, Math.round(timeSpanDays))} days (${pushEvents.length} push events).`
+  };
+}
+
+/**
+ * 4. Technology Stack (10 points max)
+ * Evaluates primary language specialization, multi-project ecosystems, and codebase scale (not mere single-file diversity)
+ */
+function calculateTechnologyScore(languages, repos) {
+  if (!languages || languages.totalLanguages === 0 || !Array.isArray(repos) || repos.length === 0) {
+    return {
+      score: 0,
+      max: 10,
+      label: 'Technology Stack',
+      why: 'No detectable programming languages found in repositories.'
+    };
+  }
+
+  const topLang = languages.languages[0];
+  const totalSizeKB = repos.reduce((acc, r) => acc + (r.size || 0), 0);
+
+  // 1. Primary Language Depth & Specialization (up to 3.5 pts)
+  let primaryDepth = 1.0;
+  if (topLang) {
+    const topLangRepos = repos.filter(r => r.language === topLang.name);
+    const topLangSizeKB = topLangRepos.reduce((acc, r) => acc + (r.size || 0), 0);
+    if (topLangRepos.length >= 8 || topLangSizeKB > 25600) primaryDepth = 3.5;
+    else if (topLangRepos.length >= 4 || topLangSizeKB > 5120) primaryDepth = 2.5;
+    else if (topLangRepos.length >= 2) primaryDepth = 1.5;
+  }
+
+  // 2. Multi-Stack Ecosystem Breadth (up to 3.5 pts)
+  // Requires established language ecosystems with multiple repositories each
+  const langRepoCounts = {};
+  repos.forEach(r => {
+    if (r.language) langRepoCounts[r.language] = (langRepoCounts[r.language] || 0) + 1;
+  });
+  const establishedLangs = Object.keys(langRepoCounts).filter(l => langRepoCounts[l] >= 2).length;
+
+  let breadthPts = 1.0;
+  if (establishedLangs >= 4) breadthPts = 3.5;
+  else if (establishedLangs === 3) breadthPts = 2.5;
+  else if (establishedLangs === 2) breadthPts = 1.5;
+
+  // 3. Codebase Scale & Production Architecture (up to 3.0 pts)
+  let scalePts = 0.5;
+  if (totalSizeKB > 102400) scalePts = 3.0;      // > 100MB
+  else if (totalSizeKB > 25600) scalePts = 2.0;  // > 25MB
+  else if (totalSizeKB > 5120) scalePts = 1.0;   // > 5MB
+
+  const finalScore = Math.min(10, Math.max(0, Math.round(primaryDepth + breadthPts + scalePts)));
+
+  return {
+    score: finalScore,
+    max: 10,
+    label: 'Technology Stack',
+    why: `Primary language: ${languages.primaryLanguage} (${topLang ? topLang.count : 0} repos). ${establishedLangs} multi-project language stack${establishedLangs === 1 ? '' : 's'} (${Math.round(totalSizeKB / 1024 * 10) / 10} MB total code).`
+  };
+}
+
+/**
+ * 5. Community & Presence (10 points max)
+ * Strictly scales with real social proof (followers, stars received, forks received)
+ */
+function calculateCommunityScore(user, events, stats) {
   const followers = user.followers || 0;
-  const profileCompleteness = (user.bio ? 3 : 0) + (user.location ? 2 : 0) + (user.blog ? 2 : 0) + (user.company ? 2 : 0);
-  const communityScore = Math.min(25, Math.round(
-    (Math.min(followers, 100) / 100 * 12) +
-    (Math.min(user.public_gists || 0, 10) / 10 * 4) +
-    profileCompleteness
+  const stars = stats.totalStars || 0;
+  const forks = stats.totalForks || 0;
+  const following = user.following || 0;
+
+  let score = 0;
+
+  // 1. Base profile presence (0.5 pt)
+  if (user.public_repos > 0) score += 0.5;
+
+  // 2. Followers (up to 4.0 pts)
+  if (followers >= 100) score += 4.0;
+  else if (followers >= 25) score += 3.0;
+  else if (followers >= 6) score += 2.0;
+  else if (followers >= 1) score += 1.0;
+
+  // 3. Stars Received from Community (up to 3.0 pts)
+  if (stars >= 50) score += 3.0;
+  else if (stars >= 10) score += 2.0;
+  else if (stars >= 1) score += 1.0;
+
+  // 4. Forks Received by Others (up to 2.0 pts)
+  if (forks >= 20) score += 2.0;
+  else if (forks >= 3) score += 1.0;
+  else if (forks >= 1) score += 0.5;
+
+  // 5. Following network connection (0.5 pt)
+  if (following >= 1) score += 0.5;
+
+  const finalScore = Math.min(10, Math.max(0, Math.round(score)));
+
+  return {
+    score: finalScore,
+    max: 10,
+    label: 'Community & Presence',
+    why: `${followers} follower${followers === 1 ? '' : 's'}, ${stars} star${stars === 1 ? '' : 's'}, ${forks} fork${forks === 1 ? '' : 's'} received.`
+  };
+}
+
+/**
+ * 6. Project Quality (15 points max)
+ */
+function calculateProjectScore(topRepos) {
+  if (!Array.isArray(topRepos) || topRepos.length === 0) {
+    return {
+      score: 0,
+      max: 15,
+      label: 'Project Quality',
+      why: 'No public projects available to evaluate.'
+    };
+  }
+
+  const r1 = topRepos[0] ? (topRepos[0].projectScore / 15) * 7 : 0;  // up to 7 pts
+  const r2 = topRepos[1] ? (topRepos[1].projectScore / 15) * 5 : 0;  // up to 5 pts
+  const r3 = topRepos[2] ? (topRepos[2].projectScore / 15) * 3 : 0;  // up to 3 pts
+
+  const finalScore = Math.min(15, Math.max(0, Math.round(r1 + r2 + r3)));
+  const topName = topRepos[0] ? topRepos[0].name : 'N/A';
+
+  return {
+    score: finalScore,
+    max: 15,
+    label: 'Project Quality',
+    why: `Top projects (led by '${topName}') evaluated on live demo deployments, descriptions, file size, and maintenance.`
+  };
+}
+
+/**
+ * 7. Documentation (5 points max)
+ */
+function calculateDocumentationScore(user, repos) {
+  if (!Array.isArray(repos) || repos.length === 0) {
+    return {
+      score: 0,
+      max: 5,
+      label: 'Documentation',
+      why: 'No repositories available to evaluate documentation.'
+    };
+  }
+
+  const total = repos.length;
+  const withDesc = repos.filter(r => r.description && r.description.trim().length >= 10).length;
+  const withDemo = repos.filter(r => r.homepage && r.homepage.trim().length > 0 && r.homepage.startsWith('http')).length;
+  const withTopics = repos.filter(r => Array.isArray(r.topics) && r.topics.length > 0).length;
+
+  const descRatio = withDesc / total;
+  const demoRatio = withDemo / total;
+
+  let score = (descRatio * 2.5) + (Math.min(1.5, demoRatio * 3));
+  if (withTopics > 0) score += 1.0;
+
+  const finalScore = Math.min(5, Math.max(0, Math.round(score)));
+
+  return {
+    score: finalScore,
+    max: 5,
+    label: 'Documentation',
+    why: `${withDesc}/${total} repositories have descriptions; ${withDemo} have live deployment links.`
+  };
+}
+
+/**
+ * 8. Open Source & Collaboration (5 points max)
+ * Strictly measures PRs, public issue contributions, and external community adoption (NOT personal repository ownership)
+ */
+function calculateOpenSourceScore(repos, events, stats) {
+  let score = 0;
+  const reasons = [];
+
+  const prEvents = Array.isArray(events) ? events.filter(e => e.type === 'PullRequestEvent').length : 0;
+  const issueEvents = Array.isArray(events) ? events.filter(e => e.type === 'IssuesEvent' || e.type === 'IssueCommentEvent').length : 0;
+  const forksReceived = stats.totalForks || 0;
+  const hasForkedContribution = stats.forkedReposCount > 0;
+
+  // 1. Pull Requests submitted to open-source projects (up to 2.5 pts)
+  if (prEvents >= 3) {
+    score += 2.5;
+    reasons.push(`${prEvents} PRs submitted (+2.5)`);
+  } else if (prEvents >= 1) {
+    score += 1.5;
+    reasons.push(`${prEvents} PR submitted (+1.5)`);
+  }
+
+  // 2. Public Issue Collaboration & Triage (up to 1.5 pts)
+  if (issueEvents >= 3) {
+    score += 1.5;
+    reasons.push(`${issueEvents} issue contributions (+1.5)`);
+  } else if (issueEvents >= 1) {
+    score += 0.8;
+    reasons.push(`${issueEvents} issue contribution (+0.8)`);
+  }
+
+  // 3. Forks Received by Other Developers / Upstream Open-Source (up to 1.0 pt)
+  if (forksReceived >= 3) {
+    score += 1.0;
+    reasons.push(`${forksReceived} forks by other developers (+1.0)`);
+  } else if (forksReceived >= 1) {
+    score += 0.5;
+    reasons.push(`${forksReceived} fork received (+0.5)`);
+  } else if (hasForkedContribution) {
+    score += 0.5;
+    reasons.push('Forked repositories present (+0.5)');
+  }
+
+  const finalScore = Math.min(5, Math.max(0, Math.round(score)));
+
+  return {
+    score: finalScore,
+    max: 5,
+    label: 'Open Source',
+    why: reasons.length > 0 ? reasons.join(' • ') : 'No external pull requests, public issue contributions, or upstream forks recorded.'
+  };
+}
+
+/**
+ * Master Developer Score Calculation (Exactly 100 points maximum)
+ */
+function calculateDeveloperScore(user, repos, events, stats, languages, topRepos) {
+  const profile = calculateProfileScore(user, repos);
+  const repository = calculateRepositoryScore(repos, stats);
+  const activity = calculateActivityScore(user, repos, events, stats);
+  const technology = calculateTechnologyScore(languages, repos);
+  const community = calculateCommunityScore(user, events, stats);
+  const project = calculateProjectScore(topRepos);
+  const documentation = calculateDocumentationScore(user, repos);
+  const openSource = calculateOpenSourceScore(repos, events, stats);
+
+  const totalScore = Math.min(100, Math.max(0,
+    profile.score + repository.score + activity.score + technology.score +
+    community.score + project.score + documentation.score + openSource.score
   ));
 
-  // 4. Popularity & Reach Score (Max 25 pts)
-  // Total Stars & Total Forks
-  const stars = stats.totalStars;
-  const forks = stats.totalForks;
-  const popularityScore = Math.min(25, Math.round(
-    (Math.min(stars, 150) / 150 * 15) +
-    (Math.min(forks, 50) / 50 * 10)
-  ));
-
-  const totalScore = Math.min(100, repoScore + activityScore + communityScore + popularityScore);
-
-  let rankTier = 'Novice Developer';
-  if (totalScore >= 90) rankTier = 'Elite Architect';
-  else if (totalScore >= 75) rankTier = 'Senior Contributor';
-  else if (totalScore >= 60) rankTier = 'Proficient Developer';
-  else if (totalScore >= 40) rankTier = 'Active Builder';
+  // Tiers:
+  // 0–30   → Beginner
+  // 31–50  → Developing
+  // 51–70  → Good
+  // 71–85  → Strong
+  // 86–100 → Excellent
+  let tier = 'Beginner';
+  let tierClass = 'tier-beginner';
+  if (totalScore >= 86) {
+    tier = 'Excellent';
+    tierClass = 'tier-excellent';
+  } else if (totalScore >= 71) {
+    tier = 'Strong';
+    tierClass = 'tier-strong';
+  } else if (totalScore >= 51) {
+    tier = 'Good';
+    tierClass = 'tier-good';
+  } else if (totalScore >= 31) {
+    tier = 'Developing';
+    tierClass = 'tier-developing';
+  }
 
   return {
     totalScore,
-    rankTier,
-    repoScore: Math.round((repoScore / 25) * 100),
-    activityScore: Math.round((activityScore / 25) * 100),
-    communityScore: Math.round((communityScore / 25) * 100),
-    popularityScore: Math.round((popularityScore / 25) * 100)
+    tier,
+    tierClass,
+    breakdown: {
+      profile,
+      repository,
+      activity,
+      technology,
+      community,
+      project,
+      documentation,
+      openSource
+    }
   };
 }
 
-function generateInsights(user, repos, stats, languages, score) {
+// --------------------------------------------------------------------------
+// Truthful Data-Driven Insights & Suggestions
+// --------------------------------------------------------------------------
+
+function generateInsights(user, repos, stats, languages, score, topRepos) {
   const insights = [];
 
-  // Primary language insight
+  // 1. Strongest Technology
   if (languages.primaryLanguage !== 'N/A') {
+    const topLang = languages.languages[0];
     insights.push({
       icon: 'code',
-      title: 'Strongest Tech Stack',
-      text: `Your most prominent language is **${languages.primaryLanguage}**, featured in **${languages.languages[0].percentage}%** of your active repositories.`
+      title: 'Strongest Technology',
+      text: `**${languages.primaryLanguage}** is your most-used language, powering **${topLang ? topLang.percentage : 0}%** of your public code across ${topLang ? topLang.count : 0} repositories.`
     });
   }
 
-  // Repository catalog insight
+  // 2. Repository Strength
   insights.push({
     icon: 'inventory_2',
     title: 'Repository Architecture',
-    text: `You maintain **${user.public_repos} public repositories** (${stats.originalReposCount} original, ${stats.forkedReposCount} forks).`
+    text: `You maintain **${user.public_repos} original public repositories** on GitHub with structured multi-project development.`
   });
 
-  // Star traction insight
-  if (stats.totalStars > 0) {
+  // 3. Development Momentum
+  if (score.breakdown.activity.score >= 12) {
     insights.push({
-      icon: 'star',
-      title: 'Community Traction',
-      text: `Your open-source work has earned **${stats.totalStars} total stars** and **${stats.totalForks} forks**, led by **${stats.topRepo ? stats.topRepo.name : 'your top project'}**.`
+      icon: 'local_fire_department',
+      title: 'Active Development Momentum',
+      text: `Your recent GitHub activity indicates continued development and frequent commit iterations.`
     });
   } else {
     insights.push({
-      icon: 'rocket_launch',
-      title: 'Open Source Growth',
-      text: `Consider creating comprehensive README guides and social previews to attract community stars and contributors.`
+      icon: 'schedule',
+      title: 'Development Cadence',
+      text: `Establishing a steady weekly commit routine will help build a strong public contribution record.`
     });
   }
 
-  // Activity insights
-  if (score.activityScore >= 70) {
+  // 4. Community Traction
+  if (stats.totalStars > 0 || user.followers > 5) {
     insights.push({
-      icon: 'local_fire_department',
-      title: 'High Commit Frequency',
-      text: `Your recent push stream indicates consistent development momentum. Keep the streak going!`
+      icon: 'star',
+      title: 'Community Traction',
+      text: `Your open-source work has earned **${stats.totalStars} stars** and connected with **${user.followers} followers**.`
     });
   } else {
     insights.push({
-      icon: 'calendar_month',
-      title: 'Consistency Opportunity',
-      text: `Establishing a daily or weekly commit cadence will significantly boost your profile activity score.`
+      icon: 'diversity_3',
+      title: 'Community Building',
+      text: `Your projects currently have limited GitHub community traction. Adding live deployment links and detailed READMEs will attract contributors.`
     });
   }
 
   return insights;
 }
 
-function generateSuggestions(user, repos, stats, languages) {
+function generateSuggestions(user, repos, stats, languages, score, topRepos) {
   const suggestions = [];
 
-  // 1. Profile Optimization
-  const hasBio = !!user.bio;
-  const hasLink = !!user.blog;
-  const hasLocation = !!user.location;
-  if (!hasBio || !hasLink || !hasLocation) {
-    suggestions.push({
-      category: '📌 Profile Optimization',
-      status: 'Incomplete Details',
-      suggestion: 'Complete your profile bio, custom portfolio link, and location to increase recruiter discoverability.',
-      priority: 'High',
-      priorityClass: 'priority-high'
-    });
-  } else {
-    suggestions.push({
-      category: '📌 Profile Optimization',
-      status: 'Well Structured',
-      suggestion: 'Consider adding a personalized GitHub Profile README (`' + user.login + '/' + user.login + '`) with dynamic stats.',
-      priority: 'Low',
-      priorityClass: 'priority-low'
-    });
-  }
-
-  // 2. Repository Quality
+  const total = repos.length;
   const missingDesc = repos.filter(r => !r.description || r.description.trim().length === 0).length;
+  const missingDemo = repos.filter(r => !r.homepage || r.homepage.trim().length === 0).length;
+  const missingTopics = repos.filter(r => !Array.isArray(r.topics) || r.topics.length === 0).length;
+
+  // 1. Missing Descriptions
   if (missingDesc > 0) {
     suggestions.push({
-      category: '📚 Repository Quality',
-      status: `${missingDesc} Repos Missing Description`,
-      suggestion: `Add clear 1-sentence descriptions and topic tags to all ${missingDesc} uncommented repositories.`,
+      category: '📚 Repository Descriptions',
+      status: `${missingDesc} of ${total} Repos Missing Description`,
+      suggestion: `${missingDesc} of your ${total} repositories have no description. Add concise descriptions to improve discoverability and recruiter appeal.`,
       priority: 'High',
       priorityClass: 'priority-high'
     });
-  } else {
-    suggestions.push({
-      category: '📚 Repository Quality',
-      status: 'Clean Descriptions',
-      suggestion: 'All repositories have descriptions. Add custom social preview cards in repo settings.',
-      priority: 'Low',
-      priorityClass: 'priority-low'
-    });
   }
 
-  // 3. Documentation
-  suggestions.push({
-    category: '📝 Documentation',
-    status: 'Standard Docs',
-    suggestion: 'Include architecture diagrams, live demo URLs, and MIT/Apache license files in your flagship repos.',
-    priority: 'Medium',
-    priorityClass: 'priority-medium'
-  });
-
-  // 4. Open Source
-  if (stats.forkedReposCount > stats.originalReposCount) {
+  // 2. Live Demo Deployments
+  if (missingDemo > 0) {
     suggestions.push({
-      category: '🚀 Open Source',
-      status: 'High Fork Ratio',
-      suggestion: 'Build more standalone, original full-stack or algorithm repositories to showcase individual ownership.',
+      category: '🚀 Live Deployments',
+      status: `${missingDemo} of ${total} Repos Without Demo Link`,
+      suggestion: `${missingDemo} projects have no homepage/demo link. Add live preview URLs (e.g. Vercel, Netlify, GitHub Pages) to interactive repositories.`,
       priority: 'Medium',
       priorityClass: 'priority-medium'
     });
-  } else {
+  }
+
+  // 3. Profile Completeness
+  if (!user.bio || !user.blog || !user.location) {
+    const missing = [];
+    if (!user.bio) missing.push('Bio');
+    if (!user.blog) missing.push('Portfolio/Website');
+    if (!user.location) missing.push('Location');
     suggestions.push({
-      category: '🚀 Open Source',
-      status: 'High Original Output',
-      suggestion: 'Publish npm packages or template boilerplates to drive higher cross-ecosystem adoption.',
-      priority: 'Low',
-      priorityClass: 'priority-low'
+      category: '📌 Profile Optimization',
+      status: `${missing.join(', ')} Incomplete`,
+      suggestion: `Your GitHub profile is missing: ${missing.join(', ')}. Complete these fields in your GitHub settings to reach 10/10 Profile Quality.`,
+      priority: 'High',
+      priorityClass: 'priority-high'
     });
   }
 
-  // 5. Consistency
+  // 4. Topic Tags
+  if (missingTopics > 0) {
+    suggestions.push({
+      category: '🏷️ Discoverability & Topics',
+      status: `${missingTopics} Repos Lack Topic Tags`,
+      suggestion: `Add relevant technology topics (e.g., 'javascript', 'tailwindcss', 'web-development') to your repository settings for GitHub search ranking.`,
+      priority: 'Medium',
+      priorityClass: 'priority-medium'
+    });
+  }
+
+  // 5. Documentation & README
   suggestions.push({
-    category: '🔥 Consistency',
-    status: 'Steady Pulse',
-    suggestion: 'Aim for at least 3-4 structured commits per week to maintain active green contribution streaks.',
-    priority: 'Medium',
-    priorityClass: 'priority-medium'
+    category: '📝 Documentation Standards',
+    status: 'Flagship Repositories',
+    suggestion: `Ensure your top projects (such as '${topRepos[0] ? topRepos[0].name : 'your flagship project'}') include setup guides, feature lists, and live screenshots.`,
+    priority: 'Low',
+    priorityClass: 'priority-low'
   });
 
   return suggestions;
@@ -598,17 +1044,14 @@ function generateSuggestions(user, repos, stats, languages) {
 // --------------------------------------------------------------------------
 
 function renderProfile(user, stats) {
-  // Basic info
   setSrc('user-avatar', user.avatar_url);
   setText('user-name', user.name || user.login);
   setText('user-login', `@${user.login}`);
   setText('user-bio', user.bio || 'Software Developer building modern applications.');
   
-  // Profile button link
   const linkBtn = document.getElementById('user-github-link');
   if (linkBtn) linkBtn.href = user.html_url;
 
-  // Metadata tags
   const locationEl = document.getElementById('user-location');
   const companyEl = document.getElementById('user-company');
   const blogEl = document.getElementById('user-blog');
@@ -634,7 +1077,6 @@ function renderProfile(user, stats) {
     joinedEl.textContent = `Joined ${joinDate}`;
   }
 
-  // Profile Stats
   setText('user-stat-repos', user.public_repos);
   setText('user-stat-followers', user.followers);
   setText('user-stat-following', user.following);
@@ -643,9 +1085,14 @@ function renderProfile(user, stats) {
 
 function renderScore(score) {
   setText('score-overall-number', score.totalScore);
-  setText('score-rank-tier', score.rankTier);
+  
+  const tierEl = document.getElementById('score-rank-tier');
+  if (tierEl) {
+    tierEl.textContent = score.tier;
+    tierEl.className = `badge ${score.tierClass} text-xs font-bold transition-all`;
+  }
 
-  // SVG Circular progress offset
+  // SVG Circular progress gauge offset (radius 70 => circumference 439.82)
   const circleProgress = document.getElementById('score-circle-progress');
   if (circleProgress) {
     const radius = 70;
@@ -655,18 +1102,42 @@ function renderScore(score) {
     circleProgress.style.strokeDashoffset = offset;
   }
 
-  // Sub-scores
-  setText('subscore-repo-text', `${score.repoScore}%`);
-  setWidth('subscore-repo-bar', `${score.repoScore}%`);
+  // Render 8-category breakdown with progress bars & expandable explanations
+  const breakdownContainer = document.getElementById('score-breakdown-container');
+  if (breakdownContainer) {
+    const b = score.breakdown;
+    const categories = [
+      { key: 'profile', label: 'Profile Quality', data: b.profile, color: 'bg-indigo-600' },
+      { key: 'repository', label: 'Repository Quality', data: b.repository, color: 'bg-indigo-600' },
+      { key: 'activity', label: 'Development Activity', data: b.activity, color: 'bg-emerald-500' },
+      { key: 'technology', label: 'Technology Stack', data: b.technology, color: 'bg-blue-500' },
+      { key: 'community', label: 'Community & Presence', data: b.community, color: 'bg-amber-500' },
+      { key: 'project', label: 'Project Quality', data: b.project, color: 'bg-purple-500' },
+      { key: 'documentation', label: 'Documentation', data: b.documentation, color: 'bg-teal-500' },
+      { key: 'openSource', label: 'Open Source', data: b.openSource, color: 'bg-rose-500' }
+    ];
 
-  setText('subscore-activity-text', `${score.activityScore}%`);
-  setWidth('subscore-activity-bar', `${score.activityScore}%`);
-
-  setText('subscore-community-text', `${score.communityScore}%`);
-  setWidth('subscore-community-bar', `${score.communityScore}%`);
-
-  setText('subscore-popularity-text', `${score.popularityScore}%`);
-  setWidth('subscore-popularity-bar', `${score.popularityScore}%`);
+    breakdownContainer.innerHTML = categories.map(cat => {
+      const pct = Math.round((cat.data.score / cat.data.max) * 100);
+      return `
+        <div class="score-cat-item group" onclick="this.classList.toggle('expanded')" title="Click to view explanation">
+          <div class="flex items-center justify-between font-semibold text-slate-700 mb-1">
+            <span class="flex items-center gap-1">
+              <span>${cat.label}</span>
+              <span class="material-symbols-outlined text-[14px] text-slate-400 group-hover:text-indigo-600 transition-colors">info</span>
+            </span>
+            <span class="text-slate-900 font-bold">${cat.data.score} / ${cat.data.max}</span>
+          </div>
+          <div class="sub-score-bar-bg">
+            <div class="sub-score-bar-fill ${cat.color}" style="width: ${pct}%;"></div>
+          </div>
+          <div class="score-cat-why">
+            <strong>Why:</strong> ${escapeHtml(cat.data.why)}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
 }
 
 function renderStats(stats, user) {
@@ -718,68 +1189,103 @@ function renderRepoAnalytics(stats, repos) {
   setText('repo-stat-most-forked', stats.mostForkedRepo ? stats.mostForkedRepo.name : 'N/A');
 }
 
-function renderTopRepo(topRepo) {
+/**
+ * Render Top 3 Repositories (Ranked by Project Quality)
+ */
+function renderTopRepositories(topRepos) {
   const container = document.getElementById('top-repo-highlight-container');
   if (!container) return;
 
-  if (!topRepo) {
+  if (!Array.isArray(topRepos) || topRepos.length === 0) {
     container.innerHTML = `<p class="text-xs text-slate-400">No public repositories available.</p>`;
     return;
   }
 
-  const langColor = topRepo.language ? (LANGUAGE_COLORS[topRepo.language] || '#64748b') : '#64748b';
-  const createdDate = new Date(topRepo.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  const updatedDate = timeAgo(topRepo.updated_at);
+  const top3 = topRepos.slice(0, 3);
+  const rankLabels = [
+    { rank: '#1 Flagship Project', badgeClass: 'bg-amber-50 text-amber-700 border-amber-200', icon: 'military_tech' },
+    { rank: '#2 Core Project', badgeClass: 'bg-slate-100 text-slate-700 border-slate-300', icon: 'workspace_premium' },
+    { rank: '#3 Notable Project', badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200', icon: 'stars' }
+  ];
 
   container.innerHTML = `
-    <div class="dev-card top-repo-card p-5 sm:p-6 min-w-0">
-      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-indigo-600 text-[20px]">star</span>
-          <span class="badge badge-primary text-xs font-bold">Featured Top Project</span>
-        </div>
-        <a href="${topRepo.html_url}" target="_blank" class="btn-secondary text-xs py-1.5 px-3.5 flex items-center gap-1.5 shrink-0">
-          <span class="material-symbols-outlined text-[15px]">open_in_new</span>
-          <span>View on GitHub</span>
-        </a>
+    <div class="space-y-4">
+      <div class="flex items-center justify-between mb-1">
+        <h4 class="font-bold text-base text-slate-900 flex items-center gap-2">
+          <span class="material-symbols-outlined text-amber-500">star</span>
+          <span>Top Highlighted Repositories</span>
+        </h4>
+        <span class="text-xs text-slate-400">Ranked by Quality & Depth</span>
       </div>
 
-      <h3 class="text-lg sm:text-xl font-bold text-slate-900 hover:text-indigo-600 transition-colors break-words-anywhere">
-        <a href="${topRepo.html_url}" target="_blank">${escapeHtml(topRepo.name)}</a>
-      </h3>
+      ${top3.map((repo, idx) => {
+        const meta = rankLabels[idx] || rankLabels[2];
+        const langColor = repo.language ? (LANGUAGE_COLORS[repo.language] || '#64748b') : '#64748b';
+        const updatedDate = timeAgo(repo.updated_at);
+        const isFlagship = idx === 0;
 
-      <p class="text-xs sm:text-sm text-slate-600 mt-2 mb-4 leading-relaxed break-words-anywhere">
-        ${escapeHtml(topRepo.description || 'No description provided for this repository.')}
-      </p>
+        return `
+          <div class="dev-card ${isFlagship ? 'top-repo-card border-indigo-200 bg-gradient-to-br from-white via-indigo-50/20 to-white' : ''} p-5 min-w-0">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-2.5">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="badge ${meta.badgeClass} text-xs font-bold flex items-center gap-1 shrink-0">
+                  <span class="material-symbols-outlined text-[14px]">${meta.icon}</span>
+                  <span>${meta.rank}</span>
+                </span>
+                <span class="badge badge-primary text-[10px] shrink-0 font-semibold">Quality: ${repo.projectScore}/15 pts</span>
+              </div>
 
-      <div class="flex flex-wrap items-center justify-between gap-3 pt-3.5 border-t border-indigo-100/80 text-xs text-slate-600">
-        <div class="flex flex-wrap items-center gap-3 sm:gap-4">
-          ${topRepo.language ? `
-            <span class="flex items-center gap-1.5 font-semibold text-slate-800 shrink-0">
-              <span class="repo-lang-dot" style="background-color: ${langColor};"></span>
-              ${escapeHtml(topRepo.language)}
-            </span>
-          ` : ''}
-          <span class="flex items-center gap-1 shrink-0">
-            <span class="material-symbols-outlined text-[16px] text-amber-500">star</span>
-            <strong>${topRepo.stargazers_count}</strong> stars
-          </span>
-          <span class="flex items-center gap-1 shrink-0">
-            <span class="material-symbols-outlined text-[16px] text-purple-600">fork_right</span>
-            <strong>${topRepo.forks_count}</strong> forks
-          </span>
-          <span class="flex items-center gap-1 shrink-0">
-            <span class="material-symbols-outlined text-[16px] text-slate-500">adjust</span>
-            <strong>${topRepo.open_issues_count}</strong> issues
-          </span>
-        </div>
+              <div class="flex items-center gap-2 shrink-0">
+                ${repo.homepage ? `
+                  <a href="${repo.homepage}" target="_blank" class="btn-primary text-xs py-1.5 px-3 flex items-center gap-1 shrink-0" title="Open Live Demo">
+                    <span class="material-symbols-outlined text-[14px]">launch</span>
+                    <span>Live Demo</span>
+                  </a>
+                ` : ''}
+                <a href="${repo.html_url}" target="_blank" class="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1 shrink-0">
+                  <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+                  <span>GitHub</span>
+                </a>
+              </div>
+            </div>
 
-        <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-slate-400 text-[11px] sm:text-xs">
-          <span>Created ${createdDate}</span>
-          <span>•</span>
-          <span>Updated ${updatedDate}</span>
-        </div>
-      </div>
+            <h3 class="text-base sm:text-lg font-bold text-slate-900 hover:text-indigo-600 transition-colors break-words-anywhere">
+              <a href="${repo.html_url}" target="_blank">${escapeHtml(repo.name)}</a>
+            </h3>
+
+            <p class="text-xs sm:text-sm text-slate-600 mt-1.5 mb-3.5 leading-relaxed break-words-anywhere line-clamp-2 sm:line-clamp-3">
+              ${escapeHtml(repo.description || 'No description provided for this repository.')}
+            </p>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs text-slate-600">
+              <div class="flex flex-wrap items-center gap-3 sm:gap-4">
+                ${repo.language ? `
+                  <span class="flex items-center gap-1.5 font-semibold text-slate-800 shrink-0">
+                    <span class="repo-lang-dot" style="background-color: ${langColor};"></span>
+                    ${escapeHtml(repo.language)}
+                  </span>
+                ` : ''}
+                <span class="flex items-center gap-1 shrink-0">
+                  <span class="material-symbols-outlined text-[15px] text-amber-500">star</span>
+                  <strong>${repo.stargazers_count || 0}</strong> stars
+                </span>
+                <span class="flex items-center gap-1 shrink-0">
+                  <span class="material-symbols-outlined text-[15px] text-purple-600">fork_right</span>
+                  <strong>${repo.forks_count || 0}</strong> forks
+                </span>
+                <span class="flex items-center gap-1 shrink-0 text-slate-500">
+                  <span class="material-symbols-outlined text-[15px]">folder_open</span>
+                  ${Math.round((repo.size || 0) / 1024 * 10) / 10} MB
+                </span>
+              </div>
+
+              <div class="text-slate-400 text-[11px]">
+                <span>Updated ${updatedDate}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
     </div>
   `;
 }
@@ -868,8 +1374,8 @@ function renderActivity(events) {
 function parseGitHubEvent(e) {
   switch (e.type) {
     case 'PushEvent': {
-      const count = e.payload.commits ? e.payload.commits.length : 1;
-      const msg = e.payload.commits && e.payload.commits[0] ? e.payload.commits[0].message : 'Pushed commits';
+      const count = e.payload && e.payload.commits ? e.payload.commits.length : 1;
+      const msg = e.payload && e.payload.commits && e.payload.commits[0] ? e.payload.commits[0].message : 'Pushed commits';
       return {
         label: 'Push',
         badgeClass: 'event-push',
@@ -1052,11 +1558,11 @@ function applyRepoFiltersAndRender() {
           <div class="flex items-center gap-3 shrink-0">
             <span class="flex items-center gap-0.5" title="Stars">
               <span class="material-symbols-outlined text-[14px] text-amber-500">star</span>
-              ${repo.stargazers_count}
+              ${repo.stargazers_count || 0}
             </span>
             <span class="flex items-center gap-0.5" title="Forks">
               <span class="material-symbols-outlined text-[14px]">fork_right</span>
-              ${repo.forks_count}
+              ${repo.forks_count || 0}
             </span>
             <a href="${repo.html_url}" target="_blank" class="text-indigo-600 hover:text-indigo-800 p-0.5" title="Open on GitHub">
               <span class="material-symbols-outlined text-[16px]">open_in_new</span>
@@ -1069,8 +1575,82 @@ function applyRepoFiltersAndRender() {
 }
 
 // --------------------------------------------------------------------------
-// Report Export (JSON download)
+// Report Export (JSON v2.0 & Text Summary Developer Report)
 // --------------------------------------------------------------------------
+
+function generateTextReport(d) {
+  const user = d.user;
+  const score = d.score;
+  const b = score.breakdown;
+  const stats = d.stats;
+  const langs = d.languages;
+  const topRepo = d.topRepos && d.topRepos[0] ? d.topRepos[0] : null;
+
+  let report = '';
+  report += `DEV PILOT AI\n`;
+  report += `GitHub Developer Report\n`;
+  report += `────────────────────────\n\n`;
+  report += `@${user.login}\n\n`;
+  report += `Developer Score\n`;
+  report += `      ${score.totalScore} / 100\n`;
+  report += `   ${score.tier}\n\n`;
+  report += `────────────────────────\n`;
+  report += `PROFILE\n`;
+  report += `Repositories       ${user.public_repos}\n`;
+  report += `Followers          ${user.followers}\n`;
+  report += `Following          ${user.following}\n\n`;
+  report += `────────────────────────\n`;
+  report += `SCORE BREAKDOWN\n\n`;
+  report += `Repository Quality     ${(b.repository ? b.repository.score : 0).toString().padStart(2)}/25\n`;
+  report += `Development Activity   ${(b.activity ? b.activity.score : 0).toString().padStart(2)}/20\n`;
+  report += `Project Quality        ${(b.project ? b.project.score : 0).toString().padStart(2)}/15\n`;
+  report += `Technology Stack       ${(b.technology ? b.technology.score : 0).toString().padStart(2)}/10\n`;
+  report += `Profile Quality        ${(b.profile ? b.profile.score : 0).toString().padStart(2)}/10\n`;
+  report += `Community              ${(b.community ? b.community.score : 0).toString().padStart(2)}/10\n`;
+  report += `Documentation          ${(b.documentation ? b.documentation.score : 0).toString().padStart(2)}/5\n`;
+  report += `Open Source            ${(b.openSource ? b.openSource.score : 0).toString().padStart(2)}/5\n\n`;
+  report += `────────────────────────\n`;
+  report += `TOP TECHNOLOGIES\n\n`;
+  if (langs && langs.languages) {
+    langs.languages.slice(0, 4).forEach(l => {
+      report += `${l.name.padEnd(16)} ${l.percentage}%\n`;
+    });
+  }
+  report += `\n────────────────────────\n`;
+  report += `TOP PROJECTS\n\n`;
+  if (topRepo) {
+    report += `${topRepo.name}\n`;
+    report += `⭐ ${topRepo.stargazers_count || 0}   🍴 ${topRepo.forks_count || 0}\n`;
+    report += `${topRepo.language || 'Plain'}\n\n`;
+  }
+  report += `────────────────────────\n`;
+  report += `INSIGHTS\n\n`;
+  if (langs && langs.primaryLanguage && langs.primaryLanguage !== 'N/A') {
+    report += `✓ Strongest Technology: ${langs.primaryLanguage}\n`;
+  }
+  report += `✓ ${stats.originalReposCount || user.public_repos} original repositories\n`;
+  if (stats.totalStars < 5) {
+    report += `⚠ Community traction is low\n`;
+  } else {
+    report += `✓ Community traction established\n`;
+  }
+  if (b.activity && b.activity.score >= 10) {
+    report += `✓ Recent development activity\n`;
+  } else {
+    report += `⚠ Low recent commit frequency\n`;
+  }
+  report += `\n────────────────────────\n`;
+  report += `RECOMMENDATIONS\n\n`;
+  if (Array.isArray(d.suggestions)) {
+    d.suggestions.forEach((s, idx) => {
+      const cleanCategory = s.category.replace(/^[^\w\s]+/, '').trim();
+      report += `${idx + 1}. ${cleanCategory}\n`;
+    });
+  }
+  report += `\nGenerated by DevPilot AI\n`;
+
+  return report;
+}
 
 function exportReport() {
   if (!currentAnalysisData) {
@@ -1078,50 +1658,73 @@ function exportReport() {
     return;
   }
 
+  const d = currentAnalysisData;
   const exportPayload = {
+    scoreVersion: '2.0',
     generator: 'DevPilot-AI GitHub Analyzer',
     generatedAt: new Date().toISOString(),
     profile: {
-      username: currentAnalysisData.user.login,
-      name: currentAnalysisData.user.name,
-      bio: currentAnalysisData.user.bio,
-      location: currentAnalysisData.user.location,
-      company: currentAnalysisData.user.company,
-      blog: currentAnalysisData.user.blog,
-      publicRepos: currentAnalysisData.user.public_repos,
-      followers: currentAnalysisData.user.followers,
-      following: currentAnalysisData.user.following
+      username: d.user.login,
+      name: d.user.name,
+      bio: d.user.bio,
+      location: d.user.location,
+      company: d.user.company,
+      blog: d.user.blog,
+      publicRepos: d.user.public_repos,
+      followers: d.user.followers,
+      following: d.user.following
     },
-    developerScore: currentAnalysisData.score,
     statistics: {
-      totalStars: currentAnalysisData.stats.totalStars,
-      totalForks: currentAnalysisData.stats.totalForks,
-      openIssues: currentAnalysisData.stats.openIssues,
-      originalRepos: currentAnalysisData.stats.originalReposCount,
-      forkedRepos: currentAnalysisData.stats.forkedReposCount,
-      archivedRepos: currentAnalysisData.stats.archivedReposCount
+      totalStars: d.stats.totalStars,
+      totalForks: d.stats.totalForks,
+      openIssues: d.stats.openIssues,
+      totalRepos: d.stats.totalRepos,
+      originalRepos: d.stats.originalReposCount,
+      forkedRepos: d.stats.forkedReposCount,
+      archivedRepos: d.stats.archivedReposCount
     },
-    topLanguages: currentAnalysisData.languages.languages,
-    topRepository: currentAnalysisData.stats.topRepo ? {
-      name: currentAnalysisData.stats.topRepo.name,
-      url: currentAnalysisData.stats.topRepo.html_url,
-      stars: currentAnalysisData.stats.topRepo.stargazers_count,
-      forks: currentAnalysisData.stats.topRepo.forks_count,
-      language: currentAnalysisData.stats.topRepo.language
-    } : null,
-    aiInsights: currentAnalysisData.insights,
-    suggestions: currentAnalysisData.suggestions
+    developerScore: {
+      totalScore: d.score.totalScore,
+      tier: d.score.tier,
+      breakdown: {
+        profile: d.score.breakdown.profile.score,
+        repositories: d.score.breakdown.repository.score,
+        activity: d.score.breakdown.activity.score,
+        technology: d.score.breakdown.technology.score,
+        community: d.score.breakdown.community.score,
+        projects: d.score.breakdown.project.score,
+        documentation: d.score.breakdown.documentation.score,
+        openSource: d.score.breakdown.openSource.score
+      },
+      detailedBreakdown: d.score.breakdown
+    },
+    topLanguages: d.languages.languages,
+    topRepositories: (d.topRepos || []).slice(0, 3).map(r => ({
+      name: r.name,
+      description: r.description,
+      language: r.language,
+      stars: r.stargazers_count,
+      forks: r.forks_count,
+      score: r.projectScore,
+      url: r.html_url,
+      homepage: r.homepage,
+      updatedAt: r.updated_at
+    })),
+    recentActivity: d.events.slice(0, 10).map(e => parseGitHubEvent(e)),
+    insights: d.insights,
+    suggestions: d.suggestions,
+    textReport: generateTextReport(d)
   };
 
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportPayload, null, 2));
   const downloadAnchor = document.createElement('a');
   downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute("download", `github-analysis-${currentAnalysisData.user.login}.json`);
+  downloadAnchor.setAttribute("download", `github-analysis-${d.user.login}-v2.json`);
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
   downloadAnchor.remove();
 
-  showToast(`Exported analysis report for @${currentAnalysisData.user.login}`, 'success');
+  showToast(`Exported v2.0 analysis report for @${d.user.login}`, 'success');
 }
 
 // --------------------------------------------------------------------------
