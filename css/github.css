@@ -1,6 +1,140 @@
 /* ==========================================================================
-   DevPilot-AI - GitHub Page CSS
+   DevPilot-AI - GitHub Analyzer CSS
    ========================================================================== */
+
+/* State Containers */
+.analyzer-state {
+  display: none;
+}
+
+.analyzer-state.active {
+  display: block;
+}
+
+/* Skeleton Loading Shimmer */
+.skeleton {
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Developer Score Circular Ring */
+.score-circle-container {
+  position: relative;
+  width: 170px;
+  height: 170px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-svg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+
+.score-circle-bg {
+  fill: none;
+  stroke: #e2e8f0;
+  stroke-width: 12;
+}
+
+.score-circle-progress {
+  fill: none;
+  stroke: url(#scoreGradient);
+  stroke-width: 12;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.score-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.score-number {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 2.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.score-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
+}
+
+/* Sub-Score Bars */
+.sub-score-bar-bg {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.sub-score-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Language Color Dots & Progress Bars */
+.lang-progress-container {
+  height: 8px;
+  display: flex;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+
+.lang-progress-segment {
+  height: 100%;
+  transition: width 0.8s ease;
+}
+
+.repo-lang-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* Language Color Mappings */
+.lang-JavaScript { background-color: #f7df1e; }
+.lang-TypeScript { background-color: #3178c6; }
+.lang-Python { background-color: #3572A5; }
+.lang-Java { background-color: #b07219; }
+.lang-C { background-color: #555555; }
+.lang-Cpp { background-color: #f34b7d; }
+.lang-Csharp { background-color: #178600; }
+.lang-Go { background-color: #00ADD8; }
+.lang-Rust { background-color: #dea584; }
+.lang-Ruby { background-color: #701516; }
+.lang-PHP { background-color: #4F5D95; }
+.lang-Swift { background-color: #F05138; }
+.lang-Kotlin { background-color: #A97BFF; }
+.lang-HTML { background-color: #e34c26; }
+.lang-CSS { background-color: #563d7c; }
+.lang-Vue { background-color: #41b883; }
+.lang-Shell { background-color: #89e051; }
+.lang-Default { background-color: #64748b; }
 
 /* Timeline Container */
 .timeline-container {
@@ -20,7 +154,7 @@
 
 .timeline-item {
   position: relative;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .timeline-item:last-child {
@@ -30,7 +164,7 @@
 .timeline-dot {
   position: absolute;
   left: -2rem;
-  top: 4px;
+  top: 6px;
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -42,34 +176,84 @@
   justify-content: center;
 }
 
-/* Repo Card */
+/* Event Badges */
+.event-badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.event-push { background: #e0e7ff; color: #4338ca; }
+.event-pr { background: #ecfdf5; color: #047857; }
+.event-issue { background: #fef3c7; color: #b45309; }
+.event-star { background: #fef9c3; color: #a16207; }
+.event-fork { background: #f3e8ff; color: #7e22ce; }
+.event-create { background: #e0f2fe; color: #0369a1; }
+.event-default { background: #f1f5f9; color: #475569; }
+
+/* Repository Cards */
 .repo-card {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
+  transition: all var(--transition-normal);
 }
 
-.repo-lang-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
+.repo-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(79, 70, 229, 0.3);
+  box-shadow: var(--shadow-hover);
 }
 
-.lang-js { background-color: #f7df1e; }
-.lang-ts { background-color: #3178c6; }
-.lang-python { background-color: #3572A5; }
-.lang-cpp { background-color: #f34b7d; }
-.lang-html { background-color: #e34c26; }
-.lang-rust { background-color: #dea584; }
+/* Priority Badges for Suggestions */
+.priority-high {
+  background: #fee2e2;
+  color: #dc2626;
+}
 
-.commit-hash {
-  font-family: 'Fira Code', monospace;
-  font-size: 0.75rem;
-  background: var(--color-surface-container);
-  color: var(--color-on-surface-variant);
-  padding: 0.125rem 0.375rem;
-  border-radius: var(--radius-sm);
+.priority-medium {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.priority-low {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+/* Highlighted Top Repository Card */
+.top-repo-card {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.04) 0%, rgba(99, 102, 241, 0.01) 100%);
+  border: 1.5px solid rgba(79, 70, 229, 0.25);
+  box-shadow: 0 4px 20px rgba(79, 70, 229, 0.06);
+}
+
+/* Quick User Chip Buttons */
+.sample-user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+  background: #ffffff;
   border: 1px solid var(--color-outline-variant);
+  color: var(--color-on-surface-variant);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sample-user-chip:hover {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
 }
