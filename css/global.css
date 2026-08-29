@@ -159,6 +159,26 @@ h1, h2, h3, h4, h5, h6 {
   display: none !important;
 }
 
+/* Universal Nav Link Hover & Active Polish */
+#sidebar nav a {
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+#sidebar nav a:hover {
+  background-color: #f1f5f9;
+  border-left-color: #cbd5e1;
+}
+
+#sidebar nav a:hover .material-symbols-outlined {
+  color: #4f46e5;
+}
+
+#sidebar nav a.bg-indigo-50:hover,
+#sidebar nav a.bg-secondary-container:hover {
+  background-color: #eef2ff;
+  border-left-color: #4f46e5;
+}
+
 .sidebar-collapsed #sidebar {
   width: var(--sidebar-collapsed-width);
 }
