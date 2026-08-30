@@ -1,6 +1,6 @@
 /**
  * DevPilot-AI — Resume Workspace Module
- * Handles: Hub, Resume Builder (10 templates, live A4 preview, dynamic sections),
+ * Handles: Hub, Resume Builder (9 real professional formats, live A4 preview, dynamic sections),
  *          Resume Analyzer (ATS checks, job match, GitHub correlation, AI recs)
  */
 
@@ -33,7 +33,7 @@ const defaultResumeState = {
       location: 'San Francisco, CA',
       startDate: 'Jun 2025',
       endDate: 'Present',
-      description: 'Architected and implemented responsive SaaS components reducing initial bundle load by 35%.\nIntegrated automated CI/CD deployment pipelines using GitHub Actions.\nBuilt RESTful APIs consumed by 3 downstream services.'
+      description: 'Architected and implemented responsive SaaS components reducing initial bundle load by 35%.\nIntegrated automated CI/CD deployment pipelines using GitHub Actions.\nBuilt RESTful APIs consumed by 3 downstream microservices.'
     },
     {
       role: 'Frontend Engineering Fellow',
@@ -69,36 +69,133 @@ const defaultResumeState = {
       gpa: '3.9 / 4.0 GPA'
     }
   ],
-  achievements: [],
-  certifications: []
+  achievements: [
+    {
+      title: '1st Place Winner — Global Hackathon',
+      org: 'Major League Hacking (MLH)',
+      date: 'March 2025',
+      description: 'Built an AI-assisted real-time code refactoring engine in 36 hours competing against 450+ global teams.'
+    }
+  ],
+  certifications: [
+    {
+      name: 'AWS Certified Solutions Architect — Associate',
+      issuer: 'Amazon Web Services',
+      date: 'Jan 2025',
+      credentialId: 'AWS-SAA-8492048'
+    }
+  ]
 };
 
 /* ============================================================
-   TEMPLATE DEFINITIONS
+   REAL PROFESSIONAL TEMPLATE DEFINITIONS (9 REAL FORMATS)
    ============================================================ */
 const TEMPLATES = [
-  { id: 0, name: 'DevPilot Classic', category: 'developer', accent: '#4F46E5' },
-  { id: 1, name: 'Minimal ATS',      category: 'ats',       accent: '#334155' },
-  { id: 2, name: 'Modern Developer', category: 'modern',    accent: '#4F46E5' },
-  { id: 3, name: 'Clean Professional', category: 'minimal', accent: '#0f172a' },
-  { id: 4, name: 'Google-inspired',  category: 'company',   accent: '#1a73e8' },
-  { id: 5, name: 'Amazon-inspired',  category: 'company',   accent: '#e47911' },
-  { id: 6, name: 'Microsoft-inspired', category: 'company', accent: '#00188f' },
-  { id: 7, name: 'Adobe-inspired',   category: 'company',   accent: '#d40010' },
-  { id: 8, name: 'Meta-inspired',    category: 'company',   accent: '#1877f2' },
-  { id: 9, name: 'Custom',           category: 'minimal',   accent: '#4F46E5' }
+  {
+    id: 0,
+    key: 'classic-ats',
+    name: 'Classic ATS',
+    category: 'ats',
+    atsLabel: 'ATS Optimized',
+    atsClass: 'badge-success',
+    desc: 'Traditional single-column layout for maximum ATS compatibility'
+  },
+  {
+    id: 1,
+    key: 'modern-ats',
+    name: 'Modern ATS',
+    category: 'ats',
+    atsLabel: 'ATS Friendly',
+    atsClass: 'badge-primary',
+    desc: 'Clean modern hierarchy with contemporary typography'
+  },
+  {
+    id: 2,
+    key: 'reverse-chronological',
+    name: 'Reverse Chronological',
+    category: 'professional',
+    atsLabel: 'ATS Friendly',
+    atsClass: 'badge-primary',
+    desc: 'Experience-first timeline format prioritizing career growth'
+  },
+  {
+    id: 3,
+    key: 'minimal-pro',
+    name: 'Minimal Professional',
+    category: 'professional',
+    atsLabel: 'ATS Friendly',
+    atsClass: 'badge-neutral',
+    desc: 'Minimalist elegance with generous whitespace and clean typography'
+  },
+  {
+    id: 4,
+    key: 'modern-developer',
+    name: 'Modern Developer',
+    category: 'developer',
+    atsLabel: 'ATS Friendly',
+    atsClass: 'badge-primary',
+    desc: 'Technical two-column layout tailored for software engineers'
+  },
+  {
+    id: 5,
+    key: 'executive-pro',
+    name: 'Executive Professional',
+    category: 'professional',
+    atsLabel: 'ATS Friendly',
+    atsClass: 'badge-primary',
+    desc: 'Senior leadership format with core competencies matrix'
+  },
+  {
+    id: 6,
+    key: 'academic-cv',
+    name: 'Academic CV',
+    category: 'academic',
+    atsLabel: 'Academic Format',
+    atsClass: 'badge-warning',
+    desc: 'Scholarly format prioritizing education and research projects'
+  },
+  {
+    id: 7,
+    key: 'student-entry',
+    name: 'Entry-Level / Student',
+    category: 'student',
+    atsLabel: 'ATS Friendly',
+    atsClass: 'badge-success',
+    desc: 'Education & projects-first layout for students and freshers'
+  },
+  {
+    id: 8,
+    key: 'custom',
+    name: 'Custom',
+    category: 'developer',
+    atsLabel: 'ATS Friendly',
+    atsClass: 'badge-neutral',
+    desc: 'Flexible custom layout using DevPilot modular styling'
+  }
 ];
 
 /* ============================================================
    STATE
    ============================================================ */
 let currentResume   = Storage.get('resume_data', defaultResumeState);
-let activeTemplate  = Storage.get('resume_template', 0);
+let activeTemplate  = getInitialTemplate();
 let currentView     = 'hub';    // 'hub' | 'builder' | 'analyzer'
 let analyzerData    = null;     // holds analysis results
 let undoStack       = [];
 let redoStack       = [];
 const MAX_UNDO      = 30;
+
+function getInitialTemplate() {
+  const saved = Storage.get('resume_template', 0);
+  if (typeof saved === 'number' && saved >= 0 && saved < TEMPLATES.length) {
+    return saved;
+  }
+  if (typeof saved === 'string') {
+    const idx = TEMPLATES.findIndex(t => t.key === saved || t.name.toLowerCase() === saved.toLowerCase());
+    if (idx !== -1) return idx;
+  }
+  return 0; // Default to Classic ATS
+}
 
 /* ============================================================
    INIT
@@ -213,21 +310,33 @@ function renderTemplateCards(category) {
 
   const filtered = category === 'all'
     ? TEMPLATES
-    : TEMPLATES.filter(t => t.category === category);
+    : TEMPLATES.filter(t => t.category === category || (category === 'developer' && t.id === 8));
 
-  grid.innerHTML = filtered.map(tpl => `
-    <div class="template-card${activeTemplate === tpl.id ? ' selected' : ''}"
-         data-tpl-id="${tpl.id}"
-         role="button"
-         tabindex="0"
-         aria-label="Select ${tpl.name} template">
-      <div class="template-card-preview">
-        ${buildTemplateThumb(tpl)}
+  grid.innerHTML = filtered.map(tpl => {
+    const isSelected = activeTemplate === tpl.id;
+    return `
+      <div class="template-card${isSelected ? ' selected' : ''}"
+           data-tpl-id="${tpl.id}"
+           role="button"
+           tabindex="0"
+           aria-label="Select ${tpl.name} template">
+        <div class="template-card-preview">
+          ${buildTemplateThumb(tpl)}
+        </div>
+        <div class="template-card-content">
+          <div class="tcard-top-row">
+            <div class="tcard-name">${escHtml(tpl.name)}</div>
+            <span class="badge ${tpl.atsClass}" style="font-size:10px;padding:2px 6px;">${tpl.atsLabel}</span>
+          </div>
+          <div class="tcard-desc">${escHtml(tpl.desc)}</div>
+          <div class="tcard-footer">
+            <span class="tcard-cat-badge">${capitalize(tpl.category)}</span>
+            <button class="btn-use-tpl" tabindex="-1">${isSelected ? 'Selected ✓' : 'Use Template'}</button>
+          </div>
+        </div>
       </div>
-      <div class="tcard-name">${escHtml(tpl.name)}</div>
-      <div class="tcard-category">${capitalize(tpl.category)}</div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   grid.querySelectorAll('.template-card').forEach(card => {
     const select = () => {
@@ -239,24 +348,190 @@ function renderTemplateCards(category) {
   });
 }
 
+/* ------------------------------------------------------------
+   REALISTIC MINIATURE THUMBNAILS FOR 9 TEMPLATES
+   ------------------------------------------------------------ */
 function buildTemplateThumb(tpl) {
-  const c = tpl.accent;
-  return `
-    <div style="width:100%;height:100%;padding:5px;display:flex;flex-direction:column;gap:3px;">
-      <div class="tcard-line tcard-line-title" style="background:${c};opacity:0.8;"></div>
-      <div class="tcard-line-sm" style="height:3px;background:${c};opacity:0.5;border-radius:2px;width:45%;"></div>
-      <div class="tcard-divider"></div>
-      <div class="tcard-line" style="width:60%;background:#cbd5e1;"></div>
-      <div class="tcard-line" style="width:80%;background:#e2e8f0;"></div>
-      <div class="tcard-line" style="width:55%;background:#e2e8f0;"></div>
-      <div class="tcard-divider"></div>
-      <div class="tcard-dots">
-        <div style="width:18px;height:3px;border-radius:2px;background:${c};opacity:0.6;"></div>
-        <div style="width:14px;height:3px;border-radius:2px;background:${c};opacity:0.4;"></div>
-        <div style="width:20px;height:3px;border-radius:2px;background:${c};opacity:0.3;"></div>
-      </div>
-    </div>
-  `;
+  switch (tpl.id) {
+    case 0: // Classic ATS - Single column, centered name, pure monochrome
+      return `
+        <div style="width:100%;height:100%;padding:4px 6px;display:flex;flex-direction:column;gap:3px;background:#fff;">
+          <div style="width:45%;height:5px;background:#000;border-radius:1px;margin:1px auto;"></div>
+          <div style="width:70%;height:2px;background:#666;margin:1px auto;"></div>
+          <div style="width:100%;height:1px;background:#000;margin:2px 0;"></div>
+          <div style="width:30%;height:3px;background:#000;border-radius:1px;"></div>
+          <div style="width:100%;height:2px;background:#888;"></div>
+          <div style="width:85%;height:2px;background:#bbb;"></div>
+          <div style="width:100%;height:1px;background:#000;margin:2px 0;"></div>
+          <div style="width:35%;height:3px;background:#000;border-radius:1px;"></div>
+          <div style="width:100%;height:2px;background:#888;"></div>
+          <div style="width:75%;height:2px;background:#bbb;"></div>
+          <div style="width:100%;height:1px;background:#000;margin:2px 0;"></div>
+          <div style="width:25%;height:3px;background:#000;border-radius:1px;"></div>
+          <div style="width:90%;height:2px;background:#888;"></div>
+        </div>
+      `;
+
+    case 1: // Modern ATS - Single column, left name + blue accent line
+      return `
+        <div style="width:100%;height:100%;padding:4px 6px;display:flex;flex-direction:column;gap:3px;background:#fff;">
+          <div style="width:55%;height:5px;background:#0f172a;border-radius:1px;"></div>
+          <div style="width:35%;height:3px;background:#4F46E5;border-radius:1px;"></div>
+          <div style="width:100%;height:1px;background:#e0e7ff;margin:2px 0;"></div>
+          <div style="width:32%;height:3px;background:#4F46E5;border-radius:1px;"></div>
+          <div style="width:100%;height:2px;background:#94a3b8;"></div>
+          <div style="width:80%;height:2px;background:#cbd5e1;"></div>
+          <div style="width:32%;height:3px;background:#4F46E5;border-radius:1px;margin-top:2px;"></div>
+          <div style="width:100%;height:2px;background:#94a3b8;"></div>
+          <div style="display:flex;gap:2px;margin-top:2px;">
+            <div style="width:14px;height:3px;background:#e0e7ff;border-radius:1px;"></div>
+            <div style="width:18px;height:3px;background:#e0e7ff;border-radius:1px;"></div>
+            <div style="width:16px;height:3px;background:#e0e7ff;border-radius:1px;"></div>
+          </div>
+        </div>
+      `;
+
+    case 2: // Reverse Chronological - Experience & right-aligned dates timeline
+      return `
+        <div style="width:100%;height:100%;padding:4px 6px;display:flex;flex-direction:column;gap:3px;background:#fff;">
+          <div style="width:60%;height:5px;background:#0f172a;border-radius:1px;"></div>
+          <div style="width:100%;height:2px;background:#0f172a;margin:2px 0;"></div>
+          <div style="width:45%;height:3px;background:#0f172a;font-weight:bold;"></div>
+          <div style="display:flex;justify-content:space-between;width:100%;">
+            <div style="width:45%;height:3px;background:#334155;"></div>
+            <div style="width:25%;height:3px;background:#0f172a;"></div>
+          </div>
+          <div style="width:90%;height:2px;background:#94a3b8;margin-left:4px;"></div>
+          <div style="width:80%;height:2px;background:#cbd5e1;margin-left:4px;"></div>
+          <div style="display:flex;justify-content:space-between;width:100%;margin-top:2px;">
+            <div style="width:40%;height:3px;background:#334155;"></div>
+            <div style="width:25%;height:3px;background:#0f172a;"></div>
+          </div>
+          <div style="width:85%;height:2px;background:#94a3b8;margin-left:4px;"></div>
+          <div style="width:35%;height:3px;background:#0f172a;margin-top:3px;"></div>
+          <div style="width:70%;height:2px;background:#94a3b8;"></div>
+        </div>
+      `;
+
+    case 3: // Minimal Professional - Lots of generous whitespace
+      return `
+        <div style="width:100%;height:100%;padding:8px 8px;display:flex;flex-direction:column;gap:4px;background:#fff;">
+          <div style="width:40%;height:4px;background:#1e293b;border-radius:1px;letter-spacing:1px;"></div>
+          <div style="width:60%;height:2px;background:#94a3b8;"></div>
+          <div style="width:100%;height:1px;background:#f1f5f9;margin:3px 0;"></div>
+          <div style="width:25%;height:2px;background:#64748b;"></div>
+          <div style="width:90%;height:2px;background:#cbd5e1;"></div>
+          <div style="width:75%;height:2px;background:#e2e8f0;"></div>
+          <div style="width:25%;height:2px;background:#64748b;margin-top:3px;"></div>
+          <div style="width:85%;height:2px;background:#cbd5e1;"></div>
+          <div style="width:65%;height:2px;background:#e2e8f0;"></div>
+        </div>
+      `;
+
+    case 4: // Modern Developer - Two Column Layout
+      return `
+        <div style="width:100%;height:100%;padding:4px;display:flex;gap:4px;background:#fff;">
+          <!-- Left Col -->
+          <div style="width:35%;border-right:1px solid #e0e7ff;padding-right:3px;display:flex;flex-direction:column;gap:3px;background:#f8fafc;">
+            <div style="width:80%;height:3px;background:#4F46E5;border-radius:1px;"></div>
+            <div style="width:90%;height:2px;background:#94a3b8;"></div>
+            <div style="width:70%;height:2px;background:#cbd5e1;"></div>
+            <div style="width:80%;height:3px;background:#4F46E5;border-radius:1px;margin-top:2px;"></div>
+            <div style="width:100%;height:2px;background:#c7d2fe;"></div>
+            <div style="width:85%;height:2px;background:#c7d2fe;"></div>
+            <div style="width:80%;height:3px;background:#4F46E5;border-radius:1px;margin-top:2px;"></div>
+            <div style="width:90%;height:2px;background:#94a3b8;"></div>
+          </div>
+          <!-- Right Col -->
+          <div style="width:65%;display:flex;flex-direction:column;gap:3px;padding-left:2px;">
+            <div style="width:70%;height:5px;background:#0f172a;border-radius:1px;"></div>
+            <div style="width:40%;height:3px;background:#4F46E5;border-radius:1px;"></div>
+            <div style="width:100%;height:1px;background:#e0e7ff;margin:1px 0;"></div>
+            <div style="width:40%;height:3px;background:#4F46E5;border-radius:1px;"></div>
+            <div style="width:100%;height:2px;background:#94a3b8;"></div>
+            <div style="width:85%;height:2px;background:#cbd5e1;"></div>
+            <div style="width:40%;height:3px;background:#4F46E5;border-radius:1px;margin-top:2px;"></div>
+            <div style="width:100%;height:2px;background:#94a3b8;"></div>
+          </div>
+        </div>
+      `;
+
+    case 5: // Executive Professional - Centered header + 2x2 Competencies Matrix
+      return `
+        <div style="width:100%;height:100%;padding:4px 6px;display:flex;flex-direction:column;gap:3px;background:#fff;">
+          <div style="width:50%;height:5px;background:#0f172a;border-radius:1px;margin:0 auto;"></div>
+          <div style="width:30%;height:3px;background:#4F46E5;border-radius:1px;margin:0 auto;"></div>
+          <div style="width:100%;height:2px;background:#1e293b;margin:1px 0;"></div>
+          <div style="width:40%;height:3px;background:#0f172a;border-radius:1px;"></div>
+          <!-- 2x2 Grid -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#f8fafc;padding:2px;border:1px solid #e2e8f0;border-radius:1px;">
+            <div style="height:3px;background:#cbd5e1;"></div>
+            <div style="height:3px;background:#cbd5e1;"></div>
+            <div style="height:3px;background:#cbd5e1;"></div>
+            <div style="height:3px;background:#cbd5e1;"></div>
+          </div>
+          <div style="width:45%;height:3px;background:#0f172a;border-radius:1px;margin-top:2px;"></div>
+          <div style="width:100%;height:2px;background:#94a3b8;"></div>
+          <div style="width:85%;height:2px;background:#cbd5e1;"></div>
+        </div>
+      `;
+
+    case 6: // Academic CV - Centered academic header, double rule, education top
+      return `
+        <div style="width:100%;height:100%;padding:4px 6px;display:flex;flex-direction:column;gap:3px;background:#fff;font-family:serif;">
+          <div style="width:45%;height:5px;background:#000;border-radius:1px;margin:0 auto;"></div>
+          <div style="width:30%;height:2px;background:#555;margin:0 auto;"></div>
+          <div style="width:100%;height:1px;background:#374151;margin-top:1px;"></div>
+          <div style="width:100%;height:1px;background:#374151;margin-bottom:1px;"></div>
+          <div style="width:30%;height:3px;background:#000;border-radius:1px;"></div>
+          <div style="width:100%;height:2px;background:#666;"></div>
+          <div style="width:75%;height:2px;background:#999;"></div>
+          <div style="width:40%;height:3px;background:#000;border-radius:1px;margin-top:2px;"></div>
+          <div style="width:100%;height:2px;background:#666;"></div>
+          <div style="width:80%;height:2px;background:#999;"></div>
+          <div style="width:35%;height:3px;background:#000;border-radius:1px;margin-top:2px;"></div>
+          <div style="width:90%;height:2px;background:#666;"></div>
+        </div>
+      `;
+
+    case 7: // Entry-Level / Student - Prominent green education box + project emphasis
+      return `
+        <div style="width:100%;height:100%;padding:4px 6px;display:flex;flex-direction:column;gap:3px;background:#fff;">
+          <div style="width:50%;height:5px;background:#0f172a;border-radius:1px;"></div>
+          <div style="width:35%;height:3px;background:#059669;border-radius:1px;"></div>
+          <div style="width:100%;height:1px;background:#d1fae5;margin:1px 0;"></div>
+          <!-- Education Highlight -->
+          <div style="width:100%;background:#f0fdf4;border:1px solid #bbf7d0;padding:2px;border-radius:2px;">
+            <div style="width:40%;height:3px;background:#059669;border-radius:1px;"></div>
+            <div style="width:80%;height:2px;background:#065f46;margin-top:1px;"></div>
+          </div>
+          <div style="width:35%;height:3px;background:#059669;border-radius:1px;margin-top:2px;"></div>
+          <div style="display:flex;gap:2px;">
+            <div style="width:14px;height:3px;background:#a7f3d0;border-radius:1px;"></div>
+            <div style="width:16px;height:3px;background:#a7f3d0;border-radius:1px;"></div>
+            <div style="width:12px;height:3px;background:#a7f3d0;border-radius:1px;"></div>
+          </div>
+          <div style="width:35%;height:3px;background:#059669;border-radius:1px;margin-top:2px;"></div>
+          <div style="width:100%;height:2px;background:#94a3b8;"></div>
+          <div style="width:80%;height:2px;background:#cbd5e1;"></div>
+        </div>
+      `;
+
+    case 8: // Custom - DevPilot brand styling
+    default:
+      return `
+        <div style="width:100%;height:100%;padding:4px 6px;display:flex;flex-direction:column;gap:3px;background:#fff;">
+          <div style="width:55%;height:5px;background:#4F46E5;border-radius:1px;"></div>
+          <div style="width:35%;height:3px;background:#818cf8;border-radius:1px;"></div>
+          <div style="width:100%;height:1px;background:#e2e8f0;margin:2px 0;"></div>
+          <div style="width:30%;height:3px;background:#4F46E5;border-radius:1px;"></div>
+          <div style="width:100%;height:2px;background:#94a3b8;"></div>
+          <div style="width:80%;height:2px;background:#cbd5e1;"></div>
+          <div style="width:30%;height:3px;background:#4F46E5;border-radius:1px;margin-top:2px;"></div>
+          <div style="width:100%;height:2px;background:#94a3b8;"></div>
+        </div>
+      `;
+  }
 }
 
 function selectTemplate(id) {
@@ -264,11 +539,14 @@ function selectTemplate(id) {
   Storage.set('resume_template', id);
   updateLivePreview();
   updateHubStatTemplate();
-  const label = TEMPLATES[id] ? TEMPLATES[id].name : 'DevPilot Classic';
+  updateAtsScore();
+
+  const label = TEMPLATES[id] ? TEMPLATES[id].name : 'Classic ATS';
   const labelEl = document.getElementById('active-template-label');
   if (labelEl) labelEl.textContent = label;
   const badgeEl = document.getElementById('template-badge-preview');
   if (badgeEl) badgeEl.textContent = label;
+
   // Refresh modal cards to show selected state
   const activeTab = document.querySelector('#template-category-tabs .filter-tab.active');
   if (activeTab) renderTemplateCards(activeTab.dataset.category);
@@ -321,9 +599,9 @@ function initBuilderControls() {
 
   // Set initial template label
   const labelEl = document.getElementById('active-template-label');
-  if (labelEl) labelEl.textContent = TEMPLATES[activeTemplate]?.name || 'DevPilot Classic';
+  if (labelEl) labelEl.textContent = TEMPLATES[activeTemplate]?.name || 'Classic ATS';
   const badgeEl = document.getElementById('template-badge-preview');
-  if (badgeEl) badgeEl.textContent = TEMPLATES[activeTemplate]?.name || 'DevPilot Classic';
+  if (badgeEl) badgeEl.textContent = TEMPLATES[activeTemplate]?.name || 'Classic ATS';
 }
 
 function bindFormInputs() {
@@ -713,25 +991,21 @@ function rerenderSection(section) {
 }
 
 /* ============================================================
-   LIVE RESUME PREVIEW (A4 Paper)
+   SHARED RESUME COMPONENT BUILDERS
    ============================================================ */
-function updateLivePreview() {
-  const paper = document.getElementById('printable-resume-paper');
-  if (!paper) return;
+function renderContactsPlain(p) {
+  return [
+    p.email,
+    p.phone,
+    p.location,
+    p.github,
+    p.linkedin,
+    p.portfolio
+  ].filter(Boolean).map(c => `<span>${escHtml(c)}</span>`).join(' &nbsp;|&nbsp; ');
+}
 
-  const tplId = activeTemplate;
-  paper.className = `a4-paper tpl-${tplId}`;
-
-  const p   = currentResume.personal;
-  const sk  = currentResume.skills;
-  const exp = currentResume.experience;
-  const prj = currentResume.projects;
-  const edu = currentResume.education;
-  const ach = currentResume.achievements;
-  const crt = currentResume.certifications;
-
-  // Build contact items
-  const contacts = [
+function renderContactsModern(p) {
+  return [
     p.email    ? `<span class="cv-contact-item">✉ ${escHtml(p.email)}</span>` : '',
     p.phone    ? `<span class="cv-contact-item">📞 ${escHtml(p.phone)}</span>` : '',
     p.location ? `<span class="cv-contact-item">📍 ${escHtml(p.location)}</span>` : '',
@@ -739,41 +1013,101 @@ function updateLivePreview() {
     p.linkedin ? `<span class="cv-contact-item">in ${escHtml(p.linkedin)}</span>` : '',
     p.portfolio? `<span class="cv-contact-item">🌐 ${escHtml(p.portfolio)}</span>` : ''
   ].filter(Boolean).join('');
+}
 
-  // Skills block
-  const skillLines = [
-    sk.languages ? `<div class="cv-skill-line"><span class="cv-skill-key">Languages: </span>${pillify(sk.languages)}</div>` : '',
-    sk.frontend  ? `<div class="cv-skill-line"><span class="cv-skill-key">Frontend: </span>${pillify(sk.frontend)}</div>` : '',
-    sk.backend   ? `<div class="cv-skill-line"><span class="cv-skill-key">Backend: </span>${pillify(sk.backend)}</div>` : '',
-    sk.databases ? `<div class="cv-skill-line"><span class="cv-skill-key">Databases: </span>${pillify(sk.databases)}</div>` : '',
-    sk.tools     ? `<div class="cv-skill-line"><span class="cv-skill-key">Tools &amp; Cloud: </span>${pillify(sk.tools)}</div>` : ''
+function renderContactsMinimal(p) {
+  return [
+    p.email,
+    p.phone,
+    p.location,
+    p.github,
+    p.linkedin,
+    p.portfolio
+  ].filter(Boolean).map(c => `<span>${escHtml(c)}</span>`).join(' &nbsp;•&nbsp; ');
+}
+
+function renderSidebarContacts(p) {
+  return [
+    p.email    ? `<div>✉ ${escHtml(p.email)}</div>` : '',
+    p.phone    ? `<div>📞 ${escHtml(p.phone)}</div>` : '',
+    p.location ? `<div>📍 ${escHtml(p.location)}</div>` : '',
+    p.github   ? `<div>⌥ ${escHtml(p.github)}</div>` : '',
+    p.linkedin ? `<div>in ${escHtml(p.linkedin)}</div>` : '',
+    p.portfolio? `<div>🌐 ${escHtml(p.portfolio)}</div>` : ''
   ].filter(Boolean).join('');
+}
 
-  // Experience block
-  const expHtml = exp.filter(e => e.role || e.company).map(e => `
-    <div class="cv-entry">
-      <div class="cv-entry-row">
-        <span class="cv-exp-role">${escHtml(e.role)}<span class="cv-exp-company" style="font-weight:500;"> @ ${escHtml(e.company)}</span></span>
-        <span class="cv-exp-meta">${escHtml(e.startDate)}${e.endDate ? ' – ' + escHtml(e.endDate) : ''}${e.location ? ' · ' + escHtml(e.location) : ''}</span>
-      </div>
-      ${e.description ? `<div class="cv-exp-desc">${escHtml(e.description)}</div>` : ''}
+function renderBulletPoints(text) {
+  if (!text) return '';
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length > 1) {
+    return `<ul class="cv-bullet-list">${lines.map(l => `<li>${escHtml(l.replace(/^[•\-\*]\s*/, ''))}</li>`).join('')}</ul>`;
+  }
+  return `<div class="cv-exp-desc">${escHtml(text)}</div>`;
+}
+
+function renderSkillLines(sk, pillStyle = true) {
+  const categories = [
+    { key: 'Languages', val: sk.languages },
+    { key: 'Frontend', val: sk.frontend },
+    { key: 'Backend', val: sk.backend },
+    { key: 'Databases', val: sk.databases },
+    { key: 'Tools & Cloud', val: sk.tools }
+  ].filter(c => c.val);
+
+  if (!categories.length) return '';
+
+  return categories.map(c => {
+    const formatted = pillStyle ? pillify(c.val) : escHtml(c.val);
+    return `<div class="cv-skill-line"><span class="cv-skill-key">${c.key}:</span> ${formatted}</div>`;
+  }).join('');
+}
+
+function renderDeveloperSkills(sk) {
+  const categories = [
+    { key: 'Languages', val: sk.languages },
+    { key: 'Frontend', val: sk.frontend },
+    { key: 'Backend', val: sk.backend },
+    { key: 'Databases', val: sk.databases },
+    { key: 'Tools & Cloud', val: sk.tools }
+  ].filter(c => c.val);
+
+  return categories.map(c => `
+    <div style="margin-bottom:0.5em;">
+      <div style="font-weight:700;font-size:0.85em;color:#0f172a;margin-bottom:0.15em;">${c.key}</div>
+      <div>${pillify(c.val)}</div>
     </div>
   `).join('');
+}
 
-  // Projects block
-  const projHtml = prj.filter(pr => pr.name).map(pr => `
+function renderExperience(exp, reverseOrder = false) {
+  const list = reverseOrder ? [...exp].reverse() : exp;
+  return list.filter(e => e.role || e.company).map(e => `
+    <div class="cv-entry">
+      <div class="cv-entry-row">
+        <span class="cv-exp-role">${escHtml(e.role)}<span class="cv-exp-company"> @ ${escHtml(e.company)}</span></span>
+        <span class="cv-exp-meta cv-date-badge">${escHtml(e.startDate)}${e.endDate ? ' – ' + escHtml(e.endDate) : ''}${e.location ? ' · ' + escHtml(e.location) : ''}</span>
+      </div>
+      ${renderBulletPoints(e.description)}
+    </div>
+  `).join('');
+}
+
+function renderProjects(prj) {
+  return prj.filter(pr => pr.name).map(pr => `
     <div class="cv-entry">
       <div class="cv-entry-row">
         <span class="cv-proj-title">${escHtml(pr.name)}</span>
         <span class="cv-proj-tech">${escHtml(pr.tech)}</span>
       </div>
-      ${pr.description ? `<div class="cv-proj-desc">${escHtml(pr.description)}</div>` : ''}
-      ${(pr.github || pr.demo) ? `<div class="cv-proj-tech" style="margin-top:0.25em;">${pr.github ? '⌥ ' + escHtml(pr.github) : ''}${pr.demo ? '  🌐 ' + escHtml(pr.demo) : ''}</div>` : ''}
+      ${renderBulletPoints(pr.description)}
+      ${(pr.github || pr.demo) ? `<div class="cv-proj-tech" style="margin-top:0.2em;">${pr.github ? '⌥ ' + escHtml(pr.github) : ''}${pr.demo ? ' &nbsp;🌐 ' + escHtml(pr.demo) : ''}</div>` : ''}
     </div>
   `).join('');
+}
 
-  // Education block
-  const eduHtml = edu.filter(e => e.degree || e.institution).map(e => `
+function renderEducation(edu) {
+  return edu.filter(e => e.degree || e.institution).map(e => `
     <div class="cv-entry">
       <div class="cv-entry-row">
         <div>
@@ -781,70 +1115,56 @@ function updateLivePreview() {
           <div class="cv-edu-school">${escHtml(e.institution)}</div>
         </div>
         <div style="text-align:right;">
-          <div class="cv-exp-meta">${escHtml(e.startDate)}${e.endDate ? ' – ' + escHtml(e.endDate) : ''}</div>
-          ${e.gpa ? `<div class="cv-exp-meta">${escHtml(e.gpa)}</div>` : ''}
+          <div class="cv-exp-meta cv-date-badge">${escHtml(e.startDate)}${e.endDate ? ' – ' + escHtml(e.endDate) : ''}</div>
+          ${e.gpa ? `<div class="cv-exp-meta" style="font-weight:600;">${escHtml(e.gpa)}</div>` : ''}
         </div>
       </div>
     </div>
   `).join('');
-
-  // Achievements block
-  const achHtml = ach.filter(a => a.title).length ? `
-    ${sectionHeader('Achievements')}
-    ${ach.filter(a => a.title).map(a => `
-      <div class="cv-entry">
-        <div class="cv-entry-row">
-          <span class="cv-exp-role">${escHtml(a.title)}</span>
-          <span class="cv-exp-meta">${escHtml(a.date)}</span>
-        </div>
-        ${a.org ? `<div class="cv-exp-meta" style="margin-top:0.15em;">${escHtml(a.org)}</div>` : ''}
-        ${a.description ? `<div class="cv-exp-desc">${escHtml(a.description)}</div>` : ''}
-      </div>
-    `).join('')}
-  ` : '';
-
-  // Certifications block
-  const crtHtml = crt.filter(c => c.name).length ? `
-    ${sectionHeader('Certifications')}
-    ${crt.filter(c => c.name).map(c => `
-      <div class="cv-entry">
-        <div class="cv-entry-row">
-          <span class="cv-exp-role">${escHtml(c.name)}</span>
-          <span class="cv-exp-meta">${escHtml(c.date)}</span>
-        </div>
-        <div class="cv-exp-meta">${escHtml(c.issuer)}${c.credentialId ? ' · ' + escHtml(c.credentialId) : ''}</div>
-      </div>
-    `).join('')}
-  ` : '';
-
-  // Special header for template 2 (Modern Developer dark header)
-  const isModern = tplId === 2;
-  const headerBlock = isModern
-    ? `<div class="cv-header-block">
-         <div class="cv-name">${escHtml(p.name || 'Your Name')}</div>
-         <div class="cv-title">${escHtml(p.title || '')}</div>
-         <div class="cv-contacts">${contacts || '<span style="opacity:0.5">Add contact info...</span>'}</div>
-       </div>`
-    : `<div style="margin-bottom:0.25em;">
-         <div class="cv-name">${escHtml(p.name || 'Your Name')}</div>
-         <div class="cv-title">${escHtml(p.title || '')}</div>
-         <div class="cv-contacts">${contacts || '<span style="color:#94a3b8;">Add contact info...</span>'}</div>
-       </div>`;
-
-  paper.innerHTML = `
-    ${headerBlock}
-    ${currentResume.summary ? `${sectionHeader('Summary')}<p style="font-size:0.8em;color:#475569;line-height:1.6;">${escHtml(currentResume.summary)}</p>` : ''}
-    ${skillLines ? `${sectionHeader('Technical Skills')}${skillLines}` : ''}
-    ${expHtml ? `${sectionHeader('Experience')}${expHtml}` : ''}
-    ${projHtml ? `${sectionHeader('Projects')}${projHtml}` : ''}
-    ${eduHtml ? `${sectionHeader('Education')}${eduHtml}` : ''}
-    ${achHtml}
-    ${crtHtml}
-  `;
 }
 
-function sectionHeader(label) {
-  return `<div class="cv-section-title">${label}<div class="cv-section-divider" style="flex:1;margin-left:0.5em;"></div></div>`;
+function renderEducationCompact(edu) {
+  return edu.filter(e => e.degree || e.institution).map(e => `
+    <div style="margin-bottom:0.4em;">
+      <div style="font-weight:700;font-size:0.85em;color:#0f172a;">${escHtml(e.degree)}</div>
+      <div style="font-size:0.8em;color:#475569;">${escHtml(e.institution)}</div>
+      <div style="font-size:0.75em;color:#64748b;">${escHtml(e.startDate)}${e.endDate ? ' – ' + escHtml(e.endDate) : ''}${e.gpa ? ' · ' + escHtml(e.gpa) : ''}</div>
+    </div>
+  `).join('');
+}
+
+function renderAchievements(ach) {
+  return ach.filter(a => a.title).map(a => `
+    <div class="cv-entry">
+      <div class="cv-entry-row">
+        <span class="cv-exp-role">${escHtml(a.title)}</span>
+        <span class="cv-exp-meta">${escHtml(a.date)}</span>
+      </div>
+      ${a.org ? `<div class="cv-exp-meta">${escHtml(a.org)}</div>` : ''}
+      ${a.description ? `<div class="cv-exp-desc">${escHtml(a.description)}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function renderCertifications(crt) {
+  return crt.filter(c => c.name).map(c => `
+    <div class="cv-entry">
+      <div class="cv-entry-row">
+        <span class="cv-exp-role">${escHtml(c.name)}</span>
+        <span class="cv-exp-meta">${escHtml(c.date)}</span>
+      </div>
+      <div class="cv-exp-meta">${escHtml(c.issuer)}${c.credentialId ? ' · ' + escHtml(c.credentialId) : ''}</div>
+    </div>
+  `).join('');
+}
+
+function renderCertificationsCompact(crt) {
+  return crt.filter(c => c.name).map(c => `
+    <div style="margin-bottom:0.35em;">
+      <div style="font-weight:700;font-size:0.82em;color:#0f172a;">${escHtml(c.name)}</div>
+      <div style="font-size:0.75em;color:#64748b;">${escHtml(c.issuer)}${c.date ? ' · ' + escHtml(c.date) : ''}</div>
+    </div>
+  `).join('');
 }
 
 function pillify(str) {
@@ -854,7 +1174,488 @@ function pillify(str) {
 }
 
 /* ============================================================
-   ATS SCORE
+   9 DEDICATED TEMPLATE HTML GENERATORS
+   ============================================================ */
+
+/* 1. Classic ATS */
+function renderClassicATS(resume) {
+  const p = resume.personal;
+  return `
+    <div style="text-align:center;margin-bottom:0.5em;">
+      <h1 class="cv-name">${escHtml(p.name)}</h1>
+      ${p.title ? `<div class="cv-title">${escHtml(p.title)}</div>` : ''}
+      <div class="cv-contacts">${renderContactsPlain(p)}</div>
+    </div>
+
+    ${resume.summary ? `
+      <div class="cv-section-title">PROFESSIONAL SUMMARY</div>
+      <p style="font-size:0.84em;color:#111827;line-height:1.45;margin-bottom:0.4em;">${escHtml(resume.summary)}</p>
+    ` : ''}
+
+    ${resume.experience.length ? `
+      <div class="cv-section-title">PROFESSIONAL EXPERIENCE</div>
+      ${renderExperience(resume.experience)}
+    ` : ''}
+
+    ${resume.projects.length ? `
+      <div class="cv-section-title">FEATURED PROJECTS</div>
+      ${renderProjects(resume.projects)}
+    ` : ''}
+
+    ${resume.education.length ? `
+      <div class="cv-section-title">EDUCATION</div>
+      ${renderEducation(resume.education)}
+    ` : ''}
+
+    ${(resume.skills.languages || resume.skills.tools) ? `
+      <div class="cv-section-title">TECHNICAL SKILLS</div>
+      ${renderSkillLines(resume.skills, false)}
+    ` : ''}
+
+    ${resume.certifications.length ? `
+      <div class="cv-section-title">CERTIFICATIONS</div>
+      ${renderCertifications(resume.certifications)}
+    ` : ''}
+
+    ${resume.achievements.length ? `
+      <div class="cv-section-title">HONORS & ACHIEVEMENTS</div>
+      ${renderAchievements(resume.achievements)}
+    ` : ''}
+  `;
+}
+
+/* 2. Modern ATS */
+function renderModernATS(resume) {
+  const p = resume.personal;
+  return `
+    <div style="margin-bottom:0.4em;">
+      <h1 class="cv-name">${escHtml(p.name)}</h1>
+      ${p.title ? `<div class="cv-title">${escHtml(p.title)}</div>` : ''}
+      <div class="cv-contacts">${renderContactsModern(p)}</div>
+    </div>
+
+    ${resume.summary ? `
+      <div class="cv-section-title">Professional Summary</div>
+      <p style="font-size:0.82em;color:#334155;line-height:1.5;margin-bottom:0.4em;">${escHtml(resume.summary)}</p>
+    ` : ''}
+
+    ${resume.experience.length ? `
+      <div class="cv-section-title">Work Experience</div>
+      ${renderExperience(resume.experience)}
+    ` : ''}
+
+    ${resume.projects.length ? `
+      <div class="cv-section-title">Key Projects</div>
+      ${renderProjects(resume.projects)}
+    ` : ''}
+
+    ${(resume.skills.languages || resume.skills.tools) ? `
+      <div class="cv-section-title">Technical Skills</div>
+      ${renderSkillLines(resume.skills, true)}
+    ` : ''}
+
+    ${resume.education.length ? `
+      <div class="cv-section-title">Education</div>
+      ${renderEducation(resume.education)}
+    ` : ''}
+
+    ${resume.achievements.length ? `
+      <div class="cv-section-title">Achievements</div>
+      ${renderAchievements(resume.achievements)}
+    ` : ''}
+
+    ${resume.certifications.length ? `
+      <div class="cv-section-title">Certifications</div>
+      ${renderCertifications(resume.certifications)}
+    ` : ''}
+  `;
+}
+
+/* 3. Reverse Chronological */
+function renderReverseChronological(resume) {
+  const p = resume.personal;
+  return `
+    <div style="margin-bottom:0.5em;border-bottom:2px solid #0f172a;padding-bottom:0.4em;">
+      <h1 class="cv-name">${escHtml(p.name)}</h1>
+      ${p.title ? `<div class="cv-title">${escHtml(p.title)}</div>` : ''}
+      <div class="cv-contacts" style="border:none;padding-bottom:0;">${renderContactsModern(p)}</div>
+    </div>
+
+    ${resume.experience.length ? `
+      <div class="cv-section-title">PROFESSIONAL EXPERIENCE</div>
+      ${renderExperience(resume.experience, false)}
+    ` : ''}
+
+    ${resume.education.length ? `
+      <div class="cv-section-title">EDUCATION</div>
+      ${renderEducation(resume.education)}
+    ` : ''}
+
+    ${(resume.skills.languages || resume.skills.tools) ? `
+      <div class="cv-section-title">TECHNICAL EXPERTISE</div>
+      ${renderSkillLines(resume.skills, true)}
+    ` : ''}
+
+    ${resume.projects.length ? `
+      <div class="cv-section-title">FEATURED PROJECTS</div>
+      ${renderProjects(resume.projects)}
+    ` : ''}
+
+    ${resume.certifications.length ? `
+      <div class="cv-section-title">CERTIFICATIONS & CREDENTIALS</div>
+      ${renderCertifications(resume.certifications)}
+    ` : ''}
+
+    ${resume.achievements.length ? `
+      <div class="cv-section-title">SELECTED ACHIEVEMENTS</div>
+      ${renderAchievements(resume.achievements)}
+    ` : ''}
+  `;
+}
+
+/* 4. Minimal Professional */
+function renderMinimalProfessional(resume) {
+  const p = resume.personal;
+  return `
+    <div style="margin-bottom:0.8em;text-align:left;">
+      <h1 class="cv-name">${escHtml(p.name)}</h1>
+      ${p.title ? `<div class="cv-title">${escHtml(p.title)}</div>` : ''}
+      <div class="cv-contacts">${renderContactsMinimal(p)}</div>
+    </div>
+
+    ${resume.summary ? `
+      <div class="cv-section-title">Summary</div>
+      <p style="font-size:0.8em;color:#475569;line-height:1.6;margin-bottom:0.6em;">${escHtml(resume.summary)}</p>
+    ` : ''}
+
+    ${resume.experience.length ? `
+      <div class="cv-section-title">Experience</div>
+      ${renderExperience(resume.experience)}
+    ` : ''}
+
+    ${resume.projects.length ? `
+      <div class="cv-section-title">Projects</div>
+      ${renderProjects(resume.projects)}
+    ` : ''}
+
+    ${resume.education.length ? `
+      <div class="cv-section-title">Education</div>
+      ${renderEducation(resume.education)}
+    ` : ''}
+
+    ${(resume.skills.languages || resume.skills.tools) ? `
+      <div class="cv-section-title">Skills &amp; Competencies</div>
+      ${renderSkillLines(resume.skills, false)}
+    ` : ''}
+
+    ${resume.certifications.length ? `
+      <div class="cv-section-title">Certifications</div>
+      ${renderCertifications(resume.certifications)}
+    ` : ''}
+  `;
+}
+
+/* 5. Modern Developer (True Two-Column) */
+function renderModernDeveloper(resume) {
+  const p   = resume.personal;
+  const sk  = resume.skills;
+  const exp = resume.experience;
+  const prj = resume.projects;
+  const edu = resume.education;
+  const ach = resume.achievements;
+  const crt = resume.certifications;
+
+  return `
+    <div class="cv-two-col">
+      <!-- LEFT COLUMN (33%) -->
+      <div class="cv-sidebar-col">
+        <div class="cv-section-title" style="margin-top:0;">Contact</div>
+        <div style="font-size:0.78em;color:#475569;margin-bottom:0.9em;display:flex;flex-direction:column;gap:0.3rem;">
+          ${renderSidebarContacts(p)}
+        </div>
+
+        <div class="cv-section-title">Technical Skills</div>
+        <div style="margin-bottom:0.9em;">
+          ${renderDeveloperSkills(sk)}
+        </div>
+
+        <div class="cv-section-title">Education</div>
+        <div style="margin-bottom:0.9em;">
+          ${renderEducationCompact(edu)}
+        </div>
+
+        ${crt.length ? `
+          <div class="cv-section-title">Certifications</div>
+          <div>${renderCertificationsCompact(crt)}</div>
+        ` : ''}
+      </div>
+
+      <!-- RIGHT COLUMN (67%) -->
+      <div class="cv-main-col">
+        <div style="margin-bottom:0.6em;">
+          <h1 class="cv-name" style="font-size:1.75em;">${escHtml(p.name)}</h1>
+          <div class="cv-title" style="color:#4F46E5;font-size:1em;font-weight:700;">${escHtml(p.title)}</div>
+        </div>
+
+        ${resume.summary ? `
+          <div class="cv-section-title" style="margin-top:0.4em;">Professional Summary</div>
+          <p style="font-size:0.8em;color:#334155;line-height:1.5;margin-bottom:0.6em;">${escHtml(resume.summary)}</p>
+        ` : ''}
+
+        ${exp.length ? `
+          <div class="cv-section-title">Work Experience</div>
+          <div style="margin-bottom:0.6em;">
+            ${renderExperience(exp)}
+          </div>
+        ` : ''}
+
+        ${prj.length ? `
+          <div class="cv-section-title">Featured Projects</div>
+          <div style="margin-bottom:0.6em;">
+            ${renderProjects(prj)}
+          </div>
+        ` : ''}
+
+        ${ach.length ? `
+          <div class="cv-section-title">Achievements</div>
+          <div>${renderAchievements(ach)}</div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+/* 6. Executive Professional */
+function renderExecutiveProfessional(resume) {
+  const p = resume.personal;
+  const sk = resume.skills;
+
+  // Build competencies grid
+  const allSkillsList = [
+    { label: 'Languages & Architecture', val: sk.languages },
+    { label: 'Frontend Ecosystem', val: sk.frontend },
+    { label: 'Backend & Distributed Systems', val: sk.backend },
+    { label: 'Databases & Cloud Infrastructure', val: [sk.databases, sk.tools].filter(Boolean).join(', ') }
+  ].filter(c => c.val);
+
+  return `
+    <div class="cv-header-exec">
+      <h1 class="cv-name">${escHtml(p.name)}</h1>
+      ${p.title ? `<div class="cv-title">${escHtml(p.title)}</div>` : ''}
+      <div class="cv-contacts">${renderContactsModern(p)}</div>
+    </div>
+
+    ${resume.summary ? `
+      <div class="cv-section-title">Executive Summary</div>
+      <p style="font-size:0.82em;color:#1e293b;line-height:1.55;margin-bottom:0.5em;">${escHtml(resume.summary)}</p>
+    ` : ''}
+
+    ${allSkillsList.length ? `
+      <div class="cv-section-title">Core Competencies &amp; Technical Domain</div>
+      <div class="cv-competencies-grid">
+        ${allSkillsList.map(c => `
+          <div class="cv-competency-item">
+            <strong>${c.label}:</strong> ${escHtml(c.val)}
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
+
+    ${resume.experience.length ? `
+      <div class="cv-section-title">Professional Experience &amp; Leadership</div>
+      ${renderExperience(resume.experience)}
+    ` : ''}
+
+    ${resume.achievements.length ? `
+      <div class="cv-section-title">Selected Achievements &amp; Impact</div>
+      ${renderAchievements(resume.achievements)}
+    ` : ''}
+
+    ${resume.projects.length ? `
+      <div class="cv-section-title">Key Projects &amp; Initiatives</div>
+      ${renderProjects(resume.projects)}
+    ` : ''}
+
+    ${resume.education.length ? `
+      <div class="cv-section-title">Education &amp; Credentials</div>
+      ${renderEducation(resume.education)}
+    ` : ''}
+
+    ${resume.certifications.length ? `
+      <div class="cv-section-title">Certifications</div>
+      ${renderCertifications(resume.certifications)}
+    ` : ''}
+  `;
+}
+
+/* 7. Academic CV */
+function renderAcademicCV(resume) {
+  const p = resume.personal;
+  return `
+    <div class="cv-header-academic">
+      <h1 class="cv-name">${escHtml(p.name)}</h1>
+      ${p.title ? `<div class="cv-title">${escHtml(p.title)}</div>` : ''}
+      <div class="cv-contacts">${renderContactsPlain(p)}</div>
+    </div>
+
+    ${resume.education.length ? `
+      <div class="cv-section-title">Education</div>
+      ${renderEducation(resume.education)}
+    ` : ''}
+
+    ${resume.summary ? `
+      <div class="cv-section-title">Research Overview &amp; Background</div>
+      <p style="font-size:0.82em;color:#111827;line-height:1.5;margin-bottom:0.4em;">${escHtml(resume.summary)}</p>
+    ` : ''}
+
+    ${resume.projects.length ? `
+      <div class="cv-section-title">Research &amp; Technical Projects</div>
+      ${renderProjects(resume.projects)}
+    ` : ''}
+
+    ${resume.experience.length ? `
+      <div class="cv-section-title">Teaching &amp; Professional Experience</div>
+      ${renderExperience(resume.experience)}
+    ` : ''}
+
+    ${(resume.skills.languages || resume.skills.tools) ? `
+      <div class="cv-section-title">Technical &amp; Research Skills</div>
+      ${renderSkillLines(resume.skills, false)}
+    ` : ''}
+
+    ${resume.achievements.length ? `
+      <div class="cv-section-title">Honors, Awards &amp; Fellowships</div>
+      ${renderAchievements(resume.achievements)}
+    ` : ''}
+
+    ${resume.certifications.length ? `
+      <div class="cv-section-title">Certifications &amp; Accreditations</div>
+      ${renderCertifications(resume.certifications)}
+    ` : ''}
+  `;
+}
+
+/* 8. Entry-Level / Student */
+function renderStudentEntry(resume) {
+  const p = resume.personal;
+  return `
+    <div style="margin-bottom:0.4em;">
+      <h1 class="cv-name">${escHtml(p.name)}</h1>
+      <div class="cv-title" style="color:#059669;font-size:0.95em;font-weight:600;">${escHtml(p.title || 'Computer Science Student')}</div>
+      <div class="cv-contacts">${renderContactsModern(p)}</div>
+    </div>
+
+    ${resume.education.length ? `
+      <div class="cv-section-title">Education</div>
+      <div class="cv-edu-highlight">
+        ${renderEducation(resume.education)}
+      </div>
+    ` : ''}
+
+    ${(resume.skills.languages || resume.skills.tools) ? `
+      <div class="cv-section-title">Technical Skills</div>
+      ${renderSkillLines(resume.skills, true)}
+    ` : ''}
+
+    ${resume.projects.length ? `
+      <div class="cv-section-title">Featured Projects</div>
+      ${renderProjects(resume.projects)}
+    ` : ''}
+
+    ${resume.experience.length ? `
+      <div class="cv-section-title">Work &amp; Internship Experience</div>
+      ${renderExperience(resume.experience)}
+    ` : ''}
+
+    ${resume.achievements.length ? `
+      <div class="cv-section-title">Achievements &amp; Activities</div>
+      ${renderAchievements(resume.achievements)}
+    ` : ''}
+
+    ${resume.certifications.length ? `
+      <div class="cv-section-title">Certifications</div>
+      ${renderCertifications(resume.certifications)}
+    ` : ''}
+  `;
+}
+
+/* 9. Custom */
+function renderCustom(resume) {
+  const p = resume.personal;
+  return `
+    <div style="margin-bottom:0.4em;">
+      <h1 class="cv-name">${escHtml(p.name)}</h1>
+      ${p.title ? `<div class="cv-title">${escHtml(p.title)}</div>` : ''}
+      <div class="cv-contacts">${renderContactsModern(p)}</div>
+    </div>
+
+    ${resume.summary ? `
+      <div class="cv-section-title">Professional Summary</div>
+      <p style="font-size:0.82em;color:#334155;line-height:1.5;margin-bottom:0.4em;">${escHtml(resume.summary)}</p>
+    ` : ''}
+
+    ${(resume.skills.languages || resume.skills.tools) ? `
+      <div class="cv-section-title">Technical Skills</div>
+      ${renderSkillLines(resume.skills, true)}
+    ` : ''}
+
+    ${resume.experience.length ? `
+      <div class="cv-section-title">Work Experience</div>
+      ${renderExperience(resume.experience)}
+    ` : ''}
+
+    ${resume.projects.length ? `
+      <div class="cv-section-title">Featured Projects</div>
+      ${renderProjects(resume.projects)}
+    ` : ''}
+
+    ${resume.education.length ? `
+      <div class="cv-section-title">Education</div>
+      ${renderEducation(resume.education)}
+    ` : ''}
+
+    ${resume.achievements.length ? `
+      <div class="cv-section-title">Achievements</div>
+      ${renderAchievements(resume.achievements)}
+    ` : ''}
+
+    ${resume.certifications.length ? `
+      <div class="cv-section-title">Certifications</div>
+      ${renderCertifications(resume.certifications)}
+    ` : ''}
+  `;
+}
+
+/* ============================================================
+   LIVE RESUME PREVIEW DISPATCHER
+   ============================================================ */
+function updateLivePreview() {
+  const paper = document.getElementById('printable-resume-paper');
+  if (!paper) return;
+
+  const tplId = activeTemplate;
+  const currentTpl = TEMPLATES[tplId] || TEMPLATES[0];
+
+  paper.className = `a4-paper tpl-${currentTpl.id} tpl-${currentTpl.key}`;
+
+  const renderers = [
+    renderClassicATS,          // 0
+    renderModernATS,           // 1
+    renderReverseChronological,// 2
+    renderMinimalProfessional, // 3
+    renderModernDeveloper,     // 4 (Two-column!)
+    renderExecutiveProfessional,// 5 (Competencies matrix!)
+    renderAcademicCV,          // 6 (Academic layout!)
+    renderStudentEntry,        // 7 (Education/Projects first!)
+    renderCustom               // 8
+  ];
+
+  const renderer = renderers[tplId] || renderClassicATS;
+  paper.innerHTML = renderer(currentResume);
+}
+
+/* ============================================================
+   ATS SCORE & LABEL
    ============================================================ */
 function updateAtsScore() {
   let score = 0;
@@ -896,8 +1697,10 @@ function updateAtsScore() {
   const badge = document.getElementById('ats-badge');
   const scoreDisplay = document.getElementById('ats-score-display');
 
+  const currentTpl = TEMPLATES[activeTemplate] || TEMPLATES[0];
+
   if (badge && scoreDisplay) {
-    scoreDisplay.textContent = `${score}%`;
+    scoreDisplay.textContent = `${score}% · ${currentTpl.atsLabel}`;
     badge.classList.remove('ats-low', 'ats-mid');
     if (score < 50)       badge.classList.add('ats-low');
     else if (score < 75)  badge.classList.add('ats-mid');
@@ -932,7 +1735,7 @@ function updateHubStats() {
 
 function updateHubStatTemplate() {
   const el = document.getElementById('hub-stat-template');
-  if (el) el.textContent = TEMPLATES[activeTemplate]?.name || 'Classic';
+  if (el) el.textContent = TEMPLATES[activeTemplate]?.name || 'Classic ATS';
 }
 
 /* ============================================================
@@ -948,7 +1751,6 @@ function saveDraft() {
 }
 
 function exportPDF() {
-  // Switch to builder view to ensure the paper is visible
   const prevView = currentView;
   if (prevView !== 'builder') switchView('builder');
   setTimeout(() => {
@@ -964,7 +1766,6 @@ function aiImproveSummary() {
   const summaryEl = document.getElementById('res-summary');
   if (!summaryEl) return;
 
-  const current = summaryEl.value.trim();
   const name  = currentResume.personal.name || 'Developer';
   const title = currentResume.personal.title || 'Software Engineer';
   const skills = [
@@ -1114,7 +1915,7 @@ function computeAnalyzerScores(resume) {
   // ATS Rules
   const sections = {
     'Contact information present': !!(p.name && p.email && p.phone),
-    'Standard section headings used': true, // Always true for builder
+    'Standard section headings used': true,
     'Skills section filled': !!(sk.languages || sk.tools),
     'Experience section present': exp.length > 0,
     'Education section present': edu.length > 0,
@@ -1183,7 +1984,6 @@ function computeAnalyzerScores(resume) {
 }
 
 function getGitHubCorrelation(skills) {
-  // Attempt to read GitHub analyzer data from localStorage
   let ghLanguages = [];
   try {
     const ghData = JSON.parse(localStorage.getItem('devpilot_github_analysis') || 'null');
@@ -1192,7 +1992,6 @@ function getGitHubCorrelation(skills) {
     }
   } catch (e) { /* no data */ }
 
-  // Fallback demo languages if no GitHub data
   if (!ghLanguages.length) {
     ghLanguages = ['javascript', 'typescript', 'python', 'html', 'css'];
   }

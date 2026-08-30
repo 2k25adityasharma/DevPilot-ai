@@ -260,6 +260,11 @@
   border-radius: var(--radius-md);
   overflow: hidden;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  /* BUGFIX: flex-shrink defaults to 1, which causes the flex container
+     (builder-editor-panel) to compress accordion items to fit max-height
+     instead of scrolling. overflow:hidden then clips the expanded content.
+     flex-shrink:0 prevents compression, letting the container scroll correctly. */
+  flex-shrink: 0;
 }
 
 .form-accordion.active {
@@ -542,12 +547,13 @@
 }
 
 /* ----------------------------------------------------------------
-   RESUME TEMPLATE STYLES (PREVIEW)
+/* ----------------------------------------------------------------
+   RESUME TEMPLATE STYLES (9 REAL PROFESSIONAL FORMATS)
    ---------------------------------------------------------------- */
 
 /* --- Shared CV Components --- */
 .cv-name {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
   font-weight: 800;
   color: #0f172a;
   letter-spacing: -0.02em;
@@ -556,17 +562,18 @@
 
 .cv-title {
   font-weight: 600;
-  margin-top: 0.2em;
+  margin-top: 0.15em;
+  font-size: 0.95em;
 }
 
 .cv-contacts {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem 1rem;
-  font-size: 0.78em;
-  color: #64748b;
-  margin-top: 0.5rem;
-  padding-bottom: 0.75rem;
+  gap: 0.25rem 0.85rem;
+  font-size: 0.8em;
+  color: #475569;
+  margin-top: 0.35rem;
+  padding-bottom: 0.5rem;
 }
 
 .cv-contact-item {
@@ -578,95 +585,22 @@
 .cv-section-title {
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.72em;
-  margin-top: 1em;
-  margin-bottom: 0.5em;
+  letter-spacing: 0.06em;
+  font-size: 0.78em;
+  margin-top: 0.9em;
+  margin-bottom: 0.4em;
+  color: #0f172a;
 }
 
 .cv-section-divider {
   height: 1px;
-  margin-bottom: 0.5em;
-}
-
-.cv-exp-role {
-  font-weight: 700;
-  font-size: 0.9em;
-  color: #0f172a;
-}
-
-.cv-exp-company {
-  font-size: 0.85em;
-}
-
-.cv-exp-meta {
-  font-size: 0.77em;
-  color: #64748b;
-}
-
-.cv-exp-desc {
-  font-size: 0.8em;
-  color: #475569;
-  margin-top: 0.3em;
-  line-height: 1.5;
-  white-space: pre-wrap;
-}
-
-.cv-proj-title {
-  font-weight: 700;
-  font-size: 0.88em;
-  color: #0f172a;
-}
-
-.cv-proj-tech {
-  font-size: 0.76em;
-  color: #64748b;
-}
-
-.cv-proj-desc {
-  font-size: 0.79em;
-  color: #475569;
-  margin-top: 0.25em;
-  line-height: 1.5;
-  white-space: pre-wrap;
-}
-
-.cv-edu-degree {
-  font-weight: 700;
-  font-size: 0.88em;
-}
-
-.cv-edu-school {
-  font-size: 0.8em;
-  color: #64748b;
-}
-
-.cv-skill-line {
-  font-size: 0.8em;
-  color: #334155;
-  margin-bottom: 0.25em;
-}
-
-.cv-skill-key {
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.cv-skill-pill {
-  display: inline-block;
-  font-size: 0.72em;
-  font-weight: 500;
-  padding: 0.15em 0.5em;
-  border-radius: 3px;
-  margin: 0.15em;
-  background: #f1f5f9;
-  color: #334155;
-  border: 1px solid #e2e8f0;
+  background: #e2e8f0;
+  margin-bottom: 0.4em;
 }
 
 .cv-entry {
-  margin-bottom: 0.6em;
-  padding-bottom: 0.6em;
+  margin-bottom: 0.55em;
+  padding-bottom: 0.35em;
 }
 
 .cv-entry:last-child {
@@ -682,98 +616,446 @@
   gap: 0.25rem;
 }
 
-/* --- Template 0: DevPilot Classic --- */
-.tpl-0 .cv-name { font-size: 1.6em; }
-.tpl-0 .cv-title { color: #4F46E5; }
-.tpl-0 .cv-section-title { color: #4F46E5; }
-.tpl-0 .cv-section-divider { background: #e0e7ff; }
-.tpl-0 .cv-contacts { border-bottom: 1.5px solid #e0e7ff; }
-
-/* --- Template 1: Minimal ATS --- */
-.tpl-1 .cv-name { font-size: 1.5em; font-weight: 700; }
-.tpl-1 .cv-title { color: #334155; }
-.tpl-1 .cv-section-title { color: #0f172a; }
-.tpl-1 .cv-section-divider { background: #e2e8f0; }
-.tpl-1 .cv-contacts { border-bottom: 1px solid #cbd5e1; }
-
-/* --- Template 2: Modern Developer --- */
-.tpl-2 {
-  background: #ffffff;
-  position: relative;
-}
-.tpl-2 .cv-header-block {
-  background: #0f172a;
-  color: white;
-  margin: -18mm -18mm 1.25em -18mm;
-  padding: 1.5em 2em 1.25em;
-  border-radius: 0;
-}
-.tpl-2 .cv-name { color: #ffffff; font-size: 1.55em; }
-.tpl-2 .cv-title { color: #818cf8; }
-.tpl-2 .cv-contacts { color: #94a3b8; border-bottom: none; }
-.tpl-2 .cv-section-title { color: #4F46E5; }
-.tpl-2 .cv-section-divider { background: #e0e7ff; }
-
-@media (min-width: 1100px) {
-  .tpl-2 .cv-header-block {
-    margin: -2rem -2.25rem 1.25em -2.25rem;
-    padding: 1.5em 2.25em 1.25em;
-  }
+.cv-exp-role {
+  font-weight: 700;
+  font-size: 0.92em;
+  color: #0f172a;
 }
 
-/* --- Template 3: Clean Professional --- */
-.tpl-3 .cv-name { font-size: 1.55em; }
-.tpl-3 .cv-title { color: #0f172a; }
-.tpl-3 .cv-section-title { color: #0f172a; }
-.tpl-3 .cv-section-divider { background: #0f172a; height: 2px; }
-.tpl-3 .cv-contacts { border-bottom: 2px solid #0f172a; }
+.cv-exp-company {
+  font-size: 0.88em;
+  font-weight: 500;
+  color: #334155;
+}
 
-/* --- Template 4: Google-inspired --- */
-.tpl-4 .cv-name { font-size: 1.55em; color: #1a73e8; }
-.tpl-4 .cv-title { color: #5f6368; }
-.tpl-4 .cv-section-title { color: #1a73e8; }
-.tpl-4 .cv-section-divider { background: #dadce0; }
-.tpl-4 .cv-contacts { border-bottom: 1px solid #dadce0; }
-.tpl-4 .cv-skill-pill { background: #e8f0fe; color: #1a73e8; border-color: #aecbfa; }
+.cv-exp-meta {
+  font-size: 0.78em;
+  color: #64748b;
+  font-weight: 500;
+}
 
-/* --- Template 5: Amazon-inspired --- */
-.tpl-5 .cv-name { font-size: 1.55em; color: #0f1111; }
-.tpl-5 .cv-title { color: #e47911; }
-.tpl-5 .cv-section-title { color: #e47911; }
-.tpl-5 .cv-section-divider { background: #e47911; }
-.tpl-5 .cv-contacts { border-bottom: 1px solid #ddd; }
-.tpl-5 .cv-skill-pill { background: #fff8ee; color: #e47911; border-color: #fcd384; }
+.cv-exp-desc, .cv-proj-desc {
+  font-size: 0.82em;
+  color: #334155;
+  margin-top: 0.25em;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
 
-/* --- Template 6: Microsoft-inspired --- */
-.tpl-6 .cv-name { font-size: 1.55em; color: #00188f; }
-.tpl-6 .cv-title { color: #737373; }
-.tpl-6 .cv-section-title { color: #00188f; }
-.tpl-6 .cv-section-divider { background: #e0e0e0; }
-.tpl-6 .cv-contacts { border-bottom: 1px solid #e0e0e0; }
-.tpl-6 .cv-skill-pill { background: #eff6fc; color: #00188f; border-color: #b3d6f2; }
+.cv-proj-title {
+  font-weight: 700;
+  font-size: 0.9em;
+  color: #0f172a;
+}
 
-/* --- Template 7: Adobe-inspired --- */
-.tpl-7 .cv-name { font-size: 1.55em; color: #d40010; }
-.tpl-7 .cv-title { color: #4b4b4b; }
-.tpl-7 .cv-section-title { color: #d40010; }
-.tpl-7 .cv-section-divider { background: #f1f1f1; }
-.tpl-7 .cv-contacts { border-bottom: 1px solid #f1f1f1; }
-.tpl-7 .cv-skill-pill { background: #fff0f1; color: #d40010; border-color: #ffc8cb; }
+.cv-proj-tech {
+  font-size: 0.78em;
+  color: #64748b;
+  font-weight: 500;
+}
 
-/* --- Template 8: Meta-inspired --- */
-.tpl-8 .cv-name { font-size: 1.55em; color: #1877f2; }
-.tpl-8 .cv-title { color: #606770; }
-.tpl-8 .cv-section-title { color: #1877f2; }
-.tpl-8 .cv-section-divider { background: #e7e7e7; }
-.tpl-8 .cv-contacts { border-bottom: 1px solid #e7e7e7; }
-.tpl-8 .cv-skill-pill { background: #e7f0fd; color: #1877f2; border-color: #b3cff9; }
+.cv-edu-degree {
+  font-weight: 700;
+  font-size: 0.9em;
+  color: #0f172a;
+}
 
-/* --- Template 9: Custom --- */
-.tpl-9 .cv-name { font-size: 1.55em; color: var(--color-on-surface); }
-.tpl-9 .cv-title { color: var(--color-primary); }
-.tpl-9 .cv-section-title { color: var(--color-primary); }
-.tpl-9 .cv-section-divider { background: var(--color-outline-variant); }
-.tpl-9 .cv-contacts { border-bottom: 1px solid var(--color-outline-variant); }
+.cv-edu-school {
+  font-size: 0.84em;
+  color: #475569;
+}
+
+.cv-skill-line {
+  font-size: 0.82em;
+  color: #334155;
+  margin-bottom: 0.25em;
+  line-height: 1.4;
+}
+
+.cv-skill-key {
+  font-weight: 700;
+  color: #0f172a;
+  margin-right: 0.3em;
+}
+
+.cv-skill-pill {
+  display: inline-block;
+  font-size: 0.74em;
+  font-weight: 500;
+  padding: 0.15em 0.5em;
+  border-radius: 3px;
+  margin: 0.15em 0.2em 0.15em 0;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+}
+
+/* Bullet list inside entries */
+.cv-bullet-list {
+  margin: 0.25em 0 0 1.1em;
+  padding: 0;
+  font-size: 0.82em;
+  color: #334155;
+  line-height: 1.45;
+}
+.cv-bullet-list li {
+  margin-bottom: 0.2em;
+}
+
+/* ============================================================
+   1. Classic ATS (tpl-0 / tpl-classic-ats)
+   ============================================================ */
+.tpl-classic-ats, .tpl-0 {
+  font-family: 'Times New Roman', Times, 'Georgia', serif;
+  color: #111827;
+  line-height: 1.4;
+}
+.tpl-classic-ats .cv-name, .tpl-0 .cv-name {
+  font-family: 'Times New Roman', Times, 'Georgia', serif;
+  font-size: 1.7em;
+  font-weight: bold;
+  text-align: center;
+  color: #000000;
+  letter-spacing: 0.02em;
+}
+.tpl-classic-ats .cv-title, .tpl-0 .cv-title {
+  text-align: center;
+  color: #111827;
+  font-style: italic;
+  font-weight: normal;
+}
+.tpl-classic-ats .cv-contacts, .tpl-0 .cv-contacts {
+  justify-content: center;
+  border-bottom: 1px solid #000000;
+  padding-bottom: 0.4em;
+  margin-top: 0.2em;
+  font-size: 0.82em;
+  color: #000000;
+  gap: 0.2rem 0.6rem;
+}
+.tpl-classic-ats .cv-section-title, .tpl-0 .cv-section-title {
+  font-family: 'Times New Roman', Times, 'Georgia', serif;
+  font-size: 0.85em;
+  font-weight: bold;
+  color: #000000;
+  border-bottom: 1px solid #000000;
+  padding-bottom: 0.15em;
+  margin-top: 0.9em;
+  margin-bottom: 0.4em;
+}
+.tpl-classic-ats .cv-exp-role, .tpl-0 .cv-exp-role {
+  font-weight: bold;
+  color: #000000;
+}
+.tpl-classic-ats .cv-exp-company, .tpl-0 .cv-exp-company {
+  color: #111827;
+  font-style: italic;
+}
+.tpl-classic-ats .cv-proj-title, .tpl-0 .cv-proj-title {
+  font-weight: bold;
+  color: #000000;
+}
+.tpl-classic-ats .cv-edu-degree, .tpl-0 .cv-edu-degree {
+  font-weight: bold;
+  color: #000000;
+}
+.tpl-classic-ats .cv-skill-pill, .tpl-0 .cv-skill-pill {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0 0.25em 0 0;
+  color: #111827;
+  font-weight: normal;
+}
+
+/* ============================================================
+   2. Modern ATS (tpl-1 / tpl-modern-ats)
+   ============================================================ */
+.tpl-modern-ats, .tpl-1 {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.tpl-modern-ats .cv-name, .tpl-1 .cv-name {
+  font-size: 1.65em;
+  color: #0f172a;
+}
+.tpl-modern-ats .cv-title, .tpl-1 .cv-title {
+  color: #4F46E5;
+  font-size: 0.95em;
+  font-weight: 600;
+}
+.tpl-modern-ats .cv-contacts, .tpl-1 .cv-contacts {
+  border-bottom: 1.5px solid #e0e7ff;
+  color: #64748b;
+}
+.tpl-modern-ats .cv-section-title, .tpl-1 .cv-section-title {
+  color: #4F46E5;
+  font-size: 0.8em;
+  letter-spacing: 0.08em;
+  border-bottom: 1.5px solid #e0e7ff;
+  padding-bottom: 0.2em;
+}
+.tpl-modern-ats .cv-skill-pill, .tpl-1 .cv-skill-pill {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+/* ============================================================
+   3. Reverse Chronological (tpl-2 / tpl-reverse-chronological)
+   ============================================================ */
+.tpl-reverse-chronological, .tpl-2 {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.tpl-reverse-chronological .cv-name, .tpl-2 .cv-name {
+  font-size: 1.6em;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tpl-reverse-chronological .cv-title, .tpl-2 .cv-title {
+  color: #334155;
+  font-weight: 700;
+}
+.tpl-reverse-chronological .cv-contacts, .tpl-2 .cv-contacts {
+  border-bottom: 2px solid #0f172a;
+  font-size: 0.8em;
+  padding-bottom: 0.4em;
+}
+.tpl-reverse-chronological .cv-section-title, .tpl-2 .cv-section-title {
+  color: #0f172a;
+  font-weight: 800;
+  border-bottom: 2px solid #0f172a;
+  padding-bottom: 0.15em;
+}
+.tpl-reverse-chronological .cv-exp-role, .tpl-2 .cv-exp-role {
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-weight: 800;
+}
+.tpl-reverse-chronological .cv-date-badge, .tpl-2 .cv-date-badge {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* ============================================================
+   4. Minimal Professional (tpl-3 / tpl-minimal-pro)
+   ============================================================ */
+.tpl-minimal-pro, .tpl-3 {
+  font-family: 'Inter', system-ui, sans-serif;
+  padding: 22mm 20mm 18mm 20mm;
+}
+.tpl-minimal-pro .cv-name, .tpl-3 .cv-name {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  font-size: 1.5em;
+  text-transform: uppercase;
+  color: #1e293b;
+}
+.tpl-minimal-pro .cv-title, .tpl-3 .cv-title {
+  color: #64748b;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+.tpl-minimal-pro .cv-contacts, .tpl-3 .cv-contacts {
+  border-bottom: 1px solid #f1f5f9;
+  color: #64748b;
+  font-size: 0.78em;
+}
+.tpl-minimal-pro .cv-section-title, .tpl-3 .cv-section-title {
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  font-size: 0.7em;
+  color: #64748b;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 0.25em;
+  margin-top: 1.2em;
+}
+.tpl-minimal-pro .cv-entry, .tpl-3 .cv-entry {
+  margin-bottom: 0.7em;
+}
+
+/* ============================================================
+   5. Modern Developer - Two Column (tpl-4 / tpl-modern-developer)
+   ============================================================ */
+.tpl-modern-developer, .tpl-4 {
+  font-family: 'Inter', system-ui, sans-serif;
+  padding: 16mm 16mm 14mm 16mm;
+}
+.tpl-modern-developer .cv-two-col, .tpl-4 .cv-two-col {
+  display: grid;
+  grid-template-columns: 33% 67%;
+  gap: 1.25rem;
+}
+.tpl-modern-developer .cv-sidebar-col, .tpl-4 .cv-sidebar-col {
+  border-right: 1px solid #e2e8f0;
+  padding-right: 1rem;
+}
+.tpl-modern-developer .cv-main-col, .tpl-4 .cv-main-col {
+  padding-left: 0.25rem;
+}
+.tpl-modern-developer .cv-sidebar-col .cv-section-title, .tpl-4 .cv-sidebar-col .cv-section-title {
+  color: #4F46E5;
+  border-bottom: 1px solid #e0e7ff;
+  padding-bottom: 0.15em;
+  font-size: 0.72em;
+}
+.tpl-modern-developer .cv-main-col .cv-section-title, .tpl-4 .cv-main-col .cv-section-title {
+  color: #4F46E5;
+  border-bottom: 1.5px solid #e0e7ff;
+  padding-bottom: 0.2em;
+}
+.tpl-modern-developer .cv-skill-pill, .tpl-4 .cv-skill-pill {
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  color: #4338ca;
+  font-size: 0.7em;
+}
+
+/* ============================================================
+   6. Executive Professional (tpl-5 / tpl-executive-pro)
+   ============================================================ */
+.tpl-executive-pro, .tpl-5 {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+}
+.tpl-executive-pro .cv-header-exec, .tpl-5 .cv-header-exec {
+  text-align: center;
+  border-bottom: 2px solid #1e293b;
+  padding-bottom: 0.6em;
+  margin-bottom: 0.6em;
+}
+.tpl-executive-pro .cv-name, .tpl-5 .cv-name {
+  font-size: 1.75em;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.tpl-executive-pro .cv-title, .tpl-5 .cv-title {
+  color: #4F46E5;
+  font-size: 1em;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.tpl-executive-pro .cv-contacts, .tpl-5 .cv-contacts {
+  justify-content: center;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.tpl-executive-pro .cv-section-title, .tpl-5 .cv-section-title {
+  font-size: 0.82em;
+  color: #0f172a;
+  border-bottom: 1.5px solid #0f172a;
+  padding-bottom: 0.15em;
+}
+.cv-competencies-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem 0.8rem;
+  background: #f8fafc;
+  padding: 0.6rem 0.8rem;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  margin: 0.4em 0 0.6em 0;
+}
+.cv-competency-item {
+  font-size: 0.8em;
+  color: #1e293b;
+  line-height: 1.35;
+}
+
+/* ============================================================
+   7. Academic CV (tpl-6 / tpl-academic-cv)
+   ============================================================ */
+.tpl-academic-cv, .tpl-6 {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  color: #111827;
+}
+.tpl-academic-cv .cv-header-academic, .tpl-6 .cv-header-academic {
+  text-align: center;
+  margin-bottom: 0.6em;
+}
+.tpl-academic-cv .cv-name, .tpl-6 .cv-name {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 1.7em;
+  color: #000000;
+  font-weight: normal;
+  letter-spacing: 0.03em;
+}
+.tpl-academic-cv .cv-title, .tpl-6 .cv-title {
+  font-style: italic;
+  color: #374151;
+  font-size: 0.95em;
+}
+.tpl-academic-cv .cv-contacts, .tpl-6 .cv-contacts {
+  justify-content: center;
+  border-top: 1px solid #374151;
+  border-bottom: 1px solid #374151;
+  padding: 0.3em 0;
+  margin-top: 0.4em;
+  font-size: 0.8em;
+}
+.tpl-academic-cv .cv-section-title, .tpl-6 .cv-section-title {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  color: #000000;
+  font-size: 0.85em;
+  border-bottom: 1px solid #9ca3af;
+  padding-bottom: 0.15em;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   8. Entry-Level / Student (tpl-7 / tpl-student-entry)
+   ============================================================ */
+.tpl-student-entry, .tpl-7 {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.tpl-student-entry .cv-name, .tpl-7 .cv-name {
+  font-size: 1.6em;
+  color: #0f172a;
+}
+.tpl-student-entry .cv-title, .tpl-7 .cv-title {
+  color: #059669;
+  font-weight: 600;
+}
+.tpl-student-entry .cv-contacts, .tpl-7 .cv-contacts {
+  border-bottom: 1.5px solid #d1fae5;
+}
+.tpl-student-entry .cv-section-title, .tpl-7 .cv-section-title {
+  color: #059669;
+  border-bottom: 1.5px solid #a7f3d0;
+  padding-bottom: 0.15em;
+  font-size: 0.8em;
+}
+.tpl-student-entry .cv-edu-highlight, .tpl-7 .cv-edu-highlight {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 4px;
+  padding: 0.5em 0.7em;
+  margin-bottom: 0.4em;
+}
+.tpl-student-entry .cv-skill-pill, .tpl-7 .cv-skill-pill {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+/* ============================================================
+   9. Custom (tpl-8 / tpl-custom)
+   ============================================================ */
+.tpl-custom, .tpl-8 {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.tpl-custom .cv-name, .tpl-8 .cv-name {
+  font-size: 1.6em;
+  color: var(--color-on-surface);
+}
+.tpl-custom .cv-title, .tpl-8 .cv-title {
+  color: var(--color-primary);
+}
+.tpl-custom .cv-section-title, .tpl-8 .cv-section-title {
+  color: var(--color-primary);
+  border-bottom: 1.5px solid var(--color-outline-variant);
+  padding-bottom: 0.15em;
+}
 
 /* ----------------------------------------------------------------
    TEMPLATE PICKER MODAL
@@ -795,8 +1077,8 @@
   border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-xl);
   width: 100%;
-  max-width: 720px;
-  max-height: 85vh;
+  max-width: 860px;
+  max-height: 88vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -813,7 +1095,7 @@
 }
 
 .template-modal-title {
-  font-size: 1rem;
+  font-size: 1.125rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -822,20 +1104,23 @@
 
 .template-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.875rem;
-  padding: 1.125rem 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
   overflow-y: auto;
   flex: 1;
 }
 
 .template-card {
   border: 2px solid var(--color-outline-variant);
-  border-radius: var(--radius-md);
-  padding: 0.625rem;
+  border-radius: var(--radius-lg);
+  padding: 0.875rem;
   cursor: pointer;
   transition: all var(--transition-fast);
   background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
 }
 
 .template-card:hover {
@@ -852,72 +1137,87 @@
 
 .template-card-preview {
   width: 100%;
-  aspect-ratio: 3/4;
+  aspect-ratio: 1 / 1.32;
   border-radius: 4px;
   overflow: hidden;
-  margin-bottom: 0.5rem;
-  background: #f8fafc;
+  background: #ffffff;
   border: 1px solid var(--color-outline-variant);
   display: flex;
   flex-direction: column;
-  padding: 6px;
+  padding: 8px;
   gap: 3px;
   position: relative;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
-.tcard-line {
-  height: 4px;
-  border-radius: 2px;
-  background: #cbd5e1;
-}
-
-.tcard-line-title {
-  height: 6px;
-  border-radius: 2px;
-  width: 70%;
-}
-
-.tcard-line-sm {
-  height: 3px;
-  border-radius: 2px;
-  width: 50%;
-  background: #e2e8f0;
-}
-
-.tcard-divider {
-  height: 1px;
-  background: #e2e8f0;
-  margin: 2px 0;
-}
-
-.tcard-dots {
+.template-card-content {
   display: flex;
-  gap: 3px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
 }
 
-.tcard-dot {
-  width: 16px;
-  height: 3px;
-  border-radius: 2px;
-  background: #e2e8f0;
+.tcard-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.375rem;
 }
 
 .tcard-name {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 700;
   color: var(--color-on-surface);
-  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.tcard-category {
-  font-size: 0.65rem;
+.tcard-desc {
+  font-size: 0.725rem;
   color: var(--color-on-surface-variant);
-  text-align: center;
-  margin-top: 1px;
+  line-height: 1.35;
+  flex: 1;
+}
+
+.tcard-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+  padding-top: 0.375rem;
+  border-top: 1px solid var(--color-outline-variant);
+}
+
+.tcard-cat-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-on-surface-variant);
+}
+
+.btn-use-tpl {
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--color-surface-container);
+  color: var(--color-on-surface);
+  border: 1px solid var(--color-outline-variant);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-use-tpl:hover, .template-card:hover .btn-use-tpl {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+}
+
+.template-card.selected .btn-use-tpl {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
 }
 
 /* ----------------------------------------------------------------
