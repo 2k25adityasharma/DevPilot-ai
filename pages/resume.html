@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Developer Resume Builder - DevPilot-AI</title>
+  <title>Resume Workspace - DevPilot AI</title>
+  <meta name="description" content="Build ATS-friendly developer resumes with 10 professional templates and get detailed resume analysis in the DevPilot AI workspace."/>
 
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" id="tailwind-cdn"></script>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -134,253 +135,678 @@
   <!-- Main Content Area -->
   <main class="md:ml-[260px] min-h-screen p-6 sm:p-8" id="main-content">
 
-    <!-- Page Header Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-200 no-print">
-      <div class="flex items-center gap-3">
+    <!-- ================================================================
+         VIEW: HUB (Landing)
+         ================================================================ -->
+    <div class="resume-view" id="view-hub">
+
+      <!-- Page Header -->
+      <div class="flex items-center gap-3 mb-2 no-print">
         <button class="mobile-nav-toggle md:hidden" id="mobile-menu-trigger" aria-label="Open Sidebar">
           <span class="material-symbols-outlined">menu</span>
         </button>
         <div>
-          <h1 class="page-title text-2xl sm:text-3xl font-extrabold text-slate-900">Developer Resume Builder</h1>
-          <p class="page-subtitle text-slate-500 text-sm mt-1">Reactive form inputs with instant ATS-compliant live preview and print-ready export.</p>
+          <h1 class="page-title">
+            <span class="material-symbols-outlined text-indigo-600" style='font-variation-settings: "FILL" 1; font-size:28px;'>description</span>
+            Resume Workspace
+          </h1>
+          <p class="page-subtitle">Create a professional developer resume or analyze your existing resume.</p>
         </div>
       </div>
 
-      <div class="flex items-center gap-2.5">
-        <button class="btn-secondary text-sm py-2 px-3" id="btn-reset-resume" title="Reset Form">
-          <span class="material-symbols-outlined text-[18px]">restart_alt</span>
-          <span class="hidden sm:inline">Reset</span>
-        </button>
-        <button class="btn-secondary text-sm py-2 px-3" id="btn-save-draft">
-          <span class="material-symbols-outlined text-[18px]">save</span>
-          <span>Save Draft</span>
-        </button>
-        <button class="btn-primary text-sm py-2 px-4" id="btn-export-pdf">
-          <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
-          <span>Export as PDF</span>
-        </button>
-      </div>
-    </div>
+      <div class="rws-divider mb-8"></div>
 
-    <!-- Section 1: Dual Column Split Screen Layout -->
-    <div class="resume-builder-layout">
-      
-      <!-- Left Column: Form Accordion Controls (no-print) -->
-      <div class="no-print space-y-4">
-        
-        <!-- Accordion 1: Personal Details -->
-        <div class="form-accordion">
-          <div class="accordion-header">
-            <span class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-indigo-600 text-[20px]">person</span>
-              Personal Information
-            </span>
-            <span class="material-symbols-outlined text-slate-400">expand_more</span>
+      <!-- Hub Cards Grid -->
+      <div class="resume-hub-grid">
+
+        <!-- Card 1: Resume Builder -->
+        <div class="resume-hub-card dev-card dev-card-interactive" id="hub-go-builder" role="button" tabindex="0" aria-label="Open Resume Builder">
+          <div class="resume-hub-card-icon">
+            <span class="material-symbols-outlined" style='font-variation-settings: "FILL" 1;'>edit_document</span>
           </div>
-          <div class="accordion-content space-y-3">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div class="form-group">
-                <label class="form-label" for="res-name">Full Name</label>
-                <input type="text" id="res-name" class="form-input" placeholder="Aditya Sharma"/>
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="res-title">Target Job Title</label>
-                <input type="text" id="res-title" class="form-input" placeholder="Full Stack Software Engineer"/>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div class="form-group">
-                <label class="form-label" for="res-email">Email Address</label>
-                <input type="email" id="res-email" class="form-input" placeholder="aditya@example.com"/>
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="res-phone">Phone Number</label>
-                <input type="text" id="res-phone" class="form-input" placeholder="+1 (555) 234-5678"/>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div class="form-group">
-                <label class="form-label" for="res-location">Location</label>
-                <input type="text" id="res-location" class="form-input" placeholder="San Francisco, CA"/>
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="res-github">GitHub Profile</label>
-                <input type="text" id="res-github" class="form-input" placeholder="github.com/aditya"/>
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="res-linkedin">LinkedIn Profile</label>
-                <input type="text" id="res-linkedin" class="form-input" placeholder="linkedin.com/in/aditya"/>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="res-summary">Professional Summary</label>
-              <textarea id="res-summary" class="form-textarea" rows="3" placeholder="Brief 2-3 sentence overview of your developer background..."></textarea>
+          <div class="resume-hub-card-body">
+            <h2 class="resume-hub-card-title">Resume Builder</h2>
+            <p class="resume-hub-card-desc">Create and customize a professional developer resume using ATS-friendly templates. 10 layout options available.</p>
+            <div class="resume-hub-card-meta">
+              <span class="badge badge-primary">
+                <span class="material-symbols-outlined text-[14px]">layers</span>
+                10 Templates
+              </span>
+              <span class="badge badge-success">
+                <span class="material-symbols-outlined text-[14px]">visibility</span>
+                Live Preview
+              </span>
+              <span class="badge badge-neutral">
+                <span class="material-symbols-outlined text-[14px]">picture_as_pdf</span>
+                PDF Export
+              </span>
             </div>
           </div>
+          <button class="btn-primary resume-hub-card-btn" tabindex="-1">
+            <span class="material-symbols-outlined text-[18px]">edit</span>
+            Start Building
+          </button>
         </div>
 
-        <!-- Accordion 2: Technical Skills -->
-        <div class="form-accordion">
-          <div class="accordion-header">
-            <span class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-indigo-600 text-[20px]">code</span>
-              Technical Skills
-            </span>
-            <span class="material-symbols-outlined text-slate-400">expand_more</span>
+        <!-- Card 2: Resume Analyzer -->
+        <div class="resume-hub-card dev-card dev-card-interactive" id="hub-go-analyzer" role="button" tabindex="0" aria-label="Open Resume Analyzer">
+          <div class="resume-hub-card-icon resume-hub-card-icon--analyzer">
+            <span class="material-symbols-outlined" style='font-variation-settings: "FILL" 1;'>manage_search</span>
           </div>
-          <div class="accordion-content space-y-3">
-            <div class="form-group">
-              <label class="form-label" for="res-skills-languages">Programming Languages (Comma-separated)</label>
-              <input type="text" id="res-skills-languages" class="form-input" placeholder="JavaScript, TypeScript, C++, Python, HTML/CSS"/>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="res-skills-frameworks">Frameworks & Libraries</label>
-              <input type="text" id="res-skills-frameworks" class="form-input" placeholder="React, Next.js, Node.js, Express, Tailwind CSS"/>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="res-skills-tools">Tools, Cloud & Databases</label>
-              <input type="text" id="res-skills-tools" class="form-input" placeholder="Git, Docker, PostgreSQL, MongoDB, AWS, Vite"/>
-            </div>
-          </div>
-        </div>
-
-        <!-- Accordion 3: Work & Internship Experience -->
-        <div class="form-accordion">
-          <div class="accordion-header">
-            <span class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-indigo-600 text-[20px]">work</span>
-              Experience / Internships
-            </span>
-            <span class="material-symbols-outlined text-slate-400">expand_more</span>
-          </div>
-          <div class="accordion-content space-y-3">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div class="form-group">
-                <label class="form-label" for="res-exp-role">Role / Position</label>
-                <input type="text" id="res-exp-role" class="form-input" placeholder="Full Stack Developer Intern"/>
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="res-exp-company">Company / Organization</label>
-                <input type="text" id="res-exp-company" class="form-input" placeholder="TechVentures Labs"/>
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="res-exp-duration">Duration & Location</label>
-              <input type="text" id="res-exp-duration" class="form-input" placeholder="Jun 2025 - Present | San Francisco, CA"/>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="res-exp-desc">Impact & Bullet Points</label>
-              <textarea id="res-exp-desc" class="form-textarea" rows="3" placeholder="Key responsibilities and achievements with metrics..."></textarea>
+          <div class="resume-hub-card-body">
+            <h2 class="resume-hub-card-title">Resume Analyzer</h2>
+            <p class="resume-hub-card-desc">Upload your resume and get ATS, content, keyword, and job-match insights to improve your chances of landing interviews.</p>
+            <div class="resume-hub-card-meta">
+              <span class="badge badge-primary">
+                <span class="material-symbols-outlined text-[14px]">bar_chart</span>
+                ATS Score
+              </span>
+              <span class="badge badge-success">
+                <span class="material-symbols-outlined text-[14px]">work</span>
+                Job Match
+              </span>
+              <span class="badge badge-neutral">
+                <span class="material-symbols-outlined text-[14px]">hub</span>
+                GitHub Link
+              </span>
             </div>
           </div>
-        </div>
-
-        <!-- Accordion 4: Featured Projects -->
-        <div class="form-accordion">
-          <div class="accordion-header">
-            <span class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-indigo-600 text-[20px]">terminal</span>
-              Featured Projects
-            </span>
-            <span class="material-symbols-outlined text-slate-400">expand_more</span>
-          </div>
-          <div class="accordion-content space-y-3">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div class="form-group">
-                <label class="form-label" for="res-proj-title">Project Name</label>
-                <input type="text" id="res-proj-title" class="form-input" placeholder="DevPilot-AI Workspace"/>
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="res-proj-tech">Tech Stack</label>
-                <input type="text" id="res-proj-tech" class="form-input" placeholder="JavaScript, Tailwind, AI API"/>
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="res-proj-desc">Description & Metrics</label>
-              <textarea id="res-proj-desc" class="form-textarea" rows="2" placeholder="What problem did it solve? Key architectural highlights..."></textarea>
-            </div>
-          </div>
-        </div>
-
-        <!-- Accordion 5: Education -->
-        <div class="form-accordion">
-          <div class="accordion-header">
-            <span class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-indigo-600 text-[20px]">school</span>
-              Education
-            </span>
-            <span class="material-symbols-outlined text-slate-400">expand_more</span>
-          </div>
-          <div class="accordion-content space-y-3">
-            <div class="form-group">
-              <label class="form-label" for="res-edu-degree">Degree & Major</label>
-              <input type="text" id="res-edu-degree" class="form-input" placeholder="B.S. in Computer Science & Engineering"/>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div class="form-group">
-                <label class="form-label" for="res-edu-school">University / College</label>
-                <input type="text" id="res-edu-school" class="form-input" placeholder="State University of Technology"/>
-              </div>
-              <div class="form-group">
-                <label class="form-label" for="res-edu-year">Graduation Year</label>
-                <input type="text" id="res-edu-year" class="form-input" placeholder="2022 - 2026"/>
-              </div>
-            </div>
-          </div>
+          <button class="btn-primary resume-hub-card-btn" tabindex="-1">
+            <span class="material-symbols-outlined text-[18px]">manage_search</span>
+            Analyze Resume
+          </button>
         </div>
 
       </div>
 
-      <!-- Right Column: Styled Live Preview Card -->
-      <div class="cv-preview-wrapper">
-        <div class="cv-paper">
-          <!-- CV Header -->
-          <div class="mb-4">
-            <h1 class="cv-header-name" id="preview-name">Aditya Sharma</h1>
-            <p class="cv-header-title" id="preview-title">Full Stack Software Engineer</p>
-            <div class="cv-contacts" id="preview-contacts">
-              <!-- Rendered reactively -->
-            </div>
-          </div>
-
-          <!-- Professional Summary -->
-          <div class="mb-4">
-            <h2 class="cv-section-title">Summary</h2>
-            <p class="text-xs text-slate-600 leading-relaxed" id="preview-summary"></p>
-          </div>
-
-          <!-- Technical Skills -->
-          <div class="mb-4">
-            <h2 class="cv-section-title">Technical Skills</h2>
-            <div id="preview-skills" class="text-xs text-slate-700 leading-relaxed"></div>
-          </div>
-
-          <!-- Experience -->
-          <div class="mb-4">
-            <h2 class="cv-section-title">Experience</h2>
-            <div id="preview-experience"></div>
-          </div>
-
-          <!-- Projects -->
-          <div class="mb-4">
-            <h2 class="cv-section-title">Featured Projects</h2>
-            <div id="preview-projects"></div>
-          </div>
-
-          <!-- Education -->
+      <!-- Quick Stats Row -->
+      <div class="resume-hub-stats">
+        <div class="resume-stat-item">
+          <span class="material-symbols-outlined text-indigo-500" style='font-variation-settings: "FILL" 1;'>layers</span>
           <div>
-            <h2 class="cv-section-title">Education</h2>
-            <div id="preview-education"></div>
+            <div class="resume-stat-value" id="hub-stat-template">Classic</div>
+            <div class="resume-stat-label">Active Template</div>
+          </div>
+        </div>
+        <div class="rws-stat-divider"></div>
+        <div class="resume-stat-item">
+          <span class="material-symbols-outlined text-emerald-500" style='font-variation-settings: "FILL" 1;'>shield_check</span>
+          <div>
+            <div class="resume-stat-value" id="hub-stat-ats">—</div>
+            <div class="resume-stat-label">ATS Score</div>
+          </div>
+        </div>
+        <div class="rws-stat-divider"></div>
+        <div class="resume-stat-item">
+          <span class="material-symbols-outlined text-amber-500" style='font-variation-settings: "FILL" 1;'>save</span>
+          <div>
+            <div class="resume-stat-value" id="hub-stat-saved">Not saved</div>
+            <div class="resume-stat-label">Last Saved</div>
+          </div>
+        </div>
+        <div class="rws-stat-divider"></div>
+        <div class="resume-stat-item">
+          <span class="material-symbols-outlined text-indigo-500" style='font-variation-settings: "FILL" 1;'>article</span>
+          <div>
+            <div class="resume-stat-value" id="hub-stat-sections">0 / 8</div>
+            <div class="resume-stat-label">Sections Filled</div>
           </div>
         </div>
       </div>
 
-    </div>
+    </div><!-- /view-hub -->
+
+
+    <!-- ================================================================
+         VIEW: BUILDER
+         ================================================================ -->
+    <div class="resume-view" id="view-builder" style="display:none;">
+
+      <!-- Builder Top Bar -->
+      <div class="builder-topbar no-print">
+        <div class="builder-topbar-left">
+          <button class="btn-secondary btn-sm" id="builder-back-btn">
+            <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+            <span class="hidden sm:inline">Resume</span>
+          </button>
+          <div class="builder-topbar-title">
+            <span class="material-symbols-outlined text-indigo-600 text-[18px]" style='font-variation-settings: "FILL" 1;'>edit_document</span>
+            <span class="font-semibold text-slate-800 text-sm hidden sm:inline">Resume Builder</span>
+          </div>
+        </div>
+
+        <div class="builder-topbar-center">
+          <button class="btn-secondary btn-sm" id="btn-template-picker">
+            <span class="material-symbols-outlined text-[16px]">layers</span>
+            <span id="active-template-label" class="hidden sm:inline">DevPilot Classic</span>
+          </button>
+        </div>
+
+        <div class="builder-topbar-right">
+          <!-- ATS Score Badge -->
+          <div class="ats-badge" id="ats-badge" title="ATS Compatibility Score">
+            <span class="material-symbols-outlined text-[14px]">shield_check</span>
+            <span>ATS</span>
+            <span class="ats-badge-score" id="ats-score-display">—</span>
+          </div>
+
+          <button class="btn-icon" id="btn-undo" title="Undo">
+            <span class="material-symbols-outlined text-[18px]">undo</span>
+          </button>
+          <button class="btn-icon" id="btn-redo" title="Redo">
+            <span class="material-symbols-outlined text-[18px]">redo</span>
+          </button>
+          <button class="btn-secondary btn-sm" id="btn-save-draft">
+            <span class="material-symbols-outlined text-[16px]">save</span>
+            <span class="hidden sm:inline">Save</span>
+          </button>
+          <button class="btn-secondary btn-sm" id="btn-print-preview">
+            <span class="material-symbols-outlined text-[16px]">preview</span>
+            <span class="hidden lg:inline">Preview</span>
+          </button>
+          <button class="btn-primary btn-sm" id="btn-export-pdf">
+            <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+            <span class="hidden sm:inline">Export PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Builder Split Layout -->
+      <div class="resume-builder-split">
+
+        <!-- LEFT: Editor Panel -->
+        <div class="builder-editor-panel no-print custom-scrollbar">
+
+          <!-- 1. Personal Information -->
+          <div class="form-accordion active" id="acc-personal">
+            <div class="accordion-header">
+              <span class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-indigo-600 text-[18px]" style='font-variation-settings: "FILL" 1;'>person</span>
+                Personal Information
+              </span>
+              <span class="material-symbols-outlined text-slate-400 accordion-chevron">expand_more</span>
+            </div>
+            <div class="accordion-content">
+              <div class="acc-grid-2">
+                <div class="form-group">
+                  <label class="form-label" for="res-name">Full Name</label>
+                  <input type="text" id="res-name" class="form-input" placeholder="Aditya Sharma"/>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="res-title">Target Job Title</label>
+                  <input type="text" id="res-title" class="form-input" placeholder="Full Stack Software Engineer"/>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="res-email">Email</label>
+                  <input type="email" id="res-email" class="form-input" placeholder="aditya@example.com"/>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="res-phone">Phone</label>
+                  <input type="text" id="res-phone" class="form-input" placeholder="+1 (555) 234-5678"/>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="res-location">Location</label>
+                  <input type="text" id="res-location" class="form-input" placeholder="San Francisco, CA"/>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="res-portfolio">Portfolio</label>
+                  <input type="text" id="res-portfolio" class="form-input" placeholder="adityasharma.dev"/>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="res-github">GitHub</label>
+                  <input type="text" id="res-github" class="form-input" placeholder="github.com/aditya"/>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="res-linkedin">LinkedIn</label>
+                  <input type="text" id="res-linkedin" class="form-input" placeholder="linkedin.com/in/aditya"/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Professional Summary -->
+          <div class="form-accordion" id="acc-summary">
+            <div class="accordion-header">
+              <span class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-indigo-600 text-[18px]" style='font-variation-settings: "FILL" 1;'>chat_bubble</span>
+                Professional Summary
+              </span>
+              <span class="material-symbols-outlined text-slate-400 accordion-chevron">expand_more</span>
+            </div>
+            <div class="accordion-content">
+              <div class="form-group">
+                <label class="form-label" for="res-summary">Summary</label>
+                <textarea id="res-summary" class="form-textarea" rows="4" placeholder="Passionate Full Stack Developer with 3+ years of experience building modern web applications..."></textarea>
+              </div>
+              <button class="btn-ai-assist" id="btn-ai-summary">
+                <span class="material-symbols-outlined text-[16px]" style='font-variation-settings: "FILL" 1;'>auto_awesome</span>
+                Improve with AI
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. Technical Skills -->
+          <div class="form-accordion" id="acc-skills">
+            <div class="accordion-header">
+              <span class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-indigo-600 text-[18px]" style='font-variation-settings: "FILL" 1;'>code</span>
+                Technical Skills
+              </span>
+              <span class="material-symbols-outlined text-slate-400 accordion-chevron">expand_more</span>
+            </div>
+            <div class="accordion-content">
+              <div class="form-group">
+                <label class="form-label" for="res-skills-languages">Programming Languages</label>
+                <input type="text" id="res-skills-languages" class="form-input" placeholder="JavaScript, TypeScript, C++, Python, HTML/CSS"/>
+                <p class="acc-field-hint">Comma-separated</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="res-skills-frontend">Frontend</label>
+                <input type="text" id="res-skills-frontend" class="form-input" placeholder="React, Next.js, Tailwind CSS, Redux"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="res-skills-backend">Backend</label>
+                <input type="text" id="res-skills-backend" class="form-input" placeholder="Node.js, Express, REST APIs, GraphQL"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="res-skills-db">Databases</label>
+                <input type="text" id="res-skills-db" class="form-input" placeholder="PostgreSQL, MongoDB, Redis"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="res-skills-tools">Tools &amp; Cloud</label>
+                <input type="text" id="res-skills-tools" class="form-input" placeholder="Git, Docker, AWS, CI/CD, Vite"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Experience -->
+          <div class="form-accordion" id="acc-experience">
+            <div class="accordion-header">
+              <span class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-indigo-600 text-[18px]" style='font-variation-settings: "FILL" 1;'>work</span>
+                Experience / Internships
+              </span>
+              <span class="material-symbols-outlined text-slate-400 accordion-chevron">expand_more</span>
+            </div>
+            <div class="accordion-content">
+              <div id="experience-list"></div>
+              <button class="btn-add-entry" id="btn-add-experience">
+                <span class="material-symbols-outlined text-[16px]">add_circle</span>
+                Add Experience
+              </button>
+            </div>
+          </div>
+
+          <!-- 5. Projects -->
+          <div class="form-accordion" id="acc-projects">
+            <div class="accordion-header">
+              <span class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-indigo-600 text-[18px]" style='font-variation-settings: "FILL" 1;'>rocket_launch</span>
+                Projects
+              </span>
+              <span class="material-symbols-outlined text-slate-400 accordion-chevron">expand_more</span>
+            </div>
+            <div class="accordion-content">
+              <div id="projects-list"></div>
+              <button class="btn-add-entry" id="btn-add-project">
+                <span class="material-symbols-outlined text-[16px]">add_circle</span>
+                Add Project
+              </button>
+            </div>
+          </div>
+
+          <!-- 6. Education -->
+          <div class="form-accordion" id="acc-education">
+            <div class="accordion-header">
+              <span class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-indigo-600 text-[18px]" style='font-variation-settings: "FILL" 1;'>school</span>
+                Education
+              </span>
+              <span class="material-symbols-outlined text-slate-400 accordion-chevron">expand_more</span>
+            </div>
+            <div class="accordion-content">
+              <div id="education-list"></div>
+              <button class="btn-add-entry" id="btn-add-education">
+                <span class="material-symbols-outlined text-[16px]">add_circle</span>
+                Add Education
+              </button>
+            </div>
+          </div>
+
+          <!-- 7. Achievements -->
+          <div class="form-accordion" id="acc-achievements">
+            <div class="accordion-header">
+              <span class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-indigo-600 text-[18px]" style='font-variation-settings: "FILL" 1;'>emoji_events</span>
+                Achievements
+                <span class="badge badge-neutral" style="font-size:10px; padding: 2px 6px;">Optional</span>
+              </span>
+              <span class="material-symbols-outlined text-slate-400 accordion-chevron">expand_more</span>
+            </div>
+            <div class="accordion-content">
+              <div id="achievements-list"></div>
+              <button class="btn-add-entry" id="btn-add-achievement">
+                <span class="material-symbols-outlined text-[16px]">add_circle</span>
+                Add Achievement
+              </button>
+            </div>
+          </div>
+
+          <!-- 8. Certifications -->
+          <div class="form-accordion" id="acc-certifications">
+            <div class="accordion-header">
+              <span class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-indigo-600 text-[18px]" style='font-variation-settings: "FILL" 1;'>verified</span>
+                Certifications
+                <span class="badge badge-neutral" style="font-size:10px; padding: 2px 6px;">Optional</span>
+              </span>
+              <span class="material-symbols-outlined text-slate-400 accordion-chevron">expand_more</span>
+            </div>
+            <div class="accordion-content">
+              <div id="certifications-list"></div>
+              <button class="btn-add-entry" id="btn-add-certification">
+                <span class="material-symbols-outlined text-[16px]">add_circle</span>
+                Add Certification
+              </button>
+            </div>
+          </div>
+
+        </div><!-- /builder-editor-panel -->
+
+        <!-- RIGHT: Live Resume Preview (A4 Paper) -->
+        <div class="builder-preview-panel">
+          <div class="preview-panel-header no-print">
+            <span class="preview-panel-label">
+              <span class="material-symbols-outlined text-[14px]">visibility</span>
+              Live Preview
+            </span>
+            <span class="badge badge-primary" id="template-badge-preview">DevPilot Classic</span>
+          </div>
+          <div class="a4-scaler-wrapper">
+            <div class="a4-paper" id="printable-resume-paper">
+              <!-- Rendered by JS based on active template -->
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /resume-builder-split -->
+
+    </div><!-- /view-builder -->
+
+
+    <!-- ================================================================
+         VIEW: ANALYZER
+         ================================================================ -->
+    <div class="resume-view" id="view-analyzer" style="display:none;">
+
+      <!-- Analyzer Top Bar -->
+      <div class="builder-topbar no-print">
+        <div class="builder-topbar-left">
+          <button class="btn-secondary btn-sm" id="analyzer-back-btn">
+            <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+            <span class="hidden sm:inline">Resume</span>
+          </button>
+          <div class="builder-topbar-title">
+            <span class="material-symbols-outlined text-indigo-600 text-[18px]" style='font-variation-settings: "FILL" 1;'>manage_search</span>
+            <span class="font-semibold text-slate-800 text-sm hidden sm:inline">Resume Analyzer</span>
+          </div>
+        </div>
+        <div class="builder-topbar-right">
+          <button class="btn-secondary btn-sm" id="btn-use-builder-resume">
+            <span class="material-symbols-outlined text-[16px]">description</span>
+            <span class="hidden sm:inline">Use Builder Resume</span>
+          </button>
+          <button class="btn-primary btn-sm" id="btn-run-analysis">
+            <span class="material-symbols-outlined text-[16px]">play_arrow</span>
+            <span>Analyze</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Analyzer Upload State (shown before analysis) -->
+      <div id="analyzer-upload-state">
+        <div class="analyzer-upload-zone" id="upload-dropzone">
+          <div class="upload-zone-icon">
+            <span class="material-symbols-outlined" style='font-variation-settings: "FILL" 1; font-size: 40px;'>upload_file</span>
+          </div>
+          <p class="upload-zone-title">Drag &amp; drop your resume here</p>
+          <p class="upload-zone-sub">Supports PDF and DOCX — or analyze the resume currently in the Builder</p>
+          <div class="upload-zone-actions">
+            <label class="btn-primary" for="file-upload-input" style="cursor:pointer;">
+              <span class="material-symbols-outlined text-[16px]">folder_open</span>
+              Choose File
+            </label>
+            <input type="file" id="file-upload-input" accept=".pdf,.docx" style="display:none;"/>
+            <button class="btn-secondary" id="btn-analyze-builder">
+              <span class="material-symbols-outlined text-[16px]">description</span>
+              Use Builder Resume
+            </button>
+          </div>
+        </div>
+
+        <!-- File Preview Strip (after file selected) -->
+        <div class="file-preview-strip" id="file-preview-strip" style="display:none;">
+          <span class="material-symbols-outlined text-indigo-500 text-[24px]" style='font-variation-settings: "FILL" 1;'>description</span>
+          <div class="file-preview-info">
+            <div class="file-preview-name" id="file-name-display">resume.pdf</div>
+            <div class="file-preview-meta" id="file-meta-display">1.2 MB · PDF</div>
+          </div>
+          <button class="btn-icon" id="btn-remove-file" title="Remove file">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Analyzer Dashboard (shown after analysis) -->
+      <div id="analyzer-results-state" style="display:none;">
+
+        <!-- File info bar -->
+        <div class="file-preview-strip" id="analyzed-file-strip">
+          <span class="material-symbols-outlined text-emerald-500 text-[22px]" style='font-variation-settings: "FILL" 1;'>task_alt</span>
+          <div class="file-preview-info">
+            <div class="file-preview-name" id="analyzed-file-name">resume.pdf</div>
+            <div class="file-preview-meta" id="analyzed-file-meta">Analyzed just now</div>
+          </div>
+          <button class="btn-secondary btn-sm" id="btn-reanalyze">
+            <span class="material-symbols-outlined text-[14px]">refresh</span>
+            Re-analyze
+          </button>
+        </div>
+
+        <!-- Score Cards Grid -->
+        <div class="analyzer-score-grid">
+          <div class="analyzer-score-card">
+            <div class="ascore-ring-wrapper">
+              <svg class="ascore-ring-svg" viewBox="0 0 80 80">
+                <circle class="ascore-ring-bg" cx="40" cy="40" r="33"/>
+                <circle class="ascore-ring-fill" cx="40" cy="40" r="33" id="ring-overall" stroke="url(#grad-overall)"/>
+                <defs>
+                  <linearGradient id="grad-overall" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#4F46E5"/>
+                    <stop offset="100%" stop-color="#7C3AED"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="ascore-ring-value" id="score-overall-val">84</div>
+            </div>
+            <div class="ascore-label">Overall Score</div>
+            <div class="ascore-sub" id="score-overall-sub">Good</div>
+          </div>
+          <div class="analyzer-score-card">
+            <div class="ascore-ring-wrapper">
+              <svg class="ascore-ring-svg" viewBox="0 0 80 80">
+                <circle class="ascore-ring-bg" cx="40" cy="40" r="33"/>
+                <circle class="ascore-ring-fill" cx="40" cy="40" r="33" id="ring-ats" stroke="url(#grad-ats)"/>
+                <defs>
+                  <linearGradient id="grad-ats" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#10b981"/>
+                    <stop offset="100%" stop-color="#059669"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="ascore-ring-value" id="score-ats-val">88</div>
+            </div>
+            <div class="ascore-label">ATS Score</div>
+            <div class="ascore-sub" id="score-ats-sub">Excellent</div>
+          </div>
+          <div class="analyzer-score-card">
+            <div class="ascore-ring-wrapper">
+              <svg class="ascore-ring-svg" viewBox="0 0 80 80">
+                <circle class="ascore-ring-bg" cx="40" cy="40" r="33"/>
+                <circle class="ascore-ring-fill" cx="40" cy="40" r="33" id="ring-content" stroke="url(#grad-content)"/>
+                <defs>
+                  <linearGradient id="grad-content" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#f59e0b"/>
+                    <stop offset="100%" stop-color="#d97706"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="ascore-ring-value" id="score-content-val">79</div>
+            </div>
+            <div class="ascore-label">Content</div>
+            <div class="ascore-sub" id="score-content-sub">Needs Work</div>
+          </div>
+          <div class="analyzer-score-card">
+            <div class="ascore-ring-wrapper">
+              <svg class="ascore-ring-svg" viewBox="0 0 80 80">
+                <circle class="ascore-ring-bg" cx="40" cy="40" r="33"/>
+                <circle class="ascore-ring-fill" cx="40" cy="40" r="33" id="ring-read" stroke="url(#grad-read)"/>
+                <defs>
+                  <linearGradient id="grad-read" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#06b6d4"/>
+                    <stop offset="100%" stop-color="#0284c7"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="ascore-ring-value" id="score-read-val">92</div>
+            </div>
+            <div class="ascore-label">Readability</div>
+            <div class="ascore-sub" id="score-read-sub">Excellent</div>
+          </div>
+        </div>
+
+        <!-- Analyzer Content Grid -->
+        <div class="analyzer-content-grid">
+
+          <!-- LEFT Column -->
+          <div class="analyzer-col">
+
+            <!-- ATS Checks -->
+            <div class="dev-card" id="ats-checks-card">
+              <div class="card-section-header">
+                <span class="material-symbols-outlined text-[18px] text-emerald-500" style='font-variation-settings: "FILL" 1;'>shield_check</span>
+                <h3 class="card-section-title">ATS Compatibility</h3>
+              </div>
+              <div class="ats-checks-list" id="ats-checks-list">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+
+            <!-- Content Quality by Section -->
+            <div class="dev-card" id="content-quality-card">
+              <div class="card-section-header">
+                <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>analytics</span>
+                <h3 class="card-section-title">Content Quality</h3>
+              </div>
+              <div class="content-quality-list" id="content-quality-list">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+
+            <!-- GitHub Correlation -->
+            <div class="dev-card" id="github-correlation-card">
+              <div class="card-section-header">
+                <span class="material-symbols-outlined text-[18px] text-slate-600" style='font-variation-settings: "FILL" 1;'>hub</span>
+                <h3 class="card-section-title">GitHub Correlation</h3>
+                <span class="badge badge-neutral ml-auto" style="font-size:10px;">Based on last scan</span>
+              </div>
+              <div id="github-correlation-list">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+
+          </div><!-- /analyzer-col -->
+
+          <!-- RIGHT Column -->
+          <div class="analyzer-col">
+
+            <!-- Skills & Keywords -->
+            <div class="dev-card" id="skills-keywords-card">
+              <div class="card-section-header">
+                <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>code</span>
+                <h3 class="card-section-title">Skills &amp; Keywords</h3>
+              </div>
+              <p class="analyzer-col-label">Strong Skills Detected</p>
+              <div class="skills-pill-group" id="strong-skills-list"></div>
+              <div class="analyzer-divider"></div>
+              <p class="analyzer-col-label">Recommended Skills</p>
+              <div class="skills-pill-group" id="recommended-skills-list"></div>
+            </div>
+
+            <!-- Job Description Matcher -->
+            <div class="dev-card" id="jd-match-card">
+              <div class="card-section-header">
+                <span class="material-symbols-outlined text-[18px] text-amber-500" style='font-variation-settings: "FILL" 1;'>work_history</span>
+                <h3 class="card-section-title">Job Description Match</h3>
+              </div>
+              <textarea id="jd-textarea" class="form-textarea" rows="4" placeholder="Paste a job description here to see how well your resume matches..."></textarea>
+              <button class="btn-primary btn-sm mt-3" id="btn-match-jd" style="width:100%;">
+                <span class="material-symbols-outlined text-[16px]">compare_arrows</span>
+                Match with Job Description
+              </button>
+              <div id="jd-match-results" style="display:none;">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+
+            <!-- AI Recommendations -->
+            <div class="dev-card" id="ai-recs-card">
+              <div class="card-section-header">
+                <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>auto_awesome</span>
+                <h3 class="card-section-title">AI Recommendations</h3>
+              </div>
+              <div id="ai-recommendations-list">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+
+          </div><!-- /analyzer-col -->
+
+        </div><!-- /analyzer-content-grid -->
+
+      </div><!-- /analyzer-results-state -->
+
+    </div><!-- /view-analyzer -->
 
   </main>
+
+  <!-- Template Picker Modal -->
+  <div class="modal-backdrop" id="template-modal-backdrop" style="display:none;" aria-modal="true" role="dialog">
+    <div class="template-modal">
+      <div class="template-modal-header">
+        <h2 class="template-modal-title">
+          <span class="material-symbols-outlined text-indigo-600" style='font-variation-settings: "FILL" 1;'>layers</span>
+          Choose Template
+        </h2>
+        <button class="btn-icon" id="close-template-modal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <!-- Category Filters -->
+      <div class="filter-tabs" id="template-category-tabs">
+        <button class="filter-tab active" data-category="all">All</button>
+        <button class="filter-tab" data-category="ats">ATS</button>
+        <button class="filter-tab" data-category="minimal">Minimal</button>
+        <button class="filter-tab" data-category="modern">Modern</button>
+        <button class="filter-tab" data-category="developer">Developer</button>
+        <button class="filter-tab" data-category="company">Company-Inspired</button>
+      </div>
+      <!-- Template Cards Grid -->
+      <div class="template-cards-grid" id="template-cards-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
 
   <script src="../js/utils.js"></script>
   <script src="../js/app.js"></script>
