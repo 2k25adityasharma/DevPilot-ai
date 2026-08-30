@@ -187,6 +187,20 @@
   font-size: 0.8125rem !important;
 }
 
+#btn-template-picker {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+#btn-template-picker:hover {
+  background-color: var(--color-surface-container-high);
+  border-color: var(--color-primary);
+  box-shadow: 0 1px 4px rgba(79, 70, 229, 0.08);
+}
+
 /* ATS Badge */
 .ats-badge {
   display: inline-flex;
@@ -616,6 +630,17 @@
   gap: 0.25rem;
 }
 
+.cv-exp-role,
+.cv-proj-title,
+.cv-name,
+.cv-title,
+.cv-edu-degree {
+  white-space: normal !important;
+  word-break: normal;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
 .cv-exp-role {
   font-weight: 700;
   font-size: 0.92em;
@@ -640,6 +665,15 @@
   margin-top: 0.25em;
   line-height: 1.45;
   white-space: pre-wrap;
+}
+
+.cv-summary-text {
+  font-size: 0.83em;
+  color: #334155;
+  margin-top: 0.25em;
+  margin-bottom: 0.55em;
+  line-height: 1.5;
+  white-space: normal;
 }
 
 .cv-proj-title {
@@ -875,40 +909,34 @@
 }
 
 /* ============================================================
-   5. Modern Developer - Two Column (tpl-4 / tpl-modern-developer)
+   5. Modern Developer (tpl-4 / tpl-modern-developer)
    ============================================================ */
 .tpl-modern-developer, .tpl-4 {
   font-family: 'Inter', system-ui, sans-serif;
-  padding: 16mm 16mm 14mm 16mm;
+  padding: 18mm 18mm 16mm 18mm;
 }
-.tpl-modern-developer .cv-two-col, .tpl-4 .cv-two-col {
-  display: grid;
-  grid-template-columns: 33% 67%;
-  gap: 1.25rem;
+.tpl-modern-developer .cv-name, .tpl-4 .cv-name {
+  font-size: 1.7em;
+  color: #0f172a;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
-.tpl-modern-developer .cv-sidebar-col, .tpl-4 .cv-sidebar-col {
-  border-right: 1px solid #e2e8f0;
-  padding-right: 1rem;
-}
-.tpl-modern-developer .cv-main-col, .tpl-4 .cv-main-col {
-  padding-left: 0.25rem;
-}
-.tpl-modern-developer .cv-sidebar-col .cv-section-title, .tpl-4 .cv-sidebar-col .cv-section-title {
+.tpl-modern-developer .cv-title, .tpl-4 .cv-title {
   color: #4F46E5;
-  border-bottom: 1px solid #e0e7ff;
-  padding-bottom: 0.15em;
-  font-size: 0.72em;
+  font-size: 0.98em;
+  font-weight: 700;
 }
-.tpl-modern-developer .cv-main-col .cv-section-title, .tpl-4 .cv-main-col .cv-section-title {
+.tpl-modern-developer .cv-contacts, .tpl-4 .cv-contacts {
+  border-bottom: 1.5px solid #e0e7ff;
+  color: #475569;
+  font-size: 0.8em;
+}
+.tpl-modern-developer .cv-section-title, .tpl-4 .cv-section-title {
   color: #4F46E5;
   border-bottom: 1.5px solid #e0e7ff;
   padding-bottom: 0.2em;
-}
-.tpl-modern-developer .cv-skill-pill, .tpl-4 .cv-skill-pill {
-  background: #eef2ff;
-  border: 1px solid #c7d2fe;
-  color: #4338ca;
-  font-size: 0.7em;
+  font-size: 0.78em;
+  letter-spacing: 0.06em;
 }
 
 /* ============================================================
@@ -916,35 +944,41 @@
    ============================================================ */
 .tpl-executive-pro, .tpl-5 {
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  padding: 18mm 18mm 16mm 18mm;
 }
 .tpl-executive-pro .cv-header-exec, .tpl-5 .cv-header-exec {
   text-align: center;
   border-bottom: 2px solid #1e293b;
-  padding-bottom: 0.6em;
-  margin-bottom: 0.6em;
+  padding-bottom: 0.5em;
+  margin-bottom: 0.5em;
 }
 .tpl-executive-pro .cv-name, .tpl-5 .cv-name {
   font-size: 1.75em;
   color: #0f172a;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  text-align: center;
 }
 .tpl-executive-pro .cv-title, .tpl-5 .cv-title {
   color: #4F46E5;
   font-size: 1em;
   font-weight: 700;
   letter-spacing: 0.03em;
+  text-align: center;
 }
 .tpl-executive-pro .cv-contacts, .tpl-5 .cv-contacts {
   justify-content: center;
   border-bottom: none;
-  padding-bottom: 0;
+  font-size: 0.8em;
+  color: #475569;
 }
 .tpl-executive-pro .cv-section-title, .tpl-5 .cv-section-title {
-  font-size: 0.82em;
   color: #0f172a;
-  border-bottom: 1.5px solid #0f172a;
-  padding-bottom: 0.15em;
+  border-bottom: 1.5px solid #cbd5e1;
+  padding-bottom: 0.2em;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  font-size: 0.82em;
 }
 .cv-competencies-grid {
   display: grid;
