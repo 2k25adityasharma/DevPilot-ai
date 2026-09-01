@@ -12,6 +12,16 @@
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
 
+  <!-- PDF.js for real PDF text extraction -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    if (typeof pdfjsLib !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
+  <!-- Mammoth.js for real DOCX text extraction -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
   <link rel="stylesheet" href="../css/global.css"/>
   <link rel="stylesheet" href="../css/components.css"/>
   <link rel="stylesheet" href="../css/resume.css"/>
@@ -564,14 +574,14 @@
         </div>
       </div>
 
-      <!-- Analyzer Upload State (shown before analysis) -->
+      <!-- Analyzer Upload State (always visible) -->
       <div id="analyzer-upload-state">
         <div class="analyzer-upload-zone" id="upload-dropzone">
           <div class="upload-zone-icon">
             <span class="material-symbols-outlined" style='font-variation-settings: "FILL" 1; font-size: 40px;'>upload_file</span>
           </div>
           <p class="upload-zone-title">Drag &amp; drop your resume here</p>
-          <p class="upload-zone-sub">Supports PDF and DOCX — or analyze the resume currently in the Builder</p>
+          <p class="upload-zone-sub">Supports PDF and DOCX (max 10 MB) — or analyze the resume currently in the Builder</p>
           <div class="upload-zone-actions">
             <label class="btn-primary" for="file-upload-input" style="cursor:pointer;">
               <span class="material-symbols-outlined text-[16px]">folder_open</span>
@@ -598,184 +608,19 @@
         </div>
       </div>
 
-      <!-- Analyzer Dashboard (shown after analysis) -->
-      <div id="analyzer-results-state" style="display:none;">
-
-        <!-- File info bar -->
-        <div class="file-preview-strip" id="analyzed-file-strip">
-          <span class="material-symbols-outlined text-emerald-500 text-[22px]" style='font-variation-settings: "FILL" 1;'>task_alt</span>
-          <div class="file-preview-info">
-            <div class="file-preview-name" id="analyzed-file-name">resume.pdf</div>
-            <div class="file-preview-meta" id="analyzed-file-meta">Analyzed just now</div>
-          </div>
-          <button class="btn-secondary btn-sm" id="btn-reanalyze">
-            <span class="material-symbols-outlined text-[14px]">refresh</span>
-            Re-analyze
-          </button>
+      <!-- Loading Overlay -->
+      <div id="analyzer-loading" class="analyzer-loading-overlay" style="display:none;">
+        <div class="analyzer-loading-content">
+          <span class="material-symbols-outlined analyzer-loading-icon">hourglass_top</span>
+          <div class="analyzer-loading-title">Analyzing Resume...</div>
+          <div class="analyzer-loading-sub">Extracting text and calculating scores</div>
         </div>
+      </div>
 
-        <!-- Score Cards Grid -->
-        <div class="analyzer-score-grid">
-          <div class="analyzer-score-card">
-            <div class="ascore-ring-wrapper">
-              <svg class="ascore-ring-svg" viewBox="0 0 80 80">
-                <circle class="ascore-ring-bg" cx="40" cy="40" r="33"/>
-                <circle class="ascore-ring-fill" cx="40" cy="40" r="33" id="ring-overall" stroke="url(#grad-overall)"/>
-                <defs>
-                  <linearGradient id="grad-overall" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#4F46E5"/>
-                    <stop offset="100%" stop-color="#7C3AED"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div class="ascore-ring-value" id="score-overall-val">84</div>
-            </div>
-            <div class="ascore-label">Overall Score</div>
-            <div class="ascore-sub" id="score-overall-sub">Good</div>
-          </div>
-          <div class="analyzer-score-card">
-            <div class="ascore-ring-wrapper">
-              <svg class="ascore-ring-svg" viewBox="0 0 80 80">
-                <circle class="ascore-ring-bg" cx="40" cy="40" r="33"/>
-                <circle class="ascore-ring-fill" cx="40" cy="40" r="33" id="ring-ats" stroke="url(#grad-ats)"/>
-                <defs>
-                  <linearGradient id="grad-ats" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#10b981"/>
-                    <stop offset="100%" stop-color="#059669"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div class="ascore-ring-value" id="score-ats-val">88</div>
-            </div>
-            <div class="ascore-label">ATS Score</div>
-            <div class="ascore-sub" id="score-ats-sub">Excellent</div>
-          </div>
-          <div class="analyzer-score-card">
-            <div class="ascore-ring-wrapper">
-              <svg class="ascore-ring-svg" viewBox="0 0 80 80">
-                <circle class="ascore-ring-bg" cx="40" cy="40" r="33"/>
-                <circle class="ascore-ring-fill" cx="40" cy="40" r="33" id="ring-content" stroke="url(#grad-content)"/>
-                <defs>
-                  <linearGradient id="grad-content" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#f59e0b"/>
-                    <stop offset="100%" stop-color="#d97706"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div class="ascore-ring-value" id="score-content-val">79</div>
-            </div>
-            <div class="ascore-label">Content</div>
-            <div class="ascore-sub" id="score-content-sub">Needs Work</div>
-          </div>
-          <div class="analyzer-score-card">
-            <div class="ascore-ring-wrapper">
-              <svg class="ascore-ring-svg" viewBox="0 0 80 80">
-                <circle class="ascore-ring-bg" cx="40" cy="40" r="33"/>
-                <circle class="ascore-ring-fill" cx="40" cy="40" r="33" id="ring-read" stroke="url(#grad-read)"/>
-                <defs>
-                  <linearGradient id="grad-read" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#06b6d4"/>
-                    <stop offset="100%" stop-color="#0284c7"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div class="ascore-ring-value" id="score-read-val">92</div>
-            </div>
-            <div class="ascore-label">Readability</div>
-            <div class="ascore-sub" id="score-read-sub">Excellent</div>
-          </div>
-        </div>
-
-        <!-- Analyzer Content Grid -->
-        <div class="analyzer-content-grid">
-
-          <!-- LEFT Column -->
-          <div class="analyzer-col">
-
-            <!-- ATS Checks -->
-            <div class="dev-card" id="ats-checks-card">
-              <div class="card-section-header">
-                <span class="material-symbols-outlined text-[18px] text-emerald-500" style='font-variation-settings: "FILL" 1;'>shield_check</span>
-                <h3 class="card-section-title">ATS Compatibility</h3>
-              </div>
-              <div class="ats-checks-list" id="ats-checks-list">
-                <!-- Rendered by JS -->
-              </div>
-            </div>
-
-            <!-- Content Quality by Section -->
-            <div class="dev-card" id="content-quality-card">
-              <div class="card-section-header">
-                <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>analytics</span>
-                <h3 class="card-section-title">Content Quality</h3>
-              </div>
-              <div class="content-quality-list" id="content-quality-list">
-                <!-- Rendered by JS -->
-              </div>
-            </div>
-
-            <!-- GitHub Correlation -->
-            <div class="dev-card" id="github-correlation-card">
-              <div class="card-section-header">
-                <span class="material-symbols-outlined text-[18px] text-slate-600" style='font-variation-settings: "FILL" 1;'>hub</span>
-                <h3 class="card-section-title">GitHub Correlation</h3>
-                <span class="badge badge-neutral ml-auto" style="font-size:10px;">Based on last scan</span>
-              </div>
-              <div id="github-correlation-list">
-                <!-- Rendered by JS -->
-              </div>
-            </div>
-
-          </div><!-- /analyzer-col -->
-
-          <!-- RIGHT Column -->
-          <div class="analyzer-col">
-
-            <!-- Skills & Keywords -->
-            <div class="dev-card" id="skills-keywords-card">
-              <div class="card-section-header">
-                <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>code</span>
-                <h3 class="card-section-title">Skills &amp; Keywords</h3>
-              </div>
-              <p class="analyzer-col-label">Strong Skills Detected</p>
-              <div class="skills-pill-group" id="strong-skills-list"></div>
-              <div class="analyzer-divider"></div>
-              <p class="analyzer-col-label">Recommended Skills</p>
-              <div class="skills-pill-group" id="recommended-skills-list"></div>
-            </div>
-
-            <!-- Job Description Matcher -->
-            <div class="dev-card" id="jd-match-card">
-              <div class="card-section-header">
-                <span class="material-symbols-outlined text-[18px] text-amber-500" style='font-variation-settings: "FILL" 1;'>work_history</span>
-                <h3 class="card-section-title">Job Description Match</h3>
-              </div>
-              <textarea id="jd-textarea" class="form-textarea" rows="4" placeholder="Paste a job description here to see how well your resume matches..."></textarea>
-              <button class="btn-primary btn-sm mt-3" id="btn-match-jd" style="width:100%;">
-                <span class="material-symbols-outlined text-[16px]">compare_arrows</span>
-                Match with Job Description
-              </button>
-              <div id="jd-match-results" style="display:none;">
-                <!-- Rendered by JS -->
-              </div>
-            </div>
-
-            <!-- AI Recommendations -->
-            <div class="dev-card" id="ai-recs-card">
-              <div class="card-section-header">
-                <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>auto_awesome</span>
-                <h3 class="card-section-title">AI Recommendations</h3>
-              </div>
-              <div id="ai-recommendations-list">
-                <!-- Rendered by JS -->
-              </div>
-            </div>
-
-          </div><!-- /analyzer-col -->
-
-        </div><!-- /analyzer-content-grid -->
-
-      </div><!-- /analyzer-results-state -->
+      <!-- Analysis Results Area (shown BELOW upload area after analysis, page scrolls) -->
+      <div id="analyzer-results-area" class="analyzer-results-area" style="display:none;">
+        <!-- Dynamically rendered by resumeAnalyzer.js -->
+      </div>
 
     </div><!-- /view-analyzer -->
 
@@ -812,5 +657,6 @@
   <script src="../js/utils.js"></script>
   <script src="../js/app.js"></script>
   <script src="../js/resume.js"></script>
+  <script src="../js/resumeAnalyzer.js"></script>
 </body>
 </html>

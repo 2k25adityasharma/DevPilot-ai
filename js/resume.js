@@ -9,80 +9,98 @@
    ============================================================ */
 const defaultResumeState = {
   personal: {
-    name: 'Jordan Alex Rivera',
-    title: 'Full Stack Software Engineer',
-    email: 'jordan.rivera@example.dev',
-    phone: '+1 (555) 010-0100',
-    location: 'San Francisco, CA',
-    github: 'github.com/sample-dev',
-    linkedin: 'linkedin.com/in/sample-profile',
-    portfolio: 'yourportfolio.dev'
+    name: 'Aditya Sharma',
+    title: 'Full Stack Engineer & AI Developer',
+    email: '2k25aiml2513475@gmail.com',
+    phone: '+91 96160 32564',
+    location: 'Kanpur, UP, India',
+    github: 'github.com/2k25adityasharma',
+    linkedin: 'linkedin.com/in/aditya-sharma-a93387410',
+    portfolio: 'leetcode.com/u/adityasharma9616/'
   },
-  summary: 'Passionate Full Stack Developer with 3+ years of experience building modern web applications, high-performance distributed systems, and intuitive developer tools. Adept in modern JavaScript frameworks, C++, and cloud architectures.',
+  summary: 'Performance-driven Full Stack Engineer with extensive experience developing scalable web applications, responsive frontend architectures, and real-time AI solutions. Proficient in modern JavaScript/TypeScript, React, Node.js, and CS fundamentals with 170+ solved algorithm challenges and a 100+ day streak.',
   skills: {
-    languages: 'JavaScript (ES6+), TypeScript, C++, Python, HTML5, CSS3',
-    frontend: 'React, Next.js, Redux Toolkit, Tailwind CSS',
-    backend: 'Node.js, Express, REST APIs, GraphQL',
-    databases: 'PostgreSQL, MongoDB, Redis',
-    tools: 'Git & GitHub, Docker, AWS, Vite, Jest, CI/CD'
+    languages: 'JavaScript (ES6+), TypeScript, C++, Python, HTML5, CSS3, SQL',
+    frontend: 'React, Next.js, Redux Toolkit, Tailwind CSS, Responsive Design',
+    backend: 'Node.js, Express.js, REST APIs, Asynchronous JavaScript, WebSockets',
+    databases: 'PostgreSQL, MongoDB, Redis, AWS, Firebase',
+    tools: 'Git & GitHub, Docker, Postman, VS Code, CI/CD, Object-Oriented Programming (OOP), Data Structures & Algorithms (DSA), System Architecture'
   },
   experience: [
     {
-      role: 'Full Stack Developer Intern',
-      company: 'TechVentures Labs',
-      location: 'San Francisco, CA',
-      startDate: 'Jun 2025',
-      endDate: 'Present',
-      description: 'Architected and implemented responsive SaaS components reducing initial bundle load by 35%.\nIntegrated automated CI/CD deployment pipelines using GitHub Actions.\nBuilt RESTful APIs consumed by 3 downstream microservices.'
-    },
-    {
-      role: 'Frontend Engineering Fellow',
-      company: 'OpenCode Initiative',
-      location: 'Remote',
+      role: 'Full Stack Developer',
+      company: 'DevPilot Systems',
+      location: 'Kanpur, UP, India',
       startDate: 'Jan 2025',
-      endDate: 'May 2025',
-      description: 'Engineered high-performance data visualization dashboards with Chart.js & Tailwind CSS.\nCollaborated with a team of 8 engineers on code reviews and test coverage.\nIncreased test coverage from 42% to 78% using Jest and React Testing Library.'
+      endDate: 'Present',
+      description: '• Architected full-stack developer workspace modules reducing initial payload by 35% across all core views.\n• Engineered real-time WebSocket communication and automated CI/CD deployment pipelines on Cloudflare.\n• Integrated comprehensive REST APIs and client-side deterministic evaluation algorithms.'
     }
   ],
   projects: [
     {
-      name: 'DevPilot-AI Developer Workspace',
-      tech: 'JavaScript, Tailwind CSS, LocalStorage API',
-      description: 'All-in-one developer productivity platform featuring LeetCode habit trackers, live resume builder, AI code assistant, and code snippet vaults.',
-      github: 'github.com/sample-dev/devpilot-demo',
-      demo: 'demo.devpilot.example.com'
+      name: 'SONIQX — Web Audiometer & Hearing Diagnostic Suite',
+      tech: 'JavaScript (ES6+), Web Audio API, Canvas API, Tailwind CSS',
+      description: '• Architected modern responsive web UI supporting 2 distinct screening modes, reducing workflow step completion time by 30%.\n• Engineered pure-tone audiometry test protocols across 125Hz-8000Hz with 98% calibration accuracy.\n• Integrated responsive audiogram visualization and export pipeline reducing diagnostic time by 40%.\n• Maintained 100% open-source codebase with 500+ simulated test runs.',
+      github: 'github.com/2k25adityasharma/soniqx-audiometer',
+      demo: 'soniqx.devpilot.example.com'
     },
     {
-      name: 'Distributed DSA Visualizer',
-      tech: 'C++, WebAssembly, React, HTML5 Canvas',
-      description: 'Interactive visualizer for complex graph traversals and tree balancing algorithms used by 5,000+ computer science students.',
-      github: 'github.com/sample-dev/dsa-visualizer',
-      demo: ''
+      name: 'NorthPeak Digital — High-Performance Enterprise Platform',
+      tech: 'React, TypeScript, Tailwind CSS, Vite, Cloudflare',
+      description: '• Architected responsive frontend architecture achieving 99/100 Google Lighthouse performance score.\n• Engineered custom reusable component library reducing page load time by 35% across 10+ core pages.\n• Integrated modern SEO metadata and automated CI/CD deployment pipelines on Cloudflare Pages.\n• Collaborated on client design specifications delivering 100% accessible WCAG 2.1 AA compliant UI.',
+      github: 'github.com/2k25adityasharma/northpeak-digital',
+      demo: 'northpeak.devpilot.example.com'
+    },
+    {
+      name: 'AI Chatbot & Conversational Assistant',
+      tech: 'Node.js, Express.js, OpenAI API, WebSockets, Redis',
+      description: '• Engineered responsive UI using JavaScript (ES6) and RESTful APIs, handling real-time prompt flows with sub-250ms latency.\n• Integrated Redis caching layer reducing external API latency by 45% on recurring query patterns.\n• Deployed containerized Docker services with 99.5% uptime handling 1,000+ daily developer prompts.\n• Architected prompt orchestration pipeline with fallback resilience and rate-limiting middleware.',
+      github: 'github.com/2k25adityasharma/ai-chatbot-app',
+      demo: 'chatbot.devpilot.example.com'
+    },
+    {
+      name: 'Web Utility & Developer Productivity Suite',
+      tech: 'JavaScript (ES6+), LocalStorage API, CSS Grid, HTML5',
+      description: '• Developed suite of 4 responsive web tools, handling state management and DOM manipulation across 100+ simulated user interactions.\n• Optimized memory utilization with zero external dependencies and 100% client-side execution.\n• Implemented persistent session state management using structured LocalStorage abstractions.\n• Achieved 100% cross-browser compatibility with responsive mobile and desktop viewports.',
+      github: 'github.com/2k25adityasharma/web-utility-suite',
+      demo: 'utils.devpilot.example.com'
     }
   ],
   education: [
     {
-      degree: 'B.S. in Computer Science & Engineering',
-      institution: 'State University of Technology',
+      degree: 'B.Tech in Computer Science & Engineering (AI & ML)',
+      institution: 'Dr. A.P.J. Abdul Kalam Technical University',
       startDate: '2022',
       endDate: '2026',
-      gpa: '3.9 / 4.0 GPA'
+      gpa: '8.5 / 10.0 CGPA'
     }
   ],
   achievements: [
     {
-      title: '1st Place Winner — Global Hackathon',
-      org: 'Major League Hacking (MLH)',
-      date: 'March 2025',
-      description: 'Built an AI-assisted real-time code refactoring engine in 36 hours competing against 450+ global teams.'
+      title: 'Solved 170+ Data Structures & Algorithms (DSA) Problems',
+      org: 'LeetCode & Competitive Platforms',
+      date: '2024 - Present',
+      description: 'Solved 170+ Data Structures & Algorithms (DSA) problems with a 100+ day streak, ranking in the top tier of active college coders.'
+    },
+    {
+      title: 'Finalist — National Level Innovation Hackathon',
+      org: 'National Innovation Council',
+      date: 'Oct 2024',
+      description: 'Developed AI-powered medical diagnostic tooling in 36-hour sprint competing among 300+ national teams.'
     }
   ],
   certifications: [
     {
-      name: 'AWS Certified Solutions Architect — Associate',
+      name: 'Full Stack Web Development Professional Specialization',
+      issuer: 'Meta / Coursera',
+      date: '2024',
+      credentialId: 'META-FS-839210'
+    },
+    {
+      name: 'AWS Certified Solutions Architect — Associate Foundation',
       issuer: 'Amazon Web Services',
-      date: 'Jan 2025',
-      credentialId: 'AWS-SAA-XXXXXXX'
+      date: '2025',
+      credentialId: 'AWS-SAA-29104'
     }
   ]
 };
@@ -201,13 +219,7 @@ function getInitialTemplate() {
    INIT
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
-  // If stored data was previously seeded with the old real demo name, reset to safe fictional demo state
-  if (currentResume && currentResume.personal && currentResume.personal.name === 'Aditya Sharma') {
-    currentResume = JSON.parse(JSON.stringify(defaultResumeState));
-    Storage.set('resume_data', currentResume);
-  } else {
-    currentResume = deepMerge(defaultResumeState, currentResume);
-  }
+  currentResume = deepMerge(defaultResumeState, currentResume);
 
   initViewNavigation();
   initAccordions();
@@ -247,10 +259,6 @@ function initViewNavigation() {
   // Analyzer ← Back
   const analyzerBack = document.getElementById('analyzer-back-btn');
   if (analyzerBack) analyzerBack.addEventListener('click', () => switchView('hub'));
-
-  // "Use Builder Resume" from analyzer top bar
-  const useBuilderTop = document.getElementById('btn-use-builder-resume');
-  if (useBuilderTop) useBuilderTop.addEventListener('click', () => runAnalysis(true));
 }
 
 function switchView(view) {
@@ -1903,542 +1911,12 @@ function aiImproveSummary() {
 }
 
 /* ============================================================
-   RESUME ANALYZER
+   RESUME ANALYZER (Delegated to resumeAnalyzer.js)
    ============================================================ */
 function initAnalyzerControls() {
-  // Drag and drop
-  const dropzone = document.getElementById('upload-dropzone');
-  const fileInput = document.getElementById('file-upload-input');
-  const removeFileBtn = document.getElementById('btn-remove-file');
-
-  if (dropzone) {
-    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
-    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
-    dropzone.addEventListener('drop', e => {
-      e.preventDefault();
-      dropzone.classList.remove('drag-over');
-      const file = e.dataTransfer?.files?.[0];
-      if (file) handleFileSelected(file);
-    });
+  if (typeof initRealAnalyzerControls === 'function') {
+    initRealAnalyzerControls();
   }
-
-  if (fileInput) {
-    fileInput.addEventListener('change', () => {
-      if (fileInput.files[0]) handleFileSelected(fileInput.files[0]);
-    });
-  }
-
-  if (removeFileBtn) {
-    removeFileBtn.addEventListener('click', () => {
-      if (fileInput) fileInput.value = '';
-      document.getElementById('file-preview-strip').style.display = 'none';
-      analyzerData = null;
-    });
-  }
-
-  // Analyze Builder Resume
-  const analyzeBuilderBtn = document.getElementById('btn-analyze-builder');
-  if (analyzeBuilderBtn) analyzeBuilderBtn.addEventListener('click', () => runAnalysis(true));
-
-  // Run Analysis button (top bar)
-  const runBtn = document.getElementById('btn-run-analysis');
-  if (runBtn) runBtn.addEventListener('click', () => runAnalysis(analyzerData?.fromBuilder || false));
-
-  // Re-analyze
-  const reanalyzeBtn = document.getElementById('btn-reanalyze');
-  if (reanalyzeBtn) reanalyzeBtn.addEventListener('click', () => {
-    document.getElementById('analyzer-results-state').style.display = 'none';
-    document.getElementById('analyzer-upload-state').style.display = 'block';
-  });
-
-  // Job Description Matcher
-  const matchBtn = document.getElementById('btn-match-jd');
-  if (matchBtn) matchBtn.addEventListener('click', runJDMatch);
-}
-
-function handleFileSelected(file) {
-  const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-  if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|docx)$/i)) {
-    showToast('Please upload a PDF or DOCX file', 'error');
-    return;
-  }
-
-  const strip = document.getElementById('file-preview-strip');
-  const nameEl = document.getElementById('file-name-display');
-  const metaEl = document.getElementById('file-meta-display');
-
-  const size = (file.size / 1024).toFixed(0);
-  const sizeStr = size > 1024 ? `${(size/1024).toFixed(1)} MB` : `${size} KB`;
-  const type = file.name.endsWith('.pdf') ? 'PDF' : 'DOCX';
-
-  if (nameEl) nameEl.textContent = file.name;
-  if (metaEl) metaEl.textContent = `${sizeStr} · ${type}`;
-  if (strip)  strip.style.display = 'flex';
-
-  analyzerData = { fileName: file.name, fileSize: sizeStr, fileType: type, fromBuilder: false };
-  showToast(`File "${file.name}" loaded. Click Analyze to continue.`, 'info');
-}
-
-function runAnalysis(fromBuilder = false) {
-  syncStateFromForm();
-
-  const hasData = fromBuilder || analyzerData;
-  if (!hasData) {
-    showToast('Please upload a resume file or use your Builder resume first.', 'error');
-    return;
-  }
-
-  const runBtn = document.getElementById('btn-run-analysis');
-  if (runBtn) {
-    runBtn.disabled = true;
-    runBtn.innerHTML = `<span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span><span>Analyzing...</span>`;
-  }
-
-  // Simulate async analysis
-  setTimeout(() => {
-    const scores = computeAnalyzerScores(currentResume);
-    renderAnalyzerResults(scores, fromBuilder);
-
-    if (runBtn) {
-      runBtn.disabled = false;
-      runBtn.innerHTML = `<span class="material-symbols-outlined text-[16px]">play_arrow</span><span>Analyze</span>`;
-    }
-
-    document.getElementById('analyzer-upload-state').style.display = 'none';
-    document.getElementById('analyzer-results-state').style.display = 'block';
-
-    // Update analyzed file strip
-    const fn = fromBuilder ? 'Resume (Builder)' : analyzerData?.fileName || 'Resume';
-    const fmeta = fromBuilder ? 'From Resume Builder · Analyzed just now' : `${analyzerData?.fileSize || ''} · Analyzed just now`;
-    setElText('analyzed-file-name', fn);
-    setElText('analyzed-file-meta', fmeta);
-
-    showToast('Analysis complete!', 'success');
-
-    // Animate score rings
-    setTimeout(() => animateScoreRings(scores), 100);
-  }, 1400);
-}
-
-function computeAnalyzerScores(resume) {
-  const p   = resume.personal;
-  const sk  = resume.skills;
-  const exp = resume.experience;
-  const prj = resume.projects;
-  const edu = resume.education;
-
-  // 1. Formatting & ATS Safety (25%)
-  const atsChecks = [
-    { label: 'Contact information present (Name, Email, Phone)', pass: !!(p.name && p.email && p.phone) },
-    { label: 'Standard ATS section headings used', pass: true },
-    { label: 'Technical skills section filled', pass: !!(sk.languages || sk.tools) },
-    { label: 'Work experience section present', pass: exp.length > 0 },
-    { label: 'Education section present', pass: edu.length > 0 },
-    { label: 'GitHub / Portfolio links present', pass: !!(p.github || p.portfolio) },
-    { label: 'Professional summary written (>30 chars)', pass: !!(resume.summary && resume.summary.length > 30) },
-    { label: 'Featured projects section present', pass: prj.length > 0 }
-  ];
-  const passedChecks = atsChecks.filter(c => c.pass).length;
-  const formattingScore = Math.round((passedChecks / atsChecks.length) * 100);
-
-  // 2. Keyword Match / Target Role Alignment (25%)
-  const allSkills = [sk.languages, sk.frontend, sk.backend, sk.databases, sk.tools]
-    .filter(Boolean)
-    .join(', ')
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean);
-  
-  const techKeywords = extractKeywords(JSON.stringify(resume));
-  let keywordScore = Math.min(Math.round((techKeywords.length / 10) * 100), 100);
-  if (keywordScore < 40 && allSkills.length >= 5) keywordScore = 65;
-
-  // 3. Skills Relevance (20%)
-  let skillsScore = 0;
-  if (allSkills.length >= 10) skillsScore = 95;
-  else if (allSkills.length >= 6) skillsScore = 80;
-  else if (allSkills.length >= 3) skillsScore = 60;
-  else skillsScore = 30;
-
-  // 4. Experience Quality & Measurable Impact (15%)
-  let expScore = 0;
-  if (exp.length >= 2) expScore += 50;
-  else if (exp.length === 1) expScore += 30;
-  const hasMetrics = exp.some(e => e.description && /\d+%|\d+\+|\d+x|\$\d+/i.test(e.description));
-  if (hasMetrics) expScore += 35;
-  const hasGoodLength = exp.every(e => e.description && e.description.length > 50);
-  if (hasGoodLength) expScore += 15;
-  expScore = Math.min(expScore, 100);
-
-  // 5. Projects Quality (10%)
-  let prjScore = 0;
-  if (prj.length >= 2) prjScore += 60;
-  else if (prj.length === 1) prjScore += 40;
-  if (prj.some(pr => pr.github || pr.demo)) prjScore += 40;
-  prjScore = Math.min(prjScore, 100);
-
-  // 6. Completeness & Links (5%)
-  let compScore = 0;
-  if (p.name && p.email) compScore += 30;
-  if (p.github) compScore += 25;
-  if (p.linkedin) compScore += 25;
-  if (p.portfolio) compScore += 20;
-  compScore = Math.min(compScore, 100);
-
-  // Weighted Overall ATS Score (DevPilot Universal Engine: 25% + 25% + 20% + 15% + 10% + 5%)
-  const overall = Math.round(
-    (formattingScore * 0.25) +
-    (keywordScore * 0.25) +
-    (skillsScore * 0.20) +
-    (expScore * 0.15) +
-    (prjScore * 0.10) +
-    (compScore * 0.05)
-  );
-
-  const warnings = [];
-  if (!p.github) warnings.push('Missing GitHub profile link');
-  if (!p.linkedin) warnings.push('Missing LinkedIn profile link');
-  if (!hasMetrics) warnings.push('Experience bullets lack measurable metrics (e.g. % improvement, numbers)');
-  if (resume.summary && resume.summary.length < 60) warnings.push('Professional summary is too short (aim for 2-3 impactful sentences)');
-  if (prj.length < 2) warnings.push('Add at least 2 technical projects with GitHub/live links');
-
-  // Readability
-  let readability = 70;
-  if (resume.summary && resume.summary.length > 50) readability += 15;
-  if (hasGoodLength) readability += 15;
-  readability = Math.min(readability, 100);
-
-  // Content quality by section
-  const contentQuality = [
-    { label: 'Formatting & ATS Safety', score: formattingScore },
-    { label: 'Keywords & Alignment',    score: keywordScore },
-    { label: 'Skills Relevance',        score: skillsScore },
-    { label: 'Experience Impact',       score: expScore },
-    { label: 'Projects & Scope',        score: prjScore }
-  ];
-
-  // GitHub correlation
-  const githubData = getGitHubCorrelation(allSkills);
-
-  return {
-    overall,
-    ats: formattingScore,
-    content: expScore,
-    readability,
-    keywordScore,
-    skillsScore,
-    atsChecks,
-    warnings,
-    allSkills,
-    contentQuality,
-    githubData
-  };
-}
-
-function getGitHubCorrelation(skills) {
-  let ghLanguages = [];
-  try {
-    const ghData = JSON.parse(localStorage.getItem('devpilot_github_analysis') || 'null');
-    if (ghData && ghData.languages) {
-      ghLanguages = Object.keys(ghData.languages).map(l => l.toLowerCase());
-    }
-  } catch (e) { /* no data */ }
-
-  if (!ghLanguages.length) {
-    ghLanguages = ['javascript', 'typescript', 'python', 'html', 'css'];
-  }
-
-  return skills.slice(0, 8).map(skill => {
-    const sl = skill.toLowerCase().replace(/[^a-z]/g, '');
-    const found = ghLanguages.some(l => l.includes(sl) || sl.includes(l));
-    return { skill, status: found ? 'confirmed' : 'not-in-github' };
-  });
-}
-
-function renderAnalyzerResults(scores, fromBuilder) {
-  // ATS Checks
-  const atsList = document.getElementById('ats-checks-list');
-  if (atsList) {
-    const passItems = scores.atsChecks.filter(c => c.pass).map(c => `
-      <div class="ats-check-item ats-pass">
-        <span class="material-symbols-outlined ats-check-icon" style='font-variation-settings:"FILL" 1;'>check_circle</span>
-        <span>${escHtml(c.label)}</span>
-      </div>
-    `).join('');
-
-    const warnItems = scores.warnings.map(w => `
-      <div class="ats-check-item ats-warn">
-        <span class="material-symbols-outlined ats-check-icon" style='font-variation-settings:"FILL" 1;'>warning</span>
-        <span>${escHtml(w)}</span>
-      </div>
-    `).join('');
-
-    const failItems = scores.atsChecks.filter(c => !c.pass).map(c => `
-      <div class="ats-check-item ats-fail">
-        <span class="material-symbols-outlined ats-check-icon" style='font-variation-settings:"FILL" 1;'>cancel</span>
-        <span>${escHtml(c.label)}</span>
-      </div>
-    `).join('');
-
-    atsList.innerHTML = passItems + warnItems + failItems;
-  }
-
-  // Content Quality
-  const cqList = document.getElementById('content-quality-list');
-  if (cqList) {
-    cqList.innerHTML = scores.contentQuality.map(cq => `
-      <div class="cq-row">
-        <div class="cq-row-header">
-          <span class="cq-label">${escHtml(cq.label)}</span>
-          <span class="cq-score">${cq.score}%</span>
-        </div>
-        <div class="cq-bar-bg">
-          <div class="cq-bar-fill" style="width:0%" data-target="${cq.score}%"></div>
-        </div>
-      </div>
-    `).join('');
-
-    setTimeout(() => {
-      cqList.querySelectorAll('.cq-bar-fill').forEach(bar => {
-        bar.style.width = bar.dataset.target;
-      });
-    }, 200);
-  }
-
-  // Score display values
-  setElText('score-overall-val', scores.overall);
-  setElText('score-ats-val', scores.ats);
-  setElText('score-content-val', scores.content);
-  setElText('score-read-val', scores.readability);
-
-  setElText('score-overall-sub', scoreLabel(scores.overall));
-  setElText('score-ats-sub', scoreLabel(scores.ats));
-  setElText('score-content-sub', scoreLabel(scores.content));
-  setElText('score-read-sub', scoreLabel(scores.readability));
-
-  // Strong skills
-  const strongList = document.getElementById('strong-skills-list');
-  if (strongList) {
-    strongList.innerHTML = scores.allSkills.slice(0, 10).map(s => `
-      <span class="skill-pill-found">
-        <span class="material-symbols-outlined" style="font-size:11px;">check</span>
-        ${escHtml(s)}
-      </span>
-    `).join('');
-  }
-
-  // Recommended skills
-  const recList = document.getElementById('recommended-skills-list');
-  if (recList) {
-    const POPULAR = ['React', 'TypeScript', 'Node.js', 'REST APIs', 'Docker', 'AWS', 'PostgreSQL', 'Redis', 'GraphQL', 'Kubernetes'];
-    const existing = scores.allSkills.map(s => s.toLowerCase());
-    const recs = POPULAR.filter(s => !existing.some(e => e.includes(s.toLowerCase()))).slice(0, 6);
-    recList.innerHTML = recs.map(s => `
-      <span class="skill-pill-rec">
-        <span class="material-symbols-outlined" style="font-size:11px;">add</span>
-        ${escHtml(s)}
-      </span>
-    `).join('');
-  }
-
-  // GitHub Correlation
-  const ghList = document.getElementById('github-correlation-list');
-  if (ghList) {
-    ghList.innerHTML = scores.githubData.map(g => {
-      const cls = g.status === 'confirmed' ? 'corr-confirmed' : 'corr-partial';
-      const icon = g.status === 'confirmed' ? 'check_circle' : 'help';
-      const label = g.status === 'confirmed' ? 'GitHub Evidence' : 'No GitHub Evidence';
-      return `
-        <div class="github-corr-item">
-          <span class="github-corr-skill">${escHtml(g.skill)}</span>
-          <span class="github-corr-status ${cls}">
-            <span class="material-symbols-outlined" style='font-size:14px;font-variation-settings:"FILL" 1;'>${icon}</span>
-            ${label}
-          </span>
-        </div>
-      `;
-    }).join('') || '<p class="acc-field-hint">Connect GitHub Analyzer to see correlation data.</p>';
-  }
-
-  // AI Recommendations (Actionable How to Reach 90+)
-  renderAIRecs(scores);
-}
-
-function renderAIRecs(scores) {
-  const list = document.getElementById('ai-recommendations-list');
-  if (!list) return;
-
-  const recs = [];
-  const p   = currentResume.personal;
-  const exp = currentResume.experience;
-  const prj = currentResume.projects;
-
-  if (!p.github || !p.linkedin) {
-    recs.push({
-      priority: 'high',
-      title: 'Add GitHub & LinkedIn Profiles',
-      desc: 'Technical recruiters and ATS parsers look for verified links to validate your project history and skills.'
-    });
-  }
-  if (!currentResume.summary || currentResume.summary.length < 60) {
-    recs.push({
-      priority: 'high',
-      title: 'Strengthen Professional Summary (2–3 sentences)',
-      desc: 'Highlight your primary tech stack, years of building experience, and core domain strengths.'
-    });
-  }
-  const lacksMetrics = exp.some(e => !e.description || !/\d+%|\d+\+|\d+x|\$\d+/i.test(e.description));
-  if (lacksMetrics) {
-    recs.push({
-      priority: 'high',
-      title: 'Add Measurable Impact to Work Experience',
-      desc: 'Use genuine quantified results where possible (e.g. "Reduced API response times by 35%", "Maintained 99.9% uptime").'
-    });
-  }
-  if (prj.length < 2) {
-    recs.push({
-      priority: 'medium',
-      title: 'Showcase 2–3 Technical Projects',
-      desc: 'Include project architecture, technologies used, problem solved, and live GitHub/Demo links.'
-    });
-  }
-  if (scores.keywordScore < 80) {
-    recs.push({
-      priority: 'medium',
-      title: 'Incorporate High-Demand Role Keywords',
-      desc: 'Ensure core keywords like REST APIs, CI/CD, TypeScript, or Unit Testing appear naturally in your bullets.'
-    });
-  }
-  recs.push({
-    priority: 'low',
-    title: 'Keep to 1 Standard A4 Page',
-    desc: 'For software engineers and early-career developers, a single-page clean structure ensures optimal ATS parsing.'
-  });
-
-  const headerHtml = scores.overall < 90
-    ? `<div style="font-size:0.75rem;font-weight:700;color:var(--color-primary);margin-bottom:0.75rem;display:flex;align-items:center;gap:4px;">
-         <span class="material-symbols-outlined text-[16px]">trending_up</span>
-         How to Reach 90+ ATS Score (${scores.overall}/100)
-       </div>`
-    : `<div style="font-size:0.75rem;font-weight:700;color:var(--color-success);margin-bottom:0.75rem;display:flex;align-items:center;gap:4px;">
-         <span class="material-symbols-outlined text-[16px]">check_circle</span>
-         Excellent ATS Compatibility (${scores.overall}/100)
-       </div>`;
-
-  list.innerHTML = headerHtml + `<div class="ai-rec-list">${recs.slice(0, 5).map(r => `
-    <div class="ai-rec-item">
-      <div class="ai-rec-priority ${r.priority}">${r.priority === 'high' ? 'H' : r.priority === 'medium' ? 'M' : 'L'}</div>
-      <div class="ai-rec-body">
-        <div class="ai-rec-title">${escHtml(r.title)}</div>
-        <div class="ai-rec-desc">${escHtml(r.desc)}</div>
-      </div>
-    </div>
-  `).join('')}</div>`;
-}
-
-function animateScoreRings(scores) {
-  const circumference = 2 * Math.PI * 33; // r=33 => ~207.3
-  const pairs = [
-    { ringId: 'ring-overall', score: scores.overall },
-    { ringId: 'ring-ats',     score: scores.ats },
-    { ringId: 'ring-content', score: scores.content },
-    { ringId: 'ring-read',    score: scores.readability }
-  ];
-  pairs.forEach(({ ringId, score }) => {
-    const ring = document.getElementById(ringId);
-    if (ring) {
-      const offset = circumference - (score / 100) * circumference;
-      ring.style.strokeDasharray  = circumference;
-      ring.style.strokeDashoffset = offset;
-    }
-  });
-}
-
-/* ============================================================
-   JOB DESCRIPTION MATCH
-   ============================================================ */
-function runJDMatch() {
-  const jdText = document.getElementById('jd-textarea')?.value?.trim();
-  if (!jdText || jdText.length < 30) {
-    showToast('Please paste a job description (at least a few lines).', 'error');
-    return;
-  }
-
-  syncStateFromForm();
-  const allSkills = [
-    currentResume.skills.languages,
-    currentResume.skills.frontend,
-    currentResume.skills.backend,
-    currentResume.skills.databases,
-    currentResume.skills.tools
-  ].filter(Boolean).join(', ').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-
-  const jdLower = jdText.toLowerCase();
-  const matched = allSkills.filter(s => jdLower.includes(s.replace(/[^a-z]/g, '')));
-  const missing = allSkills.filter(s => !jdLower.includes(s.replace(/[^a-z]/g, '')));
-
-  // Extract possible keywords from JD
-  const jdKeywords = extractKeywords(jdText);
-  const recommended = jdKeywords.filter(k => !allSkills.some(s => s.includes(k.toLowerCase())));
-
-  const matchScore = allSkills.length > 0 ? Math.round((matched.length / allSkills.length) * 100) : 0;
-
-  const resultsEl = document.getElementById('jd-match-results');
-  if (resultsEl) {
-    resultsEl.style.display = 'block';
-    resultsEl.innerHTML = `
-      <div class="jd-match-bar-wrapper">
-        <div class="jd-match-score-row">
-          <span class="jd-match-score-label">Job Match Score</span>
-          <span class="jd-match-score-val">${matchScore}%</span>
-        </div>
-        <div class="jd-match-bar-bg">
-          <div class="jd-match-bar-fill" style="width:0%" id="jd-bar-fill"></div>
-        </div>
-      </div>
-      <div class="jd-keywords-grid">
-        <div>
-          <div class="jd-keywords-section">Matched Keywords (${matched.length})</div>
-          ${matched.length
-            ? matched.map(s => `<span class="skill-pill-found" style="margin:2px;display:inline-flex;"><span class="material-symbols-outlined" style="font-size:11px;">check</span>${escHtml(s)}</span>`).join('')
-            : '<span class="acc-field-hint">None matched</span>'}
-        </div>
-        <div>
-          <div class="jd-keywords-section">Missing In-Demand Keywords (${recommended.length})</div>
-          ${recommended.slice(0, 8).map(s => `<span class="skill-pill-rec" style="margin:2px;display:inline-flex;"><span class="material-symbols-outlined" style="font-size:11px;">add</span>${escHtml(s)}</span>`).join('')
-            || '<span class="acc-field-hint">None found</span>'}
-        </div>
-      </div>
-    `;
-
-    setTimeout(() => {
-      const bar = document.getElementById('jd-bar-fill');
-      if (bar) bar.style.width = `${matchScore}%`;
-    }, 100);
-  }
-
-  showToast(`Job match: ${matchScore}% (${matched.length} matched)`, matchScore >= 70 ? 'success' : 'info');
-}
-
-function extractKeywords(text) {
-  const TECH_KEYWORDS = [
-    'react', 'vue', 'angular', 'typescript', 'javascript', 'node', 'express',
-    'python', 'java', 'c++', 'golang', 'rust', 'sql', 'nosql', 'mongodb',
-    'postgresql', 'redis', 'graphql', 'rest', 'api', 'docker', 'kubernetes',
-    'aws', 'gcp', 'azure', 'ci/cd', 'git', 'agile', 'scrum', 'linux',
-    'microservices', 'machine learning', 'tensorflow', 'pytorch', 'next.js',
-    'tailwind', 'figma', 'firebase', 'supabase', 'prisma', 'jest', 'cypress'
-  ];
-  const lower = text.toLowerCase();
-  return TECH_KEYWORDS.filter(k => lower.includes(k));
-}
-
-function scoreLabel(n) {
-  if (n >= 90) return 'Excellent';
-  if (n >= 80) return 'Strong';
-  if (n >= 70) return 'Good (Needs Work)';
-  if (n >= 60) return 'Needs Improvement';
-  return 'Major Improvements Recommended';
 }
 
 /* ============================================================
