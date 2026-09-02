@@ -1,21 +1,24 @@
 /**
- * DevPilot-AI — Real Resume Analyzer Engine
+ * DevPilot-AI — Real Resume Analyzer & Job Matching Engine
  * 
- * Provides actual text extraction from PDF/DOCX files,
- * deterministic ATS scoring, section detection, skills analysis,
- * JD matching, and actionable improvement suggestions.
+ * Provides:
+ * 1. Text extraction from PDF/DOCX files
+ * 2. Deterministic 100-point ATS scoring across 10 categories
+ * 3. Section detection, skills analysis, content quality analysis
+ * 4. "Best Fit Role" identification
+ * 5. "Your Best Job Matches" (5–6 dynamic recommendations with match %, skill gaps, and roadmaps)
+ * 6. "Check Your Resume Against a Job" (Advanced JD Matcher & Application Compatibility Analyzer)
  * 
- * All scores are calculated from REAL extracted resume text.
- * Nothing is hardcoded or faked.
+ * All results are calculated directly from the extracted resume text and JD text.
+ * Nothing is hardcoded, faked, or randomized.
  */
 
 /* ============================================================
-   CONSTANTS
+   CONSTANTS & VOCABULARY DICTIONARIES
    ============================================================ */
 const ANALYZER_STORAGE_KEY = 'resume_analysis';
 const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-
 const SUPPORTED_EXTENSIONS = ['.pdf', '.docx'];
 
 const ACTION_VERBS = [
@@ -27,13 +30,15 @@ const ACTION_VERBS = [
   'tested', 'analyzed', 'resolved', 'migrated', 'programmed', 'authored',
   'executed', 'trained', 'researched', 'published', 'presented', 'contributed',
   'enhanced', 'modernized', 'simplified', 'consolidated', 'transformed',
-  'accelerated', 'pioneered', 'formulated', 'negotiated', 'supervised'
+  'accelerated', 'pioneered', 'formulated', 'negotiated', 'supervised',
+  'constructed', 'centralized', 'standardized', 'secured'
 ];
 
 const WEAK_VERBS = [
   'worked', 'helped', 'assisted', 'was responsible', 'responsible for',
   'handled', 'did', 'made', 'got', 'used', 'utilized', 'participated',
-  'involved in', 'tasked with', 'served as', 'acted as'
+  'involved in', 'tasked with', 'served as', 'acted as', 'tried',
+  'learned', 'gained knowledge', 'contributed slightly'
 ];
 
 const VAGUE_PHRASES = [
@@ -41,99 +46,296 @@ const VAGUE_PHRASES = [
   'team player', 'hard worker', 'fast learner', 'self-starter',
   'detail-oriented', 'results-driven', 'proven track record',
   'excellent communication', 'strong work ethic', 'go-getter',
-  'think outside the box', 'synergy', 'leverage', 'paradigm'
+  'think outside the box', 'synergy', 'leverage', 'paradigm',
+  'good learner', 'hardworking', 'motivated student', 'passionate individual',
+  'looking for a challenging role', 'reputed company', 'seeking an entry level',
+  'enthusiastic learner', 'dynamic professional', 'hands-on experience'
+];
+
+const SOFT_SKILLS = [
+  'communication', 'teamwork', 'leadership', 'problem solving',
+  'time management', 'critical thinking', 'adaptability', 'collaboration',
+  'interpersonal skills', 'interpersonal', 'work ethic', 'attention to detail',
+  'presentation skills', 'creativity', 'conflict resolution', 'emotional intelligence',
+  'decision making', 'negotiation', 'multitasking', 'public speaking',
+  'active listening', 'hardworking', 'good learner', 'fast learner'
+];
+
+const KNOWN_CERT_ISSUERS = [
+  'google', 'aws', 'amazon web services', 'microsoft', 'azure', 'meta', 'facebook',
+  'cisco', 'oracle', 'ibm', 'coursera', 'udemy', 'edx', 'comptia', 'stanford',
+  'harvard', 'mit', 'freecodecamp', 'deeplearning.ai', 'linux foundation',
+  'cncf', 'kubernetes', 'hashicorp', 'mongodb', 'snowflake', 'databricks',
+  'salesforce', 'palo alto', 'red hat', 'hackerrank', 'postman'
+];
+
+const KNOWN_ACHIEVEMENT_KEYWORDS = [
+  'hackathon', 'winner', 'runner-up', 'runner up', 'finalist', '1st place', '2nd place',
+  '3rd place', 'top 1%', 'top 5%', 'top 10%', 'rank', 'ranking', 'percentile',
+  'scholarship', "dean's list", 'gold medal', 'silver medal', 'bronze medal',
+  'published', 'paper', 'patent', 'codeforces', 'leetcode contest', 'codechef',
+  'kaggle grandmaster', 'kaggle master', '5-star', 'candidate master', 'specialist',
+  'open source contributor', 'gsoc', 'google summer of code', 'fellowship',
+  'merit award', 'employee of the month', 'best paper', 'best project'
 ];
 
 const SECTION_PATTERNS = {
-  summary: /\b(summary|professional\s*summary|profile|about\s*me|objective|career\s*objective|career\s*summary|executive\s*summary)\b/i,
-  experience: /\b(experience|work\s*experience|professional\s*experience|employment|work\s*history|internship|internships|project\s*&\s*work\s*experience|(work|technical|project|professional)\s+(experience|projects|history))\b/i,
+  summary: /\b(summary|professional\s*summary|profile|about\s*me|career\s*objective|objective|career\s*summary|executive\s*summary)\b/i,
+  experience: /\b(experience|work\s*experience|professional\s*experience|employment|work\s*history|internship|internships|industry\s*experience)\b/i,
   education: /\b(education|academic|academic\s*background|qualifications|educational\s*background|academics)\b/i,
-  skills: /\b(skills|technical\s*skills|technologies|tools|competencies|core\s*competencies|tech\s*stack|programming\s*skills|technical\s*expertise)\b/i,
-  projects: /\b(projects|personal\s*projects|featured\s*projects|key\s*projects|side\s*projects|academic\s*projects|project\s*&\s*work\s*experience|technical\s*projects)\b/i,
+  skills: /\b(skills|technical\s*skills|technologies|tools|core\s*competencies|tech\s*stack|programming\s*skills|technical\s*expertise|competencies)\b/i,
+  projects: /\b(projects|personal\s*projects|featured\s*projects|key\s*projects|side\s*projects|academic\s*projects|technical\s*projects)\b/i,
   certifications: /\b(certifications|certificates|credentials|licenses|professional\s*certifications|programming\s*credentials|certifications\s*&?\s*licenses)\b/i,
   achievements: /\b(achievements|honors|awards|accomplishments|recognitions|honors\s*&?\s*awards|programming\s*achievements)\b/i,
-  publications: /\b(publications|papers|research)\b/i,
-  volunteer: /\b(volunteer|volunteering|community\s*service)\b/i
+  publications: /\b(publications|papers|research\s*papers|patents)\b/i,
+  volunteer: /\b(volunteer|volunteering|community\s*service|extracurricular)\b/i
 };
 
+// Normalized Technical Skills DB
 const TECH_SKILLS_DB = {
   cs_core: [
     'object-oriented programming', 'oop', 'data structures & algorithms', 'data structures and algorithms',
     'data structures', 'dsa', 'algorithms', 'system architecture', 'software architecture',
-    'responsive design', 'design patterns', 'asynchronous javascript', 'async javascript',
-    'rest apis', 'rest api', 'restful apis', 'restful api', 'competitive programming', 'leetcode'
+    'system design', 'design patterns', 'competitive programming', 'distributed systems',
+    'microservices', 'operating systems', 'dbms', 'computer networks', 'rest apis', 'rest api',
+    'restful apis', 'restful api', 'asynchronous programming'
   ],
   languages: [
-    'javascript', 'typescript', 'python', 'java', 'c\\+\\+', 'c#', 'c', 'ruby', 'go', 'golang',
+    'javascript', 'typescript', 'python', 'java', 'c++', 'c#', 'c', 'ruby', 'go', 'golang',
     'rust', 'swift', 'kotlin', 'php', 'scala', 'r', 'matlab', 'perl', 'lua',
     'dart', 'elixir', 'haskell', 'clojure', 'objective-c', 'assembly',
     'html', 'html5', 'css', 'css3', 'sql', 'bash', 'shell', 'powershell'
   ],
   frontend: [
-    'react', 'react\\.js', 'reactjs', 'vue', 'vue\\.js', 'vuejs', 'angular', 'angularjs',
-    'next\\.js', 'nextjs', 'nuxt', 'nuxt\\.js', 'svelte', 'gatsby', 'remix',
+    'react', 'react.js', 'reactjs', 'vue', 'vue.js', 'vuejs', 'angular', 'angularjs',
+    'next.js', 'nextjs', 'nuxt', 'nuxt.js', 'svelte', 'gatsby', 'remix',
     'redux', 'redux toolkit', 'mobx', 'zustand', 'tailwind', 'tailwindcss', 'tailwind css', 'bootstrap',
-    'material-ui', 'mui', 'chakra', 'styled-components', 'sass', 'scss', 'less',
-    'webpack', 'vite', 'rollup', 'parcel', 'babel', 'jquery', 'three\\.js', 'responsive design'
+    'material-ui', 'mui', 'chakra ui', 'chakra', 'styled-components', 'sass', 'scss', 'less',
+    'webpack', 'vite', 'rollup', 'parcel', 'babel', 'jquery', 'three.js', 'responsive design',
+    'shadcn', 'framer motion'
   ],
   backend: [
-    'node\\.js', 'nodejs', 'express', 'express\\.js', 'fastify', 'nest\\.js', 'nestjs',
+    'node.js', 'nodejs', 'express', 'express.js', 'fastify', 'nest.js', 'nestjs',
     'django', 'flask', 'fastapi', 'spring', 'spring boot', 'rails', 'ruby on rails',
-    'asp\\.net', '\\.net', 'laravel', 'gin', 'fiber', 'koa',
+    'asp.net', '.net', 'dotnet', 'laravel', 'gin', 'fiber', 'koa',
     'rest', 'rest api', 'rest apis', 'restful', 'graphql', 'grpc', 'websocket', 'websockets',
-    'microservices', 'serverless', 'lambda', 'asynchronous javascript', 'async javascript'
+    'microservices', 'serverless', 'lambda', 'apollo'
   ],
   databases: [
     'postgresql', 'postgres', 'mysql', 'mongodb', 'redis', 'elasticsearch',
     'sqlite', 'oracle', 'sql server', 'dynamodb', 'cassandra', 'neo4j',
     'firebase', 'firestore', 'supabase', 'prisma', 'sequelize', 'mongoose',
-    'typeorm', 'knex', 'drizzle'
+    'typeorm', 'knex', 'drizzle', 'mariadb', 'couchdb'
   ],
   cloud: [
     'aws', 'amazon web services', 'gcp', 'google cloud', 'azure', 'heroku',
     'vercel', 'netlify', 'digitalocean', 'cloudflare', 's3', 'ec2', 'ecs',
-    'lambda', 'cloudfront', 'route 53'
+    'lambda', 'cloudfront', 'route 53', 'cloud functions', 'firebase hosting'
   ],
   devops: [
     'docker', 'kubernetes', 'k8s', 'terraform', 'ansible', 'jenkins',
-    'ci/cd', 'ci cd', 'github actions', 'gitlab ci', 'circleci', 'travis',
+    'ci/cd', 'ci cd', 'github actions', 'gitlab ci', 'circleci', 'travis ci',
     'nginx', 'apache', 'linux', 'unix', 'prometheus', 'grafana',
-    'datadog', 'new relic', 'splunk'
+    'datadog', 'new relic', 'splunk', 'helm', 'argocd'
   ],
   tools: [
-    'git', 'github', 'git/github', 'git & github', 'gitlab', 'bitbucket', 'jira', 'confluence',
-    'figma', 'sketch', 'adobe', 'postman', 'insomnia', 'swagger',
-    'vs code', 'visual studio', 'visual studio code', 'intellij', 'vim', 'emacs',
-    'slack', 'notion', 'trello', 'leetcode'
+    'git', 'github', 'gitlab', 'bitbucket', 'jira', 'confluence',
+    'figma', 'sketch', 'postman', 'insomnia', 'swagger',
+    'vs code', 'visual studio', 'visual studio code', 'intellij', 'vim', 'neovim',
+    'notion', 'trello', 'slack', 'npm', 'yarn', 'pnpm'
   ],
   testing: [
     'jest', 'mocha', 'chai', 'cypress', 'selenium', 'playwright',
     'puppeteer', 'testing library', 'react testing library', 'enzyme',
     'junit', 'pytest', 'rspec', 'karma', 'jasmine', 'vitest',
-    'tdd', 'bdd', 'unit test', 'integration test', 'e2e'
+    'tdd', 'bdd', 'unit testing', 'integration testing', 'e2e testing'
   ],
   ai_ml: [
     'tensorflow', 'pytorch', 'keras', 'scikit-learn', 'sklearn', 'pandas',
-    'numpy', 'matplotlib', 'opencv', 'nlp', 'natural language processing',
-    'machine learning', 'deep learning', 'neural network', 'computer vision',
+    'numpy', 'matplotlib', 'seaborn', 'opencv', 'nlp', 'natural language processing',
+    'machine learning', 'deep learning', 'neural networks', 'computer vision',
     'transformers', 'hugging face', 'langchain', 'openai', 'gpt',
-    'llm', 'large language model', 'generative ai', 'ai', 'ml'
+    'llm', 'large language models', 'generative ai', 'rag', 'vector database'
   ]
 };
+
+/* ============================================================
+   JOB ROLES KNOWLEDGE BASE (Structured Requirements Dataset)
+   ============================================================ */
+const JOB_ROLES_DB = [
+  {
+    id: 'frontend_developer',
+    title: 'Frontend Developer',
+    category: 'Frontend',
+    icon: 'code',
+    description: 'Specializes in creating interactive, responsive user interfaces and modern web applications.',
+    essentialSkills: ['HTML5', 'CSS3', 'JavaScript'],
+    importantSkills: ['React', 'TypeScript', 'Tailwind', 'Git', 'Next.js', 'Redux', 'Responsive Design'],
+    bonusSkills: ['Vue', 'Angular', 'Webpack', 'Vite', 'Jest', 'Figma', 'Rest Apis', 'GraphQL', 'Sass'],
+    domainKeywords: ['frontend', 'ui', 'ux', 'web', 'client', 'browser', 'dom', 'spa', 'component', 'styling'],
+    projectKeywords: ['website', 'web application', 'dashboard', 'e-commerce', 'landing page', 'portfolio', 'ui'],
+    roleSummary: 'Your HTML, CSS, JavaScript and frontend development capabilities align with UI/Frontend roles.'
+  },
+  {
+    id: 'backend_developer',
+    title: 'Backend Developer',
+    category: 'Backend',
+    icon: 'dns',
+    description: 'Designs and builds server-side business logic, microservices, databases, and REST/GraphQL APIs.',
+    essentialSkills: ['SQL', 'Rest Apis', 'Git'],
+    importantSkills: ['Node.js', 'Express', 'Python', 'Java', 'PostgreSQL', 'MongoDB', 'Django', 'FastAPI', 'Spring Boot', 'Go'],
+    bonusSkills: ['Redis', 'Docker', 'GraphQL', 'Microservices', 'AWS', 'gRPC', 'WebSockets'],
+    domainKeywords: ['backend', 'server', 'api', 'database', 'rest', 'microservice', 'crud', 'authentication', 'query', 'jwt'],
+    projectKeywords: ['api', 'backend', 'server', 'database', 'rest api', 'microservice', 'authentication', 'crud'],
+    roleSummary: 'Your backend programming, API design, and database integration skills support server-side engineering.'
+  },
+  {
+    id: 'fullstack_developer',
+    title: 'Full Stack Developer',
+    category: 'Full Stack',
+    icon: 'layers',
+    description: 'Builds end-to-end web applications covering client-side interfaces, server APIs, and persistent databases.',
+    essentialSkills: ['JavaScript', 'HTML5', 'CSS3', 'SQL', 'Git'],
+    importantSkills: ['React', 'Node.js', 'Express', 'TypeScript', 'PostgreSQL', 'MongoDB', 'Tailwind', 'Next.js'],
+    bonusSkills: ['Docker', 'AWS', 'Redis', 'GraphQL', 'Rest Apis', 'CI/CD'],
+    domainKeywords: ['full stack', 'fullstack', 'end-to-end', 'web application', 'frontend and backend', 'mern', 'client-server'],
+    projectKeywords: ['full stack', 'full-stack', 'e-commerce', 'web store', 'platform', 'app', 'portal'],
+    roleSummary: 'Your combined frontend, backend, and database skill set fits full-stack software development.'
+  },
+  {
+    id: 'software_engineer',
+    title: 'Software Engineer',
+    category: 'CS Core',
+    icon: 'terminal',
+    description: 'Applies software engineering principles, algorithms, data structures, and system design to build software.',
+    essentialSkills: ['Data Structures', 'Algorithms', 'OOP', 'Git'],
+    importantSkills: ['C++', 'Java', 'Python', 'Go', 'System Design', 'SQL', 'Operating Systems', 'DBMS', 'Linux'],
+    bonusSkills: ['Distributed Systems', 'Docker', 'Competitive Programming', 'Design Patterns', 'Unit Testing'],
+    domainKeywords: ['software engineer', 'swe', 'algorithms', 'data structures', 'dsa', 'system architecture', 'object-oriented', 'problem solving'],
+    projectKeywords: ['engine', 'compiler', 'algorithm', 'system', 'tool', 'cache', 'simulator', 'application'],
+    roleSummary: 'Your computer science foundations, algorithms, and programming proficiency align with software engineering.'
+  },
+  {
+    id: 'python_developer',
+    title: 'Python Developer',
+    category: 'Backend / Scripting',
+    icon: 'code',
+    description: 'Develops backend services, automation workflows, data pipelines, and web applications using Python.',
+    essentialSkills: ['Python', 'SQL', 'Git'],
+    importantSkills: ['Django', 'Flask', 'FastAPI', 'Pandas', 'OOP', 'Rest Apis', 'PostgreSQL'],
+    bonusSkills: ['Docker', 'Redis', 'NumPy', 'Celery', 'AWS', 'PyTest'],
+    domainKeywords: ['python', 'scripting', 'automation', 'django', 'flask', 'fastapi', 'backend'],
+    projectKeywords: ['python', 'automation', 'scraper', 'bot', 'api', 'django', 'fastapi'],
+    roleSummary: 'Your Python programming and development experience align directly with Python-centric engineering roles.'
+  },
+  {
+    id: 'java_developer',
+    title: 'Java Developer',
+    category: 'Enterprise / Backend',
+    icon: 'coffee',
+    description: 'Builds enterprise-grade, scalable backend systems, microservices, and distributed applications with Java.',
+    essentialSkills: ['Java', 'SQL', 'OOP', 'Git'],
+    importantSkills: ['Spring Boot', 'Spring', 'Hibernate', 'Microservices', 'Rest Apis', 'PostgreSQL', 'MySQL'],
+    bonusSkills: ['Docker', 'Kubernetes', 'Kafka', 'Redis', 'JUnit', 'AWS'],
+    domainKeywords: ['java', 'spring', 'spring boot', 'enterprise', 'microservices', 'jpa', 'hibernate', 'jvm'],
+    projectKeywords: ['java', 'spring', 'enterprise', 'management system', 'backend', 'banking', 'portal'],
+    roleSummary: 'Your Java and object-oriented backend proficiency fit enterprise Java application engineering.'
+  },
+  {
+    id: 'data_analyst',
+    title: 'Data Analyst',
+    category: 'Data',
+    icon: 'analytics',
+    description: 'Extracts, transforms, analyzes, and visualizes data to uncover actionable business insights and trends.',
+    essentialSkills: ['SQL', 'Python'],
+    importantSkills: ['Pandas', 'NumPy', 'Data Analysis', 'Excel', 'Statistics', 'Matplotlib', 'Seaborn'],
+    bonusSkills: ['Tableau', 'Power BI', 'PostgreSQL', 'Data Visualization', 'Scikit-learn'],
+    domainKeywords: ['data analyst', 'analytics', 'insights', 'visualization', 'reporting', 'dashboard', 'metrics', 'trends', 'querying'],
+    projectKeywords: ['analysis', 'dashboard', 'data analysis', 'visualizer', 'dataset', 'trends', 'report'],
+    roleSummary: 'Your SQL, Python data handling, and analytical problem solving align with data analytics roles.'
+  },
+  {
+    id: 'ml_engineer',
+    title: 'Machine Learning Engineer',
+    category: 'AI / Data Science',
+    icon: 'psychology',
+    description: 'Designs, trains, evaluates, and deploys predictive machine learning models and deep neural networks.',
+    essentialSkills: ['Python', 'Machine Learning', 'Data Structures'],
+    importantSkills: ['Scikit-learn', 'Pandas', 'NumPy', 'Deep Learning', 'PyTorch', 'TensorFlow', 'Statistics', 'SQL'],
+    bonusSkills: ['Computer Vision', 'NLP', 'Docker', 'Transformers', 'Hugging Face', 'Model Evaluation', 'MLOps'],
+    domainKeywords: ['machine learning', 'ml', 'deep learning', 'neural networks', 'model', 'training', 'accuracy', 'classification', 'regression'],
+    projectKeywords: ['model', 'prediction', 'classifier', 'detection', 'nlp', 'vision', 'dataset', 'recommendation'],
+    roleSummary: 'Your machine learning, mathematical modeling, and Python data science foundations support ML engineering.'
+  },
+  {
+    id: 'ai_engineer',
+    title: 'AI / GenAI Engineer',
+    category: 'AI / LLM',
+    icon: 'smart_toy',
+    description: 'Builds generative AI applications, agentic workflows, RAG pipelines, and LLM integrations.',
+    essentialSkills: ['Python', 'Rest Apis', 'Git'],
+    importantSkills: ['LangChain', 'OpenAI', 'LLM', 'Generative AI', 'RAG', 'Vector Database', 'Transformers'],
+    bonusSkills: ['FastAPI', 'PyTorch', 'Docker', 'Hugging Face', 'Prompt Engineering'],
+    domainKeywords: ['ai', 'artificial intelligence', 'genai', 'generative ai', 'llm', 'rag', 'langchain', 'embeddings', 'vector database'],
+    projectKeywords: ['ai', 'chatbot', 'assistant', 'rag', 'llm', 'gpt', 'generator', 'agent'],
+    roleSummary: 'Your work with Python, APIs, and modern AI/LLM tools prepares you for Generative AI development.'
+  },
+  {
+    id: 'devops_engineer',
+    title: 'DevOps & Cloud Engineer',
+    category: 'Cloud / Infrastructure',
+    icon: 'cloud',
+    description: 'Manages cloud infrastructure, automates CI/CD deployment pipelines, and maintains system reliability.',
+    essentialSkills: ['Linux', 'Docker', 'AWS'],
+    importantSkills: ['Kubernetes', 'CI/CD', 'GitHub Actions', 'Terraform', 'Nginx', 'Git', 'Bash'],
+    bonusSkills: ['GCP', 'Azure', 'Ansible', 'Prometheus', 'Grafana', 'Security', 'Microservices'],
+    domainKeywords: ['devops', 'cloud', 'infrastructure', 'ci/cd', 'deployment', 'container', 'orchestration', 'pipeline', 'automation'],
+    projectKeywords: ['deployment', 'pipeline', 'cloud', 'dockerized', 'infrastructure', 'terraform', 'cluster'],
+    roleSummary: 'Your cloud computing, containerization, and automation skill set fits DevOps and infrastructure roles.'
+  },
+  {
+    id: 'qa_engineer',
+    title: 'QA / Automation Engineer',
+    category: 'Testing & Quality',
+    icon: 'fact_check',
+    description: 'Designs automated test suites, performs integration testing, and ensures software quality standards.',
+    essentialSkills: ['JavaScript', 'Python', 'Git'],
+    importantSkills: ['Jest', 'Cypress', 'Playwright', 'Selenium', 'Unit Testing', 'Integration Testing', 'Postman'],
+    bonusSkills: ['CI/CD', 'Docker', 'TDD', 'BDD', 'PyTest', 'Puppeteer'],
+    domainKeywords: ['qa', 'quality assurance', 'testing', 'automation', 'test suite', 'e2e', 'unit test', 'integration test', 'bug tracking'],
+    projectKeywords: ['test', 'testing', 'automation', 'framework', 'suite', 'validator'],
+    roleSummary: 'Your testing practices, test automation, and code validation experience match QA engineering.'
+  },
+  {
+    id: 'mobile_developer',
+    title: 'Mobile App Developer',
+    category: 'Mobile',
+    icon: 'smartphone',
+    description: 'Builds cross-platform or native mobile applications for iOS and Android devices.',
+    essentialSkills: ['JavaScript', 'Git', 'Rest Apis'],
+    importantSkills: ['React Native', 'Flutter', 'TypeScript', 'Kotlin', 'Swift', 'Dart', 'Responsive Design'],
+    bonusSkills: ['Redux', 'Firebase', 'Mobile UI', 'GraphQL', 'Tailwind'],
+    domainKeywords: ['mobile', 'app', 'android', 'ios', 'react native', 'flutter', 'cross-platform', 'smartphone'],
+    projectKeywords: ['mobile app', 'app', 'android', 'ios', 'react native', 'flutter'],
+    roleSummary: 'Your mobile development, UI components, and API integration skills align with mobile engineering.'
+  }
+];
 
 /* ============================================================
    ANALYZER STATE
    ============================================================ */
 let analyzerState = {
-  file: null,           // actual File object
+  file: null,
   fileName: '',
   fileSize: '',
   fileType: '',
   fromBuilder: false,
-  resumeText: '',       // extracted text
-  parsedData: null,     // parsed sections
-  scores: null,         // scoring results
+  resumeText: '',
+  parsedData: null,
+  scores: null,
   analysisComplete: false,
+  jobRecommendations: [],
+  bestFitRole: null,
   jdText: '',
   jdMatchResult: null
 };
@@ -162,7 +364,7 @@ function validateFile(file) {
 }
 
 /* ============================================================
-   TEXT EXTRACTION — PDF (using PDF.js)
+   TEXT EXTRACTION — PDF (PDF.js)
    ============================================================ */
 async function extractPDFText(file) {
   if (typeof pdfjsLib === 'undefined') {
@@ -186,17 +388,31 @@ async function extractPDFText(file) {
   for (let i = 1; i <= totalPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    const pageText = content.items
-      .map(item => item.str)
-      .join(' ')
-      .replace(/\s+/g, ' ')
-      .trim();
+    
+    let lastY = null;
+    let pageLines = [];
+    let currentLine = [];
+
+    content.items.forEach(item => {
+      const y = item.transform ? Math.round(item.transform[5]) : null;
+      if (lastY !== null && y !== null && Math.abs(y - lastY) > 4) {
+        if (currentLine.length) pageLines.push(currentLine.join(' '));
+        currentLine = [];
+      }
+      if (item.str && item.str.trim()) {
+        currentLine.push(item.str.trim());
+      }
+      if (y !== null) lastY = y;
+    });
+    if (currentLine.length) pageLines.push(currentLine.join(' '));
+
+    const pageText = pageLines.join('\n');
     if (pageText) {
       fullText += pageText + '\n\n';
     }
   }
 
-  fullText = fullText.trim();
+  fullText = sanitizeExtractedText(fullText.trim());
   if (!fullText || fullText.length < 20) {
     throw new Error('Unable to extract readable text from this resume. The file may be image-based/scanned. Please use a text-based PDF.');
   }
@@ -205,7 +421,7 @@ async function extractPDFText(file) {
 }
 
 /* ============================================================
-   TEXT EXTRACTION — DOCX (using Mammoth.js)
+   TEXT EXTRACTION — DOCX (Mammoth.js)
    ============================================================ */
 async function extractDOCXText(file) {
   if (typeof mammoth === 'undefined') {
@@ -220,12 +436,37 @@ async function extractDOCXText(file) {
     throw new Error('Unable to parse DOCX file. The file may be corrupted.');
   }
 
-  const text = (result.value || '').trim();
+  const text = sanitizeExtractedText((result.value || '').trim());
   if (!text || text.length < 20) {
     throw new Error('Unable to extract readable text from this DOCX. The document may be empty or contain only images.');
   }
 
   return text;
+}
+
+/* ============================================================
+   TEXT SANITIZATION & BOUNDARY NORMALIZATION
+   ============================================================ */
+function sanitizeExtractedText(raw) {
+  if (!raw) return '';
+  let text = raw;
+
+  // 1. Separate merged email and adjacent text (e.g. .comLocation -> .com \n Location)
+  text = text.replace(/(\.(?:com|in|org|net|io|edu|gov|co|ai|dev|me|tech|app|xyz|info))([A-Z][a-z]+|\+?\d|\b)/g, '$1 $2');
+
+  // 2. Separate merged URLs
+  text = text.replace(/(linkedin\.com\/in\/[\w\-]+|github\.com\/[\w\-]+)([A-Z][a-z]+|\+?\d)/g, '$1 $2');
+
+  // 3. Normalize bullet characters to standard bullet
+  text = text.replace(/[\u2022\u2023\u25E6\u2043\u2219\u25AA\u25BA\u25B8]/g, '• ');
+
+  // 4. Normalize multiple spaces on the same line without destroying line breaks
+  text = text.split('\n').map(line => line.replace(/[ \t]+/g, ' ').trim()).join('\n');
+
+  // 5. Remove excessive consecutive blank lines
+  text = text.replace(/\n{3,}/g, '\n\n');
+
+  return text.trim();
 }
 
 /* ============================================================
@@ -238,9 +479,31 @@ function convertBuilderToText(resume) {
   const p = resume.personal || {};
 
   // Contact
-  if (p.name) lines.push(p.name);
+  if (p.name && p.name !== 'Your Name') lines.push(p.name);
   if (p.title) lines.push(p.title);
-  const contacts = [p.location, p.phone, p.email, p.linkedin, p.github, p.portfolio].filter(Boolean);
+  
+  const contacts = [];
+  if (p.location) contacts.push(p.location);
+  if (p.phone) contacts.push(p.phone.startsWith('+') || /phone/i.test(p.phone) ? p.phone : `Phone: ${p.phone}`);
+  if (p.email) contacts.push(p.email);
+  if (p.linkedin) {
+    const cleanLi = p.linkedin.trim();
+    if (cleanLi.includes('linkedin.com') || cleanLi.startsWith('http')) {
+      contacts.push(cleanLi);
+    } else {
+      contacts.push(`linkedin.com/in/${cleanLi.replace(/^(in\/|@)/, '')}`);
+    }
+  }
+  if (p.github) {
+    const cleanGh = p.github.trim();
+    if (cleanGh.includes('github.com') || cleanGh.startsWith('http')) {
+      contacts.push(cleanGh);
+    } else {
+      contacts.push(`github.com/${cleanGh.replace(/^@/, '')}`);
+    }
+  }
+  if (p.portfolio) contacts.push(p.portfolio);
+
   if (contacts.length) lines.push(contacts.join(' | '));
   lines.push('');
 
@@ -266,16 +529,16 @@ function convertBuilderToText(resume) {
     lines.push('');
   }
 
-  // Experience / Projects
+  // Experience
   const exp = resume.experience || [];
   if (exp.length) {
-    lines.push('PROJECT & WORK EXPERIENCE');
+    lines.push('WORK EXPERIENCE');
     exp.forEach(e => {
       if (e.role) lines.push(`${e.role}${e.company ? ' | ' + e.company : ''}`);
       if (e.startDate || e.endDate) lines.push(`${e.startDate || ''} - ${e.endDate || ''} ${e.location ? '| ' + e.location : ''}`);
       if (e.description) {
         e.description.split('\n').forEach(b => {
-          if (b.trim()) lines.push('• ' + b.trim());
+          if (b.trim()) lines.push('• ' + b.trim().replace(/^[•\-\*]\s*/, ''));
         });
       }
       lines.push('');
@@ -285,8 +548,7 @@ function convertBuilderToText(resume) {
   // Projects
   const prj = resume.projects || [];
   if (prj.length) {
-    if (!exp.length) lines.push('PROJECT & WORK EXPERIENCE');
-    else lines.push('KEY PROJECTS');
+    lines.push('PROJECTS');
     prj.forEach(pr => {
       if (pr.name) lines.push(`${pr.name}${pr.github ? ' | ' + pr.github : ''}${pr.demo ? ' | ' + pr.demo : ''}`);
       if (pr.tech) lines.push(`Technologies: ${pr.tech}`);
@@ -341,17 +603,22 @@ function convertBuilderToText(resume) {
   return lines.join('\n').trim();
 }
 
+/* ============================================================
+   SECTION HEADER DETECTION
+   ============================================================ */
 function isSectionHeaderLine(line) {
   const clean = line.replace(/^[#*\-•\s]+/, '').trim();
-  if (clean.length > 60 || clean.length < 3) return false;
-  // Exclude inline fields with content after colon (e.g. "Technologies: React, Node.js", "GitHub: ...", "Demo: ...")
+  if (clean.length > 50 || clean.length < 3) return false;
+  
+  // Exclude inline attribute declarations (e.g. "Technologies: React, Node", "Email: ...")
   if (/^(technologies|tech|tools|languages|frontend|backend|databases|github|demo|link|credential\s*id|coursework|skills|interests|responsibilities|phone|email|location|linkedin|leetcode):\s*\S+/i.test(clean)) {
     return false;
   }
-  // Exclude lines with comma-separated list of items
+  // Exclude lines with 2 or more commas
   if ((clean.match(/,/g) || []).length >= 2) return false;
-  // Exclude email or contact lines
+  // Exclude lines containing email or 10-digit phone
   if (/@|\+?\d{10}/.test(clean)) return false;
+
   return true;
 }
 
@@ -362,9 +629,8 @@ function parseResumeSections(text) {
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
   const detected = {};
   const sectionContent = {};
-
-  // Find section headers
   const sectionPositions = [];
+
   lines.forEach((line, idx) => {
     if (isSectionHeaderLine(line)) {
       for (const [sectionName, pattern] of Object.entries(SECTION_PATTERNS)) {
@@ -372,14 +638,9 @@ function parseResumeSections(text) {
           sectionPositions.push({ name: sectionName, lineIdx: idx, line });
           detected[sectionName] = true;
 
-          // If header combines Project & Work Experience or Technical Projects, grant both
           if (/project/i.test(line) && /(experience|work|history)/i.test(line)) {
             detected.experience = true;
             detected.projects = true;
-          }
-          if (/technical\s*projects/i.test(line)) {
-            detected.projects = true;
-            detected.experience = true;
           }
           if (/achievements?\s*(&|and)?\s*(credentials?|certifications?)/i.test(line)) {
             detected.achievements = true;
@@ -391,644 +652,1043 @@ function parseResumeSections(text) {
     }
   });
 
-  // Extract content for each section
   sectionPositions.forEach((sec, i) => {
     const startLine = sec.lineIdx + 1;
     const endLine = (i + 1 < sectionPositions.length) ? sectionPositions[i + 1].lineIdx : lines.length;
     const content = lines.slice(startLine, endLine).join('\n');
     sectionContent[sec.name] = content;
-
-    // Cross-populate combined sections if needed
-    if (sec.name === 'experience' && !sectionContent.projects && /(project|built|engineered|architected|developed)/i.test(content)) {
-      sectionContent.projects = content;
-    }
-    if (sec.name === 'projects' && !sectionContent.experience && /(work|experience|built|engineered|developer|intern)/i.test(content)) {
-      sectionContent.experience = content;
-    }
   });
 
   return { detected, sectionContent, lines, sectionPositions };
 }
 
 /* ============================================================
-   CONTACT INFORMATION EXTRACTION
+   CONTACT INFORMATION EXTRACTION & QUALITY
    ============================================================ */
 function extractContactInfo(text) {
   const result = {
     name: false,
     email: false,
     phone: false,
+    location: false,
     linkedin: false,
     github: false,
     portfolio: false,
-    location: false,
+    quality: false,
     details: {}
   };
 
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-  const headerLines = lines.slice(0, 5);
+  const headerLines = lines.slice(0, 12);
 
-  // Email
-  const emailMatch = text.match(/[\w._%+\-]+@[\w.\-]+\.[a-z]{2,}/i);
+  // 1. Email Extraction
+  const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(?:com|org|net|edu|gov|co|in|ai|dev|me|tech|app|xyz|io|[a-z]{2,})\b/i;
+  const emailMatch = text.match(emailRegex);
   if (emailMatch) {
+    let email = emailMatch[0].trim().replace(/[.,;:)]+$/, '');
     result.email = true;
-    result.details.email = emailMatch[0];
+    result.details.email = email;
+    
+    const emailLower = email.toLowerCase();
+    const isStandardDomain = /@(gmail|outlook|hotmail|yahoo|icloud|proton|protonmail|live|zoho|[\w\-]+\.(edu|ac\.\w{2}|org))\b/i.test(emailLower);
+    result.isProfessionalEmail = isStandardDomain && !/test|fake|spam|temp/i.test(emailLower);
   }
 
-  // Phone (including Indian +91 format and standard international)
-  const phoneMatch = text.match(/(\+?\d{1,3}[\s\-.]?)?\(?\d{2,5}\)?[\s\-.]?\d{3,5}[\s\-.]?\d{3,5}/);
-  if (phoneMatch) {
-    result.phone = true;
-    result.details.phone = phoneMatch[0].trim();
+  // 2. Phone Extraction (All international, Indian, US/Canada, and domestic formats)
+  const phonePatterns = [
+    // Labeled phone: Phone: +91 9876543210, Mob: 9876543210, Tel: (555) 123-4567, etc.
+    /(?:phone|mobile|mob|cell|tel|contact|call|ph|p|m|t)\s*[:|–\-.]\s*(\+?\d{1,4}[-\s.]?(?:\(?\d{2,5}\)?[-\s.]?)?\d{2,5}[-\s.]?\d{2,5}(?:[-\s.]?\d{2,5})?)/i,
+    // North American: (555) 123-4567 or +1 (555) 123-4567 or 555-123-4567
+    /(?:^|[^\d\w+])((?:\+?1[\s.-]?)?(?:\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4})(?:[^\d\w]|$)/m,
+    // +91 with 10 digits
+    /(?:^|[^\d\w+])((?:\+?91[\s.-]?)?[6-9]\d{4}[\s.-]?\d{5})(?:[^\d\w]|$)/m,
+    /(?:^|[^\d\w+])((?:\+?91[\s.-]?)?[6-9]\d{9})(?:[^\d\w]|$)/m,
+    // International general format +XX ... (10-15 digits)
+    /(?:^|[^\d\w])(\+\d{1,4}[\s.-]?(?:\(?\d{1,5}\)?[\s.-]?)?\d{2,5}[\s.-]?\d{2,5}(?:[\s.-]?\d{2,5})?)(?:[^\d\w]|$)/m,
+    // General 10-digit number
+    /(?:^|[^\d\w+])([6-9]\d{4}[\s.-]?\d{5})(?:[^\d\w]|$)/m,
+    /(?:^|[^\d\w+])([6-9]\d{9})(?:[^\d\w]|$)/m
+  ];
+
+  for (const p of phonePatterns) {
+    const pMatch = text.match(p);
+    if (pMatch) {
+      const rawMatch = pMatch[1] || pMatch[0];
+      const matchedStr = rawMatch.replace(/^(?:phone|mobile|mob|cell|tel|contact|call|ph|p|m|t)\s*[:|–\-.]\s*/i, '').trim();
+      const digitsOnly = matchedStr.replace(/\D/g, '');
+      if (digitsOnly.length >= 10 && digitsOnly.length <= 15) {
+        if (!/^(?:19|20)\d{2}(?:19|20)\d{2}$/.test(digitsOnly) && !/^(?:19|20)\d{2}$/.test(digitsOnly)) {
+          result.phone = true;
+          result.details.phone = matchedStr.replace(/^[^\d+(]+|[^\d)]+$/g, '').trim();
+          break;
+        }
+      }
+    }
   }
 
-  // LinkedIn
-  const linkedinMatch = text.match(/linkedin\.com\/in\/[\w\-]+/i);
-  if (linkedinMatch) {
+  // 3. LinkedIn Extraction
+  const linkedinUrlMatch = text.match(/(?:https?:\/\/)?(?:www\.)?linkedin(?:\s*\.\s*com)?\s*\/\s*(?:in|pub)?\s*\/\s*([a-zA-Z0-9_\-\.]+)/i) ||
+    text.match(/\blinkedin(?:\s*\.\s*com)?\s*\/\s*([a-zA-Z0-9_\-\.]+)/i) ||
+    text.match(/\bin\/([a-zA-Z0-9_\-\.]{3,35})\b/i);
+
+  const linkedinLabelMatch = text.match(/(?:linkedin|linked-in|\bin\b)\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:linkedin(?:\s*\.\s*com)?\s*\/(?:(?:in|pub)\/)?)?([a-zA-Z0-9_\-\.]+)/i);
+
+  if (linkedinUrlMatch) {
+    const user = (linkedinUrlMatch[1] || '').replace(/[.,;:)]+$/, '').trim();
     result.linkedin = true;
-    result.details.linkedin = linkedinMatch[0];
-  }
-
-  // GitHub
-  const githubMatch = text.match(/github\.com\/[\w\-]+/i);
-  if (githubMatch) {
-    result.github = true;
-    result.details.github = githubMatch[0];
-  }
-
-  // LeetCode / Coding Profile
-  const leetcodeMatch = text.match(/leetcode\.com\/(u\/)?[\w\-]+/i);
-  if (leetcodeMatch) {
-    result.details.leetcode = leetcodeMatch[0];
-    if (!result.portfolio) {
-      result.portfolio = true;
-      result.details.portfolio = leetcodeMatch[0];
+    result.details.linkedin = `linkedin.com/in/${user}`;
+  } else if (linkedinLabelMatch) {
+    const user = (linkedinLabelMatch[1] || '').replace(/[.,;:)]+$/, '').trim();
+    if (user.length >= 2 && !/^(true|false|null|undefined|yes|no)$/i.test(user)) {
+      result.linkedin = true;
+      result.details.linkedin = user.includes('linkedin.com') ? user : `linkedin.com/in/${user}`;
     }
   }
 
-  // Standard email domains to strictly exclude from portfolio websites
-  const EMAIL_DOMAINS = [
-    'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com',
-    'mail.com', 'protonmail.com', 'proton.me', 'zoho.com', 'aol.com',
-    'yandex.com', 'gmx.com', 'live.com'
-  ];
+  // 4. GitHub Extraction
+  const RESERVED_GH = ['topics', 'features', 'pricing', 'login', 'explore', 'settings', 'enterprise', 'site', 'about', 'blog', 'repo'];
+  
+  const githubUrlMatch = text.match(/(?:https?:\/\/)?(?:www\.)?github(?:\s*\.\s*com)?\s*\/\s*([a-zA-Z0-9_\-\.]+)/i);
+  const githubLabelMatch = text.match(/(?:github|git)\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:github(?:\s*\.\s*com)?\s*\/\s*)?([a-zA-Z0-9_\-\.]+)/i);
 
-  // Degree and educational terms to strictly exclude from portfolio detection
-  const DEGREE_AND_COMMON_TERMS = [
-    'b.tech', 'm.tech', 'b.e', 'm.e', 'b.s', 'm.s', 'b.a', 'm.a', 'ph.d', 'phd',
-    'btech', 'mtech', 'bachelor', 'master', 'degree', 'engineering', 'science',
-    'university', 'college', 'school', 'institute', 'department', 'curriculum',
-    'technologies', 'technology', 'tech', 'languages', 'skills', 'experience', 'projects'
-  ];
-
-  function isExcludedDomainOrDegree(str) {
-    if (!str) return true;
-    const clean = str.toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim();
-    if (DEGREE_AND_COMMON_TERMS.some(term => clean === term || clean.startsWith(term + '.') || clean.endsWith('.' + term))) {
-      return true;
+  if (githubUrlMatch) {
+    const user = (githubUrlMatch[1] || '').replace(/[.,;:)]+$/, '').trim();
+    if (!RESERVED_GH.includes(user.toLowerCase())) {
+      result.github = true;
+      result.details.github = `github.com/${user}`;
     }
-    const dotParts = clean.split('.');
-    if (dotParts.length >= 2 && dotParts[0].length < 3) {
-      return true;
-    }
-    if (!clean.includes('.')) return true;
-    if (EMAIL_DOMAINS.some(dom => clean.includes(dom))) return true;
-    return false;
-  }
-
-  // 1. Portfolio / Coding Profile detection via explicit label
-  // (e.g. "Portfolio: leetcode.com/u/...", "Website: ...")
-  const labeledPortfolioMatch = text.match(/(?:portfolio|website|web\s*portfolio|live\s*site|portfolio\s*link):\s*(https?:\/\/[^\s,;)]+|[\w.\-]+\.[a-z]{2,}(\/[^\s,;)]*)?)/i);
-  if (labeledPortfolioMatch) {
-    const candidateUrl = labeledPortfolioMatch[1].trim();
-    if (!isExcludedDomainOrDegree(candidateUrl)) {
-      result.portfolio = true;
-      result.details.portfolio = candidateUrl;
+  } else if (githubLabelMatch) {
+    const user = (githubLabelMatch[1] || '').replace(/[.,;:)]+$/, '').trim();
+    if (user.length >= 2 && !RESERVED_GH.includes(user.toLowerCase()) && !/^(true|false|null|undefined|yes|no)$/i.test(user)) {
+      result.github = true;
+      result.details.github = user.includes('github.com') ? user : `github.com/${user}`;
     }
   }
 
-  // 2. LeetCode / HackerRank / Codeforces coding profile detection
+  // 5. Portfolio / Website Extraction
   const codingProfileMatch = text.match(/(leetcode\.com\/(u\/)?[\w\-]+|hackerrank\.com\/[\w\-]+|codeforces\.com\/profile\/[\w\-]+)/i);
+  const personalSiteMatch = text.match(/\bhttps?:\/\/(?!linkedin|github|gmail|google|facebook|twitter|instagram|youtube|medium)[\w\-]+(?:\.[\w\-]+)+(?:\/[^\s,;)]*)?/i) ||
+    text.match(/\b(?<![@/])([a-zA-Z0-9\-]{3,})\.(dev|io|app|me|site|page|tech|vercel\.app|netlify\.app|github\.io)\b/i);
+
   if (codingProfileMatch) {
-    result.details.leetcode = codingProfileMatch[0];
-    if (!result.portfolio) {
-      result.portfolio = true;
-      result.details.portfolio = codingProfileMatch[0];
+    result.portfolio = true;
+    result.details.portfolio = codingProfileMatch[0];
+  } else if (personalSiteMatch && !/^(b\.tech|m\.tech|bachelor|master|degree|college|university)/i.test(personalSiteMatch[0])) {
+    result.portfolio = true;
+    result.details.portfolio = personalSiteMatch[0];
+  }
+
+  // 6. Location Detection
+  const NON_LOCATION_WORDS = [
+    'ai', 'ml', 'generative', 'engineer', 'developer', 'software', 'full', 'stack',
+    'science', 'technology', 'university', 'college', 'school', 'intern', 'lead',
+    'specialist', 'analyst', 'manager', 'architect', 'bachelor', 'master', 'tech', 'skills'
+  ];
+
+  const labeledLoc = text.match(/(?:location|address|city|residence):\s*([^\n\r,|•]+(?:,\s*[^\n\r,|•]+)*)/i);
+  if (labeledLoc) {
+    result.location = true;
+    result.details.location = labeledLoc[1].trim();
+  } else {
+    for (const line of headerLines) {
+      if (/@|\.com|\.org|\.dev/i.test(line) && !line.includes('|') && !line.includes('•')) continue;
+      const tokens = line.split(/[|•·]/).map(t => t.trim()).filter(Boolean);
+      for (const token of tokens) {
+        const m = token.match(/^([A-Z][a-zA-Z\s]+),\s*([A-Z][a-zA-Z\s]+|[A-Z]{2,3})(?:,\s*([A-Z][a-zA-Z\s]+|[A-Z]{2,3}))?$/);
+        if (m) {
+          const part1 = m[1].trim().toLowerCase();
+          if (!NON_LOCATION_WORDS.some(w => part1.includes(w))) {
+            result.location = true;
+            result.details.location = token;
+            break;
+          }
+        }
+        if (/\b(remote|hybrid|bangalore|bengaluru|mumbai|delhi|hyderabad|pune|chennai|seattle|san francisco|austin|new york)\b/i.test(token) && !/@/.test(token)) {
+          result.location = true;
+          result.details.location = token;
+          break;
+        }
+      }
+      if (result.location) break;
     }
   }
 
-  // 3. Full URLs starting with http:// or https:// (strictly excluding LinkedIn, GitHub, mailto, email domains, degree terms)
-  if (!result.portfolio) {
-    const urlMatches = text.match(/https?:\/\/[^\s,;)]+/gi) || [];
-    const portfolioUrls = urlMatches.filter(u => {
-      const uLow = u.toLowerCase();
-      return !uLow.includes('linkedin.com') &&
-             !uLow.includes('github.com') &&
-             !uLow.includes('mailto:') &&
-             !EMAIL_DOMAINS.some(dom => uLow.includes(dom)) &&
-             !isExcludedDomainOrDegree(u);
-    });
-    if (portfolioUrls.length > 0) {
-      result.portfolio = true;
-      result.details.portfolio = portfolioUrls[0];
-    }
-  }
-
-  // 4. Bare domain match (strictly validating TLD and blocking degree abbreviations / short prefixes)
-  if (!result.portfolio) {
-    const domainMatches = text.match(/\b(?<![@/])([a-zA-Z0-9\-]{3,})\.(dev|io|com|org|net|app|co|me|site|page|vercel\.app|netlify\.app|github\.io)\b/gi) || [];
-    const validDomains = domainMatches.filter(d => {
-      const dLow = d.toLowerCase();
-      return !dLow.includes('linkedin') &&
-             !dLow.includes('github') &&
-             !EMAIL_DOMAINS.some(dom => dLow.includes(dom)) &&
-             !isExcludedDomainOrDegree(d);
-    });
-    if (validDomains.length > 0) {
-      result.portfolio = true;
-      result.details.portfolio = validDomains[0];
-    }
-  }
-
-  // Name detection (from the top lines, excluding contacts/URLs/section titles)
+  // 7. Name Extraction
   for (const line of headerLines) {
     const tokens = line.split(/[|•·,]/).map(t => t.trim()).filter(Boolean);
     const candidate = tokens[0] || line;
-    if (candidate.length > 1 && candidate.length < 40 &&
+    if (candidate.length >= 2 && candidate.length <= 35 &&
         !/@/.test(candidate) && !/\d{3}/.test(candidate) && !/\.com|\.org|\.dev/i.test(candidate) &&
-        !/^(summary|experience|skills|education|projects|profile|contact|curriculum)/i.test(candidate) &&
-        !/^(full\s*stack|software\s*engineer|developer|intern)/i.test(candidate)) {
+        !/^(summary|experience|skills|education|projects|profile|contact|curriculum|resume|cv)/i.test(candidate) &&
+        !/^(full\s*stack|software\s*engineer|developer|intern|data\s*scientist)/i.test(candidate)) {
       result.name = true;
       result.details.name = candidate;
       break;
     }
   }
 
-  // Location detection: STRICTLY restricted to header lines (top 3-5 lines)
-  // Supports 3-part ("Kanpur, UP, India") and 2-part ("Kanpur, India", "San Francisco, CA")
-  const NON_LOCATION_WORDS = [
-    'ai', 'ml', 'generative', 'engineer', 'developer', 'software', 'full', 'stack',
-    'science', 'technology', 'university', 'college', 'school', 'intern', 'lead',
-    'specialist', 'analyst', 'manager', 'architect', 'bachelor', 'master', 'tech'
-  ];
-
-  for (const line of headerLines) {
-    const tokens = line.split(/[|•·]/).map(t => t.trim()).filter(Boolean);
-    for (const token of tokens) {
-      // Pattern 1: 3-part "City, State/Region, Country" e.g. "Kanpur, UP, India"
-      const match3 = token.match(/^([A-Z][a-zA-Z\s]+),\s*([A-Z][a-zA-Z\s]+|[A-Z]{2,3}),\s*([A-Z][a-zA-Z\s]+|[A-Z]{2,3})$/);
-      if (match3) {
-        const c = match3[1].trim().toLowerCase();
-        const s = match3[2].trim().toLowerCase();
-        const co = match3[3].trim().toLowerCase();
-        if (!NON_LOCATION_WORDS.some(w => c.includes(w) || s.includes(w) || co.includes(w))) {
-          result.location = true;
-          result.details.location = `${match3[1].trim()}, ${match3[2].trim()}, ${match3[3].trim()}`;
-          break;
-        }
-      }
-
-      // Pattern 2: 2-part "City, Country" or "City, State" e.g. "Kanpur, India", "San Francisco, CA"
-      const match2 = token.match(/^([A-Z][a-zA-Z\s]+),\s*([A-Z][a-zA-Z\s]+|[A-Z]{2,3})$/);
-      if (match2) {
-        const city = match2[1].trim().toLowerCase();
-        const region = match2[2].trim().toLowerCase();
-        if (!NON_LOCATION_WORDS.some(w => city.includes(w) || region.includes(w))) {
-          result.location = true;
-          result.details.location = `${match2[1].trim()}, ${match2[2].trim()}`;
-          break;
-        }
-      }
-    }
-    if (result.location) break;
-
-    // Pattern 3: Inline 3-part match
-    const inline3 = line.match(/\b([A-Z][a-z]+(?:\s[A-Z][a-z]+)*),\s*([A-Z][a-z]+|UP|CA|NY|TX|WA|[A-Z]{2,3}),\s*(India|USA|UK|Canada|Germany|Australia|[A-Z]{2,3})\b/);
-    if (inline3) {
-      result.location = true;
-      result.details.location = inline3[0];
-      break;
-    }
-
-    // Pattern 4: Inline 2-part match
-    const inline2 = line.match(/\b([A-Z][a-z]+(?:\s[A-Z][a-z]+)*),\s*(India|USA|UK|Canada|Germany|Australia|UP|Uttar Pradesh|California|Texas|New York|[A-Z]{2})\b/);
-    if (inline2) {
-      const city = inline2[1].toLowerCase();
-      if (!NON_LOCATION_WORDS.some(w => city.includes(w))) {
-        result.location = true;
-        result.details.location = inline2[0];
-        break;
-      }
-    }
-
-    if (/\b(remote|hybrid)\b/i.test(line) && !/@/.test(line)) {
-      result.location = true;
-      result.details.location = line.match(/\b(remote|hybrid)\b/i)[0];
-      break;
-    }
-  }
+  result.quality = Boolean(result.name && result.email && result.phone && result.isProfessionalEmail !== false);
 
   return result;
 }
 
 /* ============================================================
-   SKILLS EXTRACTION
+   SKILLS EXTRACTION — EXACT TOKEN & BOUNDARY MATCHING
    ============================================================ */
+function matchSkillExact(skillKey, textLower, originalText) {
+  if (skillKey === 'c++') {
+    return /(?:^|[^a-zA-Z0-9_#+])c\+\+(?:$|[^a-zA-Z0-9_#+])/i.test(textLower);
+  }
+  if (skillKey === 'c#') {
+    return /(?:^|[^a-zA-Z0-9_#])c#(?:$|[^a-zA-Z0-9_#])/i.test(textLower);
+  }
+  if (skillKey === 'c') {
+    const hasStandaloneC = /(?:^|[^a-zA-Z0-9_#+])c(?:$|[^a-zA-Z0-9_#+])/i.test(textLower);
+    if (!hasStandaloneC) return false;
+    
+    const strippedCPPandCS = textLower.replace(/c\+\+/g, ' ').replace(/c#/g, ' ').replace(/objective-c/g, ' ');
+    const stillHasStandaloneC = /(?:^|[^a-zA-Z0-9_#+])c(?:$|[^a-zA-Z0-9_#+])/i.test(strippedCPPandCS);
+    if (!stillHasStandaloneC) return false;
+
+    const hasProgrammingContext = /\b(languages?|programming|skills?|technologies|c\s*\/\s*c\+\+|c\s*,\s*c\+\+|c\s*programming|c\s*language)\b/i.test(textLower);
+    return hasProgrammingContext;
+  }
+  if (skillKey === 'r') {
+    return /\b(r\s*programming|r\s*language|python,\s*r|r,\s*python)\b/i.test(textLower) ||
+           /\b(languages?|skills?):\s*[^.\n]*\b(r)\b/i.test(textLower);
+  }
+  if (skillKey === 'go' || skillKey === 'golang') {
+    return /\bgolang\b/i.test(textLower) ||
+           /\b(go\s*programming|go\s*language|go\s*backend|languages?:\s*[^.\n]*\bgo\b)/i.test(textLower);
+  }
+  if (skillKey === '.net' || skillKey === 'asp.net') {
+    return /(?:^|[^a-zA-Z0-9_])(?:\.net|asp\.net)\b/i.test(textLower);
+  }
+
+  const escaped = skillKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp('(?:^|[^a-zA-Z0-9_])' + escaped + '(?:$|[^a-zA-Z0-9_])', 'i');
+  return regex.test(textLower);
+}
+
 function extractSkills(text) {
   const textLower = text.toLowerCase();
-  const found = {};
+  const categorized = {};
   const allFound = [];
+  const softSkillsFound = [];
 
+  // 1. Extract technical skills by category
   for (const [category, skills] of Object.entries(TECH_SKILLS_DB)) {
-    found[category] = [];
+    categorized[category] = [];
     for (const skill of skills) {
-      const regex = new RegExp('\\b' + skill + '\\b', 'i');
-      if (regex.test(textLower)) {
-        // Get the original-casing match
-        const originalMatch = text.match(new RegExp('\\b' + skill + '\\b', 'i'));
-        const displayName = originalMatch ? originalMatch[0] : skill;
-        if (!found[category].includes(displayName)) {
-          found[category].push(displayName);
+      if (matchSkillExact(skill, textLower, text)) {
+        let displayName = skill;
+        if (skill === 'c++') displayName = 'C++';
+        else if (skill === 'c#') displayName = 'C#';
+        else if (skill === 'c') displayName = 'C';
+        else if (skill === 'javascript') displayName = 'JavaScript';
+        else if (skill === 'typescript') displayName = 'TypeScript';
+        else if (skill === 'html' || skill === 'html5') displayName = 'HTML5';
+        else if (skill === 'css' || skill === 'css3') displayName = 'CSS3';
+        else if (skill === 'sql') displayName = 'SQL';
+        else if (skill === 'postgresql' || skill === 'postgres') displayName = 'PostgreSQL';
+        else if (skill === 'mongodb') displayName = 'MongoDB';
+        else if (skill === 'react' || skill === 'react.js' || skill === 'reactjs') displayName = 'React';
+        else if (skill === 'node.js' || skill === 'nodejs') displayName = 'Node.js';
+        else if (skill === 'next.js' || skill === 'nextjs') displayName = 'Next.js';
+        else if (skill === 'express' || skill === 'express.js') displayName = 'Express';
+        else if (skill === 'aws' || skill === 'amazon web services') displayName = 'AWS';
+        else if (skill === 'docker') displayName = 'Docker';
+        else if (skill === 'git') displayName = 'Git';
+        else if (skill === 'github') displayName = 'GitHub';
+        else {
+          displayName = skill.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        }
+
+        if (!categorized[category].includes(displayName) && !allFound.includes(displayName)) {
+          categorized[category].push(displayName);
           allFound.push(displayName);
         }
       }
     }
   }
 
-  return { categorized: found, all: [...new Set(allFound)] };
+  // 2. Extract soft skills separately
+  SOFT_SKILLS.forEach(ss => {
+    const escaped = ss.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const r = new RegExp('\\b' + escaped + '\\b', 'i');
+    if (r.test(textLower)) {
+      const formatted = ss.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      if (!softSkillsFound.includes(formatted)) {
+        softSkillsFound.push(formatted);
+      }
+    }
+  });
+
+  return { categorized, all: allFound, softSkills: softSkillsFound };
 }
 
 /* ============================================================
-   EXPERIENCE ANALYSIS
+   1. PROFESSIONAL SUMMARY ANALYSIS (5 Points)
+   ============================================================ */
+function analyzeProfessionalSummary(text, parsedSections, skills) {
+  const summaryText = (parsedSections.sectionContent.summary || '').trim();
+  const hasSection = Boolean(parsedSections.detected.summary && summaryText.length >= 15);
+
+  if (!hasSection) {
+    return {
+      exists: false,
+      score: 0,
+      max: 5,
+      hasTargetRole: false,
+      hasTechKeywords: false,
+      isSpecific: false,
+      isConciseAndProfessional: false,
+      wordCount: 0,
+      clichésFound: []
+    };
+  }
+
+  const words = summaryText.split(/\s+/);
+  const wordCount = words.length;
+
+  const rolePattern = /\b(software\s*engineer|web\s*developer|full\s*stack|frontend|backend|data\s*scientist|data\s*analyst|devops\s*engineer|cloud\s*architect|software\s*developer|ai\s*engineer|ml\s*engineer|systems\s*engineer|qa\s*engineer|mobile\s*developer)\b/i;
+  const hasTargetRole = rolePattern.test(summaryText);
+
+  const techInSummary = skills.all.filter(s => {
+    const r = new RegExp('\\b' + s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+    return r.test(summaryText);
+  });
+  const hasTechKeywords = techInSummary.length >= 2;
+
+  const specificityPattern = /\b(\d+\+?\s*years?|scalable|distributed|high-throughput|cloud-native|microservices|architecture|optimization|production|enterprise|specializ\w+)\b/i;
+  const isSpecific = specificityPattern.test(summaryText) && techInSummary.length >= 1;
+
+  const clichésFound = VAGUE_PHRASES.filter(vp => summaryText.toLowerCase().includes(vp));
+  const isGenericStudentFluff = /\b(hardworking|motivated\s*student|looking\s*for\s*a\s*job|reputed\s*company|utilize\s*my\s*skills|seeking\s*an\s*entry\s*level|good\s*learner)\b/i.test(summaryText);
+
+  const isConciseAndProfessional = wordCount >= 20 && wordCount <= 90 && clichésFound.length === 0 && !isGenericStudentFluff;
+
+  let score = 1;
+  if (hasTargetRole) score += 1;
+  if (hasTechKeywords) score += 1;
+  if (isSpecific) score += 1;
+  if (isConciseAndProfessional) score += 1;
+
+  if (isGenericStudentFluff && clichésFound.length > 0 && techInSummary.length === 0) {
+    score = 1;
+  }
+
+  score = Math.min(Math.max(score, 1), 5);
+
+  return {
+    exists: true,
+    score,
+    max: 5,
+    hasTargetRole,
+    hasTechKeywords,
+    isSpecific,
+    isConciseAndProfessional,
+    wordCount,
+    clichésFound,
+    text: summaryText
+  };
+}
+
+/* ============================================================
+   2. EXPERIENCE ANALYSIS (20 Points)
    ============================================================ */
 function analyzeExperience(text, sectionContent) {
-  let expText = sectionContent.experience || '';
-  if (!expText.trim() && sectionContent.projects) {
-    expText = sectionContent.projects;
-  }
+  const expText = (sectionContent.experience || '').trim();
   const lines = expText.split('\n').map(l => l.trim()).filter(Boolean);
 
-  // Bullets: lines starting with bullet symbols OR capitalized action verbs
+  const isFresherOrNone = !expText ||
+    /^(fresher|none|no\s*experience|n\/a|student|seeking\s*entry\s*level)$/i.test(expText) ||
+    (lines.length === 1 && /^(fresher|none|n\/a)$/i.test(lines[0])) ||
+    (!sectionContent.experience && !/(intern|internship|software\s*engineer|developer|analyst)\s*(at|@|\||-)/i.test(text));
+
+  if (isFresherOrNone && !/(intern|internship|developer|engineer)\s*(at|@|\||-|–)/i.test(expText)) {
+    return {
+      hasExperience: false,
+      isFresher: true,
+      score: 0,
+      max: 20,
+      totalBullets: 0,
+      actionVerbCount: 0,
+      weakVerbCount: 0,
+      quantifiedCount: 0,
+      quantifiedRatio: 0,
+      actionVerbRatio: 0,
+      jobTitles: [],
+      hasDates: false,
+      companies: [],
+      techInExperience: [],
+      weakBullets: [],
+      strongBullets: []
+    };
+  }
+
   const allBullets = lines.filter(l => {
     if (/^[•\-\*►▸▪]/.test(l)) return true;
-    if (l.length > 25 && /^[A-Z][a-z]+(ed|d|ing|s)?\b/.test(l)) return true;
-    return l.length > 30 && !l.includes('github.com') && !/^(languages|frontend|backend|databases|tools|technologies):/i.test(l);
+    if (l.length > 25 && /^[A-Z][a-z]+(ed|d|ing|s)?\b/.test(l) && !/^(technologies|tools|languages):/i.test(l)) return true;
+    return l.length > 35 && !l.includes('github.com') && !/^(responsibilities|description):/i.test(l);
   });
 
-  // Action verb analysis
+  const actionVerbBullets = allBullets.filter(b => {
+    const clean = b.replace(/^[•\-\*►▸▪]\s*/, '').trim();
+    const firstWord = clean.split(/\s+/)[0].toLowerCase().replace(/[^a-z]/g, '');
+    return ACTION_VERBS.includes(firstWord);
+  });
+
+  const weakVerbBullets = allBullets.filter(b => {
+    const lower = b.toLowerCase();
+    return WEAK_VERBS.some(wv => lower.startsWith(wv) || lower.includes(` ${wv} `));
+  });
+
+  const quantifiedBullets = allBullets.filter(b =>
+    /\d+%|\d+\+|\d+x|\$\d+|\d+\s*(users|customers|clients|projects|teams|members|hours|days|weeks|months|ms|rps|gb|tb|mb|runs|queries|tools|tests|challenges|accuracy|problems)/i.test(b) ||
+    /\b(sub-?\d+ms|\d+\/\d+|\d+(\.\d+)?%|\d+\+|\d+x|\$\d+)\b/i.test(b)
+  );
+
+  const titlePatterns = /\b(software\s*engineer|full\s*stack\s*developer|frontend\s*developer|backend\s*developer|software\s*developer|web\s*developer|intern|internship|devops\s*engineer|data\s*scientist|data\s*analyst|qa\s*engineer|sre|research\s*assistant|team\s*lead|technical\s*lead|engineering\s*lead|associate\s*engineer)\b/gi;
+  const jobTitles = [...new Set((expText.match(titlePatterns) || []).map(t => t.trim()))];
+
+  const isOnlyInternship = jobTitles.length > 0 && jobTitles.every(t => /intern/i.test(t)) && allBullets.length <= 5;
+
+  const companyPatterns = /(?:at|@|\||,)\s*([A-Z][a-zA-Z0-9\s&.,\-]+(?:Inc|LLC|Ltd|Corp|Technologies|Solutions|Labs|Pvt|Software|Systems|Media|Group))/g;
+  const companies = [...new Set((expText.match(companyPatterns) || []).map(c => c.replace(/^(?:at|@|\||,)\s*/, '').trim()))];
+
+  const datePattern = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|january|february|march|april|june|july|august|september|october|november|december|\d{4})\s*(\.?|-|–|to)\s*(\d{4}|present|current)\b/gi;
+  const hasDates = datePattern.test(expText);
+
+  const techInExp = extractSkills(expText).all;
+
+  let score = 0;
+  if (jobTitles.length > 0 || allBullets.length > 0) {
+    if (isOnlyInternship) {
+      score = 3;
+      if (companies.length > 0 || /\b(company|inc|pvt|ltd|organization|startup|corp)\b/i.test(expText)) score += 2;
+      if (hasDates) score += 1.5;
+      if (techInExp.length >= 2) score += 1.5;
+      if (actionVerbBullets.length >= 1) score += 1;
+      if (quantifiedBullets.length >= 1) score += 1;
+      score = Math.min(Math.round(score), 11);
+    } else {
+      score = 3;
+      if (companies.length > 0 || /\b(company|inc|pvt|ltd|organization|startup|corp)\b/i.test(expText)) score += 3;
+      if (jobTitles.length >= 2 || (jobTitles.length >= 1 && !isOnlyInternship)) score += 2.5;
+      if (hasDates) score += 2.5;
+      if (techInExp.length >= 3) score += 3;
+      else if (techInExp.length >= 1) score += 1.5;
+
+      const actionVerbRatio = allBullets.length > 0 ? (actionVerbBullets.length / allBullets.length) : 0;
+      if (actionVerbRatio >= 0.5 || actionVerbBullets.length >= 3) score += 3;
+      else if (actionVerbRatio >= 0.25 || actionVerbBullets.length >= 1) score += 1.5;
+
+      const quantifiedRatio = allBullets.length > 0 ? (quantifiedBullets.length / allBullets.length) : 0;
+      if (quantifiedRatio >= 0.35 || quantifiedBullets.length >= 3) score += 4;
+      else if (quantifiedRatio >= 0.15 || quantifiedBullets.length >= 1) score += 2;
+
+      score = Math.min(Math.round(score), 20);
+    }
+  }
+
+  return {
+    hasExperience: true,
+    isFresher: false,
+    score,
+    max: 20,
+    totalBullets: allBullets.length,
+    actionVerbCount: actionVerbBullets.length,
+    weakVerbCount: weakVerbBullets.length,
+    quantifiedCount: quantifiedBullets.length,
+    quantifiedRatio: allBullets.length > 0 ? quantifiedBullets.length / allBullets.length : 0,
+    actionVerbRatio: allBullets.length > 0 ? actionVerbBullets.length / allBullets.length : 0,
+    jobTitles,
+    hasDates,
+    companies,
+    techInExperience: techInExp,
+    weakBullets: weakVerbBullets.slice(0, 3),
+    strongBullets: quantifiedBullets.slice(0, 3)
+  };
+}
+
+/* ============================================================
+   3. PROJECTS ANALYSIS (15 Points)
+   ============================================================ */
+function isProjectHeaderLine(line) {
+  const trimmed = line.trim();
+  if (!trimmed) return false;
+
+  if (/^[•\-\*►▸▪]/.test(trimmed)) return false;
+
+  if (/^(?:project\s*#?\d*[:\-–]|featured\s*project|key\s*project|\d+[\.\)]\s+)/i.test(trimmed)) {
+    return true;
+  }
+
+  if (/^(made|created|built|developed|worked|implemented|designed|engineered|assisted|helped|used|utilized|participated|this|the|it|an?|we|i|in\s*this|my|our|as\s*part|responsibilities|description|technologies|tools|languages|skills):\s*/i.test(trimmed)) {
+    return false;
+  }
+
+  if (/\.\s*$/.test(trimmed) && !/\.(io|com|app|dev|me|net|org|site)\b/i.test(trimmed)) {
+    return false;
+  }
+
+  if (trimmed.length < 150 && (trimmed.includes('|') || trimmed.includes('–') || /github\.com|demo|\.app|\.io|\.dev/i.test(trimmed))) {
+    return true;
+  }
+
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  if (words.length <= 7 && trimmed.length <= 60) {
+    if (/\b(project|web\s*app|application|app|dashboard|calculator|tracker|analyzer|platform|portal|utility|system|engine|bot|clone|tool|store|site|service|hub|finder|game)\b/i.test(trimmed)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function analyzeProjects(text, sectionContent) {
+  let projText = (sectionContent.projects || '').trim();
+  if (!projText && sectionContent.experience && /project/i.test(sectionContent.experience)) {
+    projText = sectionContent.experience;
+  }
+
+  if (!projText) {
+    return {
+      found: false,
+      score: 0,
+      max: 15,
+      count: 0,
+      details: [],
+      hasGithubLinks: false,
+      hasDemoLinks: false,
+      techCount: 0
+    };
+  }
+
+  const lines = projText.split('\n').map(l => l.trim()).filter(Boolean);
+  const projectDetails = [];
+  let currentProject = null;
+
+  const DEPTH_KEYWORDS = [
+    'validation', 'authentication', 'jwt', 'oauth', 'state management', 'crud',
+    'responsive', 'algorithm', 'error handling', 'caching', 'async', 'real-time',
+    'optimization', 'database', 'deployment', 'integration', 'pipeline',
+    'security', 'encryption', 'components', 'websocket', 'redis', 'pagination',
+    'filtering', 'microservices', 'graphql', 'rest api', 'dom updates', 'indexeddb',
+    'sub-100ms', 'latency', 'unit tests', 'dockerized', 'ci/cd', 'ast parsing'
+  ];
+
+  lines.forEach(line => {
+    if (isProjectHeaderLine(line)) {
+      if (currentProject) {
+        projectDetails.push(evaluateProjectSubstance(currentProject, DEPTH_KEYWORDS));
+      }
+      currentProject = {
+        name: line.replace(/\|.*$/, '').trim(),
+        textLines: [line],
+        hasTech: extractSkills(line).all.length > 0,
+        hasGithub: /github\.com/i.test(line),
+        hasDemo: /demo|live|vercel|netlify|\.app|\.io/i.test(line),
+        hasMetrics: /\d+%|\d+\+|\d+x|\$\d+|\d+\s*(users|runs|accuracy|queries|tests|ms|rps)/i.test(line)
+      };
+    } else if (currentProject) {
+      currentProject.textLines.push(line);
+      if (extractSkills(line).all.length > 0) currentProject.hasTech = true;
+      if (/github\.com/i.test(line)) currentProject.hasGithub = true;
+      if (/demo|live|deploy|vercel|netlify|\.app|\.io|http/i.test(line)) currentProject.hasDemo = true;
+      if (/\d+%|\d+\+|\d+x|\$\d+|\d+\s*(users|runs|accuracy|queries|tests|ms|rps)/i.test(line)) currentProject.hasMetrics = true;
+    }
+  });
+
+  if (currentProject) {
+    projectDetails.push(evaluateProjectSubstance(currentProject, DEPTH_KEYWORDS));
+  }
+
+  if (projectDetails.length === 0 && lines.length > 0) {
+    projectDetails.push(evaluateProjectSubstance({
+      name: 'Featured Project',
+      textLines: lines,
+      hasTech: extractSkills(projText).all.length > 0,
+      hasGithub: /github\.com/i.test(projText),
+      hasDemo: /demo|live|vercel|netlify/i.test(projText),
+      hasMetrics: /\d+%|\d+\+/.test(projText)
+    }, DEPTH_KEYWORDS));
+  }
+
+  const hasGithubLinks = projectDetails.some(p => p.hasGithub) || /github\.com/i.test(projText) || /github\.com/i.test(text);
+  const hasDemoLinks = projectDetails.some(p => p.hasDemo) || /demo|live|vercel|netlify/i.test(projText);
+  const totalTech = extractSkills(projText).all.length;
+
+  let totalProjectScore = 0;
+  projectDetails.slice(0, 3).forEach(p => {
+    totalProjectScore += p.score;
+  });
+
+  let finalScore = Math.min(Math.round(totalProjectScore), 15);
+
+  return {
+    found: true,
+    score: finalScore,
+    max: 15,
+    count: projectDetails.length,
+    details: projectDetails,
+    techCount: totalTech,
+    hasGithubLinks,
+    hasDemoLinks
+  };
+}
+
+function evaluateProjectSubstance(proj, depthKeywords) {
+  const fullText = proj.textLines.join(' ');
+  const words = fullText.split(/\s+/).filter(Boolean);
+  const wordCount = words.length;
+
+  let depthScore = 0.5;
+  if (wordCount >= 30) depthScore = 1.5;
+  else if (wordCount >= 15) depthScore = 1.0;
+
+  const matchedDepthKeywords = depthKeywords.filter(k => fullText.toLowerCase().includes(k));
+  let techDepthScore = 0;
+  if (matchedDepthKeywords.length >= 3) techDepthScore = 1.8;
+  else if (matchedDepthKeywords.length >= 1) techDepthScore = 1.0;
+
+  const firstWords = proj.textLines.map(l => l.replace(/^[•\-\*►▸▪]\s*/, '').split(/\s+/)[0].toLowerCase().replace(/[^a-z]/g, ''));
+  const hasStrongVerb = firstWords.some(w => ACTION_VERBS.includes(w));
+  const hasWeakVerb = firstWords.some(w => WEAK_VERBS.includes(w)) || /^(made|created a simple|it was a simple)/i.test(fullText);
+
+  let verbScore = 0.2;
+  if (hasStrongVerb) verbScore = 1.0;
+  else if (hasWeakVerb) verbScore = 0.1;
+
+  let bonusScore = 0;
+  if (proj.hasMetrics) bonusScore += 0.8;
+  if (proj.hasGithub) bonusScore += 0.6;
+  if (proj.hasDemo) bonusScore += 0.5;
+
+  let projectScore = depthScore + techDepthScore + verbScore + bonusScore;
+  if (wordCount < 15 && matchedDepthKeywords.length === 0) {
+    projectScore = Math.min(projectScore, 1.2);
+  }
+
+  projectScore = Math.min(projectScore, 5);
+
+  return {
+    name: proj.name,
+    textLines: proj.textLines || [],
+    score: projectScore,
+    hasTech: proj.hasTech,
+    hasDescription: wordCount >= 10,
+    hasGithub: proj.hasGithub,
+    hasDemo: proj.hasDemo,
+    hasImpact: proj.hasMetrics,
+    matchedDepthKeywords,
+    wordCount,
+    isWeak: wordCount < 15 && matchedDepthKeywords.length === 0
+  };
+}
+
+/* ============================================================
+   4. EDUCATION ANALYSIS (5 Points)
+   ============================================================ */
+function analyzeEducation(text, parsedSections) {
+  const eduText = (parsedSections.sectionContent.education || '').trim();
+  const hasSection = Boolean(parsedSections.detected.education);
+
+  if (!hasSection && !/\b(b\.?tech|bachelor|master|m\.?tech|university|college|gpa)\b/i.test(text)) {
+    return { exists: false, score: 0, max: 5, details: {} };
+  }
+
+  const searchScope = (eduText || text).toLowerCase();
+
+  const degreeMatch = searchScope.match(/\b(b\.?tech|b\.?e\.?|b\.?s\.?|b\.?c\.?a\.?|m\.?tech|m\.?s\.?|m\.?c\.?a\.?|m\.?b\.?a\.?|ph\.?d|bachelor(?:'s)?|master(?:'s)?|diploma|associate|doctor)\b/i);
+  const hasDegree = Boolean(degreeMatch);
+
+  const instMatch = searchScope.match(/\b(university|institute|college|school|academy|polytechnic|iit|nit|iiit|bits)\b/i);
+  const hasInstitution = Boolean(instMatch);
+
+  const majorMatch = searchScope.match(/\b(computer\s*science|information\s*technology|software\s*engineering|electrical|electronics|data\s*science|mechanical|artificial\s*intelligence)\b/i);
+  const hasMajor = Boolean(majorMatch);
+
+  const gpaMatch = searchScope.match(/\b(cgpa|gpa|percentage|grade|honors|\d\.\d{1,2}\/\d|\d{2}%)\b/i);
+  const hasAcademicDetails = Boolean(gpaMatch);
+
+  let score = 1;
+  if (hasDegree) score += 1;
+  if (hasInstitution) score += 1;
+  if (hasMajor) score += 1;
+  if (hasAcademicDetails) score += 1;
+
+  score = Math.min(Math.max(score, 1), 5);
+
+  return {
+    exists: true,
+    score,
+    max: 5,
+    hasDegree,
+    hasInstitution,
+    hasMajor,
+    hasAcademicDetails,
+    degree: degreeMatch ? degreeMatch[0] : null,
+    institution: instMatch ? instMatch[0] : null
+  };
+}
+
+/* ============================================================
+   5. CERTIFICATIONS ANALYSIS (5 Points)
+   ============================================================ */
+function analyzeCertifications(text, parsedSections) {
+  const certText = (parsedSections.sectionContent.certifications || '').trim();
+  const hasSection = Boolean(parsedSections.detected.certifications && certText.length >= 10);
+
+  if (!hasSection) {
+    return { exists: false, score: 0, max: 5, certsCount: 0, verifiedCount: 0 };
+  }
+
+  const lines = certText.split('\n').map(l => l.trim()).filter(Boolean);
+  const certLower = certText.toLowerCase();
+
+  const detectedIssuers = KNOWN_CERT_ISSUERS.filter(iss => certLower.includes(iss));
+  const hasRecognizedIssuer = detectedIssuers.length > 0;
+
+  const specificCertPattern = /\b(aws\s*certified|google\s*(cloud|data|cybersecurity)|microsoft\s*certified|azure|meta\s*front-end|certified\s*kubernetes|ckad|cka|comptia|oracle\s*certified|cisco\s*certified|ccna|developer\s*certificate|solutions\s*architect)\b/i;
+  const hasSpecificCert = specificCertPattern.test(certLower);
+
+  const isPurelyGeneric = /^(online\s*course\s*certificate|computer\s*certificate|course\s*certificate|certificate\s*of\s*completion)$/i.test(certText) ||
+    (lines.length <= 2 && /^(online|computer)\s*certificate$/i.test(lines[0]) && !hasRecognizedIssuer);
+
+  const hasDatesOrIds = /\b(20\d{2}|credential|id:|license|\.org|\.com|verify)\b/i.test(certLower);
+
+  let score = 1;
+  if (isPurelyGeneric) {
+    score = 1;
+  } else {
+    if (hasRecognizedIssuer) score += 1;
+    if (hasSpecificCert) score += 1.5;
+    if (hasDatesOrIds) score += 0.5;
+    if (lines.length >= 2 && hasSpecificCert) score += 1;
+  }
+
+  score = Math.min(Math.max(Math.round(score), 1), 5);
+
+  return {
+    exists: true,
+    score,
+    max: 5,
+    certsCount: lines.length,
+    hasRecognizedIssuer,
+    hasSpecificCert,
+    isPurelyGeneric,
+    detectedIssuers
+  };
+}
+
+/* ============================================================
+   6. ACHIEVEMENTS ANALYSIS (5 Points)
+   ============================================================ */
+function analyzeAchievements(text, parsedSections) {
+  const achText = (parsedSections.sectionContent.achievements || '').trim();
+  const hasSection = Boolean(parsedSections.detected.achievements && achText.length >= 10);
+
+  if (!hasSection) {
+    return { exists: false, score: 0, max: 5, isGeneric: false, achievementsList: [] };
+  }
+
+  const achLower = achText.toLowerCase();
+
+  const matchedKeywords = KNOWN_ACHIEVEMENT_KEYWORDS.filter(kw => achLower.includes(kw));
+  const hasMetrics = /\b(\d+\/\d+|\d+(?:st|nd|rd|th)\s*place|rank\s*#?\d+|rating\s*#?\d+|\$\d+|top\s*\d+%|stars?)\b/i.test(achLower);
+
+  const isGeneric = (matchedKeywords.length === 0 && !hasMetrics) ||
+    /^(participated\s*in\s*college\s*events|participated\s*in\s*coding\s*activities|good\s*learner|active\s*member)\.?$/i.test(achText.trim());
+
+  let score = 1;
+  if (isGeneric) {
+    score = 1;
+  } else {
+    if (matchedKeywords.length >= 2 || (matchedKeywords.length >= 1 && hasMetrics)) {
+      score += 2.5;
+    } else if (matchedKeywords.length === 1) {
+      score += 1.5;
+    }
+    if (hasMetrics) score += 1.5;
+  }
+
+  score = Math.min(Math.max(Math.round(score), 1), 5);
+
+  return {
+    exists: true,
+    score,
+    max: 5,
+    isGeneric,
+    matchedKeywords,
+    hasMetrics
+  };
+}
+
+/* ============================================================
+   7. CONTENT QUALITY ANALYSIS (10 Points)
+   ============================================================ */
+function analyzeContentQuality(text, experienceAnalysis, projectsAnalysis) {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const words = text.toLowerCase().split(/\s+/).filter(Boolean);
+  const wordCount = words.length;
+
+  const issues = [];
+
+  const allBullets = lines.filter(l => /^[•\-\*►▸▪]/.test(l) || (l.length > 25 && /^[A-Z]/.test(l)));
   const actionVerbCount = allBullets.filter(b => {
     const clean = b.replace(/^[•\-\*►▸▪]\s*/, '').trim();
     const firstWord = clean.split(/\s+/)[0].toLowerCase().replace(/[^a-z]/g, '');
     return ACTION_VERBS.includes(firstWord);
   }).length;
 
-  const weakVerbCount = allBullets.filter(b => {
-    const lower = b.toLowerCase();
-    return WEAK_VERBS.some(wv => lower.startsWith(wv) || lower.includes(` ${wv} `));
-  }).length;
+  const weakVerbsFound = WEAK_VERBS.filter(wv => text.toLowerCase().includes(wv));
+  const vagueFound = VAGUE_PHRASES.filter(vp => text.toLowerCase().includes(vp));
 
-  // Quantified bullets (contain numbers, %, ms, +, latency, metrics, streaks)
-  const quantifiedBullets = allBullets.filter(b =>
-    /\d+%|\d+\+|\d+x|\$\d+|\d+\s*(users|customers|clients|projects|teams|members|hours|days|weeks|months|ms|rps|gb|tb|mb|runs|queries|tools|tests|modes|streak|interactions|challenges|accuracy|problems|lighthouse)/i.test(b) ||
-    /\b(sub-?\d+ms|\d+\/\d+|\d+(\.\d+)?%|\d+\+|\d+x|\$\d+|\d+\s*day\s*streak|\d+\s*modes|\d+\s*tools|\d+\s*interactions)\b/i.test(b)
-  );
+  const metricsMatches = text.match(/\d+%|\d+\+|\d+x|\$\d+|\d+\s*(users|customers|clients|projects|teams|hours|days|ms|rps|gb|tb|mb|queries|tests|accuracy)/gi) || [];
+  const metricsCount = metricsMatches.length;
 
-  // Detect job titles / project roles
-  const titlePatterns = /\b(software\s*engineer|developer|intern|manager|lead|architect|designer|analyst|consultant|administrator|coordinator|director|specialist|associate|fellow|trainee|full\s*stack|frontend|front-end|backend|back-end|data\s*scientist|devops|sre|qa|tester|researcher|creator|author)\b/gi;
-  const jobTitles = [...new Set((expText.match(titlePatterns) || []).map(t => t.trim()))];
+  const firstPersonMatches = text.match(/\b(I|my|me|myself|we|our)\b/gi) || [];
+  const firstPersonCount = firstPersonMatches.length;
 
-  // Detect company names / dates
-  const datePattern = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|january|february|march|april|june|july|august|september|october|november|december|\d{4})\s*(\.?|-|–|to)\s*(\d{4}|present|current)\b/gi;
-  const hasDates = datePattern.test(expText) || datePattern.test(text);
+  let score = 0;
 
-  const techInExp = extractSkills(expText);
+  // Action Verbs (up to 3 pts)
+  const actionRatio = allBullets.length > 0 ? (actionVerbCount / allBullets.length) : 0;
+  if (actionRatio >= 0.5 || actionVerbCount >= 4) score += 3;
+  else if (actionRatio >= 0.25 || actionVerbCount >= 2) score += 2;
+  else if (actionVerbCount >= 1) score += 1;
 
-  return {
-    totalBullets: allBullets.length,
-    actionVerbCount,
-    weakVerbCount,
-    quantifiedCount: quantifiedBullets.length,
-    quantifiedRatio: allBullets.length > 0 ? quantifiedBullets.length / allBullets.length : 0,
-    actionVerbRatio: allBullets.length > 0 ? actionVerbCount / allBullets.length : 0,
-    jobTitles,
-    hasDates,
-    techInExperience: techInExp.all,
-    weakBullets: allBullets.filter(b => {
-      const lower = b.toLowerCase();
-      return WEAK_VERBS.some(wv => lower.includes(wv));
-    }).slice(0, 3),
-    strongBullets: allBullets.filter(b => {
-      const clean = b.replace(/^[•\-\*►▸▪]\s*/, '').trim();
-      const firstWord = clean.split(/\s+/)[0].toLowerCase().replace(/[^a-z]/g, '');
-      return ACTION_VERBS.includes(firstWord) && /\d/.test(b);
-    }).slice(0, 3)
-  };
-}
+  // Quantifiable Metrics (up to 2.5 pts)
+  if (metricsCount >= 3) score += 2.5;
+  else if (metricsCount >= 1) score += 1.5;
 
-/* ============================================================
-   PROJECTS ANALYSIS
-   ============================================================ */
-function analyzeProjects(text, sectionContent) {
-  let projText = sectionContent.projects || '';
-  if (!projText.trim() && sectionContent.experience) {
-    projText = sectionContent.experience;
-  }
-  if (!projText.trim()) return { found: false, count: 0, details: [], hasGithubLinks: false, hasDemoLinks: false, techCount: 0 };
+  // Vague Phrases Penalty (up to 2 pts)
+  if (vagueFound.length === 0) score += 2;
+  else if (vagueFound.length === 1) score += 1;
 
-  const lines = projText.split('\n').map(l => l.trim()).filter(Boolean);
+  // First-Person Pronouns Penalty (up to 1.5 pts)
+  if (firstPersonCount <= 1) score += 1.5;
+  else if (firstPersonCount <= 3) score += 0.5;
 
-  let projectCount = 0;
-  const projectDetails = [];
-  let currentProject = null;
+  // Word Count Depth (up to 1 pt)
+  if (wordCount >= 250 && wordCount <= 850) score += 1;
+  else if (wordCount >= 150 && wordCount <= 1100) score += 0.5;
 
-  lines.forEach(line => {
-    const isBullet = /^[•\-\*►▸▪]/.test(line);
-    const hasProjectKeywords = /^(project|soniqx|northpeak|chatbot|web utility|audiometer|devpilot)/i.test(line) ||
-      (!isBullet && line.length < 80 && !/^(responsibilities|description|technologies|tools):/i.test(line) && (extractSkills(line).all.length >= 1 || /github\.com/i.test(line) || line.includes('–') || line.includes('-') || line.includes('|')));
+  score = Math.min(Math.max(Math.round(score), 0), 10);
 
-    if (!isBullet && hasProjectKeywords && line.length < 90) {
-      if (currentProject) projectDetails.push(currentProject);
-      currentProject = {
-        name: line.replace(/\|.*$/, '').trim(),
-        hasTech: extractSkills(line).all.length > 0,
-        hasDescription: false,
-        hasGithub: /github\.com/i.test(line),
-        hasDemo: /demo|live|vercel|netlify|\.app/i.test(line),
-        hasImpact: /\d+%|\d+\+|\d+x|\$\d+|\d+\s*(users|runs|accuracy|queries|tools|tests)/i.test(line)
-      };
-      projectCount++;
-    } else if (currentProject) {
-      if (extractSkills(line).all.length >= 1 || /technolog|tech\s*stack|built\s*with|using/i.test(line)) {
-        currentProject.hasTech = true;
-      }
-      if (line.length > 25) currentProject.hasDescription = true;
-      if (/github\.com/i.test(line)) currentProject.hasGithub = true;
-      if (/demo|live|deploy|hosted|vercel|netlify|\.app|\.io|http/i.test(line)) currentProject.hasDemo = true;
-      if (/\d+%|\d+\+|\d+x|\$\d+|\d+\s*(users|runs|accuracy|queries|tools|clients|tests|ms|downloads)/i.test(line)) {
-        currentProject.hasImpact = true;
-      }
-    }
-  });
-  if (currentProject) projectDetails.push(currentProject);
-
-  const techInProjects = extractSkills(projText);
-  const hasGithubLinks = /github\.com/i.test(projText) || /github\.com/i.test(text);
-  const hasDemoLinks = /demo|live|deploy|hosted|vercel|netlify|\.app|\.io/i.test(projText) || /demo/i.test(text);
-
-  return {
-    found: true,
-    count: Math.max(projectCount, projectDetails.length, 1),
-    details: projectDetails,
-    techCount: techInProjects.all.length,
-    hasGithubLinks,
-    hasDemoLinks
-  };
-}
-
-/* ============================================================
-   CONTENT QUALITY ANALYSIS
-   ============================================================ */
-function analyzeContentQuality(text) {
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-  const issues = [];
-
-  // Check for overly long paragraphs:
-  // Flag unbulleted blocks with > 40 words or multi-sentence non-bullet text.
-  // Exclude header lines (first 5 lines with contact info)
-  const contentLines = lines.slice(4);
-  const longParagraphs = [];
-
-  contentLines.forEach(l => {
-    const isBullet = /^[•\-\*►▸▪]/.test(l);
-    const wordCount = l.split(/\s+/).length;
-    if (!isBullet && wordCount > 40 && !/^(summary|experience|skills|education|projects|certifications):/i.test(l)) {
-      longParagraphs.push(l);
-    } else if (isBullet && wordCount > 65) {
-      longParagraphs.push(l);
-    }
-  });
-
-  if (longParagraphs.length > 0) {
+  if (vagueFound.length > 0) {
     issues.push({
       type: 'warning',
-      message: `${longParagraphs.length} overly long paragraph(s) (>40 words) detected. Consider breaking into concise bullet points.`
+      message: `Vague / cliché phrases detected: "${vagueFound.slice(0, 3).join('", "')}". Replace with specific technical accomplishments.`
+    });
+  }
+  if (firstPersonCount > 3) {
+    issues.push({
+      type: 'warning',
+      message: `Excessive first-person language detected (${firstPersonCount} instances). ATS resumes should use implied first-person action verbs.`
+    });
+  }
+  if (metricsCount === 0) {
+    issues.push({
+      type: 'warning',
+      message: `No quantifiable metrics detected. Add measurable results (e.g. "improved speed by 35%", "serving 500+ users") where applicable.`
+    });
+  }
+  if (wordCount < 180) {
+    issues.push({
+      type: 'warning',
+      message: `Resume content is very brief (${wordCount} words). Elaborate on project architectures and technical responsibilities.`
     });
   }
 
-  // Check for excessive first-person
-  const firstPersonCount = (text.match(/\bI\s+\b/gi) || []).length + (text.match(/\bmy\b/gi) || []).length;
-  if (firstPersonCount > 5) {
-    issues.push({ type: 'warning', message: `Excessive first-person language detected (${firstPersonCount} instances). Consider using implied first-person.` });
-  }
-
-  // Check for vague phrases
-  const vagueFound = VAGUE_PHRASES.filter(vp => text.toLowerCase().includes(vp));
-  if (vagueFound.length > 0) {
-    issues.push({ type: 'warning', message: `Vague/cliché phrases detected: "${vagueFound.slice(0, 3).join('", "')}". Replace with specific accomplishments.` });
-  }
-
-  // Word count
-  const words = text.toLowerCase().split(/\s+/);
-  const wordCount = words.length;
-  if (wordCount < 100) {
-    issues.push({ type: 'warning', message: `Resume is very short (${wordCount} words). Aim for at least 300-600 words for a comprehensive resume.` });
-  } else if (wordCount > 1500) {
-    issues.push({ type: 'info', message: `Resume is quite long (${wordCount} words). Keeping to 1-2 pages is recommended.` });
-  }
-
-  const weakVerbsFound = WEAK_VERBS.filter(wv => text.toLowerCase().includes(wv));
-
   return {
+    score,
+    max: 10,
     wordCount,
-    issues,
+    actionVerbCount,
+    metricsCount,
+    firstPersonCount,
     vagueFound,
     weakVerbsFound,
-    firstPersonCount,
-    longParagraphCount: longParagraphs.length
+    issues
   };
 }
 
 /* ============================================================
-   ATS FORMATTING ANALYSIS
+   8. ATS COMPATIBILITY ANALYSIS (10 Points)
    ============================================================ */
 function analyzeATSFormatting(text, parsedSections) {
   const checks = [];
+  let formatScore = 0;
 
-  // 1. Standard section headers present
-  const hasSections = Object.keys(parsedSections.detected).length >= 3;
+  // 1. Standard Section Headers (up to 2.5 pts)
+  const detectedCount = Object.keys(parsedSections.detected).length;
+  const hasStandardHeaders = detectedCount >= 4;
+  if (hasStandardHeaders) formatScore += 2.5;
+  else if (detectedCount >= 2) formatScore += 1.5;
+
   checks.push({
     label: 'Standard section headers detected',
-    pass: hasSections,
-    detail: hasSections ? `${Object.keys(parsedSections.detected).length} standard sections found` : 'Fewer than 3 recognizable sections found'
+    pass: hasStandardHeaders,
+    detail: hasStandardHeaders ? `${detectedCount} recognizable standard sections found` : `Only ${detectedCount} standard section headings found`
   });
 
-  // 2. No excessive special characters
-  const specialChars = (text.match(/[★☆◆◇▶▷♦♣♠♥●○◎□■△▽☐☑✓✗✘✔✕✖⬡⬢⬣]/g) || []).length;
-  checks.push({
-    label: 'No excessive decorative characters',
-    pass: specialChars < 5,
-    detail: specialChars < 5 ? 'Clean text formatting' : `${specialChars} decorative symbols detected — ATS may not parse these`
-  });
-
-  // 3. Consistent text flow (no broken words/garbled text)
+  // 2. Clean Text Extraction & Flow (up to 2 pts)
   const garbledPatterns = (text.match(/[^\x00-\x7F]{3,}/g) || []).length;
-  const shortFragments = text.split(/\s+/).filter(w => w.length === 1 && !/[aIi&|•\-]/.test(w)).length;
-  const cleanFlow = garbledPatterns < 3 && shortFragments < text.split(/\s+/).length * 0.1;
+  const cleanFlow = garbledPatterns < 3;
+  if (cleanFlow) formatScore += 2;
+
   checks.push({
-    label: 'Clean text extraction / reading order',
+    label: 'Clean text extraction & encoding',
     pass: cleanFlow,
-    detail: cleanFlow ? 'Text extracts cleanly' : 'Some text extraction issues detected — may indicate complex formatting'
+    detail: cleanFlow ? 'Text extracted cleanly without character encoding issues' : 'Some non-standard encoding detected — ATS parsers may misread text'
   });
 
-  // 4. No excessive use of tables/columns (heuristic: many short lines clustered)
-  const shortLines = text.split('\n').filter(l => l.trim().length > 0 && l.trim().length < 15);
-  const lineCount = text.split('\n').filter(l => l.trim().length > 0).length;
-  const shortLineRatio = lineCount > 0 ? shortLines.length / lineCount : 0;
+  // 3. Layout & Reading Flow (Single Consistent Check) (up to 2 pts)
+  const tabOrColumnSpacings = (text.match(/[ \t]{8,}/g) || []).length;
+  const isMultiColumnLayout = tabOrColumnSpacings > 10;
+  const isCleanSingleColumn = !isMultiColumnLayout;
+
+  if (isCleanSingleColumn) {
+    formatScore += 2;
+    checks.push({
+      label: 'Single-column text layout',
+      pass: true,
+      detail: 'Clean linear reading order detected for ATS parsers'
+    });
+  } else {
+    formatScore += 0.5;
+    checks.push({
+      label: 'Complex layout detected',
+      pass: false,
+      detail: 'Multiple text regions or column structures may affect ATS reading order'
+    });
+  }
+
+  // 4. No Decorative / Unparseable Characters (up to 1 pt)
+  const specialChars = (text.match(/[★☆◆◇▶▷♦♣♠♥●○◎□■△▽☐☑✓✗✘✔✕✖⬡⬢⬣]/g) || []).length;
+  const noDecorative = specialChars < 4;
+  if (noDecorative) formatScore += 1;
+
   checks.push({
-    label: 'No complex table/column formatting',
-    pass: shortLineRatio < 0.4,
-    detail: shortLineRatio < 0.4 ? 'Layout appears ATS-compatible' : 'Many short text fragments detected — may indicate multi-column layout'
+    label: 'No excessive decorative symbols',
+    pass: noDecorative,
+    detail: noDecorative ? 'Clean formatting without unparseable symbols' : `${specialChars} decorative symbols detected — ATS may reject these`
   });
 
-  // 5. Contact info at the top
-  const firstChunk = text.substring(0, 500);
-  const hasContactTop = /@/.test(firstChunk) || /\d{3}/.test(firstChunk);
+  // 5. Contact Info Placement (up to 1.5 pts)
+  const headerChunk = text.substring(0, 450);
+  const hasContactTop = /@/.test(headerChunk) || /\d{3}/.test(headerChunk);
+  if (hasContactTop) formatScore += 1.5;
+
   checks.push({
-    label: 'Contact information near the top',
+    label: 'Contact details in header area',
     pass: hasContactTop,
-    detail: hasContactTop ? 'Contact details found in header area' : 'Contact information not detected in the first section'
+    detail: hasContactTop ? 'Contact details detected near the top of the resume' : 'Contact info not found in the initial header region'
   });
 
-  // 6. Text is selectable/searchable (we extracted it, so it's at least partially working)
+  // 6. Text Accessibility & Searchability (up to 1 pt)
+  const isSelectable = text.length >= 80;
+  if (isSelectable) formatScore += 1;
+
   checks.push({
-    label: 'Text is selectable and searchable',
-    pass: text.length > 50,
-    detail: `${text.length} characters extracted successfully`
+    label: 'Text is searchable and selectable',
+    pass: isSelectable,
+    detail: `${text.length} characters parsed successfully`
   });
 
-  // 7. No headers/footers repeated
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-  const lineFrequency = {};
-  lines.forEach(l => { if (l.length > 5) lineFrequency[l] = (lineFrequency[l] || 0) + 1; });
-  const repeatedHeaders = Object.entries(lineFrequency).filter(([_, count]) => count > 2);
-  checks.push({
-    label: 'No repeated headers or footers',
-    pass: repeatedHeaders.length === 0,
-    detail: repeatedHeaders.length === 0 ? 'No duplicate headers detected' : 'Some repeated text found — may be from headers/footers'
-  });
+  formatScore = Math.min(Math.max(Math.round(formatScore), 0), 10);
 
-  return checks;
+  return {
+    score: formatScore,
+    max: 10,
+    checks
+  };
 }
 
 /* ============================================================
-   ATS SCORING ENGINE — 100 POINTS, 8 CATEGORIES
+   TOTAL ATS SCORING ENGINE — 100 POINTS, 10 CATEGORIES
    ============================================================ */
-function calculateATSScore(text, contactInfo, parsedSections, skills, experienceAnalysis, projectsAnalysis, contentQuality, formattingChecks) {
-  const breakdown = {};
+function calculateATSScore(
+  text, contactInfo, summaryAnalysis, skills,
+  experienceAnalysis, projectsAnalysis, educationAnalysis,
+  certificationsAnalysis, achievementsAnalysis, contentQuality, formattingAnalysis,
+  jdMatchResult
+) {
+  // 1. Contact Information (10 pts)
+  let contactPts = 0;
+  if (contactInfo.name) contactPts += 1;
+  if (contactInfo.email) contactPts += 2;
+  if (contactInfo.phone) contactPts += 2;
+  if (contactInfo.location) contactPts += 1;
+  if (contactInfo.linkedin) contactPts += 1;
+  if (contactInfo.github) contactPts += 1;
+  if (contactInfo.portfolio) contactPts += 1;
+  if (contactInfo.quality) contactPts += 1;
+  contactPts = Math.min(Math.round(contactPts), 10);
 
-  // 1. Contact Information (10 points)
-  let contactScore = 0;
-  if (contactInfo.name) contactScore += 3;
-  if (contactInfo.email) contactScore += 3;
-  if (contactInfo.phone) contactScore += 2;
-  if (contactInfo.linkedin) contactScore += 1;
-  if (contactInfo.github) contactScore += 0.5;
-  if (contactInfo.location) contactScore += 0.5;
-  contactScore = Math.min(Math.round(contactScore), 10);
-  breakdown.contact = { score: contactScore, max: 10, label: 'Contact Information' };
+  // 2. Professional Summary (5 pts)
+  const summaryPts = summaryAnalysis.score;
 
-  // 2. Section Completeness (15 points)
-  let sectionScore = 0;
-  const importantSections = ['summary', 'experience', 'skills', 'education', 'projects'];
-  const optionalSections = ['certifications', 'achievements'];
+  // 3. Skills & Keywords (15 pts)
+  const totalTechSkills = skills.all.length;
+  const categoriesCovered = Object.values(skills.categorized).filter(arr => arr.length > 0).length;
 
-  importantSections.forEach(sec => {
-    if (parsedSections.detected[sec]) sectionScore += 2.5;
-  });
-  optionalSections.forEach(sec => {
-    if (parsedSections.detected[sec]) sectionScore += 1.25;
-  });
-  sectionScore = Math.min(Math.round(sectionScore), 15);
-  breakdown.sections = { score: sectionScore, max: 15, label: 'Section Completeness' };
+  let skillsPts = 0;
+  if (totalTechSkills >= 15) skillsPts = 12;
+  else if (totalTechSkills >= 11) skillsPts = 10;
+  else if (totalTechSkills >= 7) skillsPts = 7;
+  else if (totalTechSkills >= 4) skillsPts = 4.5;
+  else if (totalTechSkills >= 2) skillsPts = 2.5;
+  else if (totalTechSkills >= 1) skillsPts = 1.5;
 
-  // 3. Keywords / Skills Coverage (15 points)
-  const totalSkills = skills.all.length;
-  let keywordScore = 0;
-  if (totalSkills >= 12) keywordScore = 15;
-  else if (totalSkills >= 9) keywordScore = 13;
-  else if (totalSkills >= 6) keywordScore = 10;
-  else if (totalSkills >= 4) keywordScore = 7;
-  else if (totalSkills >= 2) keywordScore = 4;
-  else if (totalSkills >= 1) keywordScore = 2;
-  breakdown.keywords = { score: keywordScore, max: 15, label: 'Keywords & Skills' };
+  if (categoriesCovered >= 5) skillsPts += 3;
+  else if (categoriesCovered >= 3) skillsPts += 1.5;
+  else if (categoriesCovered >= 2) skillsPts += 0.5;
 
-  // 4. Experience Quality (15 points)
-  let expScore = 0;
-  if (parsedSections.detected.experience || parsedSections.detected.projects) {
-    expScore += 4;
-    if (experienceAnalysis.hasDates) expScore += 2;
-    if (experienceAnalysis.jobTitles.length > 0 || projectsAnalysis.count >= 2) expScore += 2;
-
-    // Action verb usage
-    if (experienceAnalysis.actionVerbRatio >= 0.4 || experienceAnalysis.actionVerbCount >= 3) expScore += 3;
-    else if (experienceAnalysis.actionVerbRatio >= 0.25 || experienceAnalysis.actionVerbCount >= 2) expScore += 2;
-    else if (experienceAnalysis.actionVerbCount > 0) expScore += 1;
-
-    // Quantified impact
-    if (experienceAnalysis.quantifiedRatio >= 0.3 || experienceAnalysis.quantifiedCount >= 2) expScore += 4;
-    else if (experienceAnalysis.quantifiedRatio >= 0.15 || experienceAnalysis.quantifiedCount >= 1) expScore += 3;
-    else if (experienceAnalysis.quantifiedCount > 0) expScore += 1;
+  if (jdMatchResult && jdMatchResult.totalJDKeywords > 0) {
+    const jdFactor = jdMatchResult.matchScore / 100;
+    skillsPts = Math.round(skillsPts * 0.5 + (jdFactor * 15) * 0.5);
   }
-  expScore = Math.min(expScore, 15);
-  breakdown.experience = { score: expScore, max: 15, label: 'Experience Quality' };
+  skillsPts = Math.min(Math.max(Math.round(skillsPts), 0), 15);
 
-  // 5. Projects Quality (10 points)
-  let projScore = 0;
-  if (projectsAnalysis.found || parsedSections.detected.projects || parsedSections.detected.experience) {
-    projScore += 3;
-    if (projectsAnalysis.count >= 2) projScore += 2;
-    else projScore += 1;
-    if (projectsAnalysis.techCount >= 3) projScore += 2;
-    else if (projectsAnalysis.techCount >= 1) projScore += 1;
-    if (projectsAnalysis.hasGithubLinks) projScore += 1.5;
-    if (projectsAnalysis.hasDemoLinks) projScore += 1.5;
-  }
-  projScore = Math.min(Math.round(projScore), 10);
-  breakdown.projects = { score: projScore, max: 10, label: 'Projects Quality' };
+  // 4. Experience (20 pts)
+  const experiencePts = experienceAnalysis.score;
 
-  // 6. Education & Certifications (10 points)
-  let eduScore = 0;
-  if (parsedSections.detected.education) {
-    eduScore += 5;
-    const eduText = (parsedSections.sectionContent.education || text).toLowerCase();
-    if (/\b(b\.?s\.?|b\.?a\.?|b\.?tech|m\.?tech|m\.?s\.?|m\.?a\.?|ph\.?d|bachelor|master|doctor|diploma|associate|degree|engineering)\b/.test(eduText)) {
-      eduScore += 2;
-    }
-    if (/\b(gpa|cgpa|percentage|grade|current|202\d)\b/i.test(eduText)) eduScore += 1;
-  }
-  if (parsedSections.detected.certifications || parsedSections.detected.achievements) {
-    eduScore += 2;
-  }
-  eduScore = Math.min(eduScore, 10);
-  breakdown.education = { score: eduScore, max: 10, label: 'Education & Certs' };
+  // 5. Projects Quality (15 pts)
+  const projectsPts = projectsAnalysis.score;
 
-  // 7. Content Quality (10 points)
-  let qualityScore = 5; // baseline
-  if (contentQuality.wordCount >= 250) qualityScore += 1;
-  if (contentQuality.wordCount >= 200 && contentQuality.wordCount <= 1200) qualityScore += 1;
-  if (contentQuality.vagueFound.length === 0) qualityScore += 1;
-  if (contentQuality.weakVerbsFound.length <= 1) qualityScore += 1;
-  if (contentQuality.firstPersonCount <= 3) qualityScore += 1;
-  qualityScore = Math.min(qualityScore, 10);
-  breakdown.contentQuality = { score: qualityScore, max: 10, label: 'Content Quality' };
+  // 6. Education (5 pts)
+  const educationPts = educationAnalysis.score;
 
-  // 8. ATS Formatting Safety (15 points)
-  const passedFormatChecks = formattingChecks.filter(c => c.pass).length;
-  const formatScore = Math.min(Math.round((passedFormatChecks / formattingChecks.length) * 15), 15);
-  breakdown.formatting = { score: formatScore, max: 15, label: 'ATS Formatting' };
+  // 7. Certifications (5 pts)
+  const certificationsPts = certificationsAnalysis.score;
 
-  // Total
-  const total = Object.values(breakdown).reduce((sum, cat) => sum + cat.score, 0);
+  // 8. Achievements (5 pts)
+  const achievementsPts = achievementsAnalysis.score;
+
+  // 9. Content Quality (10 pts)
+  const contentQualityPts = contentQuality.score;
+
+  // 10. ATS Formatting Safety (10 pts)
+  const formattingPts = formattingAnalysis.score;
+
+  const breakdown = {
+    contact: { score: contactPts, max: 10, label: 'Contact Information' },
+    summary: { score: summaryPts, max: 5, label: 'Professional Summary' },
+    keywords: { score: skillsPts, max: 15, label: 'Skills & Keywords' },
+    experience: { score: experiencePts, max: 20, label: 'Work Experience' },
+    projects: { score: projectsPts, max: 15, label: 'Projects Quality' },
+    education: { score: educationPts, max: 5, label: 'Education' },
+    certifications: { score: certificationsPts, max: 5, label: 'Certifications' },
+    achievements: { score: achievementsPts, max: 5, label: 'Achievements' },
+    contentQuality: { score: contentQualityPts, max: 10, label: 'Content Quality' },
+    formatting: { score: formattingPts, max: 10, label: 'ATS Compatibility' }
+  };
+
+  const total = Object.values(breakdown).reduce((sum, item) => sum + item.score, 0);
   const overall = Math.min(Math.max(Math.round(total), 0), 100);
 
   return { overall, breakdown };
@@ -1038,98 +1698,259 @@ function calculateATSScore(text, contactInfo, parsedSections, skills, experience
    SCORE INTERPRETATION
    ============================================================ */
 function getScoreInterpretation(score) {
-  if (score >= 90) return { label: 'Excellent', color: 'var(--color-success)', desc: 'Excellent ATS readiness. Your resume is well-optimized.' };
-  if (score >= 80) return { label: 'Strong', color: '#4F46E5', desc: 'Strong resume with some room for improvement.' };
-  if (score >= 70) return { label: 'Good', color: '#f59e0b', desc: 'Good foundation. Review the suggestions below to strengthen it.' };
-  if (score >= 60) return { label: 'Needs Work', color: '#f97316', desc: 'Your resume needs improvement in several areas.' };
-  return { label: 'Needs Improvement', color: 'var(--color-error)', desc: 'Major improvements recommended before submitting.' };
+  if (score >= 95) return { label: 'Excellent', color: '#059669', desc: 'Outstanding resume! Exceptional depth, metrics, structure, and keyword density.' };
+  if (score >= 85) return { label: 'Very Good', color: '#10b981', desc: 'Very strong resume. Highly optimized with strong action verbs, technical depth, and clear impact.' };
+  if (score >= 75) return { label: 'Good', color: '#4F46E5', desc: 'Good ATS readiness. Competitive for application pools with minor room for improvement.' };
+  if (score >= 60) return { label: 'Fair / Average', color: '#f59e0b', desc: 'Fair foundation. Strengthening action verbs, technical depth, and quantifiable achievements will make it competitive.' };
+  if (score >= 40) return { label: 'Needs Improvement', color: '#f97316', desc: 'Below average ATS readiness. Needs stronger project descriptions, experience depth, and technical specificity.' };
+  return { label: 'Poor', color: 'var(--color-error)', desc: 'Significant improvements needed. Resume lacks technical depth, measurable impact, or essential sections.' };
 }
 
 /* ============================================================
-   IMPROVEMENT SUGGESTIONS GENERATOR
+   JOB MATCHING & RECOMMENDATION ENGINE
    ============================================================ */
-function generateSuggestions(contactInfo, parsedSections, skills, experienceAnalysis, projectsAnalysis, contentQuality, scores) {
-  const suggestions = [];
+function calculateJobRoleMatches(resumeData) {
+  const { resumeText, skills, projectsAnalysis, experienceAnalysis, educationAnalysis } = resumeData;
+  const textLower = resumeText.toLowerCase();
+  const candidateSkillsLower = skills.all.map(s => s.toLowerCase());
 
-  // Contact
-  if (!contactInfo.email) {
-    suggestions.push({ priority: 'high', icon: 'mail', title: 'Add Email Address', desc: 'Email is essential for recruiters to contact you. Add a professional email address.' });
-  }
-  if (!contactInfo.phone) {
-    suggestions.push({ priority: 'medium', icon: 'phone', title: 'Add Phone Number', desc: 'Including a phone number makes it easier for recruiters to reach out.' });
-  }
-  if (!contactInfo.linkedin) {
-    suggestions.push({ priority: 'medium', icon: 'link', title: 'Add LinkedIn Profile', desc: 'A LinkedIn profile link helps verify your professional history and connections.' });
-  }
-  if (!contactInfo.github) {
-    suggestions.push({ priority: 'low', icon: 'code', title: 'Add GitHub Profile', desc: 'Consider adding a GitHub profile to showcase your open-source contributions and code quality.' });
-  }
+  const hasGit = candidateSkillsLower.includes('git') || candidateSkillsLower.includes('github') || candidateSkillsLower.includes('github actions');
+  const hasDocker = candidateSkillsLower.includes('docker') || candidateSkillsLower.includes('kubernetes');
 
-  // Sections
-  if (!parsedSections.detected.summary) {
-    suggestions.push({ priority: 'high', icon: 'chat_bubble', title: 'Add Professional Summary', desc: 'A 2-3 sentence summary highlighting your key skills and experience can grab attention immediately.' });
-  }
-  if (!parsedSections.detected.skills) {
-    suggestions.push({ priority: 'high', icon: 'code', title: 'Add Technical Skills Section', desc: 'A dedicated skills section helps ATS systems match keywords from job descriptions.' });
-  }
-  if (!parsedSections.detected.projects && !parsedSections.detected.experience) {
-    suggestions.push({ priority: 'high', icon: 'rocket_launch', title: 'Add Projects or Experience', desc: 'Include at least a Projects or Experience section to demonstrate your abilities.' });
-  }
+  const roleMatches = [];
 
-  // Experience
-  if (experienceAnalysis.weakBullets.length > 0) {
-    const example = experienceAnalysis.weakBullets[0].replace(/^[•\-\*►▸▪]\s*/, '').substring(0, 80);
-    suggestions.push({
-      priority: 'high', icon: 'edit', title: 'Strengthen Experience Bullets',
-      desc: 'Some bullets describe responsibilities without measurable impact. Use: Action Verb + Technology + Result.',
-      before: example.length > 10 ? example : null,
-      after: example.length > 10 ? `Consider: "Developed [specific feature] using [technology], resulting in [measurable outcome]"` : null
+  JOB_ROLES_DB.forEach(role => {
+    // 1. Skills Match Factor (35%)
+    let essentialMatched = 0;
+    const haveSkills = [];
+    const missingEssential = [];
+    const missingImportant = [];
+    const missingBonus = [];
+
+    role.essentialSkills.forEach(req => {
+      let isPresent = candidateSkillsLower.includes(req.toLowerCase()) || matchSkillExact(req.toLowerCase(), textLower, resumeText);
+      if (!isPresent && req === 'Git' && hasGit) isPresent = true;
+      if (!isPresent && req === 'Docker' && hasDocker) isPresent = true;
+
+      if (isPresent) {
+        essentialMatched++;
+        if (!haveSkills.includes(req)) haveSkills.push(req);
+      } else {
+        missingEssential.push(req);
+      }
     });
-  }
-  if (experienceAnalysis.quantifiedRatio < 0.3 && experienceAnalysis.totalBullets > 0) {
-    suggestions.push({
-      priority: 'high', icon: 'bar_chart', title: 'Add Measurable Impact',
-      desc: `Only ${Math.round(experienceAnalysis.quantifiedRatio * 100)}% of bullets include metrics. Add numbers where you have real data (e.g., "Reduced load time by 40%").`
+
+    let importantMatched = 0;
+    role.importantSkills.forEach(imp => {
+      let isPresent = candidateSkillsLower.includes(imp.toLowerCase()) || matchSkillExact(imp.toLowerCase(), textLower, resumeText);
+      if (!isPresent && imp === 'Git' && hasGit) isPresent = true;
+      if (!isPresent && imp === 'Docker' && hasDocker) isPresent = true;
+
+      if (isPresent) {
+        importantMatched++;
+        if (!haveSkills.includes(imp)) haveSkills.push(imp);
+      } else {
+        missingImportant.push(imp);
+      }
     });
-  }
 
-  // Skills
-  if (skills.all.length < 5) {
-    suggestions.push({ priority: 'medium', icon: 'psychology', title: 'Expand Skills Section', desc: `Only ${skills.all.length} technical skills detected. Consider listing all relevant technologies, frameworks, and tools you work with.` });
-  }
-
-  // Content quality
-  if (contentQuality.vagueFound.length > 0) {
-    suggestions.push({
-      priority: 'medium', icon: 'find_replace', title: 'Remove Vague Phrases',
-      desc: `Phrases like "${contentQuality.vagueFound[0]}" are generic. Replace with specific accomplishments and technologies.`,
-      before: contentQuality.vagueFound[0],
-      after: 'Replace with specific skills, technologies, or measurable outcomes'
+    let bonusMatched = 0;
+    role.bonusSkills.forEach(bon => {
+      let isPresent = candidateSkillsLower.includes(bon.toLowerCase()) || matchSkillExact(bon.toLowerCase(), textLower, resumeText);
+      if (isPresent) {
+        bonusMatched++;
+        if (!haveSkills.includes(bon)) haveSkills.push(bon);
+      } else {
+        missingBonus.push(bon);
+      }
     });
-  }
-  if (contentQuality.firstPersonCount > 5) {
-    suggestions.push({ priority: 'low', icon: 'person', title: 'Reduce First-Person Language', desc: 'Resumes typically use implied first-person. Instead of "I built...", write "Built..."' });
-  }
 
-  // Projects
-  if (projectsAnalysis.found && !projectsAnalysis.hasGithubLinks) {
-    suggestions.push({ priority: 'medium', icon: 'link', title: 'Add GitHub Links to Projects', desc: 'Including GitHub repository links helps recruiters and ATS verify your project work.' });
-  }
+    const essentialRatio = role.essentialSkills.length > 0 ? (essentialMatched / role.essentialSkills.length) : 1;
+    const importantRatio = role.importantSkills.length > 0 ? (importantMatched / Math.min(role.importantSkills.length, 3)) : 0;
+    const bonusRatio = role.bonusSkills.length > 0 ? (bonusMatched / Math.min(role.bonusSkills.length, 2)) : 0;
 
-  return suggestions;
+    const skillsScore = (essentialRatio * 20) + (Math.min(importantRatio, 1) * 10) + (Math.min(bonusRatio, 1) * 5);
+
+    // 2. Project Relevance Factor (20%)
+    let projectScore = 0;
+    if (projectsAnalysis.found && projectsAnalysis.count > 0) {
+      let matchedProjectKeywords = 0;
+      role.projectKeywords.forEach(pk => {
+        if (textLower.includes(pk.toLowerCase())) matchedProjectKeywords++;
+      });
+      let projectTechMatched = 0;
+      haveSkills.forEach(hs => {
+        if (projectsAnalysis.details.some(p => (p.textLines || []).some(l => l.toLowerCase().includes(hs.toLowerCase())))) {
+          projectTechMatched++;
+        }
+      });
+      projectScore = Math.min((matchedProjectKeywords * 3.5) + (projectTechMatched * 4) + (projectsAnalysis.count >= 2 ? 4 : 2), 20);
+    }
+
+    // 3. Experience Relevance Factor (15%)
+    let expScore = 0;
+    if (experienceAnalysis.hasExperience && !experienceAnalysis.isFresher) {
+      let matchedTitles = 0;
+      experienceAnalysis.jobTitles.forEach(t => {
+        if (role.domainKeywords.some(dk => t.toLowerCase().includes(dk))) matchedTitles++;
+      });
+      let expTechMatched = 0;
+      haveSkills.forEach(hs => {
+        if (experienceAnalysis.techInExperience.some(te => te.toLowerCase() === hs.toLowerCase())) expTechMatched++;
+      });
+      expScore = Math.min((matchedTitles * 6) + (expTechMatched * 3.5) + (experienceAnalysis.totalBullets >= 2 ? 4 : 2), 15);
+    } else {
+      // Fresher: Evaluates project depth and technical execution for entry-level suitability
+      expScore = Math.min(Math.round(projectScore * 0.7), 13);
+    }
+
+    // 4. Education Relevance Factor (10%)
+    let eduScore = 5;
+    if (educationAnalysis.exists) {
+      if (educationAnalysis.hasMajor) eduScore = 10;
+      else if (educationAnalysis.hasDegree) eduScore = 8;
+    }
+
+    // 5. Tools & Frameworks Alignment (10%)
+    const toolSkills = ['Git', 'GitHub', 'Docker', 'Postman', 'Linux', 'VS Code', 'CI/CD'];
+    const matchedTools = toolSkills.filter(t => candidateSkillsLower.includes(t.toLowerCase())).length;
+    const toolsScore = Math.min(matchedTools * 3.5, 10);
+
+    // 6. Domain Keywords & Summary Alignment (10%)
+    let domainMatchedCount = 0;
+    role.domainKeywords.forEach(dk => {
+      if (textLower.includes(dk)) domainMatchedCount++;
+    });
+    const domainScore = Math.min(domainMatchedCount * 2.5, 10);
+
+    // Total Match Score (0 - 100%)
+    const rawTotal = skillsScore + projectScore + expScore + eduScore + toolsScore + domainScore;
+    let matchScore = Math.min(Math.max(Math.round(rawTotal), 0), 100);
+
+    // If candidate has 0 essential skills, cap maximum match score to prevent fake alignment
+    if (essentialMatched === 0 && role.essentialSkills.length > 0) {
+      matchScore = Math.min(matchScore, 35);
+    }
+
+    // Match Level Label
+    let matchLevel = '';
+    let matchColor = '';
+    if (matchScore >= 90) { matchLevel = 'Excellent Match'; matchColor = '#059669'; }
+    else if (matchScore >= 80) { matchLevel = 'Strong Match'; matchColor = '#10b981'; }
+    else if (matchScore >= 70) { matchLevel = 'Good Match'; matchColor = '#4F46E5'; }
+    else if (matchScore >= 60) { matchLevel = 'Potential Match'; matchColor = '#f59e0b'; }
+    else if (matchScore >= 40) { matchLevel = 'Needs Skill Development'; matchColor = '#f97316'; }
+    else { matchLevel = 'Low Match'; matchColor = 'var(--color-error)'; }
+
+    // Application Readiness & Skill Gap
+    const totalMissingCore = missingEssential.length + missingImportant.length;
+    let readiness = '';
+    let readinessBadge = '';
+    let readinessColor = '';
+    let readinessClass = '';
+    let readinessMsg = '';
+
+    const hasAllEssential = missingEssential.length === 0;
+    const isWellQualified = hasAllEssential && (importantMatched >= 2 || missingImportant.length <= 1) && matchScore >= 75;
+
+    if (isWellQualified) {
+      readiness = 'READY TO APPLY';
+      readinessBadge = 'Ready to Apply';
+      readinessColor = '#10b981';
+      readinessClass = 'readiness-ready';
+      readinessMsg = `You meet all essential requirements and have strong alignment with entry-level and junior ${role.title} positions.`;
+    } else if (totalMissingCore <= 3 && matchScore >= 45) {
+      readiness = 'ALMOST READY';
+      readinessBadge = 'Almost Job Ready';
+      readinessColor = '#f59e0b';
+      readinessClass = 'readiness-almost';
+      const keyMissing = missingEssential.concat(missingImportant).slice(0, 2);
+      readinessMsg = `You are close to being job-ready for this role. Learning ${keyMissing.join(' and ')} and building a focused project could significantly improve your eligibility.`;
+    } else {
+      readiness = 'NEEDS SKILL DEVELOPMENT';
+      readinessBadge = 'Significant Skill Gap';
+      readinessColor = '#ef4444';
+      readinessClass = 'readiness-gap';
+      const keyMissing = missingEssential.concat(missingImportant).slice(0, 3);
+      readinessMsg = `This role currently requires substantial skill development. Build your core foundations in ${keyMissing.join(', ')} before targeting this role.`;
+    }
+
+    // Dynamic Personalized Learning Roadmap
+    const roadmapSteps = [];
+    const topMissing = missingEssential.concat(missingImportant).slice(0, 2);
+    if (topMissing.length > 0) {
+      roadmapSteps.push(`Learn & master fundamentals of ${topMissing[0]}`);
+      if (topMissing.length > 1) {
+        roadmapSteps.push(`Learn ${topMissing[1]} and explore standard design patterns`);
+      }
+      roadmapSteps.push(`Build a full-featured ${role.title} project implementing ${topMissing.join(' + ')}`);
+      roadmapSteps.push(`Deploy the live project and showcase the GitHub repository on your resume`);
+    } else {
+      roadmapSteps.push(`Continue building production-grade ${role.title} projects`);
+      roadmapSteps.push(`Contribute to open-source or complete system design exercises`);
+    }
+
+    // Why You Match Bullets
+    const whyYouMatch = [];
+    if (haveSkills.length > 0) {
+      whyYouMatch.push(`Technical skills: ${haveSkills.slice(0, 4).join(', ')}`);
+    }
+    if (projectsAnalysis.count > 0 && projectScore >= 8) {
+      whyYouMatch.push(`Practical project implementation aligned with ${role.category}`);
+    }
+    if (experienceAnalysis.hasExperience && !experienceAnalysis.isFresher) {
+      whyYouMatch.push(`Relevant engineering experience and workflow familiarity`);
+    } else if (educationAnalysis.hasDegree) {
+      whyYouMatch.push(`Academic foundation in computer science / engineering`);
+    }
+
+    const nextSkillToLearn = topMissing[0] || (missingBonus[0] || 'System Architecture');
+
+    roleMatches.push({
+      ...role,
+      matchScore,
+      matchLevel,
+      matchColor,
+      readiness,
+      readinessBadge,
+      readinessColor,
+      readinessClass,
+      readinessMsg,
+      haveSkills,
+      missingEssential,
+      missingImportant,
+      missingBonus,
+      whyYouMatch,
+      nextSkillToLearn,
+      roadmapSteps
+    });
+  });
+
+  // Sort by match score descending
+  roleMatches.sort((a, b) => b.matchScore - a.matchScore);
+
+  const bestFit = roleMatches[0];
+  const topRecommendations = roleMatches.slice(0, 6);
+
+  return { bestFit, topRecommendations, allMatches: roleMatches };
 }
 
 /* ============================================================
-   JOB DESCRIPTION MATCHER
+   ADVANCED JOB DESCRIPTION MATCHER
    ============================================================ */
-function matchJobDescription(resumeText, resumeSkills, jdText) {
-  if (!jdText || jdText.trim().length < 20) return null;
+function analyzeJobDescriptionMatch(resumeData, jdText) {
+  if (!jdText || jdText.trim().length < 25) return null;
 
-  // 1. Extract unique technical keywords from the Job Description text
-  const jdSkills = extractSkills(jdText);
-  const rawJdSkills = [...jdSkills.all];
+  const { resumeText, skills, projectsAnalysis, experienceAnalysis, educationAnalysis } = resumeData;
+  const resumeTextLower = resumeText.toLowerCase();
+  const jdLower = jdText.toLowerCase();
+  const candidateSkillsLower = skills.all.map(s => s.toLowerCase());
 
-  // Also extract common high-frequency tech terms from JD using word boundaries
+  // 1. Extract technical skills mentioned in the JD
+  const jdExtracted = extractSkills(jdText);
+  const rawJdSkills = [...jdExtracted.all];
+
+  // Common technical terms check
   const COMMON_TECH_TERMS = [
     'react', 'next.js', 'vue', 'angular', 'typescript', 'javascript', 'node.js', 'express',
     'python', 'java', 'c++', 'c#', 'golang', 'go', 'rust', 'ruby', 'php', 'scala', 'kotlin', 'swift',
@@ -1138,7 +1959,7 @@ function matchJobDescription(resumeText, resumeSkills, jdText) {
     'docker', 'kubernetes', 'terraform', 'ansible', 'jenkins', 'ci/cd', 'git', 'github', 'linux',
     'aws', 'gcp', 'azure', 'cloud', 'kafka', 'rabbitmq',
     'html5', 'css3', 'tailwind', 'bootstrap', 'redux', 'jest', 'cypress',
-    'data structures', 'algorithms', 'oop', 'system architecture', 'machine learning', 'ai'
+    'data structures', 'algorithms', 'oop', 'system architecture', 'machine learning', 'ai', 'langchain'
   ];
 
   COMMON_TECH_TERMS.forEach(kw => {
@@ -1150,85 +1971,262 @@ function matchJobDescription(resumeText, resumeSkills, jdText) {
     }
   });
 
-  // Deduplicate case-insensitively while preserving proper casing
-  const uniqueJD = [];
+  const uniqueJDSkills = [];
   const seenLower = new Set();
   rawJdSkills.forEach(s => {
     const low = s.toLowerCase();
     if (!seenLower.has(low)) {
       seenLower.add(low);
-      uniqueJD.push(s);
+      uniqueJDSkills.push(s);
     }
   });
 
-  if (uniqueJD.length === 0) {
-    return {
-      matchScore: 0,
-      matched: [],
-      missing: [],
-      totalJDKeywords: 0,
-      recommendations: ['Paste a job description containing technical requirements to see keyword matches.']
-    };
+  // Separate into Required vs Preferred
+  const requiredSkills = [];
+  const preferredSkills = [];
+
+  const reqSectionMatch = jdLower.match(/(?:requirements|must have|required qualifications|what you need|qualifications|core skills)[:\s]+([^]+?)(?:preferred|nice to have|bonus|plus|what we offer|responsibilities|$)/i);
+  const prefSectionMatch = jdLower.match(/(?:preferred|nice to have|bonus|plus|good to have)[:\s]+([^]+?)(?:responsibilities|benefits|what we offer|$)/i);
+
+  const reqText = reqSectionMatch ? reqSectionMatch[1] : '';
+  const prefText = prefSectionMatch ? prefSectionMatch[1] : '';
+
+  uniqueJDSkills.forEach(skill => {
+    if (prefText && prefText.includes(skill.toLowerCase())) {
+      preferredSkills.push(skill);
+    } else if (reqText && reqText.includes(skill.toLowerCase())) {
+      requiredSkills.push(skill);
+    } else {
+      // Default first half as required
+      if (requiredSkills.length <= 4) requiredSkills.push(skill);
+      else preferredSkills.push(skill);
+    }
+  });
+
+  // Check matched vs missing
+  const matchedRequired = [];
+  const missingRequired = [];
+  requiredSkills.forEach(s => {
+    const isPresent = candidateSkillsLower.includes(s.toLowerCase()) || matchSkillExact(s.toLowerCase(), resumeTextLower, resumeText);
+    if (isPresent) matchedRequired.push(s);
+    else missingRequired.push(s);
+  });
+
+  const matchedPreferred = [];
+  const missingPreferred = [];
+  preferredSkills.forEach(s => {
+    const isPresent = candidateSkillsLower.includes(s.toLowerCase()) || matchSkillExact(s.toLowerCase(), resumeTextLower, resumeText);
+    if (isPresent) matchedPreferred.push(s);
+    else missingPreferred.push(s);
+  });
+
+  const allMatched = [...matchedRequired, ...matchedPreferred];
+  const allMissing = [...missingRequired, ...missingPreferred];
+
+  // 2. Extract Experience Requirements
+  const yearsMatch = jdText.match(/(\d+)\+?\s*years?\s*(?:of)?\s*(?:experience|working)/i);
+  const yearsRequired = yearsMatch ? parseInt(yearsMatch[1]) : 0;
+
+  let expMatchScore = 100;
+  if (yearsRequired > 0) {
+    if (experienceAnalysis.isFresher) {
+      expMatchScore = yearsRequired <= 1 ? 75 : (yearsRequired <= 2 ? 45 : 20);
+    } else {
+      expMatchScore = 90;
+    }
   }
 
-  // 2. Strict matching against candidate resume (skills list + resume text with word boundaries)
-  const matched = [];
-  const missing = [];
+  // 3. Calculate Weighted Sub-Scores
+  const reqRatio = requiredSkills.length > 0 ? (matchedRequired.length / requiredSkills.length) : (allMatched.length > 0 ? 0.8 : 0.4);
+  const prefRatio = preferredSkills.length > 0 ? (matchedPreferred.length / preferredSkills.length) : 1;
 
-  uniqueJD.forEach(jdSkill => {
-    const sEscaped = jdSkill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const strictRegex = new RegExp('\\b' + sEscaped + '\\b', 'i');
-
-    // Check in candidate extracted skills
-    const inSkills = resumeSkills.some(rs => {
-      const rsEscaped = rs.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const rsRegex = new RegExp('\\b' + rsEscaped + '\\b', 'i');
-      return strictRegex.test(rs) || rsRegex.test(jdSkill) || (jdSkill.length > 3 && rs.toLowerCase() === jdSkill.toLowerCase());
-    });
-
-    // Check in full resume text with strict word boundaries
-    const inText = strictRegex.test(resumeText);
-
-    if (inSkills || inText) {
-      matched.push(jdSkill);
-    } else {
-      missing.push(jdSkill);
+  const reqScore = Math.round(reqRatio * 35);
+  const prefScore = Math.round(prefRatio * 15);
+  const expScore = Math.round((expMatchScore / 100) * 20);
+  
+  // Project Relevance to JD Tech Stack
+  let projMatchCount = 0;
+  allMatched.forEach(s => {
+    if (projectsAnalysis.details.some(p => (p.textLines || []).some(l => l.toLowerCase().includes(s.toLowerCase())))) {
+      projMatchCount++;
     }
   });
+  const projScore = Math.min(Math.round((projMatchCount / Math.max(allMatched.length, 1)) * 15) + (projectsAnalysis.count > 0 ? 4 : 0), 15);
 
-  // Compute: Match Score = (Matched Keywords / Total JD Keywords) * 100
-  const totalJDKeywords = uniqueJD.length;
-  const matchScore = totalJDKeywords > 0 ? Math.round((matched.length / totalJDKeywords) * 100) : 0;
+  const eduScore = educationAnalysis.exists ? 5 : 2;
+  const keywordScore = Math.min(Math.round((allMatched.length / Math.max(uniqueJDSkills.length, 1)) * 10), 10);
 
-  // Extract optional experience requirement
-  const yearsMatch = jdText.match(/(\d+)\+?\s*years?\s*(of)?\s*(experience)?/i);
-  const yearsRequired = yearsMatch ? parseInt(yearsMatch[1]) : null;
+  const totalMatchScore = Math.min(Math.max(reqScore + prefScore + expScore + projScore + eduScore + keywordScore, 0), 100);
+
+  // 4. Compatibility Status & Realistic Answer
+  let statusBadge = '';
+  let statusAnswer = '';
+  let statusDesc = '';
+  let statusClass = '';
+  let statusColor = '';
+
+  if (totalMatchScore >= 85) {
+    statusBadge = '🟢 Strong Match';
+    statusAnswer = 'Yes — your resume aligns exceptionally well with this role.';
+    statusDesc = 'You satisfy almost all core requirements, tech stacks, and domain qualifications.';
+    statusClass = 'match-strong';
+    statusColor = '#059669';
+  } else if (totalMatchScore >= 70) {
+    statusBadge = '🟢 Good Match';
+    statusAnswer = 'Yes — you meet many of the important requirements.';
+    statusDesc = 'Your background is competitive. Addressing the minor missing tools will further elevate your application.';
+    statusClass = 'match-good';
+    statusColor = '#4F46E5';
+  } else if (totalMatchScore >= 55) {
+    statusBadge = '🟡 Partial Match';
+    statusAnswer = 'You can apply, but you have noticeable skill gaps.';
+    statusDesc = 'You have a foundation in related technologies, but several essential requirements in the job description are missing.';
+    statusClass = 'match-partial';
+    statusColor = '#f59e0b';
+  } else if (totalMatchScore >= 40) {
+    statusBadge = '🟠 Skill Gap';
+    statusAnswer = 'You can apply as a stretch candidate, but multiple key requirements are missing.';
+    statusDesc = 'Consider building targeted projects with the missing technologies before submitting your application.';
+    statusClass = 'match-gap';
+    statusColor = '#f97316';
+  } else {
+    statusBadge = '🔴 Low Match';
+    statusAnswer = 'This role currently has a substantial gap with your profile.';
+    statusDesc = 'The position requires tools, frameworks, and qualifications that are not yet represented on your resume.';
+    statusClass = 'match-low';
+    statusColor = 'var(--color-error)';
+  }
+
+  // 5. Action Plan
+  const actionPlan = [];
+  if (missingRequired.length > 0) {
+    actionPlan.push(`Learn and gain hands-on practice with core required skill(s): ${missingRequired.slice(0, 2).join(', ')}`);
+  }
+  if (missingPreferred.length > 0) {
+    actionPlan.push(`Familiarize yourself with preferred tool(s): ${missingPreferred.slice(0, 2).join(', ')}`);
+  }
+  actionPlan.push(`Build or adapt a project demonstrating implementation of the target tech stack`);
+  actionPlan.push(`Add the project to your GitHub repository and link it on your resume`);
 
   return {
-    matchScore,
-    matched,
-    missing,
-    totalJDKeywords,
+    matchScore: totalMatchScore,
+    statusBadge,
+    statusAnswer,
+    statusDesc,
+    statusClass,
+    statusColor,
+    factors: {
+      requiredSkills: { score: reqScore, max: 35, label: 'Required Skills Match' },
+      preferredSkills: { score: prefScore, max: 15, label: 'Preferred Skills Match' },
+      experience: { score: expScore, max: 20, label: 'Experience Match' },
+      projects: { score: projScore, max: 15, label: 'Project Relevance' },
+      education: { score: eduScore, max: 5, label: 'Education Match' },
+      keywords: { score: keywordScore, max: 10, label: 'Keyword Match' }
+    },
+    matchedRequired,
+    missingRequired,
+    matchedPreferred,
+    missingPreferred,
+    allMatched,
+    allMissing,
     yearsRequired,
-    recommendations: generateJDRecommendations(matched, missing, yearsRequired)
+    actionPlan
   };
 }
 
-function generateJDRecommendations(matched, missing, yearsRequired) {
-  const recs = [];
-  if (missing.length > 0) {
-    recs.push(`Consider adding relevant skills from the job description: ${missing.slice(0, 5).join(', ')}. Only add skills you genuinely possess.`);
+/* ============================================================
+   IMPROVEMENT SUGGESTIONS GENERATOR
+   ============================================================ */
+function generateSuggestions(
+  contactInfo, parsedSections, summaryAnalysis, skills,
+  experienceAnalysis, projectsAnalysis, educationAnalysis,
+  certificationsAnalysis, achievementsAnalysis, contentQuality, scores
+) {
+  const suggestions = [];
+
+  if (!contactInfo.email) {
+    suggestions.push({ priority: 'high', icon: 'mail', title: 'Add Professional Email', desc: 'A valid email address is mandatory for recruiter contact.' });
   }
-  if (missing.length > matched.length) {
-    recs.push('This job description has many keywords not found in your resume. Consider tailoring your resume for this specific role.');
+  if (!contactInfo.phone) {
+    suggestions.push({ priority: 'high', icon: 'phone', title: 'Add Phone Number', desc: 'Include a direct contact phone number with country code.' });
   }
-  if (yearsRequired && yearsRequired > 3) {
-    recs.push(`This role may require ${yearsRequired}+ years of experience. Highlight your experience timeline clearly.`);
+  if (!contactInfo.linkedin) {
+    suggestions.push({ priority: 'medium', icon: 'link', title: 'Add LinkedIn Profile', desc: 'Include a customized LinkedIn profile URL to verify your professional background.' });
   }
-  if (missing.length === 0 && matched.length > 0) {
-    recs.push('Excellent match! All required job description technologies were detected on your resume.');
+  if (!contactInfo.github) {
+    suggestions.push({ priority: 'medium', icon: 'code', title: 'Add GitHub Profile', desc: 'Showcase your code repositories and technical contributions with a GitHub link.' });
   }
-  return recs;
+
+  if (!summaryAnalysis.exists) {
+    suggestions.push({ priority: 'high', icon: 'chat_bubble', title: 'Add Professional Summary', desc: 'Include a 2-3 sentence summary highlighting your target role, core stack, and key accomplishments.' });
+  } else if (!summaryAnalysis.hasTargetRole || summaryAnalysis.clichésFound.length > 0) {
+    suggestions.push({
+      priority: 'medium', icon: 'edit', title: 'Refine Professional Summary',
+      desc: 'Replace generic statements with a clear role title, specific technologies, and domain focus.',
+      before: summaryAnalysis.text ? summaryAnalysis.text.substring(0, 70) + '...' : null,
+      after: 'Example: "Full Stack Engineer with 2+ years of experience specializing in React, Node.js, and cloud architectures."'
+    });
+  }
+
+  if (experienceAnalysis.isFresher || !experienceAnalysis.hasExperience) {
+    suggestions.push({
+      priority: 'high', icon: 'work', title: 'Highlight Practical Experience or Internships',
+      desc: 'If you have completed internships, open-source work, freelance gigs, or research assistant roles, list them under Experience to demonstrate practical capability.'
+    });
+  } else {
+    if (experienceAnalysis.weakBullets.length > 0) {
+      const example = experienceAnalysis.weakBullets[0].replace(/^[•\-\*►▸▪]\s*/, '').substring(0, 80);
+      suggestions.push({
+        priority: 'high', icon: 'edit', title: 'Strengthen Experience Bullets',
+        desc: 'Begin every bullet with a strong action verb (e.g. Engineered, Optimized, Deployed) rather than passive verbs.',
+        before: example.length > 10 ? example : null,
+        after: 'Formula: [Action Verb] + [Technology / Feature] + [Measurable Business Impact]'
+      });
+    }
+    if (experienceAnalysis.quantifiedRatio < 0.35 && experienceAnalysis.totalBullets > 0) {
+      suggestions.push({
+        priority: 'high', icon: 'bar_chart', title: 'Add Measurable Impact & Metrics',
+        desc: `Only ${Math.round(experienceAnalysis.quantifiedRatio * 100)}% of bullets include metrics. Add numbers where real data exists (e.g., "Reduced response latency by 40%").`
+      });
+    }
+  }
+
+  if (!projectsAnalysis.found || projectsAnalysis.count === 0) {
+    suggestions.push({ priority: 'high', icon: 'rocket_launch', title: 'Add Technical Projects', desc: 'Include 2-3 detailed projects demonstrating end-to-end implementation, tech stack, and live demos.' });
+  } else {
+    const weakProjects = projectsAnalysis.details.filter(p => p.isWeak);
+    if (weakProjects.length > 0) {
+      suggestions.push({
+        priority: 'high', icon: 'build', title: 'Add Technical Depth to Projects',
+        desc: `Project descriptions like "${weakProjects[0].name}" lack technical substance. Explain the problem, architecture, state management, APIs, and key features.`,
+        before: weakProjects[0].name,
+        after: 'Describe: Architecture + Tech Stack + Challenges Solved + Performance / Results'
+      });
+    }
+    if (!projectsAnalysis.hasGithubLinks) {
+      suggestions.push({ priority: 'medium', icon: 'link', title: 'Add GitHub Links to Projects', desc: 'Link to your public repositories so recruiters can review code quality and git habits.' });
+    }
+  }
+
+  if (skills.all.length < 6) {
+    suggestions.push({ priority: 'high', icon: 'psychology', title: 'Expand Technical Skills Section', desc: `Only ${skills.all.length} technical skills detected. Group skills into Languages, Frameworks, Databases, and Cloud/Tools.` });
+  }
+
+  if (certificationsAnalysis.isPurelyGeneric) {
+    suggestions.push({ priority: 'medium', icon: 'verified', title: 'Specify Certification Details', desc: 'Replace generic "Computer Certificate" with the specific title, issuing organization (e.g. AWS, Google), and completion date.' });
+  }
+  if (achievementsAnalysis.isGeneric) {
+    suggestions.push({ priority: 'medium', icon: 'military_tech', title: 'Quantify Achievements', desc: 'Include specific contest rankings, hackathon awards, scholarships, or measurable milestones.' });
+  }
+
+  if (contentQuality.vagueFound.length > 0) {
+    suggestions.push({
+      priority: 'medium', icon: 'find_replace', title: 'Remove Cliché Phrases',
+      desc: `Phrases like "${contentQuality.vagueFound[0]}" add no ATS value. Replace with concrete tools and results.`
+    });
+  }
+
+  return suggestions;
 }
 
 /* ============================================================
@@ -1238,9 +2236,7 @@ async function runRealAnalysis(fromBuilder) {
   const resultsArea = document.getElementById('analyzer-results-area');
   const loadingEl = document.getElementById('analyzer-loading');
   const analyzeBtn = document.getElementById('btn-run-analysis');
-  const topBarBuilderBtn = document.getElementById('btn-use-builder-resume');
 
-  // Show loading
   if (loadingEl) loadingEl.style.display = 'flex';
   if (resultsArea) resultsArea.style.display = 'none';
   if (analyzeBtn) {
@@ -1253,26 +2249,32 @@ async function runRealAnalysis(fromBuilder) {
 
     // Step 1: Extract text
     if (fromBuilder) {
-      // Use builder resume data
+      if (typeof syncStateFromForm === 'function') {
+        syncStateFromForm();
+      }
       if (typeof currentResume === 'undefined' || !currentResume) {
+        if (typeof Storage !== 'undefined') {
+          currentResume = Storage.get('resume_data', null);
+        }
+      }
+      if (!currentResume) {
         throw new Error('No saved resume found. Create or save a resume in Resume Builder first.');
       }
-      // Check if builder has meaningful data
       const p = currentResume.personal || {};
-      const hasContent = p.name || currentResume.summary || 
+      const hasContent = p.name || p.email || p.phone || p.linkedin || p.github || currentResume.summary || 
         (currentResume.experience && currentResume.experience.length > 0) ||
-        (currentResume.projects && currentResume.projects.length > 0);
+        (currentResume.projects && currentResume.projects.length > 0) ||
+        (currentResume.skills && (currentResume.skills.languages || currentResume.skills.frontend || currentResume.skills.backend));
       if (!hasContent) {
         throw new Error('No saved resume found. Create or save a resume in Resume Builder first.');
       }
 
       resumeText = convertBuilderToText(currentResume);
       analyzerState.fromBuilder = true;
-      analyzerState.fileName = 'Resume (Builder)';
+      analyzerState.fileName = (p.name && p.name !== 'Your Name') ? `${p.name}'s Resume (Builder)` : 'Resume (Builder)';
       analyzerState.fileType = 'Builder';
       analyzerState.fileSize = `${(new Blob([resumeText]).size / 1024).toFixed(0)} KB`;
     } else {
-      // Extract from uploaded file
       if (!analyzerState.file) {
         throw new Error('Please upload a resume file first.');
       }
@@ -1293,64 +2295,102 @@ async function runRealAnalysis(fromBuilder) {
     const parsedSections = parseResumeSections(resumeText);
     analyzerState.parsedData = parsedSections;
 
-    // Step 3: Extract data
+    // Step 3: Extract and analyze categories
     const contactInfo = extractContactInfo(resumeText);
     const skills = extractSkills(resumeText);
+    const summaryAnalysis = analyzeProfessionalSummary(resumeText, parsedSections, skills);
     const experienceAnalysis = analyzeExperience(resumeText, parsedSections.sectionContent);
     const projectsAnalysis = analyzeProjects(resumeText, parsedSections.sectionContent);
-    const contentQuality = analyzeContentQuality(resumeText);
-    const formattingChecks = analyzeATSFormatting(resumeText, parsedSections);
+    const educationAnalysis = analyzeEducation(resumeText, parsedSections);
+    const certificationsAnalysis = analyzeCertifications(resumeText, parsedSections);
+    const achievementsAnalysis = analyzeAchievements(resumeText, parsedSections);
+    const contentQuality = analyzeContentQuality(resumeText, experienceAnalysis, projectsAnalysis);
+    const formattingAnalysis = analyzeATSFormatting(resumeText, parsedSections);
 
-    // Step 4: Calculate scores
+    // Step 4: Calculate deterministic 100-point score across 10 categories
     const scores = calculateATSScore(
-      resumeText, contactInfo, parsedSections, skills,
-      experienceAnalysis, projectsAnalysis, contentQuality, formattingChecks
+      resumeText, contactInfo, summaryAnalysis, skills,
+      experienceAnalysis, projectsAnalysis, educationAnalysis,
+      certificationsAnalysis, achievementsAnalysis, contentQuality,
+      formattingAnalysis, null
     );
 
     // Step 5: Generate suggestions
     const suggestions = generateSuggestions(
-      contactInfo, parsedSections, skills,
-      experienceAnalysis, projectsAnalysis, contentQuality, scores
+      contactInfo, parsedSections, summaryAnalysis, skills,
+      experienceAnalysis, projectsAnalysis, educationAnalysis,
+      certificationsAnalysis, achievementsAnalysis, contentQuality, scores
     );
 
-    // Store full results
+    // Step 6: Calculate Job Matches & Best Fit Role
+    const resumeData = {
+      resumeText,
+      contactInfo,
+      skills,
+      summaryAnalysis,
+      experienceAnalysis,
+      projectsAnalysis,
+      educationAnalysis,
+      certificationsAnalysis,
+      achievementsAnalysis
+    };
+    const jobMatchData = calculateJobRoleMatches(resumeData);
+    analyzerState.jobRecommendations = jobMatchData.topRecommendations;
+    analyzerState.bestFitRole = jobMatchData.bestFit;
+
+    // Step 7: Optional JD Match if already input
+    let jdMatchResult = null;
+    const jdTextarea = document.getElementById('jd-textarea-enhanced-input');
+    const existingJD = jdTextarea?.value?.trim() || analyzerState.jdText;
+    if (existingJD && existingJD.length > 25) {
+      jdMatchResult = analyzeJobDescriptionMatch(resumeData, existingJD);
+      analyzerState.jdMatchResult = jdMatchResult;
+    }
+
+    // Full analysis result bundle
     const analysisResult = {
       timestamp: new Date().toISOString(),
       fileName: analyzerState.fileName,
       fileType: analyzerState.fileType,
       fileSize: analyzerState.fileSize,
       fromBuilder: analyzerState.fromBuilder,
+      resumeText,
       scores,
       contactInfo,
       parsedSections: { detected: parsedSections.detected },
+      summaryAnalysis,
       skills,
       experienceAnalysis,
       projectsAnalysis,
+      educationAnalysis,
+      certificationsAnalysis,
+      achievementsAnalysis,
       contentQuality,
-      formattingChecks,
+      formattingChecks: formattingAnalysis.checks,
+      formattingAnalysis,
       suggestions,
+      bestFitRole: jobMatchData.bestFit,
+      jobRecommendations: jobMatchData.topRecommendations,
+      jdMatchResult,
       wordCount: contentQuality.wordCount
     };
 
     analyzerState.scores = scores;
     analyzerState.analysisComplete = true;
 
-    // Step 6: Save to localStorage
+    // Save to storage
     saveAnalysisResult(analysisResult);
 
-    // Step 7: Render results
+    // Render all results (ATS analysis + Best Fit + Job Recommendations + JD Matcher)
     renderAllResults(analysisResult);
 
-    // Show results area
     if (resultsArea) resultsArea.style.display = 'block';
 
-    // Update hub ATS stat
     const hubAtsEl = document.getElementById('hub-stat-ats');
     if (hubAtsEl) hubAtsEl.textContent = `${scores.overall}%`;
 
     showToast(`Analysis complete! DevPilot ATS Score: ${scores.overall}/100`, 'success');
 
-    // Smooth scroll to results
     setTimeout(() => {
       resultsArea?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 200);
@@ -1359,7 +2399,6 @@ async function runRealAnalysis(fromBuilder) {
     showToast(error.message || 'Analysis failed. Please try again.', 'error');
     console.error('Resume analysis error:', error);
   } finally {
-    // Reset button
     if (loadingEl) loadingEl.style.display = 'none';
     if (analyzeBtn) {
       analyzeBtn.disabled = false;
@@ -1369,7 +2408,7 @@ async function runRealAnalysis(fromBuilder) {
 }
 
 /* ============================================================
-   RESULT RENDERER
+   RESULT RENDERER (Preserves existing UI structure & CSS classes)
    ============================================================ */
 function renderAllResults(result) {
   const area = document.getElementById('analyzer-results-area');
@@ -1408,15 +2447,16 @@ function renderAllResults(result) {
         <div class="score-hero-title">DevPilot ATS Score</div>
         <div class="score-hero-label" style="color: ${interp.color}">${interp.label}</div>
         <div class="score-hero-desc">${interp.desc}</div>
-        <div class="score-hero-disclaimer">This score reflects ATS readability and completeness. Actual ATS results vary by system and job description.</div>
+        <div class="score-hero-disclaimer">Score is calculated directly from extracted text, technical depth, action verbs, and quantifiable metrics.</div>
       </div>
     </div>
 
-    <!-- Score Breakdown -->
+    <!-- Score Breakdown (10 Categories, 100 Points) -->
     <div class="analyzer-section-card">
       <div class="analyzer-card-header">
         <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>bar_chart</span>
         <h3 class="analyzer-card-title">Score Breakdown</h3>
+        <span class="analyzer-card-score">${result.scores.overall}/100</span>
       </div>
       <div class="score-breakdown-grid">
         ${Object.values(bd).map(cat => `
@@ -1433,7 +2473,7 @@ function renderAllResults(result) {
       </div>
     </div>
 
-    <!-- Resume Health -->
+    <!-- Resume Health (Dynamic & Actionable Findings) -->
     <div class="analyzer-section-card">
       <div class="analyzer-card-header">
         <span class="material-symbols-outlined text-[18px] text-emerald-500" style='font-variation-settings: "FILL" 1;'>monitor_heart</span>
@@ -1444,7 +2484,7 @@ function renderAllResults(result) {
       </div>
     </div>
 
-    <!-- Two Column Layout for Details -->
+    <!-- Two Column Details Grid -->
     <div class="analyzer-details-grid">
       <!-- LEFT COLUMN -->
       <div class="analyzer-details-col">
@@ -1461,15 +2501,15 @@ function renderAllResults(result) {
           </div>
         </div>
 
-        <!-- Detected Sections -->
+        <!-- Professional Summary & Sections -->
         <div class="analyzer-section-card">
           <div class="analyzer-card-header">
             <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>article</span>
-            <h3 class="analyzer-card-title">Detected Sections</h3>
-            <span class="analyzer-card-score">${bd.sections.score}/${bd.sections.max}</span>
+            <h3 class="analyzer-card-title">Summary & Sections</h3>
+            <span class="analyzer-card-score">${bd.summary.score}/${bd.summary.max}</span>
           </div>
           <div class="section-checks-list">
-            ${renderSectionChecks(result.parsedSections)}
+            ${renderSectionChecks(result.parsedSections, result.summaryAnalysis)}
           </div>
         </div>
 
@@ -1483,11 +2523,11 @@ function renderAllResults(result) {
           ${renderExperienceDetails(result.experienceAnalysis)}
         </div>
 
-        <!-- ATS Formatting -->
+        <!-- ATS Compatibility -->
         <div class="analyzer-section-card">
           <div class="analyzer-card-header">
             <span class="material-symbols-outlined text-[18px] text-emerald-500" style='font-variation-settings: "FILL" 1;'>shield_check</span>
-            <h3 class="analyzer-card-title">ATS Formatting</h3>
+            <h3 class="analyzer-card-title">ATS Compatibility</h3>
             <span class="analyzer-card-score">${bd.formatting.score}/${bd.formatting.max}</span>
           </div>
           <div class="formatting-checks-list">
@@ -1537,21 +2577,21 @@ function renderAllResults(result) {
           ${renderContentQuality(result.contentQuality)}
         </div>
 
-        <!-- Education -->
+        <!-- Education, Certifications & Achievements -->
         <div class="analyzer-section-card">
           <div class="analyzer-card-header">
             <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>school</span>
-            <h3 class="analyzer-card-title">Education & Certifications</h3>
-            <span class="analyzer-card-score">${bd.education.score}/${bd.education.max}</span>
+            <h3 class="analyzer-card-title">Education, Certifications & Achievements</h3>
+            <span class="analyzer-card-score">${bd.education.score + bd.certifications.score + bd.achievements.score}/15</span>
           </div>
           <div class="edu-check-summary">
-            ${renderEduCheck(result.parsedSections)}
+            ${renderEduAndCredentials(result.educationAnalysis, result.certificationsAnalysis, result.achievementsAnalysis, result.parsedSections)}
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Improvement Suggestions (full width) -->
+    <!-- Improvement Suggestions (Full Width) -->
     <div class="analyzer-section-card">
       <div class="analyzer-card-header">
         <span class="material-symbols-outlined text-[18px] text-amber-500" style='font-variation-settings: "FILL" 1;'>lightbulb</span>
@@ -1577,24 +2617,53 @@ function renderAllResults(result) {
             </div>
           </div>
         `).join('')}
-        ${result.suggestions.length === 0 ? '<p class="no-issues-text">No major issues detected. Your resume looks great!</p>' : ''}
+        ${result.suggestions.length === 0 ? '<p class="no-issues-text">No major issues detected. Your resume is exceptionally well-optimized!</p>' : ''}
       </div>
     </div>
 
-    <!-- Job Description Matcher (full width) -->
+    <!-- ============================================================ -->
+    <!-- SECTION 1: 🏆 BEST FIT FOR YOUR RESUME                         -->
+    <!-- ============================================================ -->
+    ${renderBestFitRole(result.bestFitRole)}
+
+    <!-- ============================================================ -->
+    <!-- SECTION 2: 🎯 RECOMMENDED JOBS FOR YOU                        -->
+    <!-- ============================================================ -->
     <div class="analyzer-section-card">
       <div class="analyzer-card-header">
-        <span class="material-symbols-outlined text-[18px] text-amber-500" style='font-variation-settings: "FILL" 1;'>work_history</span>
-        <h3 class="analyzer-card-title">Job Description Match</h3>
-        <span class="badge badge-neutral" style="font-size:10px;padding:2px 6px;">Optional</span>
+        <span class="material-symbols-outlined text-[18px] text-emerald-500" style='font-variation-settings: "FILL" 1;'>work_outline</span>
+        <h3 class="analyzer-card-title">🎯 Recommended Jobs For You</h3>
+        <span class="badge badge-neutral" style="font-size:10px;padding:2px 6px;">${result.jobRecommendations.length} roles</span>
       </div>
-      <p class="jd-instructions">Paste a job description below to see how well your resume matches the role's requirements.</p>
-      <textarea id="jd-textarea-real" class="form-textarea" rows="4" placeholder="Paste a job description here to see how well your resume matches...">${escHtml(analyzerState.jdText || '')}</textarea>
-      <button class="btn-primary btn-sm mt-3" id="btn-match-jd-real" style="width:100%;">
-        <span class="material-symbols-outlined text-[16px]">compare_arrows</span>
-        Analyze Match
-      </button>
-      <div id="jd-match-results-real" style="display:none;"></div>
+      <p class="jd-instructions">Based on your resume, skills, projects, education, experience, and technical profile.</p>
+      <div class="job-recommendations-grid">
+        ${renderJobRecommendations(result.jobRecommendations)}
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 3: 🔍 CHECK YOUR RESUME AGAINST A JOB                 -->
+    <!-- ============================================================ -->
+    <div class="analyzer-section-card" id="jd-matcher-section">
+      <div class="analyzer-card-header">
+        <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>manage_search</span>
+        <h3 class="analyzer-card-title">🔍 Check Your Resume Against a Job</h3>
+        <span class="badge badge-neutral" style="font-size:10px;padding:2px 6px;">JD Matcher</span>
+      </div>
+      <p class="jd-instructions">Paste any complete Job Description below to evaluate your compatibility, skill gaps, and application readiness.</p>
+      
+      <div class="jd-matcher-container">
+        <div class="jd-matcher-input-area">
+          <textarea id="jd-textarea-enhanced-input" class="jd-textarea-enhanced" placeholder="Paste the complete job description here (including requirements, responsibilities, and qualifications)...">${escHtml(analyzerState.jdText || '')}</textarea>
+          <button class="btn-primary btn-sm" id="btn-run-jd-match-enhanced" style="width:100%;">
+            <span class="material-symbols-outlined text-[16px]">compare_arrows</span>
+            Analyze Job Match
+          </button>
+        </div>
+        <div id="jd-enhanced-results-area" style="${result.jdMatchResult ? 'display:block;' : 'display:none;'}">
+          ${result.jdMatchResult ? renderJDMatchResults(result.jdMatchResult) : ''}
+        </div>
+      </div>
     </div>
   `;
 
@@ -1611,6 +2680,11 @@ function renderAllResults(result) {
     area.querySelectorAll('.breakdown-bar-fill').forEach(bar => {
       bar.style.width = bar.dataset.target;
     });
+
+    // Animate job recommendation bars
+    area.querySelectorAll('.job-rec-bar-fill').forEach(bar => {
+      bar.style.width = bar.dataset.target;
+    });
   }, 150);
 
   // Bind event handlers
@@ -1623,34 +2697,318 @@ function renderAllResults(result) {
     });
   }
 
-  const jdMatchBtn = document.getElementById('btn-match-jd-real');
-  if (jdMatchBtn) {
-    jdMatchBtn.addEventListener('click', () => runRealJDMatch(result));
+  const runJdMatchBtn = document.getElementById('btn-run-jd-match-enhanced');
+  if (runJdMatchBtn) {
+    runJdMatchBtn.addEventListener('click', () => executeEnhancedJDMatch(result));
   }
 }
 
 /* ============================================================
-   SUB-RENDERERS
+   SUB-RENDERERS — JOB MATCHES & BEST FIT ROLE
+   ============================================================ */
+function renderBestFitRole(bestFit) {
+  if (!bestFit) return '';
+
+  return `
+    <div class="best-fit-card">
+      <div class="best-fit-badge-header">
+        <span class="material-symbols-outlined text-[18px]" style='font-variation-settings: "FILL" 1;'>military_tech</span>
+        <span>🏆 Best Fit For Your Resume</span>
+      </div>
+      <div class="best-fit-main">
+        <div>
+          <div class="best-fit-title">${escHtml(bestFit.title)}</div>
+          <div class="best-fit-category">${escHtml(bestFit.category)} · ${escHtml(bestFit.description)}</div>
+        </div>
+        <div class="best-fit-score-box">
+          <div class="best-fit-score-num">${bestFit.matchScore}%</div>
+          <div class="best-fit-score-label">${escHtml(bestFit.matchLevel)}</div>
+        </div>
+      </div>
+      
+      <div class="section-group-label" style="margin-bottom:0.5rem;">Why this is your strongest match:</div>
+      <div class="best-fit-reasons-list">
+        ${bestFit.whyYouMatch.map(r => `
+          <div class="best-fit-reason-item">
+            <span class="material-symbols-outlined text-emerald-500 text-[16px]" style='font-variation-settings: "FILL" 1;'>check_circle</span>
+            <span>${escHtml(r)}</span>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="best-fit-next-skill">
+        <span class="material-symbols-outlined text-amber-500 text-[18px]">bolt</span>
+        <div><strong>Top skill to learn next:</strong> ${escHtml(bestFit.nextSkillToLearn)} — Adding this will maximize your job readiness for ${escHtml(bestFit.title)} positions.</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderJobRecommendations(recommendations) {
+  if (!recommendations || recommendations.length === 0) {
+    return '<p class="no-data-text">Not enough information to confidently recommend technical roles. Add more skills and projects.</p>';
+  }
+
+  return recommendations.map(role => `
+    <div class="job-rec-card">
+      <div class="job-rec-header">
+        <div class="job-rec-title-wrap">
+          <div class="job-rec-role-title">${escHtml(role.title)}</div>
+          <div class="job-rec-role-category">${escHtml(role.category)}</div>
+        </div>
+        <div class="job-rec-match-badge">
+          <div class="job-rec-match-percent" style="color:${role.matchColor};">${role.matchScore}%</div>
+          <div class="job-rec-match-level" style="color:${role.matchColor};">${escHtml(role.matchLevel)}</div>
+        </div>
+      </div>
+
+      <div class="job-rec-bar-bg">
+        <div class="job-rec-bar-fill" style="width: 0%; background: ${role.matchColor};" data-target="${role.matchScore}%"></div>
+      </div>
+
+      <div class="readiness-badge ${role.readinessClass}">
+        <span class="material-symbols-outlined text-[13px]">${role.readiness === 'READY TO APPLY' ? 'check_circle' : (role.readiness === 'ALMOST READY' ? 'pending' : 'error')}</span>
+        <span>${escHtml(role.readinessBadge)}</span>
+      </div>
+
+      <div class="job-rec-skills-section">
+        <!-- Skills You Have -->
+        <div class="job-rec-skill-group">
+          <div class="job-rec-skill-group-label">Skills You Have (${role.haveSkills.length})</div>
+          <div class="job-rec-pills">
+            ${role.haveSkills.length
+              ? role.haveSkills.slice(0, 5).map(s => `<span class="skill-tag-have"><span class="material-symbols-outlined text-[11px]">check</span>${escHtml(s)}</span>`).join('')
+              : '<span class="check-missing-text text-[11px]">None detected yet</span>'}
+          </div>
+        </div>
+
+        <!-- Missing Skills -->
+        ${(role.missingEssential.length > 0 || role.missingImportant.length > 0) ? `
+          <div class="job-rec-skill-group" style="margin-top:0.35rem;">
+            <div class="job-rec-skill-group-label">Skills You Are Missing</div>
+            <div class="job-rec-pills">
+              ${role.missingEssential.slice(0, 2).map(s => `<span class="skill-tag-missing"><span class="skill-priority-tag priority-tag-high">HIGH</span>${escHtml(s)}</span>`).join('')}
+              ${role.missingImportant.slice(0, 2).map(s => `<span class="skill-tag-missing"><span class="skill-priority-tag priority-tag-med">MED</span>${escHtml(s)}</span>`).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+
+      <!-- Roadmap Box -->
+      <div class="job-rec-roadmap-box">
+        <div class="job-rec-roadmap-header">
+          <span class="material-symbols-outlined text-[15px]">trending_up</span>
+          <span>Personalized Roadmap</span>
+        </div>
+        <div class="job-rec-roadmap-steps">
+          ${role.roadmapSteps.slice(0, 3).map((step, idx) => `
+            <div class="roadmap-step-item">
+              <span class="roadmap-step-num">${idx + 1}</span>
+              <span>${escHtml(step)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderJDMatchResults(jdResult) {
+  if (!jdResult) return '';
+
+  return `
+    <!-- Hero Status Banner -->
+    <div class="jd-results-hero ${jdResult.statusClass}">
+      <div>
+        <div class="jd-status-badge" style="color:${jdResult.statusColor};">${escHtml(jdResult.statusBadge)}</div>
+        <div class="jd-status-answer">${escHtml(jdResult.statusAnswer)}</div>
+        <div class="jd-status-desc">${escHtml(jdResult.statusDesc)}</div>
+      </div>
+      <div class="jd-score-circle-wrap">
+        <div class="jd-score-circle-num" style="color:${jdResult.statusColor};">${jdResult.matchScore}%</div>
+        <div class="jd-score-circle-lbl">JD Match</div>
+      </div>
+    </div>
+
+    <!-- Match Factors Grid -->
+    <div class="jd-factors-grid">
+      ${Object.values(jdResult.factors).map(f => `
+        <div class="jd-factor-card">
+          <div class="jd-factor-header">
+            <span class="jd-factor-name">${escHtml(f.label)}</span>
+            <span class="jd-factor-score">${f.score}/${f.max}</span>
+          </div>
+          <div class="breakdown-bar-bg">
+            <div class="breakdown-bar-fill" style="width: ${Math.round((f.score / f.max) * 100)}%;"></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- Two Column Gap Details -->
+    <div class="analyzer-details-grid" style="margin-bottom:1rem;">
+      <!-- Matched Skills -->
+      <div class="analyzer-section-card" style="margin-bottom:0;">
+        <div class="analyzer-card-header">
+          <span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span>
+          <h4 class="analyzer-card-title">Why You Match (${jdResult.allMatched.length})</h4>
+        </div>
+        <div class="job-rec-pills" style="margin-top:0.5rem;">
+          ${jdResult.allMatched.length
+            ? jdResult.allMatched.map(s => `<span class="skill-tag-have"><span class="material-symbols-outlined text-[11px]">check</span>${escHtml(s)}</span>`).join('')
+            : '<span class="no-data-text">No direct skills matched from this job description.</span>'}
+        </div>
+      </div>
+
+      <!-- Missing Skills -->
+      <div class="analyzer-section-card" style="margin-bottom:0;">
+        <div class="analyzer-card-header">
+          <span class="material-symbols-outlined text-amber-500 text-[18px]">warning</span>
+          <h4 class="analyzer-card-title">What You're Missing (${jdResult.allMissing.length})</h4>
+        </div>
+        <div class="job-rec-pills" style="margin-top:0.5rem;">
+          ${jdResult.missingRequired.map(s => `<span class="skill-tag-missing"><span class="skill-priority-tag priority-tag-high">REQUIRED</span>${escHtml(s)}</span>`).join('')}
+          ${jdResult.missingPreferred.map(s => `<span class="skill-tag-missing"><span class="skill-priority-tag priority-tag-med">PREFERRED</span>${escHtml(s)}</span>`).join('')}
+          ${jdResult.allMissing.length === 0 ? '<span class="no-issues-text">All key requirements in this job description were found on your resume!</span>' : ''}
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Plan Box -->
+    <div class="job-rec-roadmap-box" style="background:var(--color-surface);border:1.5px solid rgba(79, 70, 229, 0.25);">
+      <div class="job-rec-roadmap-header">
+        <span class="material-symbols-outlined text-indigo-500 text-[18px]">assignment_turned_in</span>
+        <span style="font-size:0.875rem;">Action Plan: How To Become Eligible For This Role</span>
+      </div>
+      <div class="job-rec-roadmap-steps" style="margin-top:0.5rem;">
+        ${jdResult.actionPlan.map((step, idx) => `
+          <div class="roadmap-step-item">
+            <span class="roadmap-step-num">${idx + 1}</span>
+            <span style="font-size:0.8125rem;">${escHtml(step)}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function executeEnhancedJDMatch(analysisResult) {
+  const jdTextarea = document.getElementById('jd-textarea-enhanced-input');
+  const jdText = jdTextarea?.value?.trim();
+
+  if (!jdText || jdText.length < 25) {
+    showToast('Please paste a complete job description (at least a few lines).', 'error');
+    return;
+  }
+
+  analyzerState.jdText = jdText;
+
+  const resumeData = {
+    resumeText: analyzerState.resumeText,
+    skills: analysisResult.skills,
+    projectsAnalysis: analysisResult.projectsAnalysis,
+    experienceAnalysis: analysisResult.experienceAnalysis,
+    educationAnalysis: analysisResult.educationAnalysis
+  };
+
+  const matchResult = analyzeJobDescriptionMatch(resumeData, jdText);
+  if (!matchResult) {
+    showToast('Unable to analyze job description. Please try a longer description.', 'error');
+    return;
+  }
+
+  analyzerState.jdMatchResult = matchResult;
+
+  const resultsEl = document.getElementById('jd-enhanced-results-area');
+  if (resultsEl) {
+    resultsEl.style.display = 'block';
+    resultsEl.innerHTML = renderJDMatchResults(matchResult);
+    resultsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  showToast(`JD Match: ${matchResult.matchScore}% · ${matchResult.statusBadge.replace(/^[^\s]+\s*/, '')}`, matchResult.matchScore >= 70 ? 'success' : 'info');
+}
+
+/* ============================================================
+   SUB-RENDERERS — ATS ANALYSIS
    ============================================================ */
 function renderHealthChecks(result) {
   const checks = [];
   const ci = result.contactInfo;
-  const ps = result.parsedSections;
+  const sa = result.summaryAnalysis;
+  const exp = result.experienceAnalysis;
+  const prj = result.projectsAnalysis;
+  const cq = result.contentQuality;
 
-  checks.push({ pass: ci.name && ci.email, label: 'Contact information detected' });
-  checks.push({ pass: Object.keys(ps.detected).length >= 3, label: 'Standard resume sections detected' });
-  checks.push({ pass: result.skills.all.length >= 3, label: 'Technical skills detected' });
-  checks.push({ pass: ps.detected.experience, label: 'Experience section present' });
-  checks.push({ pass: ps.detected.education, label: 'Education section present' });
-
-  const expA = result.experienceAnalysis;
-  if (expA.totalBullets > 0) {
-    checks.push({ pass: expA.quantifiedRatio >= 0.3, label: expA.quantifiedRatio >= 0.3 ? 'Bullets include measurable impact' : 'Some bullets lack measurable impact' });
-    checks.push({ pass: expA.actionVerbRatio >= 0.3, label: expA.actionVerbRatio >= 0.3 ? 'Strong action verbs used' : 'Consider using more action verbs' });
+  if (ci.email) {
+    checks.push({ pass: true, label: `Professional email detected (${ci.details.email})` });
+  } else {
+    checks.push({ pass: false, label: 'Email address missing' });
   }
 
-  checks.push({ pass: ci.github, label: ci.github ? 'GitHub profile detected' : 'GitHub link not detected' });
-  checks.push({ pass: ci.linkedin, label: ci.linkedin ? 'LinkedIn profile detected' : 'LinkedIn link not detected' });
+  if (ci.phone) {
+    checks.push({ pass: true, label: `Phone number detected (${ci.details.phone})` });
+  } else {
+    checks.push({ pass: false, label: 'Phone number missing' });
+  }
+
+  if (ci.linkedin) {
+    checks.push({ pass: true, label: `LinkedIn profile detected (${ci.details.linkedin})` });
+  } else {
+    checks.push({ pass: false, label: 'LinkedIn profile link not detected' });
+  }
+
+  if (ci.github) {
+    checks.push({ pass: true, label: `GitHub profile link detected (${ci.details.github})` });
+  } else {
+    checks.push({ pass: false, label: 'GitHub profile link missing' });
+  }
+
+  if (sa.exists) {
+    if (sa.hasTargetRole && sa.hasTechKeywords) {
+      checks.push({ pass: true, label: 'Targeted professional summary with keywords detected' });
+    } else {
+      checks.push({ pass: false, label: 'Professional summary is generic / lacks technical keywords' });
+    }
+  } else {
+    checks.push({ pass: false, label: 'Professional summary section missing' });
+  }
+
+  if (exp.isFresher || !exp.hasExperience) {
+    checks.push({ pass: false, label: 'No professional work experience detected (Fresher candidate)' });
+  } else {
+    checks.push({ pass: true, label: `Professional experience detected (${exp.jobTitles.join(', ') || 'Role detected'})` });
+    if (exp.quantifiedCount > 0) {
+      checks.push({ pass: true, label: `Measurable impact detected in experience (${exp.quantifiedCount} quantified bullets)` });
+    } else {
+      checks.push({ pass: false, label: 'Experience bullets lack measurable metrics / impact' });
+    }
+  }
+
+  if (prj.found && prj.count > 0) {
+    const weakProjects = prj.details.filter(p => p.isWeak);
+    if (weakProjects.length === 0) {
+      checks.push({ pass: true, label: `${prj.count} technical project(s) with implementation depth detected` });
+    } else {
+      checks.push({ pass: false, label: `${weakProjects.length} project description(s) lack technical depth / implementation details` });
+    }
+  } else {
+    checks.push({ pass: false, label: 'No technical projects section detected' });
+  }
+
+  if (cq.vagueFound.length > 0) {
+    checks.push({ pass: false, label: `Generic cliché phrases detected ("${cq.vagueFound.slice(0, 2).join('", "')}")` });
+  }
+
+  if (cq.metricsCount === 0) {
+    checks.push({ pass: false, label: 'No quantifiable metrics or measurable achievements detected' });
+  }
+
+  if (result.skills.all.length >= 6) {
+    checks.push({ pass: true, label: `${result.skills.all.length} technical skills detected across categories` });
+  } else {
+    checks.push({ pass: false, label: `Limited technical keywords detected (${result.skills.all.length} skills found)` });
+  }
 
   return checks.map(c => `
     <div class="analyzer-check-item ${c.pass ? 'check-pass' : 'check-warn'}">
@@ -1665,10 +3023,10 @@ function renderContactChecks(ci) {
     { key: 'Name', found: ci.name, detail: ci.details.name },
     { key: 'Email', found: ci.email, detail: ci.details.email },
     { key: 'Phone', found: ci.phone, detail: ci.details.phone },
+    { key: 'Location', found: ci.location, detail: ci.details.location },
     { key: 'LinkedIn', found: ci.linkedin, detail: ci.details.linkedin },
     { key: 'GitHub', found: ci.github, detail: ci.details.github },
-    { key: 'Location', found: ci.location, detail: ci.details.location },
-    { key: 'Portfolio', found: ci.portfolio, detail: ci.details.portfolio }
+    { key: 'Portfolio / Coding Profile', found: ci.portfolio, detail: ci.details.portfolio }
   ];
 
   return items.map(item => `
@@ -1676,22 +3034,22 @@ function renderContactChecks(ci) {
       <span class="material-symbols-outlined check-icon" style='font-variation-settings: "FILL" 1;'>${item.found ? 'check_circle' : 'cancel'}</span>
       <div>
         <span class="check-label">${item.key}</span>
-        ${item.found && item.detail ? `<span class="check-detail">${escHtml(item.detail)}</span>` : ''}
-        ${!item.found ? `<span class="check-detail check-missing-text">${item.key === 'Portfolio' || item.key === 'GitHub' ? 'Optional — not detected' : 'Not detected'}</span>` : ''}
+        ${item.found && item.detail ? `<span class="check-detail" style="color:var(--color-on-surface); font-weight:600;">${escHtml(item.detail)}</span>` : ''}
+        ${!item.found ? `<span class="check-detail check-missing-text">${item.key.includes('Portfolio') ? 'Optional / Not detected' : 'Not detected'}</span>` : ''}
       </div>
     </div>
   `).join('');
 }
 
-function renderSectionChecks(ps) {
+function renderSectionChecks(ps, sa) {
   const allSections = [
-    { key: 'summary', label: 'Summary / Objective' },
-    { key: 'experience', label: 'Experience / Work History' },
-    { key: 'skills', label: 'Technical Skills' },
-    { key: 'projects', label: 'Projects' },
-    { key: 'education', label: 'Education' },
-    { key: 'certifications', label: 'Certifications' },
-    { key: 'achievements', label: 'Achievements / Awards' }
+    { key: 'summary', label: 'Summary / Objective', status: sa?.exists ? (sa.score >= 3 ? 'Strong' : 'Generic') : 'Missing' },
+    { key: 'skills', label: 'Technical Skills', status: ps.detected.skills ? 'Detected' : 'Missing' },
+    { key: 'experience', label: 'Work Experience', status: ps.detected.experience ? 'Detected' : 'Missing' },
+    { key: 'projects', label: 'Projects', status: ps.detected.projects ? 'Detected' : 'Missing' },
+    { key: 'education', label: 'Education', status: ps.detected.education ? 'Detected' : 'Missing' },
+    { key: 'certifications', label: 'Certifications', status: ps.detected.certifications ? 'Detected' : 'Missing' },
+    { key: 'achievements', label: 'Achievements / Awards', status: ps.detected.achievements ? 'Detected' : 'Missing' }
   ];
 
   const detected = allSections.filter(s => ps.detected[s.key]);
@@ -1703,7 +3061,10 @@ function renderSectionChecks(ps) {
     html += detected.map(s => `
       <div class="analyzer-check-item check-pass">
         <span class="material-symbols-outlined check-icon" style='font-variation-settings: "FILL" 1;'>check_circle</span>
-        <span class="check-label">${s.label}</span>
+        <div>
+          <span class="check-label">${escHtml(s.label)}</span>
+          ${s.key === 'summary' && sa?.exists ? `<span class="check-detail">${sa.score >= 3 ? '✓ Specific & keyword-aligned' : '⚠ Generic phrasing detected'}</span>` : ''}
+        </div>
       </div>
     `).join('');
   }
@@ -1712,7 +3073,7 @@ function renderSectionChecks(ps) {
     html += missing.map(s => `
       <div class="analyzer-check-item check-missing">
         <span class="material-symbols-outlined check-icon" style='font-variation-settings: "FILL" 1;'>warning</span>
-        <span class="check-label">${s.label}</span>
+        <span class="check-label">${escHtml(s.label)}</span>
       </div>
     `).join('');
   }
@@ -1720,15 +3081,20 @@ function renderSectionChecks(ps) {
 }
 
 function renderExperienceDetails(exp) {
-  if (!exp.totalBullets && exp.jobTitles.length === 0) {
-    return '<p class="no-data-text">No experience content detected. Consider adding your work experience or internships.</p>';
+  if (exp.isFresher || !exp.hasExperience) {
+    return `
+      <div class="exp-detail-note" style="margin-top:0.5rem;">
+        <span class="material-symbols-outlined text-amber-500 text-[18px]">info</span>
+        <span>No professional work experience detected (Fresher candidate). Ensure your projects and certifications provide strong practical evidence.</span>
+      </div>
+    `;
   }
 
   return `
     <div class="exp-stats-grid">
       <div class="exp-stat">
         <div class="exp-stat-value">${exp.totalBullets}</div>
-        <div class="exp-stat-label">Total Bullets</div>
+        <div class="exp-stat-label">Bullets</div>
       </div>
       <div class="exp-stat">
         <div class="exp-stat-value">${exp.actionVerbCount}</div>
@@ -1745,26 +3111,20 @@ function renderExperienceDetails(exp) {
     </div>
     ${exp.jobTitles.length ? `
       <div class="exp-detail-section">
-        <div class="exp-detail-label">Detected Job Titles</div>
+        <div class="exp-detail-label">Detected Roles</div>
         <div class="skills-pill-group">${exp.jobTitles.map(t => `<span class="skill-pill-found"><span class="material-symbols-outlined" style="font-size:11px;">work</span>${escHtml(t)}</span>`).join('')}</div>
       </div>
     ` : ''}
     ${exp.techInExperience.length ? `
       <div class="exp-detail-section">
-        <div class="exp-detail-label">Technologies Mentioned</div>
-        <div class="skills-pill-group">${exp.techInExperience.slice(0, 10).map(t => `<span class="skill-pill-found"><span class="material-symbols-outlined" style="font-size:11px;">check</span>${escHtml(t)}</span>`).join('')}</div>
+        <div class="exp-detail-label">Technologies in Context</div>
+        <div class="skills-pill-group">${exp.techInExperience.slice(0, 8).map(t => `<span class="skill-pill-found"><span class="material-symbols-outlined" style="font-size:11px;">check</span>${escHtml(t)}</span>`).join('')}</div>
       </div>
     ` : ''}
     ${exp.weakVerbCount > 0 ? `
       <div class="exp-detail-note">
         <span class="material-symbols-outlined text-amber-500 text-[16px]">info</span>
-        <span>${exp.weakVerbCount} bullet(s) use weak verbs. Consider replacing with strong action verbs (Built, Developed, Optimized, etc.).</span>
-      </div>
-    ` : ''}
-    ${exp.quantifiedRatio < 0.3 && exp.totalBullets > 0 ? `
-      <div class="exp-detail-note">
-        <span class="material-symbols-outlined text-amber-500 text-[16px]">info</span>
-        <span>Several experience bullets describe responsibilities but do not include measurable impact.</span>
+        <span>${exp.weakVerbCount} bullet(s) use weak verbs. Replace with action verbs like Engineered, Architected, Automated.</span>
       </div>
     ` : ''}
   `;
@@ -1772,14 +3132,14 @@ function renderExperienceDetails(exp) {
 
 function renderSkillsSection(skills) {
   if (skills.all.length === 0) {
-    return '<p class="no-data-text">No technical skills detected. Consider adding a dedicated skills section.</p>';
+    return '<p class="no-data-text">No technical skills detected. Consider adding a structured technical skills section.</p>';
   }
 
   const categories = Object.entries(skills.categorized).filter(([_, arr]) => arr.length > 0);
 
   return `
     <div class="detected-skills-summary">
-      <span class="skills-count">${skills.all.length} skills detected</span>
+      <span class="skills-count">${skills.all.length} technical skills detected</span>
     </div>
     ${categories.map(([cat, arr]) => `
       <div class="skill-category-section">
@@ -1787,19 +3147,25 @@ function renderSkillsSection(skills) {
         <div class="skills-pill-group">${arr.map(s => `<span class="skill-pill-found"><span class="material-symbols-outlined" style="font-size:11px;">check</span>${escHtml(s)}</span>`).join('')}</div>
       </div>
     `).join('')}
+    ${skills.softSkills && skills.softSkills.length > 0 ? `
+      <div class="skill-category-section" style="margin-top:0.75rem;">
+        <div class="skill-category-label" style="color:var(--color-outline);">Soft Skills (Separated from Tech Score)</div>
+        <div class="skills-pill-group">${skills.softSkills.map(s => `<span class="skill-pill-rec" style="opacity:0.85;">${escHtml(s)}</span>`).join('')}</div>
+      </div>
+    ` : ''}
   `;
 }
 
 function renderProjectsDetails(proj) {
-  if (!proj.found) {
-    return '<p class="no-data-text">No projects section detected. Consider adding 2-3 technical projects with descriptions and links.</p>';
+  if (!proj.found || proj.count === 0) {
+    return '<p class="no-data-text">No projects section detected. Consider adding 2-3 technical projects with descriptions, architecture, and links.</p>';
   }
 
   const items = [];
   items.push({ pass: proj.count >= 2, label: `${proj.count} project(s) detected` });
   items.push({ pass: proj.techCount >= 3, label: proj.techCount > 0 ? `${proj.techCount} technologies mentioned` : 'Technologies not explicitly mentioned' });
-  items.push({ pass: proj.hasGithubLinks, label: proj.hasGithubLinks ? 'GitHub links detected' : 'GitHub links not detected' });
-  items.push({ pass: proj.hasDemoLinks, label: proj.hasDemoLinks ? 'Live demo/deployment links detected' : 'No live demo links detected' });
+  items.push({ pass: proj.hasGithubLinks, label: proj.hasGithubLinks ? 'GitHub repository link detected' : 'No GitHub repository links detected' });
+  items.push({ pass: proj.hasDemoLinks, label: proj.hasDemoLinks ? 'Live demo / hosted link detected' : 'No live demo links detected' });
 
   let detailsHtml = '';
   if (proj.details.length > 0) {
@@ -1809,6 +3175,7 @@ function renderProjectsDetails(proj) {
         <div class="project-detail-checks">
           ${d.hasTech ? '<span class="mini-check pass">Tech ✓</span>' : '<span class="mini-check warn">Tech ⚠</span>'}
           ${d.hasDescription ? '<span class="mini-check pass">Desc ✓</span>' : '<span class="mini-check warn">Desc ⚠</span>'}
+          ${d.matchedDepthKeywords && d.matchedDepthKeywords.length > 0 ? `<span class="mini-check pass">Depth (${d.matchedDepthKeywords.length})</span>` : '<span class="mini-check warn">Depth ⚠</span>'}
           ${d.hasGithub ? '<span class="mini-check pass">GitHub ✓</span>' : ''}
           ${d.hasImpact ? '<span class="mini-check pass">Impact ✓</span>' : ''}
         </div>
@@ -1833,9 +3200,9 @@ function renderContentQuality(cq) {
   return `
     <div class="cq-stats">
       <div class="cq-stat-item"><span class="cq-stat-val">${cq.wordCount}</span><span class="cq-stat-label">Words</span></div>
-      <div class="cq-stat-item"><span class="cq-stat-val">${cq.firstPersonCount}</span><span class="cq-stat-label">First Person</span></div>
-      <div class="cq-stat-item"><span class="cq-stat-val">${cq.vagueFound.length}</span><span class="cq-stat-label">Vague Phrases</span></div>
-      <div class="cq-stat-item"><span class="cq-stat-val">${cq.weakVerbsFound.length}</span><span class="cq-stat-label">Weak Verbs</span></div>
+      <div class="cq-stat-item"><span class="cq-stat-val">${cq.actionVerbCount}</span><span class="cq-stat-label">Action Verbs</span></div>
+      <div class="cq-stat-item"><span class="cq-stat-val">${cq.metricsCount}</span><span class="cq-stat-label">Metrics</span></div>
+      <div class="cq-stat-item"><span class="cq-stat-val">${cq.vagueFound.length}</span><span class="cq-stat-label">Clichés</span></div>
     </div>
     ${cq.issues.length > 0 ? `
       <div class="cq-issues-list">
@@ -1846,94 +3213,38 @@ function renderContentQuality(cq) {
           </div>
         `).join('')}
       </div>
-    ` : '<p class="no-issues-text">No major content quality issues detected.</p>'}
+    ` : '<p class="no-issues-text">No content quality issues detected. Strong writing style!</p>'}
   `;
 }
 
-function renderEduCheck(ps) {
-  const eduDetected = ps.detected.education;
-  const certDetected = ps.detected.certifications;
+function renderEduAndCredentials(edu, certs, ach, ps) {
+  const eduPass = edu.exists && (edu.hasDegree || edu.hasInstitution);
+  const certPass = certs.exists && !certs.isPurelyGeneric;
+  const achPass = ach.exists && !ach.isGeneric;
 
   return `
-    <div class="analyzer-check-item ${eduDetected ? 'check-pass' : 'check-warn'}">
-      <span class="material-symbols-outlined check-icon" style='font-variation-settings: "FILL" 1;'>${eduDetected ? 'check_circle' : 'warning'}</span>
-      <span class="check-label">${eduDetected ? 'Education section detected' : 'Education section not detected'}</span>
+    <div class="analyzer-check-item ${eduPass ? 'check-pass' : (edu.exists ? 'check-warn' : 'check-missing')}">
+      <span class="material-symbols-outlined check-icon" style='font-variation-settings: "FILL" 1;'>${eduPass ? 'check_circle' : 'warning'}</span>
+      <div>
+        <div class="check-label">Education (${edu.score}/5)</div>
+        <div class="check-detail">${edu.hasDegree ? `Degree: ${escHtml(edu.degree || 'Detected')}` : (edu.exists ? 'Basic education section' : 'Not detected')}</div>
+      </div>
     </div>
-    <div class="analyzer-check-item ${certDetected ? 'check-pass' : 'check-missing'}">
-      <span class="material-symbols-outlined check-icon" style='font-variation-settings: "FILL" 1;'>${certDetected ? 'check_circle' : 'info'}</span>
-      <span class="check-label">${certDetected ? 'Certifications section detected' : 'Certifications section not detected (optional)'}</span>
+    <div class="analyzer-check-item ${certPass ? 'check-pass' : (certs.exists ? 'check-warn' : 'check-missing')}">
+      <span class="material-symbols-outlined check-icon" style='font-variation-settings: "FILL" 1;'>${certPass ? 'check_circle' : (certs.exists ? 'warning' : 'info')}</span>
+      <div>
+        <div class="check-label">Certifications (${certs.score}/5)</div>
+        <div class="check-detail">${certs.hasRecognizedIssuer ? `Verified issuer (${certs.detectedIssuers.join(', ')})` : (certs.isPurelyGeneric ? 'Generic course certificate' : (certs.exists ? 'Certifications detected' : 'Optional / Not detected'))}</div>
+      </div>
+    </div>
+    <div class="analyzer-check-item ${achPass ? 'check-pass' : (ach.exists ? 'check-warn' : 'check-missing')}">
+      <span class="material-symbols-outlined check-icon" style='font-variation-settings: "FILL" 1;'>${achPass ? 'check_circle' : (ach.exists ? 'warning' : 'info')}</span>
+      <div>
+        <div class="check-label">Achievements & Awards (${ach.score}/5)</div>
+        <div class="check-detail">${achPass ? `Recognized achievement (${ach.matchedKeywords.slice(0, 2).join(', ')})` : (ach.isGeneric ? 'Generic participation statements' : (ach.exists ? 'Achievements detected' : 'Optional / Not detected'))}</div>
+      </div>
     </div>
   `;
-}
-
-/* ============================================================
-   JD MATCH RUNNER
-   ============================================================ */
-function runRealJDMatch(analysisResult) {
-  const jdTextarea = document.getElementById('jd-textarea-real');
-  const jdText = jdTextarea?.value?.trim();
-
-  if (!jdText || jdText.length < 30) {
-    showToast('Please paste a job description (at least a few lines).', 'error');
-    return;
-  }
-
-  analyzerState.jdText = jdText;
-  const matchResult = matchJobDescription(analyzerState.resumeText, analysisResult.skills.all, jdText);
-
-  if (!matchResult) {
-    showToast('Unable to analyze job description. Please try a longer description.', 'error');
-    return;
-  }
-
-  analyzerState.jdMatchResult = matchResult;
-
-  const resultsEl = document.getElementById('jd-match-results-real');
-  if (resultsEl) {
-    resultsEl.style.display = 'block';
-    resultsEl.innerHTML = `
-      <div class="jd-match-bar-wrapper" style="margin-top:1rem;">
-        <div class="jd-match-score-row">
-          <span class="jd-match-score-label">Job Match Score</span>
-          <span class="jd-match-score-val">${matchResult.matchScore}%</span>
-        </div>
-        <div class="jd-match-bar-bg">
-          <div class="jd-match-bar-fill" style="width:0%" id="jd-bar-fill-real"></div>
-        </div>
-      </div>
-      <div class="jd-keywords-grid" style="margin-top:0.75rem;">
-        <div>
-          <div class="jd-keywords-section">Matched Keywords (${matchResult.matched.length})</div>
-          ${matchResult.matched.length
-            ? matchResult.matched.map(s => `<span class="skill-pill-found" style="margin:2px;display:inline-flex;"><span class="material-symbols-outlined" style="font-size:11px;">check</span>${escHtml(s)}</span>`).join('')
-            : '<span class="no-data-text">No keywords matched</span>'}
-        </div>
-        <div>
-          <div class="jd-keywords-section">Missing / Not Detected (${matchResult.missing.length})</div>
-          ${matchResult.missing.slice(0, 10).map(s => `<span class="skill-pill-rec" style="margin:2px;display:inline-flex;"><span class="material-symbols-outlined" style="font-size:11px;">add</span>${escHtml(s)}</span>`).join('')
-            || '<span class="no-data-text">All JD keywords found</span>'}
-        </div>
-      </div>
-      ${matchResult.recommendations.length ? `
-        <div class="jd-recommendations" style="margin-top:1rem;">
-          <div class="jd-keywords-section">Recommendations</div>
-          ${matchResult.recommendations.map(r => `
-            <div class="analyzer-check-item check-info" style="margin-bottom:0.5rem;">
-              <span class="material-symbols-outlined check-icon" style='font-variation-settings: "FILL" 1;'>lightbulb</span>
-              <span class="check-label">${escHtml(r)}</span>
-            </div>
-          `).join('')}
-        </div>
-      ` : ''}
-    `;
-
-    setTimeout(() => {
-      const bar = document.getElementById('jd-bar-fill-real');
-      if (bar) bar.style.width = `${matchResult.matchScore}%`;
-    }, 100);
-  }
-
-  showToast(`Job match: ${matchResult.matchScore}% (${matchResult.matched.length} matched, ${matchResult.missing.length} missing)`, matchResult.matchScore >= 70 ? 'success' : 'info');
 }
 
 /* ============================================================
@@ -1941,7 +3252,6 @@ function runRealJDMatch(analysisResult) {
    ============================================================ */
 function saveAnalysisResult(result) {
   try {
-    // Save a trimmed version (no huge text blobs)
     const toSave = {
       timestamp: result.timestamp,
       fileName: result.fileName,
@@ -1951,8 +3261,13 @@ function saveAnalysisResult(result) {
       scores: result.scores,
       contactInfo: result.contactInfo,
       parsedSections: result.parsedSections,
-      skills: { all: result.skills.all.slice(0, 30), categorized: result.skills.categorized },
+      summaryAnalysis: result.summaryAnalysis,
+      skills: { all: result.skills.all.slice(0, 30), categorized: result.skills.categorized, softSkills: result.skills.softSkills },
       experienceAnalysis: {
+        hasExperience: result.experienceAnalysis.hasExperience,
+        isFresher: result.experienceAnalysis.isFresher,
+        score: result.experienceAnalysis.score,
+        max: result.experienceAnalysis.max,
         totalBullets: result.experienceAnalysis.totalBullets,
         actionVerbCount: result.experienceAnalysis.actionVerbCount,
         weakVerbCount: result.experienceAnalysis.weakVerbCount,
@@ -1961,14 +3276,21 @@ function saveAnalysisResult(result) {
         actionVerbRatio: result.experienceAnalysis.actionVerbRatio,
         jobTitles: result.experienceAnalysis.jobTitles,
         hasDates: result.experienceAnalysis.hasDates,
+        companies: result.experienceAnalysis.companies,
         techInExperience: result.experienceAnalysis.techInExperience.slice(0, 15),
         weakBullets: [],
         strongBullets: []
       },
       projectsAnalysis: result.projectsAnalysis,
+      educationAnalysis: result.educationAnalysis,
+      certificationsAnalysis: result.certificationsAnalysis,
+      achievementsAnalysis: result.achievementsAnalysis,
       contentQuality: result.contentQuality,
       formattingChecks: result.formattingChecks,
       suggestions: result.suggestions,
+      bestFitRole: result.bestFitRole,
+      jobRecommendations: result.jobRecommendations,
+      jdMatchResult: result.jdMatchResult,
       wordCount: result.wordCount
     };
     Storage.set(ANALYZER_STORAGE_KEY, toSave);
@@ -1986,7 +3308,8 @@ function clearAnalysisResult() {
   analyzerState = {
     file: null, fileName: '', fileSize: '', fileType: '',
     fromBuilder: false, resumeText: '', parsedData: null,
-    scores: null, analysisComplete: false, jdText: '', jdMatchResult: null
+    scores: null, analysisComplete: false, jobRecommendations: [],
+    bestFitRole: null, jdText: '', jdMatchResult: null
   };
 }
 
@@ -1997,7 +3320,6 @@ function restoreSavedAnalysis() {
   const saved = loadAnalysisResult();
   if (!saved || !saved.scores) return;
 
-  // Only restore if it's recent (within 24 hours)
   const age = Date.now() - new Date(saved.timestamp).getTime();
   if (age > 24 * 60 * 60 * 1000) return;
 
@@ -2006,6 +3328,8 @@ function restoreSavedAnalysis() {
   analyzerState.fileType = saved.fileType;
   analyzerState.fileSize = saved.fileSize;
   analyzerState.fromBuilder = saved.fromBuilder;
+  analyzerState.jobRecommendations = saved.jobRecommendations || [];
+  analyzerState.bestFitRole = saved.bestFitRole || null;
 
   const resultsArea = document.getElementById('analyzer-results-area');
   if (resultsArea) {
@@ -2015,14 +3339,13 @@ function restoreSavedAnalysis() {
 }
 
 /* ============================================================
-   ANALYZER CONTROLS INIT (replaces old initAnalyzerControls)
+   ANALYZER CONTROLS INITIALIZATION
    ============================================================ */
 function initRealAnalyzerControls() {
   const dropzone = document.getElementById('upload-dropzone');
   const fileInput = document.getElementById('file-upload-input');
   const removeFileBtn = document.getElementById('btn-remove-file');
 
-  // Drag and drop
   if (dropzone) {
     dropzone.addEventListener('dragover', e => {
       e.preventDefault();
@@ -2037,28 +3360,24 @@ function initRealAnalyzerControls() {
     });
   }
 
-  // File input
   if (fileInput) {
     fileInput.addEventListener('change', () => {
       if (fileInput.files[0]) handleRealFileSelected(fileInput.files[0]);
     });
   }
 
-  // Remove file
   if (removeFileBtn) {
     removeFileBtn.addEventListener('click', () => {
       resetAnalyzerState();
     });
   }
 
-  // Analyze Builder Resume buttons
   const analyzeBuilderBtn = document.getElementById('btn-analyze-builder');
   if (analyzeBuilderBtn) analyzeBuilderBtn.addEventListener('click', () => runRealAnalysis(true));
 
   const topBarBuilderBtn = document.getElementById('btn-use-builder-resume');
   if (topBarBuilderBtn) topBarBuilderBtn.addEventListener('click', () => runRealAnalysis(true));
 
-  // Run Analysis button (top bar)
   const runBtn = document.getElementById('btn-run-analysis');
   if (runBtn) {
     runBtn.addEventListener('click', () => {
@@ -2072,17 +3391,6 @@ function initRealAnalyzerControls() {
     });
   }
 
-  // Re-analyze button
-  const reanalyzeBtn = document.getElementById('btn-reanalyze');
-  if (reanalyzeBtn) {
-    reanalyzeBtn.addEventListener('click', () => {
-      const resultsArea = document.getElementById('analyzer-results-area');
-      if (resultsArea) { resultsArea.style.display = 'none'; resultsArea.innerHTML = ''; }
-      analyzerState.analysisComplete = false;
-    });
-  }
-
-  // Restore saved analysis
   restoreSavedAnalysis();
 }
 
@@ -2105,14 +3413,12 @@ function handleRealFileSelected(file) {
   if (metaEl) metaEl.textContent = `${sizeStr} · ${type}`;
   if (strip) strip.style.display = 'flex';
 
-  // Store actual File object
   analyzerState.file = file;
   analyzerState.fileName = file.name;
   analyzerState.fileSize = sizeStr;
   analyzerState.fileType = type;
   analyzerState.fromBuilder = false;
 
-  // Clear previous results
   const resultsArea = document.getElementById('analyzer-results-area');
   if (resultsArea) { resultsArea.style.display = 'none'; resultsArea.innerHTML = ''; }
   analyzerState.analysisComplete = false;
@@ -2153,13 +3459,36 @@ function formatCategoryName(key) {
   return names[key] || key.charAt(0).toUpperCase() + key.slice(1);
 }
 
-// Use escHtml and timeAgo from the existing utils.js — they're already global
-
-// Auto-initialize if DOM is ready or on DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
+// Auto-initialize
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      initRealAnalyzerControls();
+    });
+  } else {
     initRealAnalyzerControls();
-  });
-} else {
-  initRealAnalyzerControls();
+  }
+}
+
+// Export for testing in Node.js environment
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    extractSkills,
+    matchSkillExact,
+    extractContactInfo,
+    parseResumeSections,
+    analyzeProfessionalSummary,
+    analyzeExperience,
+    analyzeProjects,
+    analyzeEducation,
+    analyzeCertifications,
+    analyzeAchievements,
+    analyzeContentQuality,
+    analyzeATSFormatting,
+    calculateATSScore,
+    calculateJobRoleMatches,
+    analyzeJobDescriptionMatch,
+    getScoreInterpretation,
+    JOB_ROLES_DB
+  };
 }
