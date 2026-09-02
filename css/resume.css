@@ -1891,6 +1891,52 @@
   flex-direction: column;
   gap: 1.5rem;
   animation: rv-fadein 0.3s ease;
+  cursor: default;
+}
+
+/* Ensure no text typing / I-beam cursor appears across analyzer dashboard elements */
+#view-analyzer,
+#view-analyzer p,
+#view-analyzer h1,
+#view-analyzer h2,
+#view-analyzer h3,
+#view-analyzer h4,
+#view-analyzer span,
+#view-analyzer div,
+.analyzer-results-area,
+.analyzer-section-card,
+.best-fit-card,
+.job-rec-card,
+.jd-results-hero,
+.analyzer-score-hero,
+.analyzer-file-info-bar,
+.breakdown-row,
+.analyzer-check-item,
+.skill-tag-have,
+.skill-tag-missing,
+.eligibility-badge,
+.jd-category-tag,
+.jd-action-priority-item {
+  cursor: default;
+}
+
+/* Clickable buttons and links keep pointer cursor */
+#view-analyzer button,
+#view-analyzer a,
+#view-analyzer label[for],
+#view-analyzer [role="button"],
+.btn-reanalyze-real,
+#btn-run-analysis,
+#btn-use-builder-resume,
+#btn-run-jd-match-enhanced {
+  cursor: pointer !important;
+}
+
+/* Text typing cursor ONLY inside editable textareas and inputs */
+#view-analyzer textarea,
+#view-analyzer input[type="text"],
+#view-analyzer .jd-textarea-enhanced {
+  cursor: text !important;
 }
 
 /* Analyzed File Strip */
@@ -2940,6 +2986,71 @@
   color: var(--color-primary);
 }
 
+/* JD Verdict & Readiness Strip */
+.jd-verdict-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.jd-verdict-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  text-align: center;
+  box-shadow: var(--shadow-subtle);
+}
+
+.jd-verdict-lbl {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-on-surface-variant);
+  margin-bottom: 0.25rem;
+}
+
+.jd-verdict-val {
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+
+.jd-exp-gap-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem;
+  background: rgba(249, 115, 22, 0.08);
+  border: 1.5px solid rgba(249, 115, 22, 0.35);
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+  font-size: 0.8125rem;
+  color: var(--color-on-surface);
+  line-height: 1.45;
+}
+
+.best-fit-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 0.5rem 0 0.75rem 0;
+}
+
+.best-fit-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 /* Responsive Overrides */
 @media (max-width: 900px) {
   .analyzer-details-grid {
@@ -2960,6 +3071,9 @@
     flex-direction: column;
     text-align: center;
   }
+  .jd-verdict-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
@@ -2969,11 +3083,108 @@
   .cq-stats {
     grid-template-columns: repeat(2, 1fr);
   }
-  .score-breakdown-grid {
-    grid-template-columns: 1fr;
-  }
   .jd-factors-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .jd-verdict-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
+/* Eligibility Badges */
+.eligibility-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  width: fit-content;
+}
+
+.eligibility-highly {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.eligibility-eligible {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.eligibility-skill-gap {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.eligibility-exp-gap {
+  background: rgba(249, 115, 22, 0.15);
+  color: #ea580c;
+  border: 1px solid rgba(249, 115, 22, 0.35);
+}
+
+.eligibility-stretch {
+  background: rgba(245, 158, 11, 0.15);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.eligibility-not {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.jd-category-tag {
+  font-size: 0.625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-container-high);
+  color: var(--color-on-surface-variant);
+}
+
+.jd-action-priority-item {
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.jd-action-priority-title {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  margin-bottom: 0.2rem;
+}
+
+.jd-action-priority-reason {
+  font-size: 0.75rem;
+  color: var(--color-on-surface-variant);
+  margin-bottom: 0.3rem;
+}
+
+.jd-action-priority-what {
+  font-size: 0.8125rem;
+  color: var(--color-on-surface);
+  line-height: 1.4;
+}
+
+.jd-why-box {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--color-on-surface-variant);
+  padding: 0.5rem 0.65rem;
+  background: var(--color-surface-container-low);
+  border-radius: var(--radius-sm);
+  margin-top: 0.4rem;
+}

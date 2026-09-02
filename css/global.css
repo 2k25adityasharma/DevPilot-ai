@@ -56,6 +56,65 @@
 /* Reset & Base Setup */
 *, *::before, *::after {
   box-sizing: border-box;
+  cursor: default;
+  caret-color: transparent !important;
+}
+
+/* Clickable elements */
+a,
+button,
+[role="button"],
+.clickable,
+label[for],
+select,
+summary,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="checkbox"],
+input[type="radio"],
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-icon,
+.tab,
+.filter-tab,
+.badge-interactive,
+.dev-card-interactive,
+.sample-user-chip {
+  cursor: pointer !important;
+  caret-color: transparent !important;
+}
+
+/* Text editing cursors and carets strictly for editable inputs */
+input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+textarea,
+[contenteditable="true"] {
+  cursor: text !important;
+  caret-color: auto !important;
+  user-select: text !important;
+}
+
+/* Prevent carets on headings, paragraphs, spans, and static containers */
+h1, h2, h3, h4, h5, h6,
+p, span, div, section, article, header, nav, aside, main, footer,
+.badge, .card, .dev-card, .stat, .label, .tag {
+  caret-color: transparent !important;
+}
+
+/* Disabled elements */
+button:disabled,
+input:disabled,
+textarea:disabled,
+select:disabled,
+.disabled {
+  cursor: not-allowed !important;
+  caret-color: transparent !important;
+}
+
+/* Prevent accidental focus rings on non-interactive items */
+:focus:not(:focus-visible) {
+  outline: none !important;
 }
 
 body {
@@ -68,6 +127,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  cursor: default;
+  caret-color: transparent !important;
 }
 
 h1, h2, h3, h4, h5, h6 {

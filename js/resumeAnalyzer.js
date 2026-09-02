@@ -216,6 +216,19 @@ const JOB_ROLES_DB = [
     roleSummary: 'Your computer science foundations, algorithms, and programming proficiency align with software engineering.'
   },
   {
+    id: 'sde_intern',
+    title: 'SDE Intern',
+    category: 'Entry Level / Intern',
+    icon: 'school',
+    description: 'Entry-level engineering role focusing on algorithmic problem solving, core computer science, and foundation codebases.',
+    essentialSkills: ['Data Structures', 'Algorithms', 'Git'],
+    importantSkills: ['C++', 'Java', 'Python', 'JavaScript', 'OOP', 'DBMS', 'SQL'],
+    bonusSkills: ['Competitive Programming', 'HTML5', 'CSS3', 'Linux', 'Problem Solving'],
+    domainKeywords: ['intern', 'internship', 'entry level', 'fresher', 'graduate', 'student', 'dsa', 'problem solving'],
+    projectKeywords: ['project', 'assignment', 'mini project', 'college', 'calculator', 'website', 'app'],
+    roleSummary: 'Your foundational programming, data structures, and academic project work align with software engineering internships.'
+  },
+  {
     id: 'python_developer',
     title: 'Python Developer',
     category: 'Backend / Scripting',
@@ -255,14 +268,27 @@ const JOB_ROLES_DB = [
     roleSummary: 'Your SQL, Python data handling, and analytical problem solving align with data analytics roles.'
   },
   {
+    id: 'data_scientist',
+    title: 'Data Scientist',
+    category: 'Data Science & Stats',
+    icon: 'query_stats',
+    description: 'Leverages statistical modeling, machine learning, and data exploration to extract predictive business value.',
+    essentialSkills: ['Python', 'SQL', 'Machine Learning', 'Pandas'],
+    importantSkills: ['NumPy', 'Statistics', 'Scikit-learn', 'Data Visualization', 'Matplotlib', 'Deep Learning'],
+    bonusSkills: ['R', 'Tableau', 'Big Data', 'Feature Engineering', 'Jupyter', 'PostgreSQL'],
+    domainKeywords: ['data scientist', 'statistics', 'predictive', 'modeling', 'data science', 'hypothesis', 'exploration', 'insights'],
+    projectKeywords: ['data science', 'analysis', 'predictive model', 'dataset', 'visualization', 'eda'],
+    roleSummary: 'Your statistics, Python data analysis, and machine learning skill set support data science positions.'
+  },
+  {
     id: 'ml_engineer',
     title: 'Machine Learning Engineer',
     category: 'AI / Data Science',
     icon: 'psychology',
     description: 'Designs, trains, evaluates, and deploys predictive machine learning models and deep neural networks.',
-    essentialSkills: ['Python', 'Machine Learning', 'Data Structures'],
-    importantSkills: ['Scikit-learn', 'Pandas', 'NumPy', 'Deep Learning', 'PyTorch', 'TensorFlow', 'Statistics', 'SQL'],
-    bonusSkills: ['Computer Vision', 'NLP', 'Docker', 'Transformers', 'Hugging Face', 'Model Evaluation', 'MLOps'],
+    essentialSkills: ['Python', 'Machine Learning', 'NumPy', 'Pandas', 'scikit-learn'],
+    importantSkills: ['PyTorch', 'TensorFlow', 'Deep Learning', 'Statistics', 'SQL', 'Data Structures'],
+    bonusSkills: ['Computer Vision', 'NLP', 'Docker', 'Transformers', 'Keras', 'Model Evaluation', 'MLOps'],
     domainKeywords: ['machine learning', 'ml', 'deep learning', 'neural networks', 'model', 'training', 'accuracy', 'classification', 'regression'],
     projectKeywords: ['model', 'prediction', 'classifier', 'detection', 'nlp', 'vision', 'dataset', 'recommendation'],
     roleSummary: 'Your machine learning, mathematical modeling, and Python data science foundations support ML engineering.'
@@ -273,9 +299,9 @@ const JOB_ROLES_DB = [
     category: 'AI / LLM',
     icon: 'smart_toy',
     description: 'Builds generative AI applications, agentic workflows, RAG pipelines, and LLM integrations.',
-    essentialSkills: ['Python', 'Rest Apis', 'Git'],
-    importantSkills: ['LangChain', 'OpenAI', 'LLM', 'Generative AI', 'RAG', 'Vector Database', 'Transformers'],
-    bonusSkills: ['FastAPI', 'PyTorch', 'Docker', 'Hugging Face', 'Prompt Engineering'],
+    essentialSkills: ['Generative AI', 'Prompt Engineering', 'AI APIs', 'LLM'],
+    importantSkills: ['LangChain', 'Vector DB', 'RAG', 'Python', 'REST APIs', 'FastAPI'],
+    bonusSkills: ['OpenAI', 'Hugging Face', 'Transformers', 'Docker', 'Embeddings'],
     domainKeywords: ['ai', 'artificial intelligence', 'genai', 'generative ai', 'llm', 'rag', 'langchain', 'embeddings', 'vector database'],
     projectKeywords: ['ai', 'chatbot', 'assistant', 'rag', 'llm', 'gpt', 'generator', 'agent'],
     roleSummary: 'Your work with Python, APIs, and modern AI/LLM tools prepares you for Generative AI development.'
@@ -716,10 +742,42 @@ function extractContactInfo(text) {
       const rawMatch = pMatch[1] || pMatch[0];
       const matchedStr = rawMatch.replace(/^(?:phone|mobile|mob|cell|tel|contact|call|ph|p|m|t)\s*[:|–\-.]\s*/i, '').trim();
       const digitsOnly = matchedStr.replace(/\D/g, '');
-      if (digitsOnly.length >= 10 && digitsOnly.length <= 15) {
+      
+      if (digitsOnly.length === 12 && digitsOnly.startsWith('91')) {
+        result.phone = true;
+        result.details.phone = matchedStr.replace(/^[^\d+(]+|[^\d)]+$/g, '').trim();
+        break;
+      } else if (digitsOnly.length === 10) {
         if (!/^(?:19|20)\d{2}(?:19|20)\d{2}$/.test(digitsOnly) && !/^(?:19|20)\d{2}$/.test(digitsOnly)) {
           result.phone = true;
           result.details.phone = matchedStr.replace(/^[^\d+(]+|[^\d)]+$/g, '').trim();
+          break;
+        }
+      } else if (digitsOnly.length > 10 && digitsOnly.length <= 15) {
+        result.phone = true;
+        result.details.phone = matchedStr.replace(/^[^\d+(]+|[^\d)]+$/g, '').trim();
+        break;
+      }
+    }
+  }
+
+  // If no valid 10-digit phone found, search for invalid/incomplete phone numbers (e.g. +91 with fewer digits)
+  if (!result.phone) {
+    const invalidPhonePatterns = [
+      /(?:\+?91[\s.-]?\d{1,9}\b|\+?91[\s.-]?\d{11,}\b)/i,
+      /(?:phone|mobile|mob|cell|tel|contact)\s*[:|–\-.]\s*(\+?\d[\d\s\-().]{2,18})/i,
+      /(?:^|[^\d\w+])([6-9]\d{5,8})(?:[^\d\w]|$)/m
+    ];
+
+    for (const ip of invalidPhonePatterns) {
+      const ipMatch = text.match(ip);
+      if (ipMatch) {
+        const rawInvalid = ipMatch[1] || ipMatch[0];
+        const cleanInvalid = rawInvalid.replace(/^(?:phone|mobile|mob|cell|tel|contact)\s*[:|–\-.]\s*/i, '').trim().replace(/^[^\d+(]+|[^\d)]+$/g, '');
+        const digits = cleanInvalid.replace(/\D/g, '');
+        if (digits.length >= 4 && !/^(?:19|20)\d{2}(?:19|20)\d{2}$/.test(digits) && !/^(?:19|20)\d{2}$/.test(digits)) {
+          result.phone = false;
+          result.details.invalidPhone = cleanInvalid;
           break;
         }
       }
@@ -1707,430 +1765,756 @@ function getScoreInterpretation(score) {
 }
 
 /* ============================================================
-   JOB MATCHING & RECOMMENDATION ENGINE
+   STRUCTURED RESUME PROFILE BUILDER
    ============================================================ */
-function calculateJobRoleMatches(resumeData) {
-  const { resumeText, skills, projectsAnalysis, experienceAnalysis, educationAnalysis } = resumeData;
-  const textLower = resumeText.toLowerCase();
-  const candidateSkillsLower = skills.all.map(s => s.toLowerCase());
+function buildStructuredResumeProfile(resumeData) {
+  const {
+    resumeText, contactInfo = {}, skills = {}, summaryAnalysis = {},
+    experienceAnalysis = {}, projectsAnalysis = {}, educationAnalysis = {},
+    certificationsAnalysis = {}, achievementsAnalysis = {}
+  } = resumeData;
 
-  const hasGit = candidateSkillsLower.includes('git') || candidateSkillsLower.includes('github') || candidateSkillsLower.includes('github actions');
-  const hasDocker = candidateSkillsLower.includes('docker') || candidateSkillsLower.includes('kubernetes');
+  const technicalSkills = skills.technical || [];
+  const programmingLanguages = skills.languages || [];
+  const frameworks = skills.frameworks || [];
+  const databases = skills.databases || [];
+  const cloudTools = skills.tools || [];
+  const allKeywords = skills.all || [];
 
-  const roleMatches = [];
+  let experienceLevel = 'Fresher';
+  const totalYears = experienceAnalysis.totalYears || 0;
+  if (totalYears >= 5) experienceLevel = 'Senior';
+  else if (totalYears >= 2) experienceLevel = 'Mid-Level';
+  else if (totalYears >= 1) experienceLevel = 'Junior';
 
-  JOB_ROLES_DB.forEach(role => {
-    // 1. Skills Match Factor (35%)
-    let essentialMatched = 0;
-    const haveSkills = [];
-    const missingEssential = [];
-    const missingImportant = [];
-    const missingBonus = [];
+  const ciDetails = contactInfo.details || {};
+  const name = ciDetails.name || (typeof contactInfo.name === 'string' ? contactInfo.name : 'Not detected');
+  const email = ciDetails.email || (typeof contactInfo.email === 'string' ? contactInfo.email : 'Not detected');
+  const phone = ciDetails.phone || (typeof contactInfo.phone === 'string' ? contactInfo.phone : 'Not detected');
+  const location = ciDetails.location || (typeof contactInfo.location === 'string' ? contactInfo.location : 'Not detected');
+  const portfolio = ciDetails.portfolio || (typeof contactInfo.portfolio === 'string' ? contactInfo.portfolio : null);
+  const github = ciDetails.github || (typeof contactInfo.github === 'string' ? contactInfo.github : null);
+  const linkedin = ciDetails.linkedin || (typeof contactInfo.linkedin === 'string' ? contactInfo.linkedin : null);
 
-    role.essentialSkills.forEach(req => {
-      let isPresent = candidateSkillsLower.includes(req.toLowerCase()) || matchSkillExact(req.toLowerCase(), textLower, resumeText);
-      if (!isPresent && req === 'Git' && hasGit) isPresent = true;
-      if (!isPresent && req === 'Docker' && hasDocker) isPresent = true;
+  const educationStr = educationAnalysis.degrees && educationAnalysis.degrees.length > 0
+    ? educationAnalysis.degrees.join(', ')
+    : (educationAnalysis.hasDegree ? 'Degree detected' : 'Not detected');
 
-      if (isPresent) {
-        essentialMatched++;
-        if (!haveSkills.includes(req)) haveSkills.push(req);
-      } else {
-        missingEssential.push(req);
-      }
-    });
+  const degreeStr = educationAnalysis.degreeName || (educationAnalysis.degrees && educationAnalysis.degrees[0]) || 'Not detected';
 
-    let importantMatched = 0;
-    role.importantSkills.forEach(imp => {
-      let isPresent = candidateSkillsLower.includes(imp.toLowerCase()) || matchSkillExact(imp.toLowerCase(), textLower, resumeText);
-      if (!isPresent && imp === 'Git' && hasGit) isPresent = true;
-      if (!isPresent && imp === 'Docker' && hasDocker) isPresent = true;
-
-      if (isPresent) {
-        importantMatched++;
-        if (!haveSkills.includes(imp)) haveSkills.push(imp);
-      } else {
-        missingImportant.push(imp);
-      }
-    });
-
-    let bonusMatched = 0;
-    role.bonusSkills.forEach(bon => {
-      let isPresent = candidateSkillsLower.includes(bon.toLowerCase()) || matchSkillExact(bon.toLowerCase(), textLower, resumeText);
-      if (isPresent) {
-        bonusMatched++;
-        if (!haveSkills.includes(bon)) haveSkills.push(bon);
-      } else {
-        missingBonus.push(bon);
-      }
-    });
-
-    const essentialRatio = role.essentialSkills.length > 0 ? (essentialMatched / role.essentialSkills.length) : 1;
-    const importantRatio = role.importantSkills.length > 0 ? (importantMatched / Math.min(role.importantSkills.length, 3)) : 0;
-    const bonusRatio = role.bonusSkills.length > 0 ? (bonusMatched / Math.min(role.bonusSkills.length, 2)) : 0;
-
-    const skillsScore = (essentialRatio * 20) + (Math.min(importantRatio, 1) * 10) + (Math.min(bonusRatio, 1) * 5);
-
-    // 2. Project Relevance Factor (20%)
-    let projectScore = 0;
-    if (projectsAnalysis.found && projectsAnalysis.count > 0) {
-      let matchedProjectKeywords = 0;
-      role.projectKeywords.forEach(pk => {
-        if (textLower.includes(pk.toLowerCase())) matchedProjectKeywords++;
-      });
-      let projectTechMatched = 0;
-      haveSkills.forEach(hs => {
-        if (projectsAnalysis.details.some(p => (p.textLines || []).some(l => l.toLowerCase().includes(hs.toLowerCase())))) {
-          projectTechMatched++;
-        }
-      });
-      projectScore = Math.min((matchedProjectKeywords * 3.5) + (projectTechMatched * 4) + (projectsAnalysis.count >= 2 ? 4 : 2), 20);
-    }
-
-    // 3. Experience Relevance Factor (15%)
-    let expScore = 0;
-    if (experienceAnalysis.hasExperience && !experienceAnalysis.isFresher) {
-      let matchedTitles = 0;
-      experienceAnalysis.jobTitles.forEach(t => {
-        if (role.domainKeywords.some(dk => t.toLowerCase().includes(dk))) matchedTitles++;
-      });
-      let expTechMatched = 0;
-      haveSkills.forEach(hs => {
-        if (experienceAnalysis.techInExperience.some(te => te.toLowerCase() === hs.toLowerCase())) expTechMatched++;
-      });
-      expScore = Math.min((matchedTitles * 6) + (expTechMatched * 3.5) + (experienceAnalysis.totalBullets >= 2 ? 4 : 2), 15);
-    } else {
-      // Fresher: Evaluates project depth and technical execution for entry-level suitability
-      expScore = Math.min(Math.round(projectScore * 0.7), 13);
-    }
-
-    // 4. Education Relevance Factor (10%)
-    let eduScore = 5;
-    if (educationAnalysis.exists) {
-      if (educationAnalysis.hasMajor) eduScore = 10;
-      else if (educationAnalysis.hasDegree) eduScore = 8;
-    }
-
-    // 5. Tools & Frameworks Alignment (10%)
-    const toolSkills = ['Git', 'GitHub', 'Docker', 'Postman', 'Linux', 'VS Code', 'CI/CD'];
-    const matchedTools = toolSkills.filter(t => candidateSkillsLower.includes(t.toLowerCase())).length;
-    const toolsScore = Math.min(matchedTools * 3.5, 10);
-
-    // 6. Domain Keywords & Summary Alignment (10%)
-    let domainMatchedCount = 0;
-    role.domainKeywords.forEach(dk => {
-      if (textLower.includes(dk)) domainMatchedCount++;
-    });
-    const domainScore = Math.min(domainMatchedCount * 2.5, 10);
-
-    // Total Match Score (0 - 100%)
-    const rawTotal = skillsScore + projectScore + expScore + eduScore + toolsScore + domainScore;
-    let matchScore = Math.min(Math.max(Math.round(rawTotal), 0), 100);
-
-    // If candidate has 0 essential skills, cap maximum match score to prevent fake alignment
-    if (essentialMatched === 0 && role.essentialSkills.length > 0) {
-      matchScore = Math.min(matchScore, 35);
-    }
-
-    // Match Level Label
-    let matchLevel = '';
-    let matchColor = '';
-    if (matchScore >= 90) { matchLevel = 'Excellent Match'; matchColor = '#059669'; }
-    else if (matchScore >= 80) { matchLevel = 'Strong Match'; matchColor = '#10b981'; }
-    else if (matchScore >= 70) { matchLevel = 'Good Match'; matchColor = '#4F46E5'; }
-    else if (matchScore >= 60) { matchLevel = 'Potential Match'; matchColor = '#f59e0b'; }
-    else if (matchScore >= 40) { matchLevel = 'Needs Skill Development'; matchColor = '#f97316'; }
-    else { matchLevel = 'Low Match'; matchColor = 'var(--color-error)'; }
-
-    // Application Readiness & Skill Gap
-    const totalMissingCore = missingEssential.length + missingImportant.length;
-    let readiness = '';
-    let readinessBadge = '';
-    let readinessColor = '';
-    let readinessClass = '';
-    let readinessMsg = '';
-
-    const hasAllEssential = missingEssential.length === 0;
-    const isWellQualified = hasAllEssential && (importantMatched >= 2 || missingImportant.length <= 1) && matchScore >= 75;
-
-    if (isWellQualified) {
-      readiness = 'READY TO APPLY';
-      readinessBadge = 'Ready to Apply';
-      readinessColor = '#10b981';
-      readinessClass = 'readiness-ready';
-      readinessMsg = `You meet all essential requirements and have strong alignment with entry-level and junior ${role.title} positions.`;
-    } else if (totalMissingCore <= 3 && matchScore >= 45) {
-      readiness = 'ALMOST READY';
-      readinessBadge = 'Almost Job Ready';
-      readinessColor = '#f59e0b';
-      readinessClass = 'readiness-almost';
-      const keyMissing = missingEssential.concat(missingImportant).slice(0, 2);
-      readinessMsg = `You are close to being job-ready for this role. Learning ${keyMissing.join(' and ')} and building a focused project could significantly improve your eligibility.`;
-    } else {
-      readiness = 'NEEDS SKILL DEVELOPMENT';
-      readinessBadge = 'Significant Skill Gap';
-      readinessColor = '#ef4444';
-      readinessClass = 'readiness-gap';
-      const keyMissing = missingEssential.concat(missingImportant).slice(0, 3);
-      readinessMsg = `This role currently requires substantial skill development. Build your core foundations in ${keyMissing.join(', ')} before targeting this role.`;
-    }
-
-    // Dynamic Personalized Learning Roadmap
-    const roadmapSteps = [];
-    const topMissing = missingEssential.concat(missingImportant).slice(0, 2);
-    if (topMissing.length > 0) {
-      roadmapSteps.push(`Learn & master fundamentals of ${topMissing[0]}`);
-      if (topMissing.length > 1) {
-        roadmapSteps.push(`Learn ${topMissing[1]} and explore standard design patterns`);
-      }
-      roadmapSteps.push(`Build a full-featured ${role.title} project implementing ${topMissing.join(' + ')}`);
-      roadmapSteps.push(`Deploy the live project and showcase the GitHub repository on your resume`);
-    } else {
-      roadmapSteps.push(`Continue building production-grade ${role.title} projects`);
-      roadmapSteps.push(`Contribute to open-source or complete system design exercises`);
-    }
-
-    // Why You Match Bullets
-    const whyYouMatch = [];
-    if (haveSkills.length > 0) {
-      whyYouMatch.push(`Technical skills: ${haveSkills.slice(0, 4).join(', ')}`);
-    }
-    if (projectsAnalysis.count > 0 && projectScore >= 8) {
-      whyYouMatch.push(`Practical project implementation aligned with ${role.category}`);
-    }
-    if (experienceAnalysis.hasExperience && !experienceAnalysis.isFresher) {
-      whyYouMatch.push(`Relevant engineering experience and workflow familiarity`);
-    } else if (educationAnalysis.hasDegree) {
-      whyYouMatch.push(`Academic foundation in computer science / engineering`);
-    }
-
-    const nextSkillToLearn = topMissing[0] || (missingBonus[0] || 'System Architecture');
-
-    roleMatches.push({
-      ...role,
-      matchScore,
-      matchLevel,
-      matchColor,
-      readiness,
-      readinessBadge,
-      readinessColor,
-      readinessClass,
-      readinessMsg,
-      haveSkills,
-      missingEssential,
-      missingImportant,
-      missingBonus,
-      whyYouMatch,
-      nextSkillToLearn,
-      roadmapSteps
-    });
-  });
-
-  // Sort by match score descending
-  roleMatches.sort((a, b) => b.matchScore - a.matchScore);
-
-  const bestFit = roleMatches[0];
-  const topRecommendations = roleMatches.slice(0, 6);
-
-  return { bestFit, topRecommendations, allMatches: roleMatches };
+  return {
+    name,
+    email,
+    phone,
+    location,
+    education: educationStr,
+    degree: degreeStr,
+    graduationYear: educationAnalysis.gradYear || 'Not detected',
+    experienceYears: totalYears,
+    experienceLevel,
+    isFresher: experienceAnalysis.isFresher || totalYears === 0,
+    workExperience: experienceAnalysis.jobTitles || [],
+    internships: experienceAnalysis.internships || [],
+    projects: (projectsAnalysis.details || []).map(p => p.name || p),
+    projectTechnologies: projectsAnalysis.extractedTech || [],
+    technicalSkills,
+    programmingLanguages,
+    frameworks,
+    databases,
+    cloudTools,
+    certifications: certificationsAnalysis.items || [],
+    achievements: achievementsAnalysis.items || [],
+    portfolioLinks: portfolio ? [portfolio] : [],
+    githubLinks: github ? [github] : [],
+    linkedinLinks: linkedin ? [linkedin] : [],
+    summary: summaryAnalysis.text || 'Not detected',
+    keywords: allKeywords,
+    resumeText: resumeText || ''
+  };
 }
 
 /* ============================================================
-   ADVANCED JOB DESCRIPTION MATCHER
+   JOB DESCRIPTION PARSER
    ============================================================ */
-function analyzeJobDescriptionMatch(resumeData, jdText) {
-  if (!jdText || jdText.trim().length < 25) return null;
+function parseExperienceRequirement(jdText) {
+  const numWords = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
+  
+  const rangeMatch = jdText.match(/(\d+)\s*[-–to]\s*(\d+)\+?\s*years?(?:\s*(?:of)?\s*(?:professional|relevant|industry|work|hands-on)?\s*experience)?/i);
+  if (rangeMatch) {
+    return { minYears: parseInt(rangeMatch[1]), maxYears: parseInt(rangeMatch[2]), text: `${rangeMatch[1]}–${rangeMatch[2]} years` };
+  }
 
-  const { resumeText, skills, projectsAnalysis, experienceAnalysis, educationAnalysis } = resumeData;
-  const resumeTextLower = resumeText.toLowerCase();
+  const singleMatch = jdText.match(/(\d+)\+?\s*years?(?:\s*(?:of)?\s*(?:professional|relevant|industry|work|hands-on)?\s*experience)?/i);
+  if (singleMatch) {
+    return { minYears: parseInt(singleMatch[1]), maxYears: parseInt(singleMatch[1]), text: `${singleMatch[1]}+ years` };
+  }
+
+  const wordMatch = jdText.match(/\b(one|two|three|four|five|six|seven|eight|ten)\+?\s*years?(?:\s*(?:of)?\s*(?:professional|relevant|industry|work|hands-on)?\s*experience)?/i);
+  if (wordMatch) {
+    const val = numWords[wordMatch[1].toLowerCase()] || 1;
+    return { minYears: val, maxYears: val, text: `${val}+ years` };
+  }
+
+  if (/\b(fresher|entry[- ]level|graduate|intern|internship|no experience required)\b/i.test(jdText)) {
+    return { minYears: 0, maxYears: 1, text: 'Entry Level / Fresher' };
+  }
+
+  return { minYears: 0, maxYears: 0, text: 'Not specified' };
+}
+
+function parseJobDescription(jdText) {
+  if (!jdText || jdText.trim().length < 20) return null;
   const jdLower = jdText.toLowerCase();
-  const candidateSkillsLower = skills.all.map(s => s.toLowerCase());
 
-  // 1. Extract technical skills mentioned in the JD
-  const jdExtracted = extractSkills(jdText);
-  const rawJdSkills = [...jdExtracted.all];
+  // 1. Extract Title
+  let title = 'Software Engineer';
+  const titleMatch = jdText.match(/(?:job title|role|position|title):\s*([^\n\r,]+)/i) ||
+                     jdText.match(/\b(Senior\s+[A-Za-z\s/]+|Junior\s+[A-Za-z\s/]+|Lead\s+[A-Za-z\s/]+|[A-Za-z\s/]+\b(?:Developer|Engineer|Architect|Analyst|Scientist|Specialist|Intern))\b/i);
+  if (titleMatch) {
+    title = titleMatch[1].trim();
+  }
 
-  // Common technical terms check
-  const COMMON_TECH_TERMS = [
+  // 2. Extract Company
+  let company = 'Not specified';
+  const companyMatch = jdText.match(/(?:company|organization|at)\s*[:]\s*([^\n\r,]+)/i);
+  if (companyMatch) company = companyMatch[1].trim();
+
+  // 3. Experience & Seniority
+  const expInfo = parseExperienceRequirement(jdText);
+  let seniority = 'Not specified';
+  if (/\b(senior|lead|principal|staff)\b/i.test(title) || expInfo.minYears >= 4) seniority = 'Senior';
+  else if (/\b(mid|intermediate)\b/i.test(title) || expInfo.minYears >= 2) seniority = 'Mid-Level';
+  else if (/\b(junior|entry|associate|graduate)\b/i.test(title) || expInfo.minYears === 1) seniority = 'Junior';
+  else if (/\b(intern|internship)\b/i.test(title) || expInfo.text.includes('Intern')) seniority = 'Intern';
+
+  // 4. Extract Technical Skills
+  const TECH_TAXONOMY = [
     'react', 'next.js', 'vue', 'angular', 'typescript', 'javascript', 'node.js', 'express',
     'python', 'java', 'c++', 'c#', 'golang', 'go', 'rust', 'ruby', 'php', 'scala', 'kotlin', 'swift',
     'sql', 'postgresql', 'mysql', 'mongodb', 'redis', 'elasticsearch', 'dynamodb', 'cassandra',
     'graphql', 'rest apis', 'rest api', 'grpc', 'websocket', 'websockets', 'microservices',
     'docker', 'kubernetes', 'terraform', 'ansible', 'jenkins', 'ci/cd', 'git', 'github', 'linux',
     'aws', 'gcp', 'azure', 'cloud', 'kafka', 'rabbitmq',
-    'html5', 'css3', 'tailwind', 'bootstrap', 'redux', 'jest', 'cypress',
-    'data structures', 'algorithms', 'oop', 'system architecture', 'machine learning', 'ai', 'langchain'
+    'html5', 'html', 'css3', 'css', 'tailwind', 'tailwind css', 'bootstrap', 'redux', 'jest', 'cypress', 'pytorch', 'tensorflow',
+    'data structures', 'algorithms', 'oop', 'system design', 'machine learning', 'deep learning', 'ai', 'langchain',
+    'scikit-learn', 'pandas', 'numpy', 'keras', 'fastapi', 'django', 'flask', 'spring boot', 'spring'
   ];
 
-  COMMON_TECH_TERMS.forEach(kw => {
-    const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const foundSkills = [];
+  TECH_TAXONOMY.forEach(skill => {
+    const escaped = skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp('\\b' + escaped + '\\b', 'i');
     if (regex.test(jdText)) {
-      const match = jdText.match(regex);
-      rawJdSkills.push(match ? match[0] : kw);
+      foundSkills.push(skill);
     }
   });
 
-  const uniqueJDSkills = [];
-  const seenLower = new Set();
-  rawJdSkills.forEach(s => {
-    const low = s.toLowerCase();
-    if (!seenLower.has(low)) {
-      seenLower.add(low);
-      uniqueJDSkills.push(s);
-    }
-  });
-
-  // Separate into Required vs Preferred
+  // Separate required vs preferred
   const requiredSkills = [];
   const preferredSkills = [];
 
-  const reqSectionMatch = jdLower.match(/(?:requirements|must have|required qualifications|what you need|qualifications|core skills)[:\s]+([^]+?)(?:preferred|nice to have|bonus|plus|what we offer|responsibilities|$)/i);
-  const prefSectionMatch = jdLower.match(/(?:preferred|nice to have|bonus|plus|good to have)[:\s]+([^]+?)(?:responsibilities|benefits|what we offer|$)/i);
+  const reqMatch = jdLower.match(/(?:requirements|must have|required qualifications|what you need|qualifications|core skills)[:\s]+([^]+?)(?:preferred|nice to have|bonus|plus|what we offer|responsibilities|$)/i);
+  const prefMatch = jdLower.match(/(?:preferred|nice to have|bonus|plus|good to have)[:\s]+([^]+?)(?:responsibilities|benefits|what we offer|$)/i);
 
-  const reqText = reqSectionMatch ? reqSectionMatch[1] : '';
-  const prefText = prefSectionMatch ? prefSectionMatch[1] : '';
+  const reqText = reqMatch ? reqMatch[1] : '';
+  const prefText = prefMatch ? prefMatch[1] : '';
 
-  uniqueJDSkills.forEach(skill => {
-    if (prefText && prefText.includes(skill.toLowerCase())) {
-      preferredSkills.push(skill);
-    } else if (reqText && reqText.includes(skill.toLowerCase())) {
-      requiredSkills.push(skill);
+  foundSkills.forEach(s => {
+    const cap = s.charAt(0).toUpperCase() + s.slice(1);
+    if (prefText && prefText.includes(s)) {
+      preferredSkills.push(cap);
+    } else if (reqText && reqText.includes(s)) {
+      requiredSkills.push(cap);
     } else {
-      // Default first half as required
-      if (requiredSkills.length <= 4) requiredSkills.push(skill);
-      else preferredSkills.push(skill);
+      if (requiredSkills.length < 5) requiredSkills.push(cap);
+      else preferredSkills.push(cap);
     }
   });
 
-  // Check matched vs missing
+  return {
+    title,
+    company,
+    experienceRequired: expInfo.text,
+    minExperienceYears: expInfo.minYears,
+    maxExperienceYears: expInfo.maxYears,
+    seniority,
+    requiredSkills,
+    preferredSkills,
+    education: /\b(bachelor|b\.tech|b\.e|master|m\.tech|degree|bs|ms)\b/i.test(jdText) ? "Bachelor's or Master's in CS / Engineering" : "Not specified",
+    domain: /\b(machine learning|ai|deep learning|nlp)\b/i.test(jdText) ? 'AI / Machine Learning' : (/\b(frontend|react|ui)\b/i.test(jdText) ? 'Frontend Development' : (/\b(backend|server|api|microservice)\b/i.test(jdText) ? 'Backend Development' : 'Software Engineering')),
+    location: /\bremote\b/i.test(jdText) ? 'Remote' : (/\bhybrid\b/i.test(jdText) ? 'Hybrid' : 'Not specified'),
+    employmentType: /\bintern\b/i.test(jdText) ? 'Internship' : (/\bcontract\b/i.test(jdText) ? 'Contract' : 'Full-time'),
+    keywords: foundSkills
+  };
+}
+
+/* ============================================================
+   CENTRAL DETERMINISTIC MATCHING ENGINE (7 FACTORS = 100 PTS)
+   ============================================================ */
+function matchJobProfileWithResume(resumeProfile, jobProfile) {
+  const resumeSkillsLower = (resumeProfile.keywords || []).map(s => s.toLowerCase());
+  const resumeTextLower = (resumeProfile.resumeText || '').toLowerCase();
+
+  // Exact skill presence helper
+  function hasSkill(s) {
+    const low = s.toLowerCase();
+    if (resumeSkillsLower.includes(low)) return true;
+    if (low === 'git' && (resumeSkillsLower.includes('github') || resumeSkillsLower.includes('git'))) return true;
+    if (low === 'html5' && resumeSkillsLower.includes('html')) return true;
+    if (low === 'css3' && resumeSkillsLower.includes('css')) return true;
+    if (low === 'rest apis' && (resumeSkillsLower.includes('rest api') || resumeSkillsLower.includes('rest') || resumeSkillsLower.includes('api'))) return true;
+    const escaped = low.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp('\\b' + escaped + '\\b', 'i').test(resumeTextLower);
+  }
+
+  // 1. Required Skills Match (30%)
   const matchedRequired = [];
   const missingRequired = [];
-  requiredSkills.forEach(s => {
-    const isPresent = candidateSkillsLower.includes(s.toLowerCase()) || matchSkillExact(s.toLowerCase(), resumeTextLower, resumeText);
-    if (isPresent) matchedRequired.push(s);
+  (jobProfile.requiredSkills || []).forEach(s => {
+    if (hasSkill(s)) matchedRequired.push(s);
     else missingRequired.push(s);
   });
 
+  let reqScore = 0;
+  if (jobProfile.requiredSkills.length > 0) {
+    reqScore = Math.round((matchedRequired.length / jobProfile.requiredSkills.length) * 30);
+  } else {
+    // If no required skills explicitly stated in JD
+    reqScore = matchedRequired.length > 0 ? 20 : 15;
+  }
+
+  // 2. Preferred Skills Match (10%)
   const matchedPreferred = [];
   const missingPreferred = [];
-  preferredSkills.forEach(s => {
-    const isPresent = candidateSkillsLower.includes(s.toLowerCase()) || matchSkillExact(s.toLowerCase(), resumeTextLower, resumeText);
-    if (isPresent) matchedPreferred.push(s);
+  (jobProfile.preferredSkills || []).forEach(s => {
+    if (hasSkill(s)) matchedPreferred.push(s);
     else missingPreferred.push(s);
   });
 
-  const allMatched = [...matchedRequired, ...matchedPreferred];
-  const allMissing = [...missingRequired, ...missingPreferred];
-
-  // 2. Extract Experience Requirements
-  const yearsMatch = jdText.match(/(\d+)\+?\s*years?\s*(?:of)?\s*(?:experience|working)/i);
-  const yearsRequired = yearsMatch ? parseInt(yearsMatch[1]) : 0;
-
-  let expMatchScore = 100;
-  if (yearsRequired > 0) {
-    if (experienceAnalysis.isFresher) {
-      expMatchScore = yearsRequired <= 1 ? 75 : (yearsRequired <= 2 ? 45 : 20);
-    } else {
-      expMatchScore = 90;
-    }
+  let prefScore = 0;
+  if (jobProfile.preferredSkills.length > 0) {
+    prefScore = Math.round((matchedPreferred.length / jobProfile.preferredSkills.length) * 10);
+  } else {
+    prefScore = 10;
   }
 
-  // 3. Calculate Weighted Sub-Scores
-  const reqRatio = requiredSkills.length > 0 ? (matchedRequired.length / requiredSkills.length) : (allMatched.length > 0 ? 0.8 : 0.4);
-  const prefRatio = preferredSkills.length > 0 ? (matchedPreferred.length / preferredSkills.length) : 1;
+  // 3. Experience Match (20%)
+  const candYears = resumeProfile.experienceYears || 0;
+  const reqMinYears = jobProfile.minExperienceYears || 0;
+  let expScore = 20;
+  let hasExperienceGap = false;
+  let experienceGapText = null;
 
-  const reqScore = Math.round(reqRatio * 35);
-  const prefScore = Math.round(prefRatio * 15);
-  const expScore = Math.round((expMatchScore / 100) * 20);
-  
-  // Project Relevance to JD Tech Stack
+  if (reqMinYears > 0) {
+    if (resumeProfile.isFresher || candYears === 0) {
+      if (reqMinYears >= 3) {
+        expScore = 0;
+        hasExperienceGap = true;
+        experienceGapText = `Job requires ${jobProfile.experienceRequired} of professional experience; resume indicates 0 years (Fresher).`;
+      } else if (reqMinYears === 2) {
+        expScore = 4;
+        hasExperienceGap = true;
+        experienceGapText = `Job requires ${jobProfile.experienceRequired} of professional experience; you are currently an entry-level candidate.`;
+      } else {
+        expScore = 10;
+        experienceGapText = `Job requests ${jobProfile.experienceRequired}; entry-level stretch role.`;
+      }
+    } else {
+      if (candYears >= reqMinYears) {
+        expScore = 20;
+      } else {
+        expScore = Math.min(Math.round((candYears / reqMinYears) * 20), 20);
+        hasExperienceGap = true;
+        experienceGapText = `Job requires ${jobProfile.experienceRequired}, but resume shows ~${candYears} year(s) of professional experience.`;
+      }
+    }
+  } else {
+    // Entry level or not specified in JD
+    expScore = candYears > 0 ? 20 : 18;
+  }
+
+  // 4. Project Relevance (15%)
   let projMatchCount = 0;
-  allMatched.forEach(s => {
-    if (projectsAnalysis.details.some(p => (p.textLines || []).some(l => l.toLowerCase().includes(s.toLowerCase())))) {
+  (jobProfile.keywords || []).forEach(kw => {
+    if ((resumeProfile.projectTechnologies || []).some(pt => pt.toLowerCase().includes(kw.toLowerCase()))) {
       projMatchCount++;
     }
   });
-  const projScore = Math.min(Math.round((projMatchCount / Math.max(allMatched.length, 1)) * 15) + (projectsAnalysis.count > 0 ? 4 : 0), 15);
+  let projScore = (resumeProfile.projects || []).length > 0 ? Math.min(projMatchCount * 3 + 4, 15) : 0;
 
-  const eduScore = educationAnalysis.exists ? 5 : 2;
-  const keywordScore = Math.min(Math.round((allMatched.length / Math.max(uniqueJDSkills.length, 1)) * 10), 10);
-
-  const totalMatchScore = Math.min(Math.max(reqScore + prefScore + expScore + projScore + eduScore + keywordScore, 0), 100);
-
-  // 4. Compatibility Status & Realistic Answer
-  let statusBadge = '';
-  let statusAnswer = '';
-  let statusDesc = '';
-  let statusClass = '';
-  let statusColor = '';
-
-  if (totalMatchScore >= 85) {
-    statusBadge = '🟢 Strong Match';
-    statusAnswer = 'Yes — your resume aligns exceptionally well with this role.';
-    statusDesc = 'You satisfy almost all core requirements, tech stacks, and domain qualifications.';
-    statusClass = 'match-strong';
-    statusColor = '#059669';
-  } else if (totalMatchScore >= 70) {
-    statusBadge = '🟢 Good Match';
-    statusAnswer = 'Yes — you meet many of the important requirements.';
-    statusDesc = 'Your background is competitive. Addressing the minor missing tools will further elevate your application.';
-    statusClass = 'match-good';
-    statusColor = '#4F46E5';
-  } else if (totalMatchScore >= 55) {
-    statusBadge = '🟡 Partial Match';
-    statusAnswer = 'You can apply, but you have noticeable skill gaps.';
-    statusDesc = 'You have a foundation in related technologies, but several essential requirements in the job description are missing.';
-    statusClass = 'match-partial';
-    statusColor = '#f59e0b';
-  } else if (totalMatchScore >= 40) {
-    statusBadge = '🟠 Skill Gap';
-    statusAnswer = 'You can apply as a stretch candidate, but multiple key requirements are missing.';
-    statusDesc = 'Consider building targeted projects with the missing technologies before submitting your application.';
-    statusClass = 'match-gap';
-    statusColor = '#f97316';
-  } else {
-    statusBadge = '🔴 Low Match';
-    statusAnswer = 'This role currently has a substantial gap with your profile.';
-    statusDesc = 'The position requires tools, frameworks, and qualifications that are not yet represented on your resume.';
-    statusClass = 'match-low';
-    statusColor = 'var(--color-error)';
+  // 5. Education Match (10%)
+  let eduScore = 5;
+  if (resumeProfile.degree !== 'Not detected') {
+    if (/b\.tech|bachelor|b\.e|computer science|cse|it|m\.tech|ms/i.test(resumeProfile.education + ' ' + resumeProfile.degree)) {
+      eduScore = 10;
+    } else {
+      eduScore = 8;
+    }
   }
 
-  // 5. Action Plan
+  // 6. Keyword/Domain Match (10%)
+  const totalKeywords = (jobProfile.keywords || []).length;
+  const matchedKeywords = (jobProfile.keywords || []).filter(kw => hasSkill(kw)).length;
+  let keywordScore = totalKeywords > 0 ? Math.min(Math.round((matchedKeywords / totalKeywords) * 10), 10) : 5;
+
+  // 7. Certifications/Other (5%)
+  let certScore = (resumeProfile.certifications || []).length > 0 ? 5 : ((resumeProfile.githubLinks || []).length > 0 ? 4 : 2);
+
+  // Raw Total Calculation (0 - 100%)
+  let rawTotal = reqScore + prefScore + expScore + projScore + eduScore + keywordScore + certScore;
+  let matchScore = Math.min(Math.max(Math.round(rawTotal), 0), 100);
+
+  // If 0 required skills matched and requirements exist, cap score to max 30%
+  if (jobProfile.requiredSkills.length > 0 && matchedRequired.length === 0) {
+    matchScore = Math.min(matchScore, 30);
+  }
+
+  // Matched & Missing summaries
+  const allMatched = [...matchedRequired, ...matchedPreferred];
+  const allMissingSkills = [...missingRequired, ...missingPreferred];
+
+  // Missing Requirements for Display (includes Experience if gap exists!)
+  const missingRequirementsDisplay = {
+    required: [...missingRequired],
+    preferred: [...missingPreferred],
+    recommended: ['Version Control & Git Workflow', 'Live Production Cloud Deployment']
+  };
+
+  if (hasExperienceGap && experienceGapText) {
+    missingRequirementsDisplay.required.push(`${jobProfile.experienceRequired} professional experience`);
+  }
+
+  // Eligibility Status Determination
+  let eligibility = '';
+  let eligibilityClass = '';
+  let eligibilityColor = '';
+
+  if (matchScore >= 80 && missingRequired.length === 0 && !hasExperienceGap) {
+    eligibility = 'HIGHLY ELIGIBLE';
+    eligibilityClass = 'eligibility-highly';
+    eligibilityColor = '#059669';
+  } else if (matchScore >= 70 && missingRequired.length <= 1 && !hasExperienceGap) {
+    eligibility = 'ELIGIBLE';
+    eligibilityClass = 'eligibility-eligible';
+    eligibilityColor = '#10b981';
+  } else if (hasExperienceGap && matchScore >= 45) {
+    eligibility = 'EXPERIENCE GAP';
+    eligibilityClass = 'eligibility-exp-gap';
+    eligibilityColor = '#ea580c';
+  } else if (missingRequired.length <= 3 && matchScore >= 50) {
+    eligibility = 'SKILL GAP';
+    eligibilityClass = 'eligibility-skill-gap';
+    eligibilityColor = '#d97706';
+  } else if (matchScore >= 40) {
+    eligibility = 'STRETCH ROLE';
+    eligibilityClass = 'eligibility-stretch';
+    eligibilityColor = '#b45309';
+  } else {
+    eligibility = 'NOT ELIGIBLE';
+    eligibilityClass = 'eligibility-not';
+    eligibilityColor = '#dc2626';
+  }
+
+  // Apply Recommendation
+  let applyRecommendation = '';
+  let applyReason = '';
+
+  if (eligibility === 'HIGHLY ELIGIBLE') {
+    applyRecommendation = 'APPLY NOW';
+    applyReason = 'You satisfy all major technical requirements and the stated experience level.';
+  } else if (eligibility === 'ELIGIBLE') {
+    applyRecommendation = 'APPLY NOW';
+    applyReason = 'You meet the core stack and experience requirements. Review minor preferred tools before applying.';
+  } else if (eligibility === 'SKILL GAP') {
+    applyRecommendation = 'APPLY WITH CAUTION';
+    applyReason = `You have strong foundations in related technologies, but need to bridge missing required skill(s): ${missingRequired.slice(0, 2).join(', ')}.`;
+  } else if (eligibility === 'EXPERIENCE GAP') {
+    applyRecommendation = 'STRETCH APPLICATION';
+    applyReason = `You match ${matchScore}% of technical requirements, but the job asks for ${jobProfile.experienceRequired} and your resume shows 0 years of professional experience. Consider entry-level or junior alternatives.`;
+  } else if (eligibility === 'STRETCH ROLE') {
+    applyRecommendation = 'STRETCH APPLICATION';
+    applyReason = `This is a stretch application. Multiple requirements (${missingRequired.slice(0, 2).join(', ')}) and experience expectations are not fully satisfied.`;
+  } else {
+    applyRecommendation = 'NOT RECOMMENDED YET';
+    applyReason = `Major required skills (${missingRequired.slice(0, 3).join(', ') || 'Domain tools'}) and experience expectations are not yet reflected on your resume.`;
+  }
+
+  // Action Plan ("How To Become More Eligible")
   const actionPlan = [];
   if (missingRequired.length > 0) {
-    actionPlan.push(`Learn and gain hands-on practice with core required skill(s): ${missingRequired.slice(0, 2).join(', ')}`);
+    actionPlan.push({
+      priority: 'Priority 1 — ' + missingRequired[0],
+      reason: 'Required core skill in the job description.',
+      whatToLearn: `Master fundamentals, standard conventions, and practical implementation of ${missingRequired[0]}.`
+    });
   }
-  if (missingPreferred.length > 0) {
-    actionPlan.push(`Familiarize yourself with preferred tool(s): ${missingPreferred.slice(0, 2).join(', ')}`);
+  if (missingRequired.length > 1 || missingPreferred.length > 0) {
+    const nextTool = missingRequired[1] || missingPreferred[0];
+    actionPlan.push({
+      priority: 'Priority 2 — ' + nextTool,
+      reason: 'Key technology in target role stack.',
+      whatToLearn: `Build a functional project showcasing integration with ${nextTool}.`
+    });
   }
-  actionPlan.push(`Build or adapt a project demonstrating implementation of the target tech stack`);
-  actionPlan.push(`Add the project to your GitHub repository and link it on your resume`);
+  if (hasExperienceGap) {
+    actionPlan.push({
+      priority: 'Priority 3 — Professional Experience Reality',
+      reason: `Job requests ${jobProfile.experienceRequired}; personal projects cannot be converted into professional work experience.`,
+      whatToLearn: `Target internships, graduate engineering programs, or junior roles in this domain while continuing open-source contributions.`
+    });
+  } else {
+    actionPlan.push({
+      priority: 'Priority 3 — Resume & Project Optimization',
+      reason: 'Enhance recruiter visibility and pass ATS screening filters.',
+      whatToLearn: 'Add quantitative metrics to project bullets and ensure live links/GitHub repositories are active.'
+    });
+  }
+
+  // Match Level Label & Class
+  let matchLevel = '';
+  let matchColor = '';
+  let statusClass = '';
+  if (matchScore >= 85) { matchLevel = 'Excellent Match'; matchColor = '#059669'; statusClass = 'match-strong'; }
+  else if (matchScore >= 70) { matchLevel = 'Strong Match'; matchColor = '#10b981'; statusClass = 'match-good'; }
+  else if (matchScore >= 55) { matchLevel = 'Good Match'; matchColor = '#4F46E5'; statusClass = 'match-good'; }
+  else if (matchScore >= 45) { matchLevel = 'Partial Match'; matchColor = '#f59e0b'; statusClass = 'match-partial'; }
+  else if (matchScore >= 35) { matchLevel = 'Needs Skill Development'; matchColor = '#f97316'; statusClass = 'match-gap'; }
+  else { matchLevel = 'Low Match'; matchColor = '#ef4444'; statusClass = 'match-low'; }
+
+  // Why You Match Bullets (Real evidence only)
+  const whyYouMatch = [];
+  if (allMatched.length > 0) {
+    whyYouMatch.push(`Technical skills: ${allMatched.slice(0, 5).join(', ')}`);
+  }
+  if (resumeProfile.projects.length > 0 && projScore >= 6) {
+    whyYouMatch.push(`Practical project implementation aligned with ${jobProfile.domain}`);
+  }
+  if (resumeProfile.experienceYears > 0 && !resumeProfile.isFresher) {
+    whyYouMatch.push(`Relevant engineering experience and workflow familiarity`);
+  } else if (resumeProfile.degree !== 'Not detected') {
+    whyYouMatch.push(`Academic foundation in computer science / engineering (${resumeProfile.degree})`);
+  }
 
   return {
-    matchScore: totalMatchScore,
-    statusBadge,
-    statusAnswer,
-    statusDesc,
+    matchScore,
+    matchLevel,
+    matchColor,
     statusClass,
-    statusColor,
+    eligibility,
+    eligibilityClass,
+    eligibilityColor,
+    applyRecommendation,
+    applyReason,
+    hasExperienceGap,
+    experienceGapText,
     factors: {
-      requiredSkills: { score: reqScore, max: 35, label: 'Required Skills Match' },
-      preferredSkills: { score: prefScore, max: 15, label: 'Preferred Skills Match' },
+      requiredSkills: { score: reqScore, max: 30, label: 'Required Skills Match' },
+      preferredSkills: { score: prefScore, max: 10, label: 'Preferred Skills Match' },
       experience: { score: expScore, max: 20, label: 'Experience Match' },
       projects: { score: projScore, max: 15, label: 'Project Relevance' },
-      education: { score: eduScore, max: 5, label: 'Education Match' },
-      keywords: { score: keywordScore, max: 10, label: 'Keyword Match' }
+      education: { score: eduScore, max: 10, label: 'Education Match' },
+      keywords: { score: keywordScore, max: 10, label: 'Keyword/Domain Match' },
+      certifications: { score: certScore, max: 5, label: 'Certifications/Other' }
     },
     matchedRequired,
     missingRequired,
     matchedPreferred,
     missingPreferred,
     allMatched,
-    allMissing,
-    yearsRequired,
+    allMissingSkills,
+    missingRequirementsDisplay,
+    whyYouMatch,
     actionPlan
+  };
+}
+
+/* ============================================================
+   JOB ROLES KNOWLEDGE BASE (14 Roles with Freshness Intelligence)
+   ============================================================ */
+const ROLE_PROFILES_DB = [
+  {
+    id: 'sde_intern',
+    title: 'SDE Intern',
+    entryTitle: 'SDE Intern',
+    category: 'Entry Level / Intern',
+    icon: 'school',
+    description: 'Entry-level engineering role focusing on algorithmic problem solving, core computer science, and foundation codebases.',
+    requiredSkills: ['Data Structures', 'Algorithms', 'Git'],
+    preferredSkills: ['C++', 'Java', 'Python', 'JavaScript', 'OOP', 'SQL'],
+    minExperienceYears: 0,
+    experienceRequired: 'Entry Level / Fresher',
+    domain: 'Software Engineering',
+    keywords: ['data structures', 'algorithms', 'dsa', 'problem solving', 'git', 'oop', 'c++', 'python', 'java', 'javascript'],
+    whyRecommended: 'Your core computer science fundamentals, data structures, and academic projects fit software engineering internships.'
+  },
+  {
+    id: 'frontend_developer',
+    title: 'Frontend Developer',
+    entryTitle: 'Junior Frontend Developer',
+    category: 'Frontend',
+    icon: 'code',
+    description: 'Specializes in creating interactive, responsive user interfaces and modern web applications.',
+    requiredSkills: ['HTML5', 'CSS3', 'JavaScript'],
+    preferredSkills: ['React', 'TypeScript', 'Tailwind', 'Git', 'Next.js', 'Redux'],
+    minExperienceYears: 0,
+    experienceRequired: '0–1 years',
+    domain: 'Frontend Development',
+    keywords: ['html5', 'html', 'css3', 'css', 'javascript', 'react', 'typescript', 'tailwind', 'frontend', 'ui', 'ux', 'git'],
+    whyRecommended: 'Your HTML, CSS, JavaScript and frontend development capabilities align with UI/Frontend roles.'
+  },
+  {
+    id: 'python_developer',
+    title: 'Python Developer',
+    entryTitle: 'Junior Python Developer',
+    category: 'Backend / Scripting',
+    icon: 'code',
+    description: 'Develops backend services, automation workflows, data pipelines, and web applications using Python.',
+    requiredSkills: ['Python', 'SQL', 'Git'],
+    preferredSkills: ['Django', 'FastAPI', 'Flask', 'Pandas', 'OOP', 'Rest Apis'],
+    minExperienceYears: 0,
+    experienceRequired: '0–1 years',
+    domain: 'Backend Development',
+    keywords: ['python', 'django', 'fastapi', 'flask', 'sql', 'postgresql', 'git', 'api', 'backend'],
+    whyRecommended: 'Your Python programming and backend development experience align with Python engineering positions.'
+  },
+  {
+    id: 'fullstack_developer',
+    title: 'Full Stack Developer',
+    entryTitle: 'Junior Full Stack Developer',
+    category: 'Full Stack',
+    icon: 'layers',
+    description: 'Builds end-to-end web applications covering client-side interfaces, server APIs, and persistent databases.',
+    requiredSkills: ['JavaScript', 'HTML5', 'CSS3', 'SQL', 'Git'],
+    preferredSkills: ['React', 'Node.js', 'Express', 'TypeScript', 'PostgreSQL', 'MongoDB', 'Tailwind'],
+    minExperienceYears: 0,
+    experienceRequired: '0–1 years',
+    domain: 'Full Stack Development',
+    keywords: ['full stack', 'fullstack', 'react', 'node.js', 'javascript', 'sql', 'mongodb', 'express', 'html5', 'css3', 'git'],
+    whyRecommended: 'Your combined frontend, backend, and database skill set fits full-stack software development.'
+  },
+  {
+    id: 'backend_developer',
+    title: 'Backend Developer',
+    entryTitle: 'Junior Backend Developer',
+    category: 'Backend',
+    icon: 'dns',
+    description: 'Designs and builds server-side business logic, microservices, databases, and REST/GraphQL APIs.',
+    requiredSkills: ['SQL', 'Rest Apis', 'Git'],
+    preferredSkills: ['Node.js', 'Express', 'Python', 'Java', 'PostgreSQL', 'MongoDB', 'Django'],
+    minExperienceYears: 0,
+    experienceRequired: '0–1 years',
+    domain: 'Backend Development',
+    keywords: ['backend', 'server', 'api', 'database', 'rest', 'microservices', 'sql', 'node.js', 'python', 'java'],
+    whyRecommended: 'Your backend programming, API design, and database integration skills support server-side engineering.'
+  },
+  {
+    id: 'data_analyst',
+    title: 'Data Analyst',
+    entryTitle: 'Junior Data Analyst',
+    category: 'Data',
+    icon: 'analytics',
+    description: 'Extracts, transforms, analyzes, and visualizes data to uncover actionable business insights and trends.',
+    requiredSkills: ['SQL', 'Python'],
+    preferredSkills: ['Pandas', 'NumPy', 'Data Analysis', 'Excel', 'Statistics', 'Matplotlib'],
+    minExperienceYears: 0,
+    experienceRequired: '0–1 years',
+    domain: 'Data Analytics',
+    keywords: ['data analyst', 'analytics', 'sql', 'python', 'pandas', 'numpy', 'visualization', 'dashboard', 'statistics'],
+    whyRecommended: 'Your SQL, Python data handling, and analytical problem solving align with data analytics roles.'
+  },
+  {
+    id: 'software_engineer',
+    title: 'Software Engineer',
+    entryTitle: 'Associate Software Engineer',
+    category: 'CS Core',
+    icon: 'terminal',
+    description: 'Applies software engineering principles, algorithms, data structures, and system design to build software.',
+    requiredSkills: ['Data Structures', 'Algorithms', 'OOP', 'Git'],
+    preferredSkills: ['C++', 'Java', 'Python', 'Go', 'SQL', 'Linux', 'Operating Systems'],
+    minExperienceYears: 0,
+    experienceRequired: '0–1 years',
+    domain: 'Software Engineering',
+    keywords: ['software engineer', 'swe', 'algorithms', 'data structures', 'dsa', 'system architecture', 'c++', 'java', 'git'],
+    whyRecommended: 'Your computer science foundations, algorithms, and programming proficiency align with software engineering.'
+  },
+  {
+    id: 'ai_engineer',
+    title: 'AI / GenAI Engineer',
+    entryTitle: 'AI Developer',
+    category: 'AI / LLM',
+    icon: 'smart_toy',
+    description: 'Builds generative AI applications, agentic workflows, RAG pipelines, and LLM integrations.',
+    requiredSkills: ['Python', 'Rest Apis', 'Git'],
+    preferredSkills: ['LangChain', 'OpenAI', 'LLM', 'Generative AI', 'RAG', 'Vector Database', 'FastAPI'],
+    minExperienceYears: 0,
+    experienceRequired: '0–1 years',
+    domain: 'AI / Machine Learning',
+    keywords: ['ai', 'genai', 'generative ai', 'llm', 'rag', 'langchain', 'embeddings', 'vector database', 'python', 'api'],
+    whyRecommended: 'Your work with Python, APIs, and modern AI/LLM tools prepares you for Generative AI development.'
+  },
+  {
+    id: 'ml_engineer',
+    title: 'Machine Learning Engineer',
+    entryTitle: 'Junior ML Engineer',
+    category: 'AI / Data Science',
+    icon: 'psychology',
+    description: 'Designs, trains, evaluates, and deploys predictive machine learning models and deep neural networks.',
+    requiredSkills: ['Python', 'Machine Learning', 'NumPy', 'Pandas', 'scikit-learn'],
+    preferredSkills: ['PyTorch', 'TensorFlow', 'Deep Learning', 'Statistics', 'SQL'],
+    minExperienceYears: 1,
+    experienceRequired: '1+ years',
+    domain: 'AI / Machine Learning',
+    keywords: ['machine learning', 'ml', 'deep learning', 'neural networks', 'model', 'training', 'scikit-learn', 'pandas', 'numpy'],
+    whyRecommended: 'Your machine learning, mathematical modeling, and Python data science foundations support ML engineering.'
+  },
+  {
+    id: 'java_developer',
+    title: 'Java Developer',
+    entryTitle: 'Junior Java Developer',
+    category: 'Enterprise / Backend',
+    icon: 'coffee',
+    description: 'Builds enterprise-grade, scalable backend systems, microservices, and distributed applications with Java.',
+    requiredSkills: ['Java', 'SQL', 'OOP', 'Git'],
+    preferredSkills: ['Spring Boot', 'Spring', 'Hibernate', 'Microservices', 'Rest Apis', 'PostgreSQL'],
+    minExperienceYears: 0,
+    experienceRequired: '0–1 years',
+    domain: 'Backend Development',
+    keywords: ['java', 'spring', 'spring boot', 'enterprise', 'microservices', 'jpa', 'hibernate', 'sql'],
+    whyRecommended: 'Your Java and object-oriented backend proficiency fit enterprise Java application engineering.'
+  },
+  {
+    id: 'qa_engineer',
+    title: 'QA / Automation Engineer',
+    entryTitle: 'QA Intern / Junior QA',
+    category: 'Testing & Quality',
+    icon: 'fact_check',
+    description: 'Designs automated test suites, performs integration testing, and ensures software quality standards.',
+    requiredSkills: ['JavaScript', 'Python', 'Git'],
+    preferredSkills: ['Jest', 'Cypress', 'Playwright', 'Selenium', 'Unit Testing', 'Postman'],
+    minExperienceYears: 0,
+    experienceRequired: '0–1 years',
+    domain: 'Software Engineering',
+    keywords: ['qa', 'quality assurance', 'testing', 'automation', 'test suite', 'unit test', 'integration test', 'git'],
+    whyRecommended: 'Your testing practices, test automation, and code validation experience match QA engineering.'
+  },
+  {
+    id: 'devops_engineer',
+    title: 'DevOps & Cloud Engineer',
+    entryTitle: 'Junior DevOps Engineer',
+    category: 'Cloud / Infrastructure',
+    icon: 'cloud',
+    description: 'Manages cloud infrastructure, automates CI/CD deployment pipelines, and maintains system reliability.',
+    requiredSkills: ['Linux', 'Docker', 'AWS'],
+    preferredSkills: ['Kubernetes', 'CI/CD', 'GitHub Actions', 'Terraform', 'Nginx', 'Git'],
+    minExperienceYears: 1,
+    experienceRequired: '1+ years',
+    domain: 'DevOps & Cloud',
+    keywords: ['devops', 'cloud', 'infrastructure', 'ci/cd', 'docker', 'kubernetes', 'aws', 'linux', 'git'],
+    whyRecommended: 'Your cloud computing, containerization, and automation skill set fits DevOps and infrastructure roles.'
+  },
+  {
+    id: 'data_scientist',
+    title: 'Data Scientist',
+    entryTitle: 'Junior Data Scientist',
+    category: 'Data Science & Stats',
+    icon: 'query_stats',
+    description: 'Leverages statistical modeling, machine learning, and data exploration to extract predictive business value.',
+    requiredSkills: ['Python', 'SQL', 'Machine Learning', 'Pandas'],
+    preferredSkills: ['NumPy', 'Statistics', 'Scikit-learn', 'Data Visualization', 'Matplotlib'],
+    minExperienceYears: 1,
+    experienceRequired: '1+ years',
+    domain: 'Data Science',
+    keywords: ['data scientist', 'statistics', 'predictive', 'modeling', 'data science', 'python', 'sql', 'pandas', 'machine learning'],
+    whyRecommended: 'Your statistics, Python data analysis, and machine learning skill set support data science positions.'
+  },
+  {
+    id: 'mobile_developer',
+    title: 'Mobile App Developer',
+    entryTitle: 'Junior Mobile Developer',
+    category: 'Mobile',
+    icon: 'smartphone',
+    description: 'Builds cross-platform or native mobile applications for iOS and Android devices.',
+    requiredSkills: ['JavaScript', 'Git', 'Rest Apis'],
+    preferredSkills: ['React Native', 'Flutter', 'TypeScript', 'Kotlin', 'Swift'],
+    minExperienceYears: 0,
+    experienceRequired: '0–1 years',
+    domain: 'Mobile Development',
+    keywords: ['mobile', 'app', 'android', 'ios', 'react native', 'flutter', 'javascript', 'git'],
+    whyRecommended: 'Your mobile development, UI components, and API integration skills align with mobile engineering.'
+  }
+];
+
+/* ============================================================
+   AUTOMATIC ROLE RECOMMENDATION GENERATOR
+   ============================================================ */
+function calculateJobRoleMatches(resumeData) {
+  const resumeProfile = buildStructuredResumeProfile(resumeData);
+  const roleMatches = [];
+
+  const CATEGORY_LABELS = [
+    'Best Match',
+    'Strong Match',
+    'Good Match',
+    'Skill-Gap Match',
+    'Stretch Role',
+    'Alternative Role'
+  ];
+
+  ROLE_PROFILES_DB.forEach(role => {
+    // If candidate is a fresher and role requires experience, match appropriately
+    const titleToUse = (resumeProfile.isFresher && role.entryTitle) ? role.entryTitle : role.title;
+    const jobProfile = {
+      ...role,
+      title: titleToUse,
+      company: 'General Tech Industry'
+    };
+
+    const matchResult = matchJobProfileWithResume(resumeProfile, jobProfile);
+
+    // If candidate is fresher and role has experience gap, penalize rank so mid-senior doesn't take #1
+    let rankingScore = matchResult.matchScore;
+    if (resumeProfile.isFresher && role.minExperienceYears > 0) {
+      rankingScore -= 12;
+    }
+
+    roleMatches.push({
+      ...role,
+      title: titleToUse,
+      rankingScore,
+      ...matchResult
+    });
+  });
+
+  // Sort primarily by ranking score and match score descending
+  roleMatches.sort((a, b) => b.rankingScore - a.rankingScore || b.matchScore - a.matchScore);
+
+  // Assign category tags (Best Match, Strong Match, Good Match, etc.)
+  const topRecommendations = roleMatches.slice(0, 6).map((role, idx) => ({
+    ...role,
+    recCategory: CATEGORY_LABELS[idx] || 'Recommended Role'
+  }));
+
+  const bestFit = topRecommendations[0];
+
+  return { bestFit, topRecommendations, allMatches: roleMatches, resumeProfile };
+}
+
+/* ============================================================
+   JOB DESCRIPTION MATCH EVALUATOR
+   ============================================================ */
+function analyzeJobDescriptionMatch(resumeData, jdText) {
+  if (!jdText || jdText.trim().length < 20) return null;
+
+  const resumeProfile = buildStructuredResumeProfile(resumeData);
+  const jobProfile = parseJobDescription(jdText);
+
+  if (!jobProfile) return null;
+
+  const matchResult = matchJobProfileWithResume(resumeProfile, jobProfile);
+
+  return {
+    ...matchResult,
+    jobProfile
   };
 }
 
@@ -2148,7 +2532,14 @@ function generateSuggestions(
     suggestions.push({ priority: 'high', icon: 'mail', title: 'Add Professional Email', desc: 'A valid email address is mandatory for recruiter contact.' });
   }
   if (!contactInfo.phone) {
-    suggestions.push({ priority: 'high', icon: 'phone', title: 'Add Phone Number', desc: 'Include a direct contact phone number with country code.' });
+    if (contactInfo.details && contactInfo.details.invalidPhone) {
+      suggestions.push({
+        priority: 'high', icon: 'phone', title: 'Fix Phone Number Format',
+        desc: `The detected phone number "${contactInfo.details.invalidPhone}" is incorrect or incomplete. Include a valid 10-digit mobile number (e.g. +91 9876543210).`
+      });
+    } else {
+      suggestions.push({ priority: 'high', icon: 'phone', title: 'Add Phone Number', desc: 'Include a direct contact phone number with country code.' });
+    }
   }
   if (!contactInfo.linkedin) {
     suggestions.push({ priority: 'medium', icon: 'link', title: 'Add LinkedIn Profile', desc: 'Include a customized LinkedIn profile URL to verify your professional background.' });
@@ -2337,12 +2728,13 @@ async function runRealAnalysis(fromBuilder) {
     const jobMatchData = calculateJobRoleMatches(resumeData);
     analyzerState.jobRecommendations = jobMatchData.topRecommendations;
     analyzerState.bestFitRole = jobMatchData.bestFit;
+    analyzerState.resumeProfile = jobMatchData.resumeProfile;
 
     // Step 7: Optional JD Match if already input
     let jdMatchResult = null;
     const jdTextarea = document.getElementById('jd-textarea-enhanced-input');
     const existingJD = jdTextarea?.value?.trim() || analyzerState.jdText;
-    if (existingJD && existingJD.length > 25) {
+    if (existingJD && existingJD.length > 20) {
       jdMatchResult = analyzeJobDescriptionMatch(resumeData, existingJD);
       analyzerState.jdMatchResult = jdMatchResult;
     }
@@ -2355,6 +2747,7 @@ async function runRealAnalysis(fromBuilder) {
       fileSize: analyzerState.fileSize,
       fromBuilder: analyzerState.fromBuilder,
       resumeText,
+      resumeProfile: jobMatchData.resumeProfile,
       scores,
       contactInfo,
       parsedSections: { detected: parsedSections.detected },
@@ -2719,16 +3112,26 @@ function renderBestFitRole(bestFit) {
         <div>
           <div class="best-fit-title">${escHtml(bestFit.title)}</div>
           <div class="best-fit-category">${escHtml(bestFit.category)} · ${escHtml(bestFit.description)}</div>
+          <div class="best-fit-meta-row" style="margin-top:0.4rem;">
+            <span class="eligibility-badge ${bestFit.eligibilityClass || 'eligibility-eligible'}">
+              <span class="material-symbols-outlined text-[13px]">${bestFit.eligibility.includes('ELIGIBLE') ? 'check_circle' : (bestFit.eligibility.includes('GAP') ? 'history_toggle_off' : 'tune')}</span>
+              ${escHtml(bestFit.eligibility)}
+            </span>
+            <span class="best-fit-tag" style="background:var(--color-surface-container-high); color:var(--color-on-surface-variant);">
+              <span class="material-symbols-outlined text-[12px]">assignment_turned_in</span>
+              ${escHtml(bestFit.applyRecommendation)}
+            </span>
+          </div>
         </div>
         <div class="best-fit-score-box">
-          <div class="best-fit-score-num">${bestFit.matchScore}%</div>
-          <div class="best-fit-score-label">${escHtml(bestFit.matchLevel)}</div>
+          <div class="best-fit-score-num" style="color:${bestFit.matchColor};">${bestFit.matchScore}%</div>
+          <div class="best-fit-score-label" style="color:${bestFit.matchColor};">${escHtml(bestFit.matchLevel)}</div>
         </div>
       </div>
       
       <div class="section-group-label" style="margin-bottom:0.5rem;">Why this is your strongest match:</div>
       <div class="best-fit-reasons-list">
-        ${bestFit.whyYouMatch.map(r => `
+        ${(bestFit.whyYouMatch || []).map(r => `
           <div class="best-fit-reason-item">
             <span class="material-symbols-outlined text-emerald-500 text-[16px]" style='font-variation-settings: "FILL" 1;'>check_circle</span>
             <span>${escHtml(r)}</span>
@@ -2736,10 +3139,22 @@ function renderBestFitRole(bestFit) {
         `).join('')}
       </div>
 
-      <div class="best-fit-next-skill">
-        <span class="material-symbols-outlined text-amber-500 text-[18px]">bolt</span>
-        <div><strong>Top skill to learn next:</strong> ${escHtml(bestFit.nextSkillToLearn)} — Adding this will maximize your job readiness for ${escHtml(bestFit.title)} positions.</div>
-      </div>
+      ${(bestFit.missingRequirementsDisplay?.required?.length > 0 || bestFit.missingRequirementsDisplay?.preferred?.length > 0) ? `
+        <div style="margin-top:0.75rem;">
+          <div class="section-group-label" style="margin-bottom:0.35rem;">Missing Core Requirements:</div>
+          <div class="job-rec-pills">
+            ${(bestFit.missingRequirementsDisplay.required || []).map(s => `<span class="skill-tag-missing"><span class="skill-priority-tag priority-tag-high">REQUIRED</span>${escHtml(s)}</span>`).join('')}
+            ${(bestFit.missingRequirementsDisplay.preferred || []).slice(0, 2).map(s => `<span class="skill-tag-missing"><span class="skill-priority-tag priority-tag-med">PREFERRED</span>${escHtml(s)}</span>`).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      ${bestFit.actionPlan && bestFit.actionPlan.length > 0 ? `
+        <div class="best-fit-next-skill">
+          <span class="material-symbols-outlined text-amber-500 text-[18px]">bolt</span>
+          <div><strong>Recommended Next Step:</strong> ${escHtml(bestFit.actionPlan[0].whatToLearn)}</div>
+        </div>
+      ` : ''}
     </div>
   `;
 }
@@ -2753,8 +3168,11 @@ function renderJobRecommendations(recommendations) {
     <div class="job-rec-card">
       <div class="job-rec-header">
         <div class="job-rec-title-wrap">
+          <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.2rem;">
+            <span class="jd-category-tag">${escHtml(role.recCategory || 'Recommended Role')}</span>
+            <span class="job-rec-role-category">${escHtml(role.category)}</span>
+          </div>
           <div class="job-rec-role-title">${escHtml(role.title)}</div>
-          <div class="job-rec-role-category">${escHtml(role.category)}</div>
         </div>
         <div class="job-rec-match-badge">
           <div class="job-rec-match-percent" style="color:${role.matchColor};">${role.matchScore}%</div>
@@ -2766,49 +3184,65 @@ function renderJobRecommendations(recommendations) {
         <div class="job-rec-bar-fill" style="width: 0%; background: ${role.matchColor};" data-target="${role.matchScore}%"></div>
       </div>
 
-      <div class="readiness-badge ${role.readinessClass}">
-        <span class="material-symbols-outlined text-[13px]">${role.readiness === 'READY TO APPLY' ? 'check_circle' : (role.readiness === 'ALMOST READY' ? 'pending' : 'error')}</span>
-        <span>${escHtml(role.readinessBadge)}</span>
+      <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.6rem;">
+        <div class="eligibility-badge ${role.eligibilityClass || 'eligibility-eligible'}">
+          <span class="material-symbols-outlined text-[13px]">${role.eligibility.includes('ELIGIBLE') ? 'check_circle' : (role.eligibility.includes('GAP') ? 'history_toggle_off' : 'tune')}</span>
+          <span>${escHtml(role.eligibility)}</span>
+        </div>
       </div>
+
+      ${role.hasExperienceGap ? `
+        <div class="jd-exp-gap-box" style="margin-bottom:0.6rem;padding:0.5rem 0.75rem;font-size:0.75rem;">
+          <span class="material-symbols-outlined text-amber-500 text-[16px]">history_toggle_off</span>
+          <div>${escHtml(role.experienceGapText)}</div>
+        </div>
+      ` : ''}
 
       <div class="job-rec-skills-section">
         <!-- Skills You Have -->
         <div class="job-rec-skill-group">
-          <div class="job-rec-skill-group-label">Skills You Have (${role.haveSkills.length})</div>
+          <div class="job-rec-skill-group-label">Skills You Have (${role.allMatched ? role.allMatched.length : (role.haveSkills || []).length})</div>
           <div class="job-rec-pills">
-            ${role.haveSkills.length
-              ? role.haveSkills.slice(0, 5).map(s => `<span class="skill-tag-have"><span class="material-symbols-outlined text-[11px]">check</span>${escHtml(s)}</span>`).join('')
+            ${(role.allMatched && role.allMatched.length > 0)
+              ? role.allMatched.slice(0, 5).map(s => `<span class="skill-tag-have"><span class="material-symbols-outlined text-[11px]">check</span>${escHtml(s)}</span>`).join('')
               : '<span class="check-missing-text text-[11px]">None detected yet</span>'}
           </div>
         </div>
 
         <!-- Missing Skills -->
-        ${(role.missingEssential.length > 0 || role.missingImportant.length > 0) ? `
+        ${(role.missingRequired?.length > 0 || role.missingPreferred?.length > 0) ? `
           <div class="job-rec-skill-group" style="margin-top:0.35rem;">
             <div class="job-rec-skill-group-label">Skills You Are Missing</div>
             <div class="job-rec-pills">
-              ${role.missingEssential.slice(0, 2).map(s => `<span class="skill-tag-missing"><span class="skill-priority-tag priority-tag-high">HIGH</span>${escHtml(s)}</span>`).join('')}
-              ${role.missingImportant.slice(0, 2).map(s => `<span class="skill-tag-missing"><span class="skill-priority-tag priority-tag-med">MED</span>${escHtml(s)}</span>`).join('')}
+              ${(role.missingRequired || []).slice(0, 2).map(s => `<span class="skill-tag-missing"><span class="skill-priority-tag priority-tag-high">REQUIRED</span>${escHtml(s)}</span>`).join('')}
+              ${(role.missingPreferred || []).slice(0, 2).map(s => `<span class="skill-tag-missing"><span class="skill-priority-tag priority-tag-med">PREFERRED</span>${escHtml(s)}</span>`).join('')}
             </div>
           </div>
         ` : ''}
       </div>
 
-      <!-- Roadmap Box -->
-      <div class="job-rec-roadmap-box">
-        <div class="job-rec-roadmap-header">
-          <span class="material-symbols-outlined text-[15px]">trending_up</span>
-          <span>Personalized Roadmap</span>
-        </div>
-        <div class="job-rec-roadmap-steps">
-          ${role.roadmapSteps.slice(0, 3).map((step, idx) => `
-            <div class="roadmap-step-item">
-              <span class="roadmap-step-num">${idx + 1}</span>
-              <span>${escHtml(step)}</span>
-            </div>
-          `).join('')}
-        </div>
+      <!-- Why Recommended Box -->
+      <div class="jd-why-box">
+        <strong>Why Recommended:</strong> ${escHtml(role.whyRecommended || role.applyReason)}
       </div>
+
+      <!-- Roadmap Steps -->
+      ${role.actionPlan && role.actionPlan.length > 0 ? `
+        <div class="job-rec-roadmap-box" style="margin-top:0.6rem;">
+          <div class="job-rec-roadmap-header">
+            <span class="material-symbols-outlined text-[15px]">trending_up</span>
+            <span>Personalized Next Steps</span>
+          </div>
+          <div class="job-rec-roadmap-steps">
+            ${role.actionPlan.slice(0, 2).map((step, idx) => `
+              <div class="roadmap-step-item">
+                <span class="roadmap-step-num">${idx + 1}</span>
+                <span>${escHtml(step.whatToLearn || step)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
     </div>
   `).join('');
 }
@@ -2816,21 +3250,56 @@ function renderJobRecommendations(recommendations) {
 function renderJDMatchResults(jdResult) {
   if (!jdResult) return '';
 
+  const verdictBg = jdResult.applyRecommendation === 'APPLY NOW' ? 'rgba(16, 185, 129, 0.12)' : (jdResult.applyRecommendation === 'APPLY WITH CAUTION' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(239, 68, 68, 0.12)');
+  const verdictColor = jdResult.applyRecommendation === 'APPLY NOW' ? '#059669' : (jdResult.applyRecommendation === 'APPLY WITH CAUTION' ? '#d97706' : '#dc2626');
+
   return `
     <!-- Hero Status Banner -->
     <div class="jd-results-hero ${jdResult.statusClass}">
       <div>
-        <div class="jd-status-badge" style="color:${jdResult.statusColor};">${escHtml(jdResult.statusBadge)}</div>
-        <div class="jd-status-answer">${escHtml(jdResult.statusAnswer)}</div>
-        <div class="jd-status-desc">${escHtml(jdResult.statusDesc)}</div>
+        <div class="jd-status-badge" style="color:${jdResult.matchColor};">${escHtml(jdResult.matchLevel)}</div>
+        <div class="jd-status-answer">${escHtml(jdResult.applyRecommendation)}</div>
+        <div class="jd-status-desc">${escHtml(jdResult.applyReason)}</div>
       </div>
       <div class="jd-score-circle-wrap">
-        <div class="jd-score-circle-num" style="color:${jdResult.statusColor};">${jdResult.matchScore}%</div>
+        <div class="jd-score-circle-num" style="color:${jdResult.matchColor};">${jdResult.matchScore}%</div>
         <div class="jd-score-circle-lbl">JD Match</div>
       </div>
     </div>
 
-    <!-- Match Factors Grid -->
+    <!-- Verdict & Readiness Strip -->
+    <div class="jd-verdict-grid">
+      <div class="jd-verdict-card">
+        <div class="jd-verdict-lbl">Technical Match</div>
+        <div class="jd-verdict-val" style="color:${jdResult.matchColor};">
+          ${jdResult.matchScore}%
+        </div>
+      </div>
+      <div class="jd-verdict-card">
+        <div class="jd-verdict-lbl">Eligibility Status</div>
+        <div class="jd-verdict-val" style="color:${jdResult.eligibilityColor};">
+          ${escHtml(jdResult.eligibility)}
+        </div>
+      </div>
+      <div class="jd-verdict-card" style="background:${verdictBg}; border-color:${verdictColor};">
+        <div class="jd-verdict-lbl" style="color:${verdictColor};">Recommendation</div>
+        <div class="jd-verdict-val" style="color:${verdictColor};">
+          ${escHtml(jdResult.applyRecommendation)}
+        </div>
+      </div>
+    </div>
+
+    <!-- Experience Gap Alert (if applicable) -->
+    ${jdResult.hasExperienceGap ? `
+      <div class="jd-exp-gap-box">
+        <span class="material-symbols-outlined text-amber-500 text-[20px]" style="flex-shrink:0;">history_toggle_off</span>
+        <div>
+          <strong>Experience Gap:</strong> ${escHtml(jdResult.experienceGapText)}
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- Match Factors Grid (7 Factors = 100 Pts Exact Sum) -->
     <div class="jd-factors-grid">
       ${Object.values(jdResult.factors).map(f => `
         <div class="jd-factor-card">
@@ -2851,40 +3320,53 @@ function renderJDMatchResults(jdResult) {
       <div class="analyzer-section-card" style="margin-bottom:0;">
         <div class="analyzer-card-header">
           <span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span>
-          <h4 class="analyzer-card-title">Why You Match (${jdResult.allMatched.length})</h4>
+          <h4 class="analyzer-card-title">Why You Match (${(jdResult.allMatched || []).length})</h4>
         </div>
         <div class="job-rec-pills" style="margin-top:0.5rem;">
-          ${jdResult.allMatched.length
+          ${(jdResult.allMatched && jdResult.allMatched.length > 0)
             ? jdResult.allMatched.map(s => `<span class="skill-tag-have"><span class="material-symbols-outlined text-[11px]">check</span>${escHtml(s)}</span>`).join('')
             : '<span class="no-data-text">No direct skills matched from this job description.</span>'}
         </div>
+        ${jdResult.whyYouMatch && jdResult.whyYouMatch.length > 0 ? `
+          <div class="best-fit-reasons-list" style="margin-top:0.75rem;">
+            ${jdResult.whyYouMatch.map(r => `
+              <div class="best-fit-reason-item">
+                <span class="material-symbols-outlined text-emerald-500 text-[14px]">check</span>
+                <span style="font-size:0.75rem;">${escHtml(r)}</span>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
       </div>
 
       <!-- Missing Skills -->
       <div class="analyzer-section-card" style="margin-bottom:0;">
         <div class="analyzer-card-header">
           <span class="material-symbols-outlined text-amber-500 text-[18px]">warning</span>
-          <h4 class="analyzer-card-title">What You're Missing (${jdResult.allMissing.length})</h4>
+          <h4 class="analyzer-card-title">What You're Missing (${(jdResult.missingRequirementsDisplay?.required?.length || 0) + (jdResult.missingRequirementsDisplay?.preferred?.length || 0)})</h4>
         </div>
         <div class="job-rec-pills" style="margin-top:0.5rem;">
-          ${jdResult.missingRequired.map(s => `<span class="skill-tag-missing"><span class="skill-priority-tag priority-tag-high">REQUIRED</span>${escHtml(s)}</span>`).join('')}
-          ${jdResult.missingPreferred.map(s => `<span class="skill-tag-missing"><span class="skill-priority-tag priority-tag-med">PREFERRED</span>${escHtml(s)}</span>`).join('')}
-          ${jdResult.allMissing.length === 0 ? '<span class="no-issues-text">All key requirements in this job description were found on your resume!</span>' : ''}
+          ${(jdResult.missingRequirementsDisplay?.required || []).map(s => `<span class="skill-tag-missing"><span class="skill-priority-tag priority-tag-high">REQUIRED</span>${escHtml(s)}</span>`).join('')}
+          ${(jdResult.missingRequirementsDisplay?.preferred || []).map(s => `<span class="skill-tag-missing"><span class="skill-priority-tag priority-tag-med">PREFERRED</span>${escHtml(s)}</span>`).join('')}
+          ${(!jdResult.missingRequirementsDisplay?.required?.length && !jdResult.missingRequirementsDisplay?.preferred?.length)
+            ? '<span class="no-issues-text">All detected requirements in this job description are satisfied.</span>'
+            : ''}
         </div>
       </div>
     </div>
 
-    <!-- Action Plan Box -->
+    <!-- Action Plan Box ("How To Become More Eligible") -->
     <div class="job-rec-roadmap-box" style="background:var(--color-surface);border:1.5px solid rgba(79, 70, 229, 0.25);">
       <div class="job-rec-roadmap-header">
         <span class="material-symbols-outlined text-indigo-500 text-[18px]">assignment_turned_in</span>
-        <span style="font-size:0.875rem;">Action Plan: How To Become Eligible For This Role</span>
+        <span style="font-size:0.875rem;">How To Become More Eligible (Action Plan)</span>
       </div>
-      <div class="job-rec-roadmap-steps" style="margin-top:0.5rem;">
-        ${jdResult.actionPlan.map((step, idx) => `
-          <div class="roadmap-step-item">
-            <span class="roadmap-step-num">${idx + 1}</span>
-            <span style="font-size:0.8125rem;">${escHtml(step)}</span>
+      <div style="margin-top:0.75rem;">
+        ${(jdResult.actionPlan || []).map(item => `
+          <div class="jd-action-priority-item">
+            <div class="jd-action-priority-title">${escHtml(item.priority)}</div>
+            <div class="jd-action-priority-reason"><strong>Reason:</strong> ${escHtml(item.reason)}</div>
+            <div class="jd-action-priority-what"><strong>What to do:</strong> ${escHtml(item.whatToLearn)}</div>
           </div>
         `).join('')}
       </div>
@@ -2896,7 +3378,7 @@ function executeEnhancedJDMatch(analysisResult) {
   const jdTextarea = document.getElementById('jd-textarea-enhanced-input');
   const jdText = jdTextarea?.value?.trim();
 
-  if (!jdText || jdText.length < 25) {
+  if (!jdText || jdText.length < 20) {
     showToast('Please paste a complete job description (at least a few lines).', 'error');
     return;
   }
@@ -2905,10 +3387,14 @@ function executeEnhancedJDMatch(analysisResult) {
 
   const resumeData = {
     resumeText: analyzerState.resumeText,
+    contactInfo: analysisResult.contactInfo,
     skills: analysisResult.skills,
+    summaryAnalysis: analysisResult.summaryAnalysis,
     projectsAnalysis: analysisResult.projectsAnalysis,
     experienceAnalysis: analysisResult.experienceAnalysis,
-    educationAnalysis: analysisResult.educationAnalysis
+    educationAnalysis: analysisResult.educationAnalysis,
+    certificationsAnalysis: analysisResult.certificationsAnalysis,
+    achievementsAnalysis: analysisResult.achievementsAnalysis
   };
 
   const matchResult = analyzeJobDescriptionMatch(resumeData, jdText);
@@ -2926,7 +3412,7 @@ function executeEnhancedJDMatch(analysisResult) {
     resultsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  showToast(`JD Match: ${matchResult.matchScore}% · ${matchResult.statusBadge.replace(/^[^\s]+\s*/, '')}`, matchResult.matchScore >= 70 ? 'success' : 'info');
+  showToast(`JD Match: ${matchResult.matchScore}% · ${matchResult.eligibility}`, matchResult.matchScore >= 70 ? 'success' : 'info');
 }
 
 /* ============================================================
@@ -2948,6 +3434,8 @@ function renderHealthChecks(result) {
 
   if (ci.phone) {
     checks.push({ pass: true, label: `Phone number detected (${ci.details.phone})` });
+  } else if (ci.details.invalidPhone) {
+    checks.push({ pass: false, label: `Incorrect phone number detected (${ci.details.invalidPhone}) — must be 10 digits after +91` });
   } else {
     checks.push({ pass: false, label: 'Phone number missing' });
   }
@@ -3022,23 +3510,36 @@ function renderContactChecks(ci) {
   const items = [
     { key: 'Name', found: ci.name, detail: ci.details.name },
     { key: 'Email', found: ci.email, detail: ci.details.email },
-    { key: 'Phone', found: ci.phone, detail: ci.details.phone },
+    { key: 'Phone', found: ci.phone, detail: ci.details.phone, invalid: ci.details.invalidPhone },
     { key: 'Location', found: ci.location, detail: ci.details.location },
     { key: 'LinkedIn', found: ci.linkedin, detail: ci.details.linkedin },
     { key: 'GitHub', found: ci.github, detail: ci.details.github },
     { key: 'Portfolio / Coding Profile', found: ci.portfolio, detail: ci.details.portfolio }
   ];
 
-  return items.map(item => `
-    <div class="analyzer-check-item ${item.found ? 'check-pass' : 'check-missing'}">
-      <span class="material-symbols-outlined check-icon" style='font-variation-settings: "FILL" 1;'>${item.found ? 'check_circle' : 'cancel'}</span>
-      <div>
-        <span class="check-label">${item.key}</span>
-        ${item.found && item.detail ? `<span class="check-detail" style="color:var(--color-on-surface); font-weight:600;">${escHtml(item.detail)}</span>` : ''}
-        ${!item.found ? `<span class="check-detail check-missing-text">${item.key.includes('Portfolio') ? 'Optional / Not detected' : 'Not detected'}</span>` : ''}
+  return items.map(item => {
+    if (item.key === 'Phone' && !item.found && item.invalid) {
+      return `
+        <div class="analyzer-check-item check-warn">
+          <span class="material-symbols-outlined check-icon" style='font-variation-settings: "FILL" 1; color: var(--color-warning);'>warning</span>
+          <div>
+            <span class="check-label">Phone</span>
+            <span class="check-detail" style="color:var(--color-warning); font-weight:600;">Incorrect (${escHtml(item.invalid)}) — must be 10 digits</span>
+          </div>
+        </div>
+      `;
+    }
+    return `
+      <div class="analyzer-check-item ${item.found ? 'check-pass' : 'check-missing'}">
+        <span class="material-symbols-outlined check-icon" style='font-variation-settings: "FILL" 1;'>${item.found ? 'check_circle' : 'cancel'}</span>
+        <div>
+          <span class="check-label">${item.key}</span>
+          ${item.found && item.detail ? `<span class="check-detail" style="color:var(--color-on-surface); font-weight:600;">${escHtml(item.detail)}</span>` : ''}
+          ${!item.found ? `<span class="check-detail check-missing-text">${item.key.includes('Portfolio') ? 'Optional / Not detected' : 'Not detected'}</span>` : ''}
+        </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function renderSectionChecks(ps, sa) {
@@ -3341,7 +3842,12 @@ function restoreSavedAnalysis() {
 /* ============================================================
    ANALYZER CONTROLS INITIALIZATION
    ============================================================ */
+let analyzerControlsInitialized = false;
+
 function initRealAnalyzerControls() {
+  if (analyzerControlsInitialized) return;
+  analyzerControlsInitialized = true;
+
   const dropzone = document.getElementById('upload-dropzone');
   const fileInput = document.getElementById('file-upload-input');
   const removeFileBtn = document.getElementById('btn-remove-file');
@@ -3383,10 +3889,8 @@ function initRealAnalyzerControls() {
     runBtn.addEventListener('click', () => {
       if (analyzerState.file) {
         runRealAnalysis(false);
-      } else if (analyzerState.fromBuilder) {
-        runRealAnalysis(true);
       } else {
-        showToast('Please upload a resume file or use your Builder resume first.', 'error');
+        runRealAnalysis(true);
       }
     });
   }
@@ -3423,7 +3927,8 @@ function handleRealFileSelected(file) {
   if (resultsArea) { resultsArea.style.display = 'none'; resultsArea.innerHTML = ''; }
   analyzerState.analysisComplete = false;
 
-  showToast(`File "${file.name}" loaded. Click Analyze to continue.`, 'info');
+  // Auto-run analysis immediately on file upload without showing duplicate popup notices
+  runRealAnalysis(false);
 }
 
 function resetAnalyzerState() {
@@ -3437,7 +3942,6 @@ function resetAnalyzerState() {
   if (resultsArea) { resultsArea.style.display = 'none'; resultsArea.innerHTML = ''; }
 
   clearAnalysisResult();
-  showToast('File removed. Upload a new resume to analyze.', 'info');
 }
 
 /* ============================================================
@@ -3457,6 +3961,19 @@ function formatCategoryName(key) {
     ai_ml: 'AI & Machine Learning'
   };
   return names[key] || key.charAt(0).toUpperCase() + key.slice(1);
+}
+
+// Attach global functions to window for browser access
+if (typeof window !== 'undefined') {
+  window.initRealAnalyzerControls = initRealAnalyzerControls;
+  window.runRealAnalysis = runRealAnalysis;
+  window.buildStructuredResumeProfile = buildStructuredResumeProfile;
+  window.parseJobDescription = parseJobDescription;
+  window.matchJobProfileWithResume = matchJobProfileWithResume;
+  window.calculateJobRoleMatches = calculateJobRoleMatches;
+  window.analyzeJobDescriptionMatch = analyzeJobDescriptionMatch;
+  window.calculateATSScore = calculateATSScore;
+  window.renderAllResults = renderAllResults;
 }
 
 // Auto-initialize
@@ -3486,9 +4003,13 @@ if (typeof module !== 'undefined' && module.exports) {
     analyzeContentQuality,
     analyzeATSFormatting,
     calculateATSScore,
+    buildStructuredResumeProfile,
+    parseJobDescription,
+    matchJobProfileWithResume,
     calculateJobRoleMatches,
     analyzeJobDescriptionMatch,
     getScoreInterpretation,
+    ROLE_PROFILES_DB,
     JOB_ROLES_DB
   };
 }

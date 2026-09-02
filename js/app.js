@@ -114,3 +114,13 @@ function highlightActiveRoute() {
     }
   });
 }
+
+// Prevent blinking caret or text selection focus on non-editable elements
+document.addEventListener('mousedown', (e) => {
+  const isEditable = e.target.closest('input, textarea, [contenteditable="true"], select');
+  if (!isEditable) {
+    if (document.activeElement && document.activeElement !== document.body && !document.activeElement.closest('input, textarea, [contenteditable="true"], select')) {
+      document.activeElement.blur();
+    }
+  }
+});
