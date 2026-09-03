@@ -21,11 +21,13 @@
   </script>
   <!-- Mammoth.js for real DOCX text extraction -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <!-- Tesseract.js for OCR on scanned/image-based resumes -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
-  <link rel="stylesheet" href="../css/global.css"/>
-  <link rel="stylesheet" href="../css/components.css"/>
-  <link rel="stylesheet" href="../css/resume.css"/>
-  <link rel="stylesheet" href="../css/responsive.css"/>
+  <link rel="stylesheet" href="../css/base/global.css"/>
+  <link rel="stylesheet" href="../css/base/components.css"/>
+  <link rel="stylesheet" href="../css/pages/resume.css"/>
+  <link rel="stylesheet" href="../css/base/responsive.css"/>
 
   <script>
     (function () {
@@ -654,9 +656,9 @@
     </div>
   </div>
 
-  <script src="../js/utils.js"></script>
-  <script src="../js/app.js"></script>
-  <script src="../js/resume.js"></script>
-  <script src="../js/resumeAnalyzer.js"></script>
+  <script src="../js/core/utils.js"></script>
+  <script src="../js/core/app.js"></script>
+  <script src="../js/pages/resume.js"></script>
+  <script src="../js/pages/resumeAnalyzer.js"></script>
 </body>
 </html>

@@ -103,3 +103,24 @@ const Storage = {
     localStorage.removeItem(`devpilot_${key}`);
   }
 };
+
+/**
+ * Escapes unsafe HTML characters to prevent XSS injection in dynamic DOM rendering.
+ * @param {string} str - Raw string possibly containing <, >, &, ", '.
+ * @returns {string} Sanitized string safe to inject into innerHTML.
+ */
+function escapeHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/**
+ * Capitalizes the first character of a string.
+ * @param {string} str - Input string.
+ * @returns {string} Capitalized string.
+ */
+function capitalize(str) {
+  return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+}
