@@ -12,7 +12,7 @@ const defaultResumeState = {
     name: 'Aditya Sharma',
     title: 'Full Stack Engineer & AI Developer',
     email: '2k25aiml2513475@gmail.com',
-    phone: '+91 96160 32564',
+    phone: '+91 XXX XXX XXXX',
     location: 'Kanpur, UP, India',
     github: 'github.com/2k25adityasharma',
     linkedin: 'linkedin.com/in/aditya-sharma-a93387410',
@@ -196,6 +196,12 @@ const TEMPLATES = [
    STATE
    ============================================================ */
 let currentResume   = Storage.get('resume_data', defaultResumeState);
+// Sanitize any previously cached default seed data so placeholder is strictly used
+if (currentResume && currentResume.personal && currentResume.personal.name === 'Aditya Sharma' && currentResume.personal.email === '2k25aiml2513475@gmail.com') {
+  if (currentResume.personal.phone !== '+91 XXX XXX XXXX') {
+    currentResume.personal.phone = '+91 XXX XXX XXXX';
+  }
+}
 let activeTemplate  = getInitialTemplate();
 let currentView     = 'hub';    // 'hub' | 'builder' | 'analyzer'
 let analyzerData    = null;     // holds analysis results
@@ -1043,14 +1049,17 @@ function formatDateRange(start, end) {
 }
 
 function renderContactsPlain(p) {
-  return [
-    p.email,
-    p.phone,
-    p.location,
-    p.github,
-    p.linkedin,
-    p.portfolio
-  ].filter(Boolean).map(c => `<span>${escHtml(c)}</span>`).join(' &nbsp;|&nbsp; ');
+  const primary = [p.email, p.phone, p.location].filter(Boolean);
+  const links = [p.github, p.linkedin, p.portfolio].filter(Boolean);
+
+  const renderRow = items => {
+    if (!items.length) return '';
+    const itemsHtml = items.map(c => `<span class="cv-contact-item">${escHtml(c)}</span>`).join('');
+    return `<div class="cv-contact-row">${itemsHtml}</div>`;
+  };
+
+  if (!primary.length && !links.length) return '';
+  return `${renderRow(primary)}${renderRow(links)}`;
 }
 
 function renderBulletPoints(text) {

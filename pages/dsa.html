@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html class="js preload" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>DSA Roadmap - DevPilot-AI</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" id="tailwind-cdn"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
+
+  <link rel="stylesheet" href="../css/base/global.css"/>
+  <link rel="stylesheet" href="../css/base/components.css"/>
+  <link rel="stylesheet" href="../css/pages/dsa.css"/>
+  <link rel="stylesheet" href="../css/base/responsive.css"/>
+
+  <script>
+    (function () {
+      const htmlDoc = document.documentElement;
+      htmlDoc.classList.add('js', 'preload');
+      const isCollapsed = localStorage.getItem('devpilot-sidebar-collapsed') === 'true';
+      if (isCollapsed && window.innerWidth >= 768) {
+        htmlDoc.classList.add('sidebar-collapsed');
+      }
+      function reveal() {
+        htmlDoc.classList.remove('preload');
+        htmlDoc.classList.add('app-ready');
+      }
+      window.addEventListener('load', () => setTimeout(reveal, 100));
+      setTimeout(reveal, 1200);
+    })();
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased min-h-screen">
+
+  <!-- Mobile Overlay -->
+  <div class="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm hidden md:hidden" id="mobile-overlay"></div>
+
+  <!-- SideNavBar -->
+  <aside class="fixed left-0 top-0 h-full w-[260px] bg-white border-r border-slate-200 flex flex-col py-6 z-50 transform md:translate-x-0" id="sidebar">
+    <button aria-label="Toggle Sidebar" class="absolute -right-3.5 top-6 w-7 h-7 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:border-indigo-600 transition-colors z-50 hidden md:flex shadow-sm" id="sidebar-toggle">
+      <span class="material-symbols-outlined text-[18px]" id="sidebar-toggle-icon">chevron_left</span>
+    </button>
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- Brand Logo -->
+      <div class="px-6 mb-8 flex items-center gap-3 overflow-hidden">
+        <div class="min-w-[32px] w-8 h-8 rounded bg-brand-gradient flex items-center justify-center text-white shrink-0 shadow-sm">
+          <span class="material-symbols-outlined text-xl" style='font-variation-settings: "FILL" 1;'>terminal</span>
+        </div>
+        <div class="sidebar-text">
+          <h1 class="text-xl font-bold text-indigo-600 tracking-tight leading-none">DevPilot AI</h1>
+          <p class="text-xs font-semibold text-slate-400 uppercase mt-0.5">Workspace</p>
+        </div>
+      </div>
+      <!-- Navigation Links -->
+      <nav class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar px-3 space-y-1">
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="../index.html">
+          <span class="material-symbols-outlined shrink-0">dashboard</span>
+          <span class="text-sm font-medium sidebar-text">Dashboard</span>
+          <span class="tooltip-text">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="github.html">
+          <span class="material-symbols-outlined shrink-0">analytics</span>
+          <span class="text-sm font-medium sidebar-text">GitHub Analyzer</span>
+          <span class="tooltip-text">GitHub Analyzer</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="chat.html">
+          <span class="material-symbols-outlined shrink-0">smart_toy</span>
+          <span class="text-sm font-medium sidebar-text">AI Chat</span>
+          <span class="tooltip-text">AI Chat</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="resume.html">
+          <span class="material-symbols-outlined shrink-0">description</span>
+          <span class="text-sm font-medium sidebar-text">Resume</span>
+          <span class="tooltip-text">Resume</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-indigo-50 text-indigo-900 border-l-[3px] border-indigo-600 tooltip relative group" href="dsa.html">
+          <span class="material-symbols-outlined text-indigo-600 shrink-0" style='font-variation-settings: "FILL" 1;'>alt_route</span>
+          <span class="text-sm font-semibold sidebar-text">DSA Roadmap</span>
+          <span class="tooltip-text">DSA Roadmap</span>
+        </a>
+
+        <div class="pt-4 pb-2 px-3 sidebar-text">
+          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Resources</p>
+        </div>
+        <div class="hidden pt-4 pb-2 px-3 justify-center items-center sidebar-collapsed-only">
+          <div class="w-4 h-[1px] bg-slate-200"></div>
+        </div>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="notes.html">
+          <span class="material-symbols-outlined shrink-0">edit_note</span>
+          <span class="text-sm font-medium sidebar-text">Notes</span>
+          <span class="tooltip-text">Notes</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="snippets.html">
+          <span class="material-symbols-outlined shrink-0">terminal</span>
+          <span class="text-sm font-medium sidebar-text">Snippets</span>
+          <span class="tooltip-text">Snippets</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="prompts.html">
+          <span class="material-symbols-outlined shrink-0">bolt</span>
+          <span class="text-sm font-medium sidebar-text">Prompts</span>
+          <span class="tooltip-text">Prompts</span>
+        </a>
+
+        <div class="pt-4 pb-2 px-3 sidebar-text">
+          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tracking</p>
+        </div>
+        <div class="hidden pt-4 pb-2 px-3 justify-center items-center sidebar-collapsed-only">
+          <div class="w-4 h-[1px] bg-slate-200"></div>
+        </div>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="habits.html">
+          <span class="material-symbols-outlined shrink-0">check_circle</span>
+          <span class="text-sm font-medium sidebar-text">Habits</span>
+          <span class="tooltip-text">Habits</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="timer.html">
+          <span class="material-symbols-outlined shrink-0">timer</span>
+          <span class="text-sm font-medium sidebar-text">Timer</span>
+          <span class="tooltip-text">Timer</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="settings.html">
+          <span class="material-symbols-outlined shrink-0">settings</span>
+          <span class="text-sm font-medium sidebar-text">Settings</span>
+          <span class="tooltip-text">Settings</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="mt-auto px-4 pt-4 sidebar-text">
+      <div class="bg-brand-gradient rounded-xl p-4 text-white relative overflow-hidden shadow-sm">
+        <p class="font-bold text-sm leading-tight mb-1">DSA Master Vault.</p>
+        <p class="text-xs opacity-80">16 Patterns & 260 Problems.</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="md:ml-[260px] min-h-screen p-6 sm:p-8" id="main-content">
+    <div class="dsa-page-container">
+
+      <!-- Page Header Bar -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-200">
+        <div class="flex items-center gap-3">
+          <button class="mobile-nav-toggle md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg" id="mobile-menu-trigger" aria-label="Open Sidebar">
+            <span class="material-symbols-outlined">menu</span>
+          </button>
+          <div>
+            <h1 class="page-title text-2xl sm:text-3xl font-extrabold text-slate-900">DSA Roadmap</h1>
+            <p class="page-subtitle text-slate-500 text-sm mt-0.5">Master Data Structures & Algorithms with 16 pattern-based problem sets.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Progress Dashboard -->
+      <section class="dsa-hero-card" aria-label="DSA Progress Summary">
+        <div class="dsa-hero-header">
+          <div class="dsa-hero-title-group">
+            <div class="dsa-hero-icon">
+              <span class="material-symbols-outlined">alt_route</span>
+            </div>
+            <div>
+              <div class="dsa-hero-stats-count" id="dsa-total-solved-count">0 / 260</div>
+              <div class="dsa-hero-stats-label" id="dsa-total-remaining-count">260 remaining</div>
+            </div>
+          </div>
+          <div class="dsa-hero-pct-badge">
+            <span class="material-symbols-outlined text-[18px]">verified</span>
+            <span id="dsa-pct-badge">0%</span>
+          </div>
+        </div>
+
+        <!-- Master Progress Track -->
+        <div class="dsa-progress-track">
+          <div class="dsa-progress-fill" id="dsa-progress-fill" style="width: 0%;"></div>
+        </div>
+
+        <!-- Difficulty Stats Grid -->
+        <div class="dsa-diff-grid">
+          <div class="dsa-diff-card diff-easy">
+            <div class="dsa-diff-top">
+              <span class="dsa-diff-label">Easy</span>
+              <span class="dsa-diff-count" id="dsa-easy-count">0 / 77</span>
+            </div>
+            <div class="dsa-diff-mini-track">
+              <div class="dsa-diff-mini-fill" id="dsa-easy-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <div class="dsa-diff-card diff-medium">
+            <div class="dsa-diff-top">
+              <span class="dsa-diff-label">Medium</span>
+              <span class="dsa-diff-count" id="dsa-medium-count">0 / 139</span>
+            </div>
+            <div class="dsa-diff-mini-track">
+              <div class="dsa-diff-mini-fill" id="dsa-medium-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <div class="dsa-diff-card diff-hard">
+            <div class="dsa-diff-top">
+              <span class="dsa-diff-label">Hard</span>
+              <span class="dsa-diff-count" id="dsa-hard-count">0 / 44</span>
+            </div>
+            <div class="dsa-diff-mini-track">
+              <div class="dsa-diff-mini-fill" id="dsa-hard-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Controls Toolbar: Smart Pro Search & Filters -->
+      <section class="dsa-toolbar" aria-label="Roadmap Filters and Controls">
+        <div class="dsa-toolbar-top">
+          <!-- Smart Search Box -->
+          <div class="dsa-search-wrap" id="dsa-search-wrap">
+            <span class="material-symbols-outlined dsa-search-icon">search</span>
+            <input type="text" id="dsa-search-input" class="dsa-search-input" placeholder="Search by title, #number, pattern, or tag... (e.g. 15, Sliding Window, DP)" autocomplete="off" spellcheck="false"/>
+            <div class="dsa-search-right-actions">
+              <kbd class="dsa-search-kbd" id="dsa-search-kbd" title="Press Ctrl+K to search">Ctrl K</kbd>
+              <button id="dsa-search-clear" class="dsa-search-clear" aria-label="Clear Search (Esc)" title="Clear Search (Esc)">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Difficulty segmented filter -->
+          <div class="dsa-segmented-group" role="group" aria-label="Filter by difficulty">
+            <button class="dsa-segment-btn active" data-filter-diff="all">All</button>
+            <button class="dsa-segment-btn" data-filter-diff="easy">Easy</button>
+            <button class="dsa-segment-btn" data-filter-diff="medium">Medium</button>
+            <button class="dsa-segment-btn" data-filter-diff="hard">Hard</button>
+          </div>
+
+          <!-- Status segmented filter -->
+          <div class="dsa-segmented-group" role="group" aria-label="Filter by status">
+            <button class="dsa-segment-btn active" data-filter-status="all">All</button>
+            <button class="dsa-segment-btn" data-filter-status="solved">Solved</button>
+            <button class="dsa-segment-btn" data-filter-status="unsolved">Unsolved</button>
+          </div>
+
+          <div class="dsa-toolbar-actions">
+            <button id="dsa-btn-reset" class="dsa-reset-btn" aria-label="Reset Progress">
+              <span class="material-symbols-outlined text-[18px]">restart_alt</span>
+              <span>Reset</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Suggestions & Live Match Counter Bar -->
+        <div class="dsa-toolbar-bottom">
+          <div class="dsa-quick-chips" aria-label="Quick search suggestions">
+            <span class="dsa-quick-chips-label">
+              <span class="material-symbols-outlined text-[14px]">bolt</span>
+              <span>Quick Filters:</span>
+            </span>
+            <button type="button" class="dsa-chip-btn" data-quick-filter="Two Pointers">Two Pointers</button>
+            <button type="button" class="dsa-chip-btn" data-quick-filter="Sliding Window">Sliding Window</button>
+            <button type="button" class="dsa-chip-btn" data-quick-filter="Monotonic Stack">Monotonic Stack</button>
+            <button type="button" class="dsa-chip-btn" data-quick-filter="Trees">Trees</button>
+            <button type="button" class="dsa-chip-btn" data-quick-filter="Dynamic Programming">DP</button>
+            <button type="button" class="dsa-chip-btn" data-quick-filter="Graphs">Graphs</button>
+            <button type="button" class="dsa-chip-btn" data-quick-filter="Binary Search">Binary Search</button>
+          </div>
+
+          <div class="dsa-search-counter">
+            <span class="dsa-results-badge" id="dsa-results-badge">260 Problems</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Workspace: Sticky Index Sidebar + Questions Container -->
+      <div class="dsa-workspace">
+
+        <!-- Pattern Navigation Sidebar -->
+        <aside class="dsa-nav-sidebar" aria-label="Pattern Roadmap Index">
+          <div class="dsa-nav-sidebar-header">
+            <h2 class="dsa-nav-sidebar-title">
+              <span class="material-symbols-outlined text-[18px] text-indigo-600">format_list_bulleted</span>
+              <span>16 Categories</span>
+            </h2>
+            <span class="dsa-nav-sidebar-badge">260 Qs</span>
+          </div>
+          <div class="dsa-nav-list custom-scrollbar" id="dsa-sidebar-nav-list">
+            <!-- Rendered by js/pages/dsa.js -->
+          </div>
+        </aside>
+
+        <!-- Questions Feed -->
+        <section class="dsa-feed-container" aria-label="Questions Feed">
+          <div id="dsa-questions-container">
+            <!-- Rendered by js/pages/dsa.js -->
+          </div>
+
+          <!-- Empty State -->
+          <div id="dsa-empty-state" class="dsa-empty-state hidden">
+            <div class="dsa-empty-icon">
+              <span class="material-symbols-outlined">filter_list_off</span>
+            </div>
+            <h3 class="dsa-empty-title">No problems match your filters</h3>
+            <p class="dsa-empty-desc">Try clearing your search query or switching difficulty/status filters to view problems.</p>
+            <button id="dsa-btn-clear-filters" class="btn-primary text-sm py-2 px-4 inline-flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px]">restart_alt</span>
+              <span>Clear Filters</span>
+            </button>
+          </div>
+        </section>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Reset Confirmation Modal -->
+  <div class="modal-backdrop" id="dsa-reset-modal" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title">
+    <div class="modal-card max-w-md p-6 text-center">
+      <div class="dsa-modal-warning-icon">
+        <span class="material-symbols-outlined">warning</span>
+      </div>
+      <h3 class="text-lg font-bold text-slate-900 mb-2" id="reset-modal-title">Reset DSA Progress?</h3>
+      <p class="text-sm text-slate-600 mb-6">
+        This will uncheck all solved problems and clear your saved progress. This action cannot be undone.
+      </p>
+      <div class="flex items-center justify-center gap-3">
+        <button id="dsa-btn-cancel-reset" class="btn-secondary text-sm py-2 px-4">Cancel</button>
+        <button id="dsa-btn-confirm-reset" class="btn-primary text-sm py-2 px-4 bg-red-600 hover:bg-red-700 border-red-600 text-white">Reset All Progress</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/core/utils.js"></script>
+  <script src="../js/core/app.js"></script>
+  <script src="../js/data/dsaData.js"></script>
+  <script src="../js/pages/dsa.js"></script>
+</body>
+</html>

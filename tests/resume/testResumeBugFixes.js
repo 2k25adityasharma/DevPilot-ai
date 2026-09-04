@@ -305,7 +305,7 @@ console.log(`\n${colors.yellow}--- BUG 3: Document Structure Layout Inspection -
 execute('TEST 3.1: Genuinely single-column resume classifies as single-column ATS pass', () => {
   const singleColumnResume = `
 Aditya Sharma
-Kanpur, India | +91 96160 32564 | aditya@example.com
+Kanpur, India | +91 98765 43210 | aditya@example.com
 linkedin.com/in/aditya | github.com/aditya
 
 PROFESSIONAL SUMMARY
@@ -494,7 +494,7 @@ coolguy12345@yahoo.com | +1 555-0199 | New York, NY
 execute('TEST 5.2: Professional email address passes both hard and soft checks', () => {
   const proText = `
 Aditya Sharma
-aditya.sharma.dev@gmail.com | +91 96160 32564
+aditya.sharma.dev@gmail.com | +91 98765 43210
   `;
   const contact = analyzer.extractContactInfo(proText);
 
@@ -550,7 +550,7 @@ console.log(`\n${colors.yellow}--- END-TO-END SCENARIOS: (a) Header Line, (b) Sp
 execute('SCENARIO (a): Resume with email on same line as phone, location, LinkedIn, GitHub scores correctly', () => {
   const resumeA = `
 Aditya Sharma
-firstname.lastname.dev@gmail.com | +91 96160 32564 | Kanpur, India | linkedin.com/in/aditya-sharma | github.com/2k25adityasharma
+firstname.lastname.dev@gmail.com | +91 98765 43210 | Kanpur, India | linkedin.com/in/aditya-sharma | github.com/2k25adityasharma
 
 PROFESSIONAL SUMMARY
 Full Stack & AI Developer with practical experience developing modern web applications using React, Node.js, REST APIs, and AWS.
@@ -614,7 +614,7 @@ AWS Certified Solutions Architect — Amazon Web Services (2024)
 execute('SCENARIO (b): Resume with project title + tech-stack on separate lines resolves correct count and scores', () => {
   const resumeB = `
 Aditya Sharma
-aditya@example.com | +91 96160 32564
+aditya@example.com | +91 98765 43210
 
 PROFESSIONAL SUMMARY
 Full Stack Engineer skilled in React, Node.js, Express, MongoDB, and AWS.
@@ -657,7 +657,7 @@ B.Tech in Computer Science | 2022 - 2026
 execute('SCENARIO (c): Two-column table layout correctly triggers complex layout warning', () => {
   const resumeC = `
 [LAYOUT: TABLE]
-Aditya Sharma | aditya@example.com | +91 96160 32564
+Aditya Sharma | aditya@example.com | +91 98765 43210
 
 | EDUCATION | WORK EXPERIENCE |
 | Dr. A.P.J. Technical University | Software Engineer at Acme Corp |

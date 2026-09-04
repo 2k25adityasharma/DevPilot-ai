@@ -40,7 +40,7 @@ let totalCount = 10;
 if (runTest('TEST 1: Valid student resume with projects and education', () => {
   const resumeText = `
 Aditya Sharma
-Kanpur, UP, India | +91 96160 32564 | 2k25aiml2513475@gmail.com
+Kanpur, UP, India | +91 98765 43210 | 2k25aiml2513475@gmail.com
 github.com/2k25adityasharma | linkedin.com/in/aditya-sharma | leetcode.com/u/adityasharma9616
 
 PROFESSIONAL SUMMARY
@@ -283,7 +283,7 @@ Remit Payment To: Silicon Valley Bank, Routing #121000358, Account #987654321
 if (runTest('TEST 7: Random text with only name, phone and email -> REJECT', () => {
   const randomText = `
 Aditya Sharma
-+91 96160 32564
++91 98765 43210
 email@example.com
 Kanpur, India
   `;
@@ -464,7 +464,7 @@ Bachelor of Arts | 2023
 if (runTest('TEST 12: Controlled strong test resume -> Score in 90–99 range', () => {
   const strongResume = `
 Aditya Sharma
-Kanpur, UP, India | +91 96160 32564 | aditya@example.com
+Kanpur, UP, India | +91 98765 43210 | aditya@example.com
 github.com/2k25adityasharma | linkedin.com/in/aditya-sharma | leetcode.com/u/aditya
 
 PROFESSIONAL SUMMARY
@@ -544,7 +544,7 @@ CERTIFICATIONS
 if (runTest('TEST 13: Estimated Role Fit vs Real Job Match distinction', () => {
   const resumeText = `
 Aditya Sharma
-aditya@example.com | +91 96160 32564
+aditya@example.com | +91 98765 43210
 TECHNICAL SKILLS: C++, JavaScript, Data Structures & Algorithms, React, Node.js, Git
 PROJECTS:
 Algorithm Visualizer in C++ and JavaScript.

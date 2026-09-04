@@ -22,7 +22,7 @@ Bachelor of Arts | 2023
 
 const strongResume = `
 Aditya Sharma
-Kanpur, UP, India | +91 96160 32564 | aditya@example.com
+Kanpur, UP, India | +91 98765 43210 | aditya@example.com
 github.com/2k25adityasharma | linkedin.com/in/aditya-sharma | leetcode.com/u/aditya
 
 PROFESSIONAL SUMMARY
