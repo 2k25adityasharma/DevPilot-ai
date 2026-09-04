@@ -62,12 +62,33 @@ const SOFT_SKILLS = [
   'active listening', 'hardworking', 'good learner', 'fast learner'
 ];
 
+let CERTIFICATION_TIERS = {
+  tier1: [
+    'aws', 'amazon web services', 'google cloud', 'gcp', 'google', 'microsoft', 'azure',
+    'meta', 'facebook', 'cisco', 'oracle', 'ibm', 'comptia', 'pmi', 'kubernetes', 'cncf',
+    'linux foundation', 'hashicorp', 'snowflake', 'databricks', 'salesforce', 'palo alto',
+    'red hat', 'postman'
+  ],
+  tier2: [
+    'coursera', 'udemy', 'edx', 'freecodecamp', 'hackerrank', 'deeplearning.ai',
+    'codecademy', 'simplilearn', 'linkedin learning', 'skillshare', 'datacamp'
+  ]
+};
+
+function getCertificationTiers() {
+  return CERTIFICATION_TIERS;
+}
+
+function setCertificationTiers(newTiers) {
+  if (newTiers && typeof newTiers === 'object') {
+    CERTIFICATION_TIERS = { ...CERTIFICATION_TIERS, ...newTiers };
+  }
+}
+
 const KNOWN_CERT_ISSUERS = [
-  'google', 'aws', 'amazon web services', 'microsoft', 'azure', 'meta', 'facebook',
-  'cisco', 'oracle', 'ibm', 'coursera', 'udemy', 'edx', 'comptia', 'stanford',
-  'harvard', 'mit', 'freecodecamp', 'deeplearning.ai', 'linux foundation',
-  'cncf', 'kubernetes', 'hashicorp', 'mongodb', 'snowflake', 'databricks',
-  'salesforce', 'palo alto', 'red hat', 'hackerrank', 'postman'
+  ...(CERTIFICATION_TIERS.tier1 || []),
+  ...(CERTIFICATION_TIERS.tier2 || []),
+  'stanford', 'harvard', 'mit', 'mongodb'
 ];
 
 const KNOWN_ACHIEVEMENT_KEYWORDS = [
@@ -81,15 +102,15 @@ const KNOWN_ACHIEVEMENT_KEYWORDS = [
 ];
 
 const SECTION_PATTERNS = {
-  summary: /\b(summary|professional\s*summary|profile|about\s*me|career\s*objective|objective|career\s*summary|executive\s*summary)\b/i,
-  experience: /\b(experience|work\s*experience|professional\s*experience|employment|work\s*history|internship|internships|industry\s*experience|positions\s*of\s*responsibility)\b/i,
-  education: /\b(education|academic|academic\s*background|qualifications|educational\s*background|academics|relevant\s*coursework)\b/i,
-  skills: /\b(skills|technical\s*skills|technologies|tools|core\s*competencies|tech\s*stack|programming\s*skills|technical\s*expertise|competencies|programming\s*languages)\b/i,
-  projects: /\b(projects|personal\s*projects|featured\s*projects|key\s*projects|side\s*projects|academic\s*projects|technical\s*projects)\b/i,
-  certifications: /\b(certifications|certificates|credentials|licenses|professional\s*certifications|certifications\s*&?\s*licenses)\b/i,
-  achievements: /\b(achievements|honors|awards|accomplishments|recognitions|honors\s*&?\s*awards|programming\s*achievements)\b/i,
-  publications: /\b(publications|papers|research\s*papers|patents)\b/i,
-  volunteer: /\b(volunteer|volunteering|community\s*service|extracurricular|extracurricular\s*activities)\b/i
+  summary: /(?:^|\n)\s*(?:summary|professional\s*summary|profile|about\s*me|career\s*objective|objective|career\s*summary|executive\s*summary)(?:\s*[:\-–—|]|\s*$)/im,
+  experience: /(?:^|\n)\s*(?:experience|work\s*experience|professional\s*experience|employment|work\s*history|internship|internships|industry\s*experience|positions\s*of\s*responsibility)(?:\s*[:\-–—|]|\s*$)/im,
+  education: /(?:^|\n)\s*(?:education|academic|academic\s*background|qualifications|educational\s*background|academics|relevant\s*coursework)(?:\s*[:\-–—|]|\s*$)/im,
+  skills: /(?:^|\n)\s*(?:skills|technical\s*skills|technologies|tools|core\s*competencies|tech\s*stack|programming\s*skills|technical\s*expertise|competencies|programming\s*languages)(?:\s*[:\-–—|]|\s*$)/im,
+  projects: /(?:^|\n)\s*(?:projects|personal\s*projects|featured\s*projects|key\s*projects|side\s*projects|academic\s*projects|technical\s*projects)(?:\s*[:\-–—|]|\s*$)/im,
+  certifications: /(?:^|\n)\s*(?:certifications|certificates|credentials|licenses|professional\s*certifications|certifications\s*&?\s*licenses)(?:\s*[:\-–—|]|\s*$)/im,
+  achievements: /(?:^|\n)\s*(?:achievements|honors|awards|accomplishments|recognitions|honors\s*&?\s*awards|programming\s*achievements)(?:\s*[:\-–—|]|\s*$)/im,
+  publications: /(?:^|\n)\s*(?:publications|papers|research\s*papers|patents)(?:\s*[:\-–—|]|\s*$)/im,
+  volunteer: /(?:^|\n)\s*(?:volunteer|volunteering|community\s*service|extracurricular|extracurricular\s*activities)(?:\s*[:\-–—|]|\s*$)/im
 };
 
 // Normalized Technical Skills Database
@@ -395,7 +416,8 @@ let analyzerState = {
   jobRecommendations: [],
   bestFitRole: null,
   jdText: '',
-  jdMatchResult: null
+  jdMatchResult: null,
+  documentStructure: null
 };
 
 /* ============================================================
@@ -443,9 +465,14 @@ async function extractPDFText(file) {
   }
 
   let fullText = '';
+  let allPdfItems = [];
+
   for (let i = 1; i <= totalPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
+    if (content.items && content.items.length) {
+      allPdfItems.push(...content.items);
+    }
     
     let lastY = null;
     let pageLines = [];
@@ -469,6 +496,10 @@ async function extractPDFText(file) {
       fullText += pageText + '\n\n';
     }
   }
+
+  // Bug 3: Inspect PDF document structure directly before text flattening
+  const pdfLayout = detectPDFMultiColumn(allPdfItems);
+  analyzerState.documentStructure = pdfLayout;
 
   fullText = sanitizeExtractedText(fullText.trim());
 
@@ -522,6 +553,10 @@ async function extractDOCXText(file) {
     throw new Error('Unable to parse DOCX file. The file may be corrupted.');
   }
 
+  // Bug 3: Inspect DOCX document structure directly for tables or multi-column sections
+  const docxLayout = await detectDOCXStructure(arrayBuffer);
+  analyzerState.documentStructure = docxLayout;
+
   const text = sanitizeExtractedText((result.value || '').trim());
   if (!text || text.length < 20) {
     throw new Error('Unable to extract readable text from this DOCX. The document may be empty or contain only images.');
@@ -531,25 +566,145 @@ async function extractDOCXText(file) {
 }
 
 /* ============================================================
+   DOCUMENT STRUCTURE & LAYOUT DETECTION (Bug 3 Fix)
+   ============================================================ */
+function detectPDFMultiColumn(pageItems, viewportWidth = 600) {
+  if (!pageItems || pageItems.length === 0) {
+    return { isMultiColumn: false, hasTables: false, columnCount: 1, details: 'Single-column text layout' };
+  }
+
+  // Group text items by vertical position (Y coordinate grouped within 4 points)
+  const lineMap = new Map();
+  pageItems.forEach(item => {
+    if (!item.str || !item.str.trim()) return;
+    const y = item.transform ? Math.round(item.transform[5] / 4) * 4 : 0;
+    const x = item.transform ? Math.round(item.transform[4]) : 0;
+    const width = item.width ? Math.round(item.width) : (item.str.length * 6);
+    if (!lineMap.has(y)) lineMap.set(y, []);
+    lineMap.get(y).push({ x, y, width, str: item.str.trim() });
+  });
+
+  let multiColumnLineCount = 0;
+  lineMap.forEach((items) => {
+    if (items.length < 2) return;
+    items.sort((a, b) => a.x - b.x);
+    for (let i = 0; i < items.length - 1; i++) {
+      const item1 = items[i];
+      const item2 = items[i + 1];
+      const gap = item2.x - (item1.x + item1.width);
+      // If two distinct substantial text blocks share the same vertical position with a significant gap >= 60 points
+      if (gap >= 60 && item1.str.length >= 3 && item2.str.length >= 3) {
+        multiColumnLineCount++;
+        break;
+      }
+    }
+  });
+
+  const isMultiColumn = multiColumnLineCount >= 4;
+  return {
+    isMultiColumn,
+    hasTables: isMultiColumn,
+    columnCount: isMultiColumn ? 2 : 1,
+    multiColumnLines: multiColumnLineCount,
+    details: isMultiColumn
+      ? `Multi-column layout detected (${multiColumnLineCount} lines with distinct horizontal column clusters)`
+      : 'Single-column text layout — clean linear reading order detected'
+  };
+}
+
+async function detectDOCXStructure(arrayBuffer) {
+  if (!arrayBuffer) {
+    return { isMultiColumn: false, hasTables: false, columnCount: 1, details: 'Single-column text layout' };
+  }
+
+  let hasTables = false;
+  let details = 'Single-column text layout detected';
+
+  try {
+    if (typeof mammoth !== 'undefined' && typeof mammoth.convertToHtml === 'function') {
+      const htmlResult = await mammoth.convertToHtml({ arrayBuffer });
+      const html = htmlResult.value || '';
+      if (/<table\b/i.test(html)) {
+        hasTables = true;
+        details = 'Table-based multi-column layout detected in document structure';
+      }
+    }
+  } catch (e) {
+    // Non-critical check
+  }
+
+  return {
+    isMultiColumn: hasTables,
+    hasTables,
+    columnCount: hasTables ? 2 : 1,
+    details,
+    source: 'docx'
+  };
+}
+
+function detectDocumentLayoutFromText(text) {
+  if (!text) return { isMultiColumn: false, hasTables: false, columnCount: 1, details: 'Single-column text layout' };
+
+  // 1. Explicit metadata or simulator tokens
+  if (/\[layout:\s*(?:multi[-_\s]?column|two[-_\s]?column|table)\]/i.test(text)) {
+    return { isMultiColumn: true, hasTables: true, columnCount: 2, details: 'Multi-column table layout detected in document structure' };
+  }
+
+  // 2. Markdown / ASCII tables with row separators (|---|---| or | col1 | col2 |)
+  const lines = text.split('\n');
+  const tableBorderLines = lines.filter(l => /\|[\s-:]+\|[\s-:]+\|/.test(l));
+  const multiCellLines = lines.filter(l => (l.match(/\|/g) || []).length >= 3);
+  if (tableBorderLines.length >= 1 || multiCellLines.length >= 4) {
+    return { isMultiColumn: true, hasTables: true, columnCount: 2, details: 'Table layout detected in document structure' };
+  }
+
+  // 3. Tab or wide-column spacing on multiple non-header lines
+  const tabSpacedLines = lines.filter(l => /\t{2,}|[ ]{8,}/.test(l) && !/^[•\-\*]/.test(l.trim()));
+  if (tabSpacedLines.length >= 8) {
+    return { isMultiColumn: true, hasTables: false, columnCount: 2, details: 'Multi-column layout detected with wide horizontal text separation' };
+  }
+
+  return { isMultiColumn: false, hasTables: false, columnCount: 1, details: 'Single-column text layout' };
+}
+
+function detectDocumentLayout(source, options = {}) {
+  if (!source) return { isMultiColumn: false, hasTables: false, columnCount: 1, details: 'Single-column text layout' };
+  if (typeof source === 'string') return detectDocumentLayoutFromText(source);
+  if (Array.isArray(source)) return detectPDFMultiColumn(source, options.viewportWidth);
+  if (source instanceof ArrayBuffer || (typeof Buffer !== 'undefined' && Buffer.isBuffer(source))) {
+    return detectDOCXStructure(source);
+  }
+  if (typeof source === 'object') {
+    if (source.isMultiColumn !== undefined || source.hasTables !== undefined) return source;
+    if (source.items) return detectPDFMultiColumn(source.items, options.viewportWidth);
+  }
+  return { isMultiColumn: false, hasTables: false, columnCount: 1, details: 'Single-column text layout' };
+}
+
+/* ============================================================
    TEXT SANITIZATION & BOUNDARY NORMALIZATION
    ============================================================ */
 function sanitizeExtractedText(raw) {
   if (!raw) return '';
   let text = raw;
 
-  // 1. Separate merged email and adjacent text
-  text = text.replace(/(\.(?:com|in|org|net|io|edu|gov|co|ai|dev|me|tech|app|xyz|info))([A-Z][a-z]+|\+?\d|\b)/g, '$1 $2');
+  // 1. Bug 1 Fix: Separate merged email and adjacent text (e.g. user@domain.comExperience or user@domain.com+91...)
+  // Only separate when preceded by an actual email address (@...) and followed immediately by capital letter or phone digits without whitespace
+  text = text.replace(/(@[A-Za-z0-9.-]+\.(?:com|org|net|edu|gov|co|in|ai|dev|me|tech|app|xyz|io|info|biz|site|[a-z]{2,4}))([A-Z][a-z]+|\+\d|\d{10})/g, '$1 $2');
 
   // 2. Separate merged URLs
-  text = text.replace(/(linkedin\.com\/in\/[\w\-]+|github\.com\/[\w\-]+)([A-Z][a-z]+|\+?\d)/g, '$1 $2');
+  text = text.replace(/(linkedin\.com\/in\/[\w\-]+|github\.com\/[\w\-]+)([A-Z][a-z]+|\+\d)/g, '$1 $2');
 
-  // 3. Normalize bullet characters
+  // 3. Normalize delimiter boundaries: ensure space around pipes if tightly adjacent to alphanumeric
+  text = text.replace(/([^\s|])\|([^\s|])/g, '$1 | $2');
+
+  // 4. Normalize bullet characters
   text = text.replace(/[\u2022\u2023\u25E6\u2043\u2219\u25AA\u25BA\u25B8]/g, '• ');
 
-  // 4. Normalize multiple spaces on the same line
+  // 5. Normalize multiple spaces on the same line
   text = text.split('\n').map(line => line.replace(/[ \t]+/g, ' ').trim()).join('\n');
 
-  // 5. Remove excessive consecutive blank lines
+  // 6. Remove excessive consecutive blank lines
   text = text.replace(/\n{3,}/g, '\n\n');
 
   return text.trim();
@@ -925,6 +1080,14 @@ function isSectionHeaderLine(line) {
   // Exclude lines containing email or 10-digit phone
   if (/@|\+?\d{10}/.test(clean)) return false;
 
+  // Sentences ending with periods are prose/bullets, not section headers
+  if (/\.\s*$/.test(clean)) return false;
+
+  // Conversational sentence words indicate body text rather than a section title
+  if (/\b(include|including|with|using|for|and|my|our|across|specializing|experienced|proven|proficient|skilled|worked|developed|built)\b/i.test(clean) && clean.split(/\s+/).length > 3) {
+    return false;
+  }
+
   return true;
 }
 
@@ -996,21 +1159,39 @@ function extractContactInfo(text) {
     evidence: {}
   };
 
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const cleanText = sanitizeExtractedText(text || '');
+  const lines = cleanText.split('\n').map(l => l.trim()).filter(Boolean);
   const headerLines = lines.slice(0, 14);
 
-  // 1. Email Extraction
-  const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.(?:com|org|net|edu|gov|co|in|ai|dev|me|tech|app|xyz|io|[a-z]{2,})\b/i;
-  const emailMatch = text.match(emailRegex);
+  // 1. Email Extraction (Bug 1 & Bug 5 Fix)
+  const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}\b/i;
+  const emailMatch = cleanText.match(emailRegex) || (text || '').match(emailRegex);
   if (emailMatch) {
-    let email = emailMatch[0].trim().replace(/[.,;:)]+$/, '');
+    let email = emailMatch[0].trim().replace(/^mailto:/i, '').replace(/^[<(\[]+|[.,;:)>\]|]+$/g, '');
     result.email = true;
     result.details.email = email;
     result.evidence.email = { source: 'Header / Contact', snippet: email, confidence: 0.99 };
     
     const emailLower = email.toLowerCase();
-    const isStandardDomain = /@(gmail|outlook|hotmail|yahoo|icloud|proton|protonmail|live|zoho|[\w\-]+\.(edu|ac\.\w{2}|org))\b/i.test(emailLower);
-    result.isProfessionalEmail = isStandardDomain && !/test|fake|spam|temp/i.test(emailLower);
+    const isStandardDomain = /@(gmail|outlook|hotmail|yahoo|icloud|proton|protonmail|live|zoho|[\w\-]+\.(edu|ac\.\w{2}|org|io|dev|tech|co|in))\b/i.test(emailLower);
+    
+    // Bug 5: Casual email soft heuristic
+    const localPart = emailLower.split('@')[0] || '';
+    const cleanLocalWords = localPart.replace(/[.+_-]/g, ' ');
+    const CASUAL_SLANG_WORDS = /\b(cool|dude|gamer|guy|killer|beast|boss|badboy|swag|ninja|sexy|hot|lover|rocker|hacker|crazy|funky|cute|shadow|prince|princess|angel|devil)\b/i;
+    const hasCasualSlang = CASUAL_SLANG_WORDS.test(cleanLocalWords);
+    
+    const digitRuns = localPart.match(/\d+/g) || [];
+    const hasExcessiveDigits = digitRuns.some(d => d.length >= 4 && !(parseInt(d) >= 1970 && parseInt(d) <= 2035));
+    
+    const isCasual = hasCasualSlang || hasExcessiveDigits;
+    result.isCasualEmail = isCasual;
+    result.isProfessionalEmail = isStandardDomain && !/test|fake|spam|temp/i.test(emailLower) && !isCasual;
+    if (isCasual) {
+      result.casualEmailReason = hasCasualSlang
+        ? 'Email handle contains casual or informal slang terms'
+        : 'Email handle contains excessive digit sequences';
+    }
   }
 
   // 2. Phone Extraction (Strictly isolated from dates or experience numbers)
@@ -1347,15 +1528,18 @@ function analyzeProfessionalSummary(text, parsedSections, skills) {
   const words = summaryText.split(/\s+/).filter(Boolean);
   const wordCount = words.length;
 
-  const rolePattern = /\b(software\s*engineer|web\s*developer|full\s*stack|frontend|backend|data\s*scientist|data\s*analyst|devops\s*engineer|cloud\s*architect|software\s*developer|ai\s*developer|ai\s*engineer|ml\s*engineer|systems\s*engineer|qa\s*engineer|mobile\s*developer)\b/i;
+  const rolePattern = /\b(software\s*engineer|web\s*developer|full\s*stack|frontend|backend|data\s*scientist|data\s*analyst|devops\s*engineer|cloud\s*architect|cloud\s*engineer|software\s*developer|ai\s*developer|ai\s*engineer|ml\s*engineer|systems\s*engineer|qa\s*engineer|mobile\s*developer|data\s*engineer|security\s*engineer|solutions\s*architect|tech\s*lead|engineering\s*lead(?:er)?|developer|engineer(?:ing)?|architect|programmer|lead(?:er)?)\b/i;
   const hasTargetRole = rolePattern.test(summaryText);
 
-  const allSkills = skills?.all || [];
+  // Directly scan full summary text for technical skills (Bug 6 Fix: full paragraph scope)
+  const directSummarySkills = extractSkills(summaryText).all;
+  const allSkills = [...new Set([...(skills?.all || []), ...directSummarySkills])];
+
   const techInSummary = allSkills.filter(s => {
     const r = new RegExp('(?:^|[^a-zA-Z0-9_])' + s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?:$|[^a-zA-Z0-9_])', 'i');
     return r.test(summaryText);
   });
-  const hasTechKeywords = techInSummary.length >= 2 || (techInSummary.length >= 1 && /\b(apis?|ai|web|full\s*stack)\b/i.test(summaryText));
+  const hasTechKeywords = techInSummary.length >= 2 || (techInSummary.length >= 1 && /\b(apis?|ai|web|full\s*stack|cloud)\b/i.test(summaryText));
 
   const clichésFound = VAGUE_PHRASES.filter(vp => summaryText.toLowerCase().includes(vp));
   const isGenericStudentFluff = /\b(hardworking|motivated\s*student|looking\s*for\s*a\s*job|reputed\s*company|utilize\s*my\s*skills|seeking\s*an\s*entry\s*level|good\s*learner)\b/i.test(summaryText);
@@ -1504,12 +1688,62 @@ function analyzeExperience(text, sectionContent) {
 /* ============================================================
    7. PROJECTS ANALYSIS & SUBSTANCE EVALUATION
    ============================================================ */
+function isTechStackOrLinksLine(line) {
+  const trimmed = line.trim();
+  if (!trimmed) return false;
+
+  // 1. Pure links line (e.g. "github.com/user/repo | live-demo.com" or "https://github.com/...")
+  const strippedLinks = trimmed
+    .replace(/(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9_\-\.]+\.(?:com|org|net|io|app|dev|me|tech|site|vercel\.app|netlify\.app|github\.io)[^\s|•,]*/gi, '')
+    .replace(/github\.com\/[^\s|•,]*/gi, '')
+    .replace(/\b(demo|live demo|live link|source code|code|view live|website|repo|link|credentials?)\b/gi, '')
+    .replace(/[|•·\-\/,\s()\[\]]/g, '')
+    .trim();
+
+  if (strippedLinks.length === 0) {
+    return true; // Line is purely links and delimiters
+  }
+
+  // 2. Explicit tech stack prefix
+  if (/^(?:tech(?:nologies|\s*stack)?|tools|environment|built\s*with|stack|languages?)\s*[:\-–—]?\s*/i.test(trimmed)) {
+    return true;
+  }
+
+  // 3. Comma- or delimiter-separated list of >= 2 recognized skills
+  // Strip URLs first so that 'GitHub' in github.com/user/repo is not detected as a standalone skill token
+  const lineWithoutUrls = trimmed
+    .replace(/(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9_\-\.]+\.(?:com|org|net|io|app|dev|me|tech|site|vercel\.app|netlify\.app)[^\s|•,]*/gi, '')
+    .replace(/github\.com\/[^\s|•,]*/gi, '');
+
+  const skills = extractSkills(lineWithoutUrls).all;
+  if (skills.length >= 2) {
+    let remaining = lineWithoutUrls;
+    skills.forEach(s => {
+      const reg = new RegExp(`\\b${s.replace(/[+*?^$.[\]{}()|\\/]/g, '\\$&')}\\b`, 'gi');
+      remaining = remaining.replace(reg, '');
+    });
+    remaining = remaining
+      .replace(/\b(demo|live demo|live link|source code|repo|link|using|and|with)\b/gi, '')
+      .replace(/[|•·\-\/,\s()\[\]:–—]/g, '')
+      .trim();
+
+    if (remaining.length < 15) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function isProjectHeaderLine(line) {
   const trimmed = line.trim();
   if (!trimmed) return false;
   if (/^[•\-\*►▸▪]/.test(trimmed)) return false;
 
-  if (/^(?:project\s*#?\d*[:\-–]|featured\s*project|key\s*project|\d+[\.\)]\s+)/i.test(trimmed)) {
+  // Bug 2 Fix: A line matching tech stack or links should NEVER start a new project block
+  if (isTechStackOrLinksLine(trimmed)) return false;
+
+  if (/^(?:project\s*#?\d*[:\-–—]|featured\s*project|key\s*project|\d+[\.\)]\s+)/i.test(trimmed)) {
     return true;
   }
 
@@ -1521,13 +1755,14 @@ function isProjectHeaderLine(line) {
     return false;
   }
 
-  if (trimmed.length < 150 && (trimmed.includes('|') || trimmed.includes('–') || /github\.com|demo|\.app|\.io|\.dev/i.test(trimmed))) {
+  // Support em-dash (—), en-dash (–), spaced hyphens ( - ), and delimiters
+  if (trimmed.length < 150 && (trimmed.includes('|') || trimmed.includes('–') || trimmed.includes('—') || trimmed.includes(' - ') || /github\.com|demo|\.app|\.io|\.dev/i.test(trimmed))) {
     return true;
   }
 
   const words = trimmed.split(/\s+/).filter(Boolean);
-  if (words.length <= 7 && trimmed.length <= 60) {
-    if (/\b(project|web\s*app|application|app|dashboard|calculator|tracker|analyzer|platform|portal|utility|system|engine|bot|clone|tool|store|site|service|hub|finder|game)\b/i.test(trimmed)) {
+  if (words.length <= 8 && trimmed.length <= 70) {
+    if (/\b(project|web\s*app|application|app|dashboard|calculator|tracker|analyzer|platform|portal|utility|system|engine|bot|clone|tool|store|site|service|hub|finder|game|simulator)\b/i.test(trimmed)) {
       return true;
     }
   }
@@ -1570,7 +1805,16 @@ function analyzeProjects(text, sectionContent) {
   ];
 
   lines.forEach(line => {
-    if (isProjectHeaderLine(line)) {
+    if (isTechStackOrLinksLine(line)) {
+      // Continuation of current project if active
+      if (currentProject) {
+        currentProject.textLines.push(line);
+        if (extractSkills(line).all.length > 0) currentProject.hasTech = true;
+        if (/github\.com/i.test(line)) currentProject.hasGithub = true;
+        if (/demo|live|deploy|vercel|netlify|\.app|\.io|http/i.test(line)) currentProject.hasDemo = true;
+        if (/\d+%|\d+\+|\d+x|\$\d+|\d+\s*(users|runs|accuracy|queries|tests|ms|rps)/i.test(line)) currentProject.hasMetrics = true;
+      }
+    } else if (isProjectHeaderLine(line)) {
       if (currentProject) {
         projectDetails.push(evaluateProjectSubstance(currentProject, DEPTH_KEYWORDS));
       }
@@ -1744,8 +1988,8 @@ function analyzeEducation(text, parsedSections) {
    9. CERTIFICATIONS & ACHIEVEMENTS ANALYSIS
    ============================================================ */
 function analyzeCertifications(text, parsedSections) {
-  const certText = (parsedSections.sectionContent.certifications || '').trim();
-  const hasSection = Boolean(parsedSections.detected.certifications && certText.length >= 10);
+  const certText = (parsedSections?.sectionContent?.certifications || '').trim();
+  const hasSection = Boolean(parsedSections?.detected?.certifications && certText.length >= 10);
 
   if (!hasSection) {
     return { exists: false, score: 0, max: 5, confidence: 0, certsCount: 0, verifiedCount: 0 };
@@ -1754,10 +1998,18 @@ function analyzeCertifications(text, parsedSections) {
   const lines = certText.split('\n').map(l => l.trim()).filter(Boolean);
   const certLower = certText.toLowerCase();
 
-  const detectedIssuers = KNOWN_CERT_ISSUERS.filter(iss => certLower.includes(iss));
+  // Bug 4 Fix: Lightweight configurable tier system
+  const tier1List = CERTIFICATION_TIERS.tier1 || [];
+  const tier2List = CERTIFICATION_TIERS.tier2 || [];
+
+  const tier1Issuers = tier1List.filter(iss => certLower.includes(iss.toLowerCase()));
+  const tier2Issuers = tier2List.filter(iss => certLower.includes(iss.toLowerCase()));
+  const hasTier1 = tier1Issuers.length > 0;
+  const hasTier2 = tier2Issuers.length > 0;
+  const detectedIssuers = [...tier1Issuers, ...tier2Issuers];
   const hasRecognizedIssuer = detectedIssuers.length > 0;
 
-  const specificCertPattern = /\b(aws\s*certified|google\s*(cloud|data|cybersecurity)|microsoft\s*certified|azure|meta\s*front-end|certified\s*kubernetes|ckad|cka|comptia|oracle\s*certified|cisco\s*certified|ccna|developer\s*certificate|solutions\s*architect)\b/i;
+  const specificCertPattern = /\b(aws\s*certified|google\s*(cloud|data|cybersecurity)|microsoft\s*certified|azure|meta\s*front-end|certified\s*kubernetes|ckad|cka|comptia|oracle\s*certified|cisco\s*certified|ccna|developer\s*certificate|solutions\s*architect|pmi|pmp)\b/i;
   const hasSpecificCert = specificCertPattern.test(certLower);
 
   const isPurelyGeneric = /^(online\s*course\s*certificate|computer\s*certificate|course\s*certificate|certificate\s*of\s*completion)$/i.test(certText) ||
@@ -1769,10 +2021,18 @@ function analyzeCertifications(text, parsedSections) {
   if (isPurelyGeneric) {
     score = 1;
   } else {
-    if (hasRecognizedIssuer) score += 1;
+    // Tiered weighting: Tier 1 high weight (+1.5), Tier 2 lower weight (+0.5)
+    if (hasTier1) {
+      score += 1.5;
+    } else if (hasTier2) {
+      score += 0.5;
+    } else if (hasRecognizedIssuer) {
+      score += 0.75;
+    }
+
     if (hasSpecificCert) score += 1.5;
     if (hasDatesOrIds) score += 0.5;
-    if (lines.length >= 2 && hasSpecificCert) score += 1;
+    if (lines.length >= 2 && (hasSpecificCert || hasTier1)) score += 1;
   }
 
   score = Math.min(Math.max(Math.round(score), 1), 5);
@@ -1784,6 +2044,10 @@ function analyzeCertifications(text, parsedSections) {
     confidence: hasRecognizedIssuer ? 95 : 80,
     certsCount: lines.length,
     hasRecognizedIssuer,
+    hasTier1,
+    hasTier2,
+    tier1Issuers,
+    tier2Issuers,
     hasSpecificCert,
     isPurelyGeneric,
     detectedIssuers
@@ -1933,12 +2197,12 @@ function analyzeContentQuality(text, experienceAnalysis, projectsAnalysis) {
 /* ============================================================
    11. ATS COMPATIBILITY ANALYSIS
    ============================================================ */
-function analyzeATSFormatting(text, parsedSections) {
+function analyzeATSFormatting(text, parsedSections, documentStructure = null) {
   const checks = [];
   let formatScore = 0;
 
   // 1. Standard Section Headers (up to 2.5 pts)
-  const detectedCount = Object.keys(parsedSections.detected).length;
+  const detectedCount = Object.keys(parsedSections?.detected || {}).length;
   const hasStandardHeaders = detectedCount >= 4;
   if (hasStandardHeaders) formatScore += 2.5;
   else if (detectedCount >= 2) formatScore += 1.5;
@@ -1960,9 +2224,9 @@ function analyzeATSFormatting(text, parsedSections) {
     detail: cleanFlow ? 'Text extracted cleanly without character encoding issues' : 'Some non-standard encoding detected — ATS parsers may misread text'
   });
 
-  // 3. Layout & Reading Flow (up to 1.5 pts)
-  const tabOrColumnSpacings = (text.match(/[ \t]{8,}/g) || []).length;
-  const isMultiColumnLayout = tabOrColumnSpacings > 10;
+  // 3. Layout & Reading Flow (Bug 3 Fix: operates on document structure, not flattened text)
+  const docStruct = documentStructure || analyzerState?.documentStructure || detectDocumentLayoutFromText(text);
+  const isMultiColumnLayout = Boolean(docStruct?.isMultiColumn || docStruct?.hasTables);
   const isCleanSingleColumn = !isMultiColumnLayout;
 
   if (isCleanSingleColumn) {
@@ -1977,7 +2241,7 @@ function analyzeATSFormatting(text, parsedSections) {
     checks.push({
       label: 'Complex layout detected',
       pass: false,
-      detail: 'Multiple text regions or column structures may affect ATS reading order'
+      detail: docStruct?.details || 'Multiple text regions, columns, or table structures may affect ATS reading order'
     });
   }
 
@@ -3009,6 +3273,13 @@ function generateSuggestions(
 
   if (!contactInfo.email) {
     suggestions.push({ priority: 'high', icon: 'mail', title: 'Add Professional Email', desc: 'A valid email address is mandatory for recruiter contact.' });
+  } else if (contactInfo.isCasualEmail) {
+    suggestions.push({
+      priority: 'medium',
+      icon: 'alternate_email',
+      title: 'Consider a More Professional Email Handle',
+      desc: `${contactInfo.casualEmailReason || 'Your email address appears casual.'} Consider using a clean "firstname.lastname@domain.com" format for job applications.`
+    });
   }
   if (!contactInfo.phone) {
     suggestions.push({ priority: 'high', icon: 'phone', title: 'Add Phone Number', desc: 'Include a direct contact phone number with country code (e.g. +91 9876543210).' });
@@ -3072,15 +3343,15 @@ function generateSuggestions(
     }
   }
 
-  if (skills.all.length < 6) {
+  if (skills?.all && skills.all.length < 6) {
     suggestions.push({ priority: 'high', icon: 'psychology', title: 'Expand Technical Skills Section', desc: `Only ${skills.all.length} technical skills detected. Group skills into Languages, Frameworks, Databases, and Cloud/Tools.` });
   }
 
-  if (certificationsAnalysis.isPurelyGeneric) {
+  if (certificationsAnalysis?.isPurelyGeneric) {
     suggestions.push({ priority: 'medium', icon: 'verified', title: 'Specify Certification Details', desc: 'Replace generic "Certificate" with the specific title, issuing organization (e.g. AWS, Google), and completion date.' });
   }
 
-  if (contentQuality.vagueFound.length > 0) {
+  if (contentQuality?.vagueFound && contentQuality.vagueFound.length > 0) {
     suggestions.push({
       priority: 'medium', icon: 'find_replace', title: 'Remove Cliché Phrases',
       desc: `Phrases like "${contentQuality.vagueFound[0]}" add no ATS value. Replace with concrete tools and results.`
@@ -3178,7 +3449,7 @@ async function runRealAnalysis(fromBuilder) {
     const certificationsAnalysis = analyzeCertifications(resumeText, parsedSections);
     const achievementsAnalysis = analyzeAchievements(resumeText, parsedSections);
     const contentQuality = analyzeContentQuality(resumeText, experienceAnalysis, projectsAnalysis);
-    const formattingAnalysis = analyzeATSFormatting(resumeText, parsedSections);
+    const formattingAnalysis = analyzeATSFormatting(resumeText, parsedSections, analyzerState.documentStructure);
 
     // Step 5: Structured Resume & Consistency Check
     const resumeData = {
@@ -4053,6 +4324,8 @@ function renderHealthChecks(result) {
   if (sa.exists) {
     if (sa.hasTargetRole && sa.hasTechKeywords) {
       checks.push({ pass: true, label: 'Targeted professional summary with keywords detected' });
+    } else if (sa.hasTechKeywords) {
+      checks.push({ pass: true, label: 'Technical summary with relevant stack keywords detected' });
     } else {
       checks.push({ pass: false, label: 'Professional summary is generic / lacks technical keywords' });
     }
@@ -4558,6 +4831,15 @@ if (typeof window !== 'undefined') {
   window.renderAllResults = renderAllResults;
   window.renderRejectionState = renderRejectionState;
   window.CANONICAL_TECH_MAP = CANONICAL_TECH_MAP;
+  window.CERTIFICATION_TIERS = CERTIFICATION_TIERS;
+  window.getCertificationTiers = getCertificationTiers;
+  window.setCertificationTiers = setCertificationTiers;
+  window.detectDocumentLayout = detectDocumentLayout;
+  window.detectPDFMultiColumn = detectPDFMultiColumn;
+  window.detectDOCXStructure = detectDOCXStructure;
+  window.detectDocumentLayoutFromText = detectDocumentLayoutFromText;
+  window.isTechStackOrLinksLine = isTechStackOrLinksLine;
+  window.isProjectHeaderLine = isProjectHeaderLine;
 }
 
 // Auto-initialize
@@ -4596,6 +4878,15 @@ if (typeof module !== 'undefined' && module.exports) {
     calculateJobRoleMatches,
     analyzeJobDescriptionMatch,
     generateSuggestions,
-    CANONICAL_TECH_MAP
+    CANONICAL_TECH_MAP,
+    CERTIFICATION_TIERS,
+    getCertificationTiers,
+    setCertificationTiers,
+    detectDocumentLayout,
+    detectPDFMultiColumn,
+    detectDOCXStructure,
+    detectDocumentLayoutFromText,
+    isTechStackOrLinksLine,
+    isProjectHeaderLine
   };
 }
