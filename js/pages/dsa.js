@@ -437,6 +437,11 @@
         // Persist to localStorage
         Storage.set('dsa_progress', progress);
 
+        // Dispatch sync event for Pattern Learning
+        window.dispatchEvent(new CustomEvent('dsaProgressSync', {
+          detail: { qid, isChecked, source: 'roadmap' }
+        }));
+
         // Update row styling
         const row = document.getElementById(`row-${qid}`);
         if (row) {
@@ -606,9 +611,10 @@
       });
     }
 
-    // 8. Reset Progress Modal
+    // 8. Reset Progress Modal Controls
     if (dom.resetBtn && dom.resetModal) {
       dom.resetBtn.addEventListener('click', () => {
+        dom.resetModal.classList.remove('hidden');
         dom.resetModal.classList.add('open');
       });
     }
@@ -616,14 +622,16 @@
     if (dom.cancelResetBtn && dom.resetModal) {
       dom.cancelResetBtn.addEventListener('click', () => {
         dom.resetModal.classList.remove('open');
+        dom.resetModal.classList.add('hidden');
       });
     }
 
-    // Close modal if clicked outside
+    // Close modal if clicked outside modal content
     if (dom.resetModal) {
       dom.resetModal.addEventListener('click', (e) => {
         if (e.target === dom.resetModal) {
           dom.resetModal.classList.remove('open');
+          dom.resetModal.classList.add('hidden');
         }
       });
     }
@@ -634,13 +642,39 @@
         Storage.remove('dsa_progress');
         progress = {};
         dom.resetModal.classList.remove('open');
+        dom.resetModal.classList.add('hidden');
         updateProgressUI();
         renderQuestions();
         if (typeof showToast === 'function') {
-          showToast('DSA roadmap progress has been reset', 'info');
+          showToast('All DSA progress has been reset successfully.', 'info');
         }
+        window.dispatchEvent(new CustomEvent('dsaProgressSync', {
+          detail: { source: 'roadmapReset' }
+        }));
       });
     }
+
+    // 9. Bidirectional progress sync listener from Pattern Learning view
+    window.addEventListener('dsaProgressSync', (e) => {
+      if (e.detail && e.detail.source === 'roadmap') return;
+      progress = Storage.get('dsa_progress', {}) || {};
+      const { qid, isChecked } = e.detail || {};
+
+      if (qid) {
+        const row = document.getElementById(`row-${qid}`);
+        if (row) {
+          const checkbox = row.querySelector('.dsa-checkbox-input');
+          if (checkbox) checkbox.checked = isChecked;
+          if (isChecked) row.classList.add('is-solved');
+          else row.classList.remove('is-solved');
+        }
+      }
+
+      updateProgressUI();
+      if (filterState.status !== 'all') {
+        renderQuestions();
+      }
+    });
   }
 
   /**

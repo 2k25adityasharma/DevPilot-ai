@@ -131,7 +131,7 @@
     <div class="mt-auto px-4 pt-4 sidebar-text">
       <div class="bg-brand-gradient rounded-xl p-4 text-white relative overflow-hidden shadow-sm">
         <p class="font-bold text-sm leading-tight mb-1">DSA Master Vault.</p>
-        <p class="text-xs opacity-80">16 Patterns & 260 Problems.</p>
+        <p class="text-xs opacity-80">29 Patterns & 260 Problems.</p>
       </div>
     </div>
   </aside>
@@ -151,8 +151,23 @@
             <p class="page-subtitle text-slate-500 text-sm mt-0.5">Master Data Structures & Algorithms with 16 pattern-based problem sets.</p>
           </div>
         </div>
+
+        <!-- View Switcher Pills: Roadmap vs Pattern Learning -->
+        <div class="dsa-view-switcher" role="tablist" aria-label="DSA Views">
+          <button class="dsa-tab-pill active" id="tab-btn-roadmap" role="tab" aria-selected="true">
+            <span class="material-symbols-outlined text-[18px]">alt_route</span>
+            <span>Roadmap</span>
+          </button>
+          <button class="dsa-tab-pill" id="tab-btn-patterns" role="tab" aria-selected="false">
+            <span class="material-symbols-outlined text-[18px]">psychology</span>
+            <span>Pattern Learning</span>
+            <span class="pl-tab-glow-badge">New</span>
+          </button>
+        </div>
       </div>
 
+      <!-- Roadmap View Container -->
+      <div id="dsa-roadmap-view">
       <!-- Hero Progress Dashboard -->
       <section class="dsa-hero-card" aria-label="DSA Progress Summary">
         <div class="dsa-hero-header">
@@ -234,15 +249,16 @@
           </div>
 
           <!-- Status segmented filter -->
-          <div class="dsa-segmented-group" role="group" aria-label="Filter by status">
+          <div class="dsa-segmented-group ml-1 sm:ml-2" role="group" aria-label="Filter by status">
             <button class="dsa-segment-btn active" data-filter-status="all">All</button>
             <button class="dsa-segment-btn" data-filter-status="solved">Solved</button>
             <button class="dsa-segment-btn" data-filter-status="unsolved">Unsolved</button>
           </div>
 
-          <div class="dsa-toolbar-actions">
-            <button id="dsa-btn-reset" class="dsa-reset-btn" aria-label="Reset Progress">
-              <span class="material-symbols-outlined text-[18px]">restart_alt</span>
+          <!-- Reset Button in the last -->
+          <div class="dsa-toolbar-actions ml-auto">
+            <button id="dsa-btn-reset" class="dsa-reset-btn" aria-label="Reset Progress" title="Reset all solved progress">
+              <span class="material-symbols-outlined text-[16px]">restart_alt</span>
               <span>Reset</span>
             </button>
           </div>
@@ -308,23 +324,250 @@
         </section>
 
       </div>
+      <!-- /Roadmap View Container -->
+      </div>
+
+      <!-- ================================================== -->
+      <!-- Pattern Learning View Container                   -->
+      <!-- ================================================== -->
+      <div id="dsa-pattern-learning-view" class="hidden">
+        <!-- Pattern Learning Header & Subtitle -->
+        <div class="pl-hero-intro mb-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold mb-2">
+                <span class="material-symbols-outlined text-[16px]">psychology</span>
+                <span>Recognition Engine</span>
+              </div>
+              <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">🧠 Pattern Learning</h2>
+              <p class="text-slate-600 text-sm mt-1 font-medium">Learn to recognize the right DSA pattern before solving the problem.</p>
+              <div class="pl-flow-pills mt-3 flex items-center gap-2 flex-wrap text-xs font-semibold text-slate-500">
+                <span class="pl-flow-step">Problem</span>
+                <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                <span class="pl-flow-step active">Identify Pattern</span>
+                <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                <span class="pl-flow-step">Understand Why</span>
+                <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                <span class="pl-flow-step">Practice</span>
+              </div>
+            </div>
+            <div>
+              <button class="pl-btn-arena-hero" id="pl-btn-launch-arena">
+                <span class="material-symbols-outlined text-[20px] text-amber-300">military_tech</span>
+                <div class="text-left">
+                  <div class="font-bold text-sm leading-tight text-white">🎯 Identify the Pattern Arena</div>
+                  <div class="text-[11px] text-indigo-200">Interactive Recognition Gym • 32 Drills</div>
+                </div>
+                <span class="material-symbols-outlined text-white text-[18px]">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Summary Metrics Cards -->
+        <div class="pl-stats-grid mb-6">
+          <div class="pl-stat-card">
+            <div class="pl-stat-icon-wrap bg-indigo-50 text-indigo-600">
+              <span class="material-symbols-outlined">menu_book</span>
+            </div>
+            <div>
+              <div class="pl-stat-number" id="pl-stat-learned">0 / 29</div>
+              <div class="pl-stat-label">Learned Patterns</div>
+            </div>
+          </div>
+
+          <div class="pl-stat-card">
+            <div class="pl-stat-icon-wrap bg-blue-50 text-blue-600">
+              <span class="material-symbols-outlined">code</span>
+            </div>
+            <div>
+              <div class="pl-stat-number" id="pl-stat-practiced">0 / 29</div>
+              <div class="pl-stat-label">Practiced Patterns</div>
+            </div>
+          </div>
+
+          <div class="pl-stat-card">
+            <div class="pl-stat-icon-wrap bg-emerald-50 text-emerald-600">
+              <span class="material-symbols-outlined">verified</span>
+            </div>
+            <div>
+              <div class="pl-stat-number" id="pl-stat-mastered">0 / 29</div>
+              <div class="pl-stat-label">Mastered Patterns</div>
+            </div>
+          </div>
+
+          <div class="pl-stat-card">
+            <div class="pl-stat-icon-wrap bg-amber-50 text-amber-600">
+              <span class="material-symbols-outlined">warning</span>
+            </div>
+            <div>
+              <div class="pl-stat-number text-amber-600" id="pl-stat-weak">0</div>
+              <div class="pl-stat-label">Weak Patterns</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weak Patterns Notice Banner -->
+        <div class="pl-weak-section hidden mb-6" id="pl-weak-section">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="material-symbols-outlined text-amber-500 text-[18px]">warning</span>
+            <h4 class="text-sm font-bold text-slate-900">Patterns Needing Reinforcement</h4>
+          </div>
+          <p class="text-xs text-slate-600 mb-3">You had quiz accuracy &lt; 60% on these patterns. Practice recognizing their cues:</p>
+          <div class="flex items-center gap-2 flex-wrap" id="pl-weak-chips"></div>
+        </div>
+
+        <!-- ================================================== -->
+        <!-- Pattern Catalog Section                            -->
+        <!-- ================================================== -->
+        <section class="pl-catalog-section" id="pl-catalog-section">
+          <!-- Controls Toolbar: Smart Pro Search, Filters & Quick Suggestions (Exact Image 2 Style) -->
+          <div class="dsa-toolbar mb-6" aria-label="Pattern Recognition Filters and Controls">
+            <div class="dsa-toolbar-top">
+              <!-- Smart Search Box -->
+              <div class="dsa-search-wrap" id="pl-search-wrap">
+                <span class="material-symbols-outlined dsa-search-icon">search</span>
+                <input type="text" id="pl-catalog-search" class="dsa-search-input" placeholder="Search patterns by name, keyword, or signal... (e.g. Subarray, Top K, Palindrome)" autocomplete="off" spellcheck="false"/>
+                <div class="dsa-search-right-actions">
+                  <button id="pl-catalog-search-clear" class="dsa-search-clear" aria-label="Clear Search (Esc)" title="Clear Search (Esc)">
+                    <span class="material-symbols-outlined">close</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Mastery Segmented Filter: All, Learned, Practiced, Mastered, Weak -->
+              <div class="dsa-segmented-group" role="group" aria-label="Filter by pattern status">
+                <button class="dsa-segment-btn active" data-pl-mastery="all">All</button>
+                <button class="dsa-segment-btn" data-pl-mastery="learned">Learned</button>
+                <button class="dsa-segment-btn" data-pl-mastery="practiced">Practiced</button>
+                <button class="dsa-segment-btn" data-pl-mastery="mastered">Mastered</button>
+                <button class="dsa-segment-btn" data-pl-mastery="weak">Weak</button>
+              </div>
+
+              <!-- Reset Button in the last -->
+              <div class="dsa-toolbar-actions ml-auto">
+                <button id="pl-btn-reset" class="dsa-reset-btn" aria-label="Reset Pattern Learning Progress" title="Reset all pattern learning progress">
+                  <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+                  <span>Reset</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Quick Suggestions & Live Match Counter Bar -->
+            <div class="dsa-toolbar-bottom">
+              <div class="dsa-quick-chips" aria-label="Quick pattern suggestions" id="pl-quick-chips">
+                <span class="dsa-quick-chips-label">
+                  <span class="material-symbols-outlined text-[14px]">bolt</span>
+                  <span>Quick Filters:</span>
+                </span>
+                <button type="button" class="dsa-chip-btn active" data-pl-quick-filter="all">All</button>
+                <button type="button" class="dsa-chip-btn" data-pl-quick-filter="Two Pointers">Two Pointers</button>
+                <button type="button" class="dsa-chip-btn" data-pl-quick-filter="Sliding Window">Sliding Window</button>
+                <button type="button" class="dsa-chip-btn" data-pl-quick-filter="Monotonic Stack">Monotonic Stack</button>
+                <button type="button" class="dsa-chip-btn" data-pl-quick-filter="Binary Search">Binary Search</button>
+                <button type="button" class="dsa-chip-btn" data-pl-quick-filter="Trees">Trees</button>
+                <button type="button" class="dsa-chip-btn" data-pl-quick-filter="Dynamic Programming">DP</button>
+                <button type="button" class="dsa-chip-btn" data-pl-quick-filter="Graphs">Graphs</button>
+              </div>
+              <div class="dsa-match-counter">
+                <span id="pl-catalog-count-badge" class="dsa-results-pill">29 Patterns</span>
+              </div>
+            </div>
+
+            <!-- Category Chips Track (for full 16 categories) -->
+            <div class="pl-category-chips-track custom-scrollbar mt-3 pt-3 border-t border-slate-100" id="pl-category-chips">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Pattern Cards Grid -->
+          <div class="pl-pattern-cards-grid mt-6" id="pl-pattern-cards-grid">
+            <!-- Rendered dynamically by dsaPatterns.js -->
+          </div>
+
+          <!-- Empty State -->
+          <div id="pl-catalog-empty" class="dsa-empty-state hidden mt-8">
+            <div class="dsa-empty-icon">
+              <span class="material-symbols-outlined">search_off</span>
+            </div>
+            <h3 class="dsa-empty-title">No patterns match your search</h3>
+            <p class="dsa-empty-desc">Try clearing your search query or choosing 'All Categories' to view patterns.</p>
+          </div>
+        </section>
+
+        <!-- ================================================== -->
+        <!-- Dedicated Pattern Study View (12-Point Curriculum) -->
+        <!-- ================================================== -->
+        <section class="pl-study-view-section hidden" id="pl-study-view-section">
+          <!-- Back button -->
+          <div class="mb-4">
+            <button class="pl-btn-back" id="pl-btn-back-catalog">
+              <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+              <span>Back to Pattern Catalog</span>
+            </button>
+          </div>
+
+          <!-- Container rendered dynamically by dsaPatterns.js -->
+          <div id="pl-study-container"></div>
+        </section>
+      </div>
 
     </div>
   </main>
 
+
   <!-- Reset Confirmation Modal -->
-  <div class="modal-backdrop" id="dsa-reset-modal" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title">
+  <div class="modal-backdrop hidden" id="dsa-reset-modal" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title">
     <div class="modal-card max-w-md p-6 text-center">
       <div class="dsa-modal-warning-icon">
         <span class="material-symbols-outlined">warning</span>
       </div>
       <h3 class="text-lg font-bold text-slate-900 mb-2" id="reset-modal-title">Reset DSA Progress?</h3>
-      <p class="text-sm text-slate-600 mb-6">
-        This will uncheck all solved problems and clear your saved progress. This action cannot be undone.
+      <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+        Are you sure you want to reset your DSA progress? All solved problems and statistics will be cleared. This action cannot be undone.
       </p>
       <div class="flex items-center justify-center gap-3">
-        <button id="dsa-btn-cancel-reset" class="btn-secondary text-sm py-2 px-4">Cancel</button>
-        <button id="dsa-btn-confirm-reset" class="btn-primary text-sm py-2 px-4 bg-red-600 hover:bg-red-700 border-red-600 text-white">Reset All Progress</button>
+        <button id="dsa-btn-cancel-reset" class="btn-secondary text-sm py-2 px-5 font-medium">
+          Cancel
+        </button>
+        <button id="dsa-btn-confirm-reset" class="btn-primary text-sm py-2 px-5 bg-rose-600 hover:bg-rose-700 border-rose-600 text-white font-medium shadow-sm flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+          <span>Yes, Reset All</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pattern Learning Reset Confirmation Modal -->
+  <div class="modal-backdrop hidden" id="pl-reset-modal" role="dialog" aria-modal="true" aria-labelledby="pl-reset-modal-title">
+    <div class="modal-card max-w-md p-6 text-center">
+      <div class="dsa-modal-warning-icon">
+        <span class="material-symbols-outlined">warning</span>
+      </div>
+      <h3 class="text-lg font-bold text-slate-900 mb-2" id="pl-reset-modal-title">Reset Pattern Learning?</h3>
+      <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+        Are you sure you want to reset your Pattern Learning progress? All viewed patterns, quiz scores, and practice tracking will be cleared. This action cannot be undone.
+      </p>
+      <div class="flex items-center justify-center gap-3">
+        <button id="pl-btn-cancel-reset" class="btn-secondary text-sm py-2 px-5 font-medium">
+          Cancel
+        </button>
+        <button id="pl-btn-confirm-reset" class="btn-primary text-sm py-2 px-5 bg-rose-600 hover:bg-rose-700 border-rose-600 text-white font-medium shadow-sm flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+          <span>Yes, Reset All</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Training Arena Modal -->
+  <div class="modal-backdrop hidden" id="pl-arena-modal" role="dialog" aria-modal="true" aria-labelledby="arena-modal-title">
+    <div class="modal-card max-w-2xl p-6 relative">
+      <button class="absolute top-4 right-4 text-slate-400 hover:text-slate-600" id="pl-arena-close" aria-label="Close Arena">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <div id="pl-arena-content">
+        <!-- Rendered by dsaPatterns.js -->
       </div>
     </div>
   </div>
@@ -332,6 +575,8 @@
   <script src="../js/core/utils.js"></script>
   <script src="../js/core/app.js"></script>
   <script src="../js/data/dsaData.js"></script>
+  <script src="../js/data/dsaPatternsData.js"></script>
   <script src="../js/pages/dsa.js"></script>
+  <script src="../js/pages/dsaPatterns.js"></script>
 </body>
 </html>
