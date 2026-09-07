@@ -112,8 +112,10 @@ for cat in existing_roadmap:
 
 print(f"Loaded {len(all_questions)} existing questions. Adding curated authentic questions...")
 
+from assign_10_questions import EXTRA_QUESTIONS
+
 # 2. Add curated authentic questions
-additional_raw = get_additional_questions() + get_part2_questions() + get_part3_questions()
+additional_raw = get_additional_questions() + get_part2_questions() + get_part3_questions() + EXTRA_QUESTIONS
 
 added_count = 0
 for entry in additional_raw:
@@ -149,28 +151,67 @@ for entry in additional_raw:
 
 print(f"Added {added_count} curated questions. Total questions in dataset: {len(all_questions)}")
 
-# 3. Load 28 patterns curriculum and attach practice question IDs
+# 3. Load 29 patterns curriculum and curate exactly 10 practice questions (5 Easy, 3 Medium, 2 Hard)
 patterns = get_patterns_curriculum()
 
-# Map questions to patterns
-pattern_questions_map = {}
-for q in all_questions:
-    pid = q['patternId']
-    if pid not in pattern_questions_map:
-        pattern_questions_map[pid] = []
-    pattern_questions_map[pid].append(q['id'])
+def pick_questions(pid, diff, target_count):
+    direct = [q for q in all_questions if q['patternId'] == pid and q['difficulty'] == diff]
+    seen = set()
+    selected = []
+    
+    # Prioritize original roadmap questions first, then canonical LC order
+    sorted_direct = sorted(direct, key=lambda q: (1 if q['id'].startswith('lc-') else 0, q.get('leetcodeNumber') or 99999))
+    
+    for q in sorted_direct:
+        num = q.get('leetcodeNumber')
+        key = num if num else q['title'].lower()
+        if key not in seen:
+            seen.add(key)
+            selected.append(q['id'])
+            if len(selected) == target_count:
+                return selected
+                
+    if len(selected) < target_count:
+        pat_cat = next((p['categoryId'] for p in patterns if p['id'] == pid), None)
+        if pat_cat:
+            cat_qs = [q for q in all_questions if q['categoryId'] == pat_cat and q['difficulty'] == diff]
+            sorted_cat = sorted(cat_qs, key=lambda q: (1 if q['id'].startswith('lc-') else 0, q.get('leetcodeNumber') or 99999))
+            for q in sorted_cat:
+                num = q.get('leetcodeNumber')
+                key = num if num else q['title'].lower()
+                if key not in seen:
+                    seen.add(key)
+                    selected.append(q['id'])
+                    if len(selected) == target_count:
+                        return selected
+
+    if len(selected) < target_count:
+        all_diff = [q for q in all_questions if q['difficulty'] == diff]
+        for q in all_diff:
+            num = q.get('leetcodeNumber')
+            key = num if num else q['title'].lower()
+            if key not in seen:
+                seen.add(key)
+                selected.append(q['id'])
+                if len(selected) == target_count:
+                    return selected
+                    
+    return selected
 
 for pat in patterns:
     pid = pat['id']
-    pat['practiceQuestionIds'] = pattern_questions_map.get(pid, [])
-    # Also attach difficulty counts
-    q_objs = [q for q in all_questions if q['patternId'] == pid]
-    pat['totalQuestions'] = len(q_objs)
-    pat['easyQuestions'] = sum(1 for q in q_objs if q['difficulty'] == 'Easy')
-    pat['mediumQuestions'] = sum(1 for q in q_objs if q['difficulty'] == 'Medium')
-    pat['hardQuestions'] = sum(1 for q in q_objs if q['difficulty'] == 'Hard')
+    e_ids = pick_questions(pid, 'Easy', 5)
+    m_ids = pick_questions(pid, 'Medium', 3)
+    h_ids = pick_questions(pid, 'Hard', 2)
+    
+    pat_q_ids = e_ids + m_ids + h_ids
+    pat['practiceQuestionIds'] = pat_q_ids
+    pat['totalQuestions'] = 10
+    pat['easyQuestions'] = 5
+    pat['mediumQuestions'] = 3
+    pat['hardQuestions'] = 2
 
-print(f"Attached practice question mappings across {len(patterns)} patterns.")
+print(f"Attached curated 10-question practice set (5 Easy, 3 Med, 2 Hard) across {len(patterns)} patterns.")
 
 # 4. Serialize to js/data/dsaPatternsData.js
 out_path = 'js/data/dsaPatternsData.js'

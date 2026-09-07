@@ -160,9 +160,20 @@ runTest('TEST 5: Pattern learning curriculum contains all 28+ patterns with full
         `Quiz ${qidx} in ${pat.id} missing explanation`);
     });
 
-    // 11. Practice questions mapping
-    assert.ok(Array.isArray(pat.practiceQuestionIds) && pat.practiceQuestionIds.length > 0,
-      `Pattern ${pat.id} has no practice questions linked`);
+    // 11. Practice questions mapping: exactly 10 questions (5 Easy, 3 Medium, 2 Hard)
+    assert.ok(Array.isArray(pat.practiceQuestionIds) && pat.practiceQuestionIds.length === 10,
+      `Pattern ${pat.id} must have exactly 10 practice questions, got ${pat.practiceQuestionIds?.length}`);
+    
+    const qMap = new Map(dsaAllQuestions.map(q => [q.id, q]));
+    const patternQs = pat.practiceQuestionIds.map(qid => qMap.get(qid));
+    assert.ok(patternQs.every(Boolean), `Pattern ${pat.id} has invalid question IDs`);
+
+    const eCount = patternQs.filter(q => q.difficulty === 'Easy').length;
+    const mCount = patternQs.filter(q => q.difficulty === 'Medium').length;
+    const hCount = patternQs.filter(q => q.difficulty === 'Hard').length;
+    assert.strictEqual(eCount, 5, `Pattern ${pat.id} must have exactly 5 Easy questions, got ${eCount}`);
+    assert.strictEqual(mCount, 3, `Pattern ${pat.id} must have exactly 3 Medium questions, got ${mCount}`);
+    assert.strictEqual(hCount, 2, `Pattern ${pat.id} must have exactly 2 Hard questions, got ${hCount}`);
   });
 });
 
@@ -206,6 +217,7 @@ runTest('TEST 7: pages/dsa.html contains view switcher tabs, both views, and all
   assert.ok(!html.includes('id="pl-today-card"'), 'pl-today-card must be removed');
   assert.ok(html.includes('id="pl-btn-reset"'), 'Missing pl-btn-reset');
   assert.ok(html.includes('id="pl-reset-modal"'), 'Missing pl-reset-modal');
+  assert.ok(html.includes('id="pl-solve-modal"'), 'Missing pl-solve-modal');
   assert.ok(html.includes('id="pl-quick-chips"'), 'Missing pl-quick-chips');
   assert.ok(html.includes('id="pl-btn-launch-arena"'), 'Missing pl-btn-launch-arena');
   assert.ok(html.includes('id="pl-arena-modal"'), 'Missing pl-arena-modal');
@@ -239,6 +251,167 @@ runTest('TEST 8: css/pages/dsa.css contains styling rules for Pattern Learning a
   assert.ok(css.includes('.pl-study-hero'), 'Missing .pl-study-hero CSS');
   assert.ok(css.includes('.pl-code-block-container'), 'Missing .pl-code-block-container CSS');
   assert.ok(css.includes('.pl-arena-options-grid'), 'Missing .pl-arena-options-grid CSS');
+  assert.ok(css.includes('.pl-solve-opt-btn'), 'Missing .pl-solve-opt-btn CSS');
+  assert.ok(css.includes('.pl-eval-pill'), 'Missing .pl-eval-pill CSS');
+});
+
+// TEST 9: Pattern Practice & Mastery Increment Logic
+runTest('TEST 9: Solving all 10 questions increments Practiced Patterns and Mastered Patterns accordingly', () => {
+  let dsaProgress = {};
+  let patternStats = { viewed: {}, quizzes: {}, weak: {} };
+
+  function calculatePatternMastery(pattern) {
+    const questionIds = pattern.practiceQuestionIds || [];
+    let solvedCount = 0;
+    questionIds.forEach(qid => {
+      if (dsaProgress[qid]) solvedCount++;
+    });
+
+    const isAllSolved = questionIds.length > 0 && solvedCount >= questionIds.length;
+    if (isAllSolved) return 'Mastered';
+    if (patternStats.weak[pattern.id]) return 'Weak';
+    if (solvedCount > 0) return 'Practicing';
+    if (patternStats.viewed[pattern.id] || patternStats.quizzes[pattern.id]) return 'Learning';
+    return 'Not Started';
+  }
+
+  function getMetrics() {
+    let practicedCount = 0;
+    let masteredCount = 0;
+    dsaPatternsRoadmap.forEach(pat => {
+      const questionIds = pat.practiceQuestionIds || [];
+      let solvedCount = 0;
+      questionIds.forEach(qid => {
+        if (dsaProgress[qid]) solvedCount++;
+      });
+      const isAllSolved = questionIds.length > 0 && solvedCount >= questionIds.length;
+      const mastery = calculatePatternMastery(pat);
+      if (isAllSolved || mastery === 'Mastered') {
+        practicedCount++;
+        masteredCount++;
+      }
+    });
+    return { practicedCount, masteredCount };
+  }
+
+  // 1. Initially 0
+  let m = getMetrics();
+  assert.strictEqual(m.practicedCount, 0, 'Initially practicedCount must be 0');
+  assert.strictEqual(m.masteredCount, 0, 'Initially masteredCount must be 0');
+
+  // 2. Partial solve (e.g. 5 questions) of Pattern 0 -> mastery is 'Practicing', not counted as complete practiced pattern
+  const pat0 = dsaPatternsRoadmap[0];
+  pat0.practiceQuestionIds.slice(0, 5).forEach(qid => dsaProgress[qid] = true);
+  m = getMetrics();
+  assert.strictEqual(calculatePatternMastery(pat0), 'Practicing');
+  assert.strictEqual(m.practicedCount, 0, 'Partial solve should not increment practicedCount');
+  assert.strictEqual(m.masteredCount, 0, 'Partial solve should not increment masteredCount');
+
+  // 3. Complete all 10 questions of Pattern 0 -> Practiced = 1, Mastered = 1
+  pat0.practiceQuestionIds.slice(5).forEach(qid => dsaProgress[qid] = true);
+  m = getMetrics();
+  assert.strictEqual(calculatePatternMastery(pat0), 'Mastered');
+  assert.strictEqual(m.practicedCount, 1, 'Solving all 10 questions must increment practicedCount to 1');
+  assert.strictEqual(m.masteredCount, 1, 'Solving all 10 questions must increment masteredCount to 1');
+
+  // 4. Complete all 10 questions of Pattern 1 -> Practiced = 2, Mastered = 2
+  const pat1 = dsaPatternsRoadmap[1];
+  pat1.practiceQuestionIds.forEach(qid => dsaProgress[qid] = true);
+  m = getMetrics();
+  assert.strictEqual(calculatePatternMastery(pat1), 'Mastered');
+  assert.strictEqual(m.practicedCount, 2, 'Solving all questions of 2 patterns must increment practicedCount to 2');
+  assert.strictEqual(m.masteredCount, 2, 'Solving all questions of 2 patterns must increment masteredCount to 2');
+
+  // 5. Complete all 10 questions of Pattern 2 -> Practiced = 3, Mastered = 3
+  const pat2 = dsaPatternsRoadmap[2];
+  pat2.practiceQuestionIds.forEach(qid => dsaProgress[qid] = true);
+  m = getMetrics();
+  assert.strictEqual(calculatePatternMastery(pat2), 'Mastered');
+  assert.strictEqual(m.practicedCount, 3, 'Solving all questions of 3 patterns must increment practicedCount to 3');
+  assert.strictEqual(m.masteredCount, 3, 'Solving all questions of 3 patterns must increment masteredCount to 3');
+});
+
+// TEST 10: Weak Pattern Detection (>= 5 crosses OR > 3 AI/other help solves)
+runTest('TEST 10: Pattern is flagged Weak when >= 5 crosses or > 3 AI/help solves are recorded', () => {
+  let dsaProgress = {};
+  let patternStats = { viewed: {}, quizzes: {}, weak: {}, evaluations: {} };
+
+  function evaluatePattern(pattern) {
+    const questionIds = pattern.practiceQuestionIds || [];
+    const evaluations = patternStats.evaluations || {};
+    let crossCount = 0;
+    let helpCount = 0;
+    let selfCount = 0;
+    let solvedCount = 0;
+
+    questionIds.forEach(qid => {
+      const ev = evaluations[qid];
+      if (ev === 'cross') crossCount++;
+      if (ev === 'help') helpCount++;
+      if (ev === 'self') selfCount++;
+      if (dsaProgress[qid]) solvedCount++;
+    });
+
+    const isWeakByEvaluation = crossCount >= 5 || helpCount > 3;
+    const isWeak = isWeakByEvaluation || !!patternStats.weak[pattern.id];
+    const isAllSolved = questionIds.length > 0 && solvedCount >= questionIds.length;
+
+    let mastery = 'Not Started';
+    if (isWeak) mastery = 'Weak';
+    else if (isAllSolved) mastery = 'Mastered';
+    else if (solvedCount > 0) mastery = 'Practicing';
+    else if (patternStats.viewed[pattern.id]) mastery = 'Learning';
+
+    return { mastery, isWeak, crossCount, helpCount, selfCount, solvedCount };
+  }
+
+  const pat = dsaPatternsRoadmap[0];
+  const qids = pat.practiceQuestionIds;
+
+  // Case 1: 5 crosses -> MUST BE WEAK (5 crosses rule)
+  qids.slice(0, 5).forEach(qid => {
+    patternStats.evaluations[qid] = 'cross';
+  });
+  let res = evaluatePattern(pat);
+  assert.strictEqual(res.crossCount, 5, 'Must have 5 crosses');
+  assert.strictEqual(res.isWeak, true, 'Pattern with 5 crosses must be weak');
+  assert.strictEqual(res.mastery, 'Weak', 'Mastery status must be Weak when 5 crosses');
+
+  // Case 2: Reduce to 4 crosses -> not weak by crosses alone
+  delete patternStats.evaluations[qids[4]];
+  res = evaluatePattern(pat);
+  assert.strictEqual(res.crossCount, 4, 'Must have 4 crosses');
+  assert.strictEqual(res.isWeak, false, 'Pattern with 4 crosses and 0 help must NOT be weak');
+
+  // Case 3: 4 AI help solves -> MUST BE WEAK (> 3 AI help rule)
+  // Add 4 AI help solves (qids[4], qids[5], qids[6], qids[7])
+  qids.slice(4, 8).forEach(qid => {
+    patternStats.evaluations[qid] = 'help';
+    dsaProgress[qid] = true;
+  });
+  res = evaluatePattern(pat);
+  assert.strictEqual(res.helpCount, 4, 'Must have 4 AI help solves');
+  assert.strictEqual(res.isWeak, true, 'Pattern with >3 AI help solves must be weak');
+  assert.strictEqual(res.mastery, 'Weak', 'Mastery status must be Weak when >3 AI help');
+
+  // Case 4: Exactly 3 AI help solves and 7 self solves (all 10 solved) -> MUST BE MASTERED (not weak since help <= 3 and crosses < 5)
+  patternStats.evaluations = {};
+  dsaProgress = {};
+  // 3 AI help
+  qids.slice(0, 3).forEach(qid => {
+    patternStats.evaluations[qid] = 'help';
+    dsaProgress[qid] = true;
+  });
+  // 7 100% self
+  qids.slice(3, 10).forEach(qid => {
+    patternStats.evaluations[qid] = 'self';
+    dsaProgress[qid] = true;
+  });
+  res = evaluatePattern(pat);
+  assert.strictEqual(res.helpCount, 3, 'Must have exactly 3 help solves');
+  assert.strictEqual(res.crossCount, 0, 'Must have 0 crosses');
+  assert.strictEqual(res.isWeak, false, 'Pattern with 3 help solves is NOT weak (threshold is > 3)');
+  assert.strictEqual(res.mastery, 'Mastered', 'Pattern with all 10 solved and <=3 help must be Mastered');
 });
 
 console.log('\n================================================================');

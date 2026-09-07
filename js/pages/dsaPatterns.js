@@ -18,6 +18,7 @@
   let currentPattern = null;
   let currentArenaIndex = 0;
   let arenaScore = { correct: 0, total: 0, streak: 0 };
+  let activeEvaluatingQuestion = null;
 
   const catalogFilterState = {
     search: '',
@@ -43,8 +44,10 @@
     patternStats = Storage.get('dsa_pattern_stats', {
       viewed: {},
       quizzes: {},
-      weak: {}
-    }) || { viewed: {}, quizzes: {}, weak: {} };
+      weak: {},
+      evaluations: {}
+    }) || { viewed: {}, quizzes: {}, weak: {}, evaluations: {} };
+    if (!patternStats.evaluations) patternStats.evaluations = {};
 
     // Cache elements
     dom = {
@@ -65,6 +68,15 @@
       resetModal: document.getElementById('pl-reset-modal'),
       btnCancelReset: document.getElementById('pl-btn-cancel-reset'),
       btnConfirmReset: document.getElementById('pl-btn-confirm-reset'),
+
+      // Question Solve Evaluation Modal
+      solveModal: document.getElementById('pl-solve-modal'),
+      solveModalTitle: document.getElementById('pl-solve-modal-title'),
+      solveModalLcNum: document.getElementById('pl-solve-modal-lcnum'),
+      solveModalClose: document.getElementById('pl-solve-modal-close'),
+      solveModalCancel: document.getElementById('pl-solve-modal-cancel'),
+      solveModalClear: document.getElementById('pl-solve-modal-clear'),
+      solveModalOptions: document.getElementById('pl-solve-modal-options'),
 
       // Weak patterns banner/section
       weakBanner: document.getElementById('pl-weak-section'),
@@ -107,41 +119,77 @@
   /**
    * Calculates the mastery level for a pattern:
    * 'Not Started' | 'Learning' | 'Practicing' | 'Mastered' | 'Weak'
+   *
+   * Weak Criteria (User Specification):
+   * 1. crossCount >= 5 (User has 5 or more failed/copied crosses in this pattern)
+   * 2. helpCount > 3 (User clicked AI / other help on more than 3 questions in this pattern)
+   * 3. Pattern Recognition Quiz accuracy < 60%
    */
   function calculatePatternMastery(pattern) {
     const pid = pattern.id;
-    const isWeak = !!patternStats.weak[pid];
+    const isWeakByQuiz = !!patternStats.weak[pid];
     const isViewed = !!patternStats.viewed[pid];
     const quizRecord = patternStats.quizzes[pid];
 
-    // Count solved questions for this pattern
     const questionIds = pattern.practiceQuestionIds || [];
+    const evaluations = patternStats.evaluations || {};
+
+    let crossCount = 0;
+    let helpCount = 0;
+    let selfCount = 0;
     let solvedCount = 0;
+
     questionIds.forEach(qid => {
+      const ev = evaluations[qid];
+      if (ev === 'cross') crossCount++;
+      if (ev === 'help') helpCount++;
+      if (ev === 'self') selfCount++;
       if (dsaProgress[qid]) solvedCount++;
     });
 
+    const isWeakByEvaluation = crossCount >= 5 || helpCount > 3;
+    const isWeak = isWeakByEvaluation || isWeakByQuiz;
+
+    const isAllSolved = questionIds.length > 0 && solvedCount >= questionIds.length;
+
     if (isWeak) return 'Weak';
-    if (quizRecord && quizRecord.accuracy >= 80 && solvedCount >= 3) return 'Mastered';
+    if (isAllSolved) return 'Mastered';
     if (solvedCount > 0) return 'Practicing';
     if (isViewed || quizRecord) return 'Learning';
     return 'Not Started';
   }
 
   /**
-   * Counts solved questions for a given pattern
+   * Counts solved questions and evaluation breakdown for a given pattern
    */
   function getPatternSolvedCount(pattern) {
     const questionIds = pattern.practiceQuestionIds || [];
+    const evaluations = patternStats.evaluations || {};
     let solved = 0;
+    let crossCount = 0;
+    let helpCount = 0;
+    let selfCount = 0;
+
     questionIds.forEach(qid => {
+      const ev = evaluations[qid];
+      if (ev === 'cross') crossCount++;
+      if (ev === 'help') helpCount++;
+      if (ev === 'self') selfCount++;
       if (dsaProgress[qid]) solved++;
     });
-    return { solved, total: questionIds.length };
+
+    return {
+      solved,
+      total: questionIds.length,
+      crossCount,
+      helpCount,
+      selfCount,
+      isWeakByEvaluation: crossCount >= 5 || helpCount > 3
+    };
   }
 
   /**
-   * Renders dashboard metrics, Today's Pattern recommendation, and weak pattern notices
+   * Renders dashboard metrics and weak pattern notices
    */
   function renderDashboard() {
     const patterns = window.dsaPatternsRoadmap || [];
@@ -151,11 +199,20 @@
     const weakPatternsList = [];
 
     patterns.forEach(pat => {
+      const stats = getPatternSolvedCount(pat);
       const mastery = calculatePatternMastery(pat);
-      if (mastery === 'Mastered') masteredCount++;
-      if (mastery === 'Practicing' || mastery === 'Mastered') practicedCount++;
+      const isWeak = mastery === 'Weak' || stats.isWeakByEvaluation || !!patternStats.weak[pat.id];
+      const isAllSolved = stats.total > 0 && stats.solved >= stats.total;
+
+      // When user solves all questions and is not weak:
+      // Practiced pattern increments by 1 and mastered pattern increments by 1
+      if (!isWeak && (isAllSolved || mastery === 'Mastered')) {
+        practicedCount++;
+        masteredCount++;
+      }
+
       if (mastery !== 'Not Started') learnedCount++;
-      if (mastery === 'Weak' || patternStats.weak[pat.id]) weakPatternsList.push(pat);
+      if (isWeak) weakPatternsList.push(pat);
     });
 
     if (dom.metricLearned) dom.metricLearned.textContent = `${learnedCount} / ${patterns.length}`;
@@ -334,9 +391,9 @@
               <span class="material-symbols-outlined text-[13px]">speed</span>
               <span>${escapeHtml(pat.complexity ? pat.complexity.time : 'O(N)')} / ${escapeHtml(pat.complexity ? pat.complexity.space : 'O(1)')}</span>
             </span>
-            <span class="pl-pill-qcount" title="Available Problems in Pattern">
+            <span class="pl-pill-qcount" title="Curated Practice Questions: 5 Easy, 3 Medium, 2 Hard">
               <span class="material-symbols-outlined text-[13px]">checklist</span>
-              <span>${pat.totalQuestions || solvedStats.total} Qs</span>
+              <span>10 Practice Qs (5E • 3M • 2H)</span>
             </span>
           </div>
 
@@ -352,7 +409,7 @@
               <div class="pl-progress-mini-fill" style="width: ${pct}%;"></div>
             </div>
             <div class="pl-footer-actions">
-              <span class="pl-solved-ratio">${solvedStats.solved}/${solvedStats.total} Solved</span>
+              <span class="pl-solved-ratio">${solvedStats.solved}/${solvedStats.total || 10} Solved</span>
               <button class="pl-btn-study" data-study-pattern="${pat.id}">
                 <span>Study Pattern</span>
                 <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -409,7 +466,13 @@
     const mastery = calculatePatternMastery(pat);
     const solvedStats = getPatternSolvedCount(pat);
     const allQuestions = window.dsaAllQuestions || [];
-    const patternQuestions = allQuestions.filter(q => q.patternId === pat.id);
+    const qMap = new Map();
+    allQuestions.forEach(q => qMap.set(q.id, q));
+    const questionIds = pat.practiceQuestionIds || [];
+    let patternQuestions = questionIds.map(qid => qMap.get(qid)).filter(Boolean);
+    if (patternQuestions.length === 0) {
+      patternQuestions = allQuestions.filter(q => q.patternId === pat.id).slice(0, 10);
+    }
 
     // Render curriculum content
     dom.studyViewContainer.innerHTML = `
@@ -427,7 +490,7 @@
           <div class="pl-study-mastery-card">
             <span class="pl-study-mastery-label">Mastery Status</span>
             <span class="pl-mastery-badge mastery-${mastery.toLowerCase().replace(/\s+/g, '-')} text-sm px-3 py-1">${mastery}</span>
-            <span class="pl-study-solved-stat text-xs text-slate-500 mt-2">${solvedStats.solved} / ${solvedStats.total} Practice Problems Solved</span>
+            <span class="pl-study-solved-stat text-xs text-slate-500 mt-2">${solvedStats.solved} / ${solvedStats.total || 10} Practice Problems Solved</span>
           </div>
         </div>
       </div>
@@ -616,12 +679,44 @@
       <!-- 9. Practice Questions -->
       <section class="pl-study-card" id="sec-practice">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-          <h3 class="pl-study-section-title mb-0">
-            <span class="material-symbols-outlined text-indigo-600">checklist</span>
-            <span>9. Practice Problems (${patternQuestions.length} Problems)</span>
-          </h3>
-          <span class="text-xs text-slate-500">Solved state syncs seamlessly with your Roadmap</span>
+          <div>
+            <h3 class="pl-study-section-title mb-1">
+              <span class="material-symbols-outlined text-indigo-600">checklist</span>
+              <span>9. Practice Problems (10 Curated Problems)</span>
+            </h3>
+            <p class="text-xs text-slate-500">Rate honestly: <strong>5 Easy • 3 Medium • 2 Hard</strong>. ≥5 crosses or >3 AI solves flags pattern as Weak.</p>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="pl-breakdown-chip bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" title="Solved 100% on your own">
+              <span class="material-symbols-outlined text-[13px]">verified</span>
+              <span>${solvedStats.selfCount} Self</span>
+            </span>
+            <span class="pl-breakdown-chip ${solvedStats.helpCount > 3 ? 'bg-amber-500/20 text-amber-700 border border-amber-500/40 font-bold' : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'}" title="${solvedStats.helpCount > 3 ? 'More than 3 AI-assisted solves flags this pattern as Weak' : 'Solved with ~30% AI/Other help'}">
+              <span class="material-symbols-outlined text-[13px]">psychology</span>
+              <span>${solvedStats.helpCount} AI Help ${solvedStats.helpCount > 3 ? '⚠️' : ''}</span>
+            </span>
+            <span class="pl-breakdown-chip ${solvedStats.crossCount >= 5 ? 'bg-rose-500/20 text-rose-700 border border-rose-500/40 font-bold' : 'bg-rose-500/10 text-rose-600 border border-rose-500/20'}" title="${solvedStats.crossCount >= 5 ? '5 or more crosses flags this pattern as Weak' : 'Copy-pasted or failed attempts'}">
+              <span class="material-symbols-outlined text-[13px]">cancel</span>
+              <span>${solvedStats.crossCount} Crosses ${solvedStats.crossCount >= 5 ? '⚠️' : ''}</span>
+            </span>
+            <span class="pl-practice-counter-badge text-xs font-semibold px-2.5 py-1 rounded-full ${solvedStats.solved === (solvedStats.total || 10) && solvedStats.total > 0 && !solvedStats.isWeakByEvaluation ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30' : 'bg-indigo-500/10 text-indigo-600 border border-indigo-500/30'}">
+              ${solvedStats.solved} / ${solvedStats.total || 10} Solved
+            </span>
+          </div>
         </div>
+
+        ${solvedStats.isWeakByEvaluation ? `
+          <div class="pl-weak-alert-banner">
+            <span class="material-symbols-outlined text-amber-600 shrink-0 text-[18px]">warning</span>
+            <div>
+              <strong>Pattern Flagged as Weak:</strong>
+              ${solvedStats.crossCount >= 5 ? `You have accumulated <strong>${solvedStats.crossCount} crosses</strong> (≥ 5). ` : ''}
+              ${solvedStats.helpCount > 3 ? `You used AI / other help on <strong>${solvedStats.helpCount} problems</strong> (> 3). ` : ''}
+              Re-attempt these problems independently without copying or AI to conquer this pattern!
+            </div>
+          </div>
+        ` : ''}
+
         <div class="pl-practice-questions-list" id="pl-practice-list">
           ${renderPracticeQuestionsList(patternQuestions)}
         </div>
@@ -661,20 +756,60 @@
       return `<p class="text-sm text-slate-500 py-4 text-center">No questions found for this pattern.</p>`;
     }
 
+    const evaluations = patternStats.evaluations || {};
+
     return questions.map(q => {
+      const ev = evaluations[q.id];
       const isSolved = !!dsaProgress[q.id];
       const diffClass = (q.difficulty || 'easy').toLowerCase();
       const lcNum = q.leetcodeNumber || '';
       const lcUrl = q.leetcodeUrl || '#';
       const signals = q.signals ? q.signals.join(' • ') : '';
 
+      let evalPillHtml = '';
+      let rowStatusClass = '';
+
+      if (ev === 'self') {
+        rowStatusClass = 'is-solved status-self';
+        evalPillHtml = `
+          <button class="pl-eval-pill pl-eval-pill-self pl-trigger-eval" data-qid="${q.id}" title="Click to change solve evaluation">
+            <span class="material-symbols-outlined text-[14px]">verified</span>
+            <span>100% Self</span>
+          </button>
+        `;
+      } else if (ev === 'help') {
+        rowStatusClass = 'is-solved status-help';
+        evalPillHtml = `
+          <button class="pl-eval-pill pl-eval-pill-help pl-trigger-eval" data-qid="${q.id}" title="Click to change solve evaluation">
+            <span class="material-symbols-outlined text-[14px]">psychology</span>
+            <span>30% AI Help</span>
+          </button>
+        `;
+      } else if (ev === 'cross') {
+        rowStatusClass = 'status-cross';
+        evalPillHtml = `
+          <button class="pl-eval-pill pl-eval-pill-cross pl-trigger-eval" data-qid="${q.id}" title="Click to change solve evaluation">
+            <span class="material-symbols-outlined text-[14px]">cancel</span>
+            <span>Cross ✗</span>
+          </button>
+        `;
+      } else {
+        evalPillHtml = `
+          <button class="pl-eval-pill pl-eval-pill-unattempted pl-trigger-eval" data-qid="${q.id}" title="Click to evaluate your solve">
+            <span class="material-symbols-outlined text-[14px]">rate_review</span>
+            <span>Rate Solve</span>
+          </button>
+        `;
+      }
+
       return `
-        <div class="dsa-question-row ${isSolved ? 'is-solved' : ''}" id="pl-qrow-${q.id}">
+        <div class="dsa-question-row ${rowStatusClass}" id="pl-qrow-${q.id}">
           <div class="dsa-question-left">
-            <label class="dsa-checkbox-container" title="Mark as solved">
-              <input type="checkbox" class="dsa-checkbox-input pl-question-check" data-qid="${q.id}" ${isSolved ? 'checked' : ''} aria-label="Mark ${escapeHtml(q.title)} as solved"/>
-              <span class="dsa-checkbox-custom"></span>
-            </label>
+            <button class="dsa-checkbox-container pl-trigger-eval cursor-pointer border-0 bg-transparent p-0" data-qid="${q.id}" title="Rate how you solved this problem" aria-label="Evaluate solve for ${escapeHtml(q.title)}">
+              <span class="dsa-checkbox-custom ${isSolved ? 'dsa-checkbox-checked' : ''} ${ev === 'cross' ? 'dsa-checkbox-cross' : ''}">
+                ${ev === 'cross' ? '<span class="material-symbols-outlined text-[13px] text-rose-600 leading-none">close</span>' : (isSolved ? '<span class="material-symbols-outlined text-[13px] text-white leading-none">check</span>' : '')}
+              </span>
+            </button>
             <span class="dsa-lc-num">#${lcNum}</span>
             <div class="dsa-question-info">
               <div class="dsa-question-title-wrap">
@@ -684,6 +819,7 @@
             </div>
           </div>
           <div class="dsa-question-right">
+            ${evalPillHtml}
             <span class="dsa-badge-diff dsa-badge-${diffClass}">${q.difficulty}</span>
             <a href="${lcUrl}" target="_blank" rel="noopener noreferrer" class="dsa-btn-leetcode" aria-label="Open ${escapeHtml(q.title)} on LeetCode">
               <span>Solve</span>
@@ -972,6 +1108,112 @@
     window.dispatchEvent(event);
 
     renderDashboard();
+
+  /**
+   * Opens the Question Solve Evaluation Modal for a specific problem
+   */
+  function openSolveEvaluationModal(qid) {
+    if (!dom.solveModal) return;
+    const allQuestions = window.dsaAllQuestions || [];
+    const q = allQuestions.find(item => item.id === qid);
+    if (!q) return;
+
+    activeEvaluatingQuestion = q;
+
+    if (dom.solveModalLcNum) dom.solveModalLcNum.textContent = `#${q.leetcodeNumber || ''}`;
+    if (dom.solveModalTitle) dom.solveModalTitle.textContent = q.title;
+
+    // Highlight existing selection if any
+    const ev = (patternStats.evaluations || {})[qid];
+    const optButtons = dom.solveModal.querySelectorAll('.pl-solve-opt-btn');
+    optButtons.forEach(btn => {
+      if (btn.dataset.solveType === ev) {
+        btn.classList.add('ring-2', 'ring-indigo-500', 'bg-indigo-50/50');
+      } else {
+        btn.classList.remove('ring-2', 'ring-indigo-500', 'bg-indigo-50/50');
+      }
+    });
+
+    dom.solveModal.classList.remove('hidden');
+    dom.solveModal.classList.add('open');
+  }
+
+  /**
+   * Closes the Question Solve Evaluation Modal
+   */
+  function closeSolveEvaluationModal() {
+    activeEvaluatingQuestion = null;
+    if (dom.solveModal) {
+      dom.solveModal.classList.remove('open');
+      dom.solveModal.classList.add('hidden');
+    }
+  }
+
+  /**
+   * Handles user selecting a solve quality option (self | help | cross)
+   */
+  function onSolveOptionSelected(solveType) {
+    if (!activeEvaluatingQuestion) return;
+    const qid = activeEvaluatingQuestion.id;
+
+    if (!patternStats.evaluations) patternStats.evaluations = {};
+    patternStats.evaluations[qid] = solveType;
+
+    // If 'self' or 'help', mark as solved in dsaProgress
+    // If 'cross', mark as not solved in dsaProgress
+    dsaProgress = Storage.get('dsa_progress', {}) || {};
+    if (solveType === 'self' || solveType === 'help') {
+      dsaProgress[qid] = true;
+    } else {
+      delete dsaProgress[qid];
+    }
+
+    Storage.set('dsa_progress', dsaProgress);
+    Storage.set('dsa_pattern_stats', patternStats);
+
+    closeSolveEvaluationModal();
+
+    // Dispatch progress sync to Roadmap
+    window.dispatchEvent(new CustomEvent('dsaProgressSync', {
+      detail: { qid, isChecked: solveType === 'self' || solveType === 'help', source: 'patternLearning' }
+    }));
+
+    renderDashboard();
+
+    if (currentPattern) {
+      renderPatternStudyContent(currentPattern);
+    }
+  }
+
+  /**
+   * Handles resetting a question back to unattempted
+   */
+  function onClearSolveEvaluation() {
+    if (!activeEvaluatingQuestion) return;
+    const qid = activeEvaluatingQuestion.id;
+
+    if (patternStats.evaluations) {
+      delete patternStats.evaluations[qid];
+    }
+
+    dsaProgress = Storage.get('dsa_progress', {}) || {};
+    delete dsaProgress[qid];
+
+    Storage.set('dsa_progress', dsaProgress);
+    Storage.set('dsa_pattern_stats', patternStats);
+
+    closeSolveEvaluationModal();
+
+    window.dispatchEvent(new CustomEvent('dsaProgressSync', {
+      detail: { qid, isChecked: false, source: 'patternLearning' }
+    }));
+
+    renderDashboard();
+
+    if (currentPattern) {
+      renderPatternStudyContent(currentPattern);
+    }
+  }
   }
 
   /**
@@ -1157,7 +1399,7 @@
 
     if (dom.btnConfirmReset && dom.resetModal) {
       dom.btnConfirmReset.addEventListener('click', () => {
-        patternStats = { viewed: {}, quizzes: {}, weak: {} };
+        patternStats = { viewed: {}, quizzes: {}, weak: {}, evaluations: {} };
         Storage.set('dsa_pattern_stats', patternStats);
         dom.resetModal.classList.remove('open');
         dom.resetModal.classList.add('hidden');
@@ -1172,9 +1414,47 @@
       });
     }
 
-    // 10. Delegated Practice Question Checkbox toggling inside study view
+    // 10. Question Solve Evaluation Modal Controls
+    if (dom.solveModalClose) {
+      dom.solveModalClose.addEventListener('click', closeSolveEvaluationModal);
+    }
+
+    if (dom.solveModalCancel) {
+      dom.solveModalCancel.addEventListener('click', closeSolveEvaluationModal);
+    }
+
+    if (dom.solveModalClear) {
+      dom.solveModalClear.addEventListener('click', onClearSolveEvaluation);
+    }
+
+    if (dom.solveModal) {
+      dom.solveModal.addEventListener('click', (e) => {
+        if (e.target === dom.solveModal) {
+          closeSolveEvaluationModal();
+        }
+      });
+    }
+
+    // Handle clicking evaluation options (Self, AI Help, Cross)
+    const solveOptButtons = document.querySelectorAll('.pl-solve-opt-btn');
+    solveOptButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const solveType = btn.dataset.solveType;
+        if (solveType) onSolveOptionSelected(solveType);
+      });
+    });
+
+    // Delegated click for opening evaluation modal from question rows
     if (dom.studyViewContainer) {
-      dom.studyViewContainer.addEventListener('change', onQuestionCheckboxChange);
+      dom.studyViewContainer.addEventListener('click', (e) => {
+        const trigger = e.target.closest('.pl-trigger-eval');
+        if (trigger) {
+          e.preventDefault();
+          e.stopPropagation();
+          const qid = trigger.dataset.qid;
+          if (qid) openSolveEvaluationModal(qid);
+        }
+      });
     }
   }
 

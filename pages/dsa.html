@@ -560,6 +560,78 @@
     </div>
   </div>
 
+  <!-- Question Solve Evaluation Modal (Honesty Check: 100% Self / 30% AI Help / Cross) -->
+  <div class="modal-backdrop hidden" id="pl-solve-modal" role="dialog" aria-modal="true" aria-labelledby="pl-solve-modal-title">
+    <div class="modal-card max-w-md p-6">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400" id="pl-solve-modal-lcnum">#1</span>
+          <h3 class="text-base font-bold text-slate-900 dark:text-white leading-snug mt-0.5" id="pl-solve-modal-title">Problem Title</h3>
+        </div>
+        <button id="pl-solve-modal-close" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-1" aria-label="Close dialog">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+      <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+        How did you solve this problem? Rate honestly to detect pattern weaknesses and build authentic algorithmic problem-solving mastery:
+      </p>
+
+      <div class="space-y-2.5 mb-5" id="pl-solve-modal-options">
+        <!-- Option 1: 100% Self -->
+        <button class="pl-solve-opt-btn" data-solve-type="self">
+          <div class="pl-solve-opt-icon bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+            <span class="material-symbols-outlined text-[18px]">verified</span>
+          </div>
+          <div class="text-left flex-1 min-w-0">
+            <div class="text-sm font-semibold text-slate-800 dark:text-white flex items-center gap-1.5">
+              <span>100% Solved on my own</span>
+              <span class="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded">Optimal</span>
+            </div>
+            <div class="text-xs text-slate-500">Solved independently without hints, AI, or editorial</div>
+          </div>
+        </button>
+
+        <!-- Option 2: ~30% AI / Other Help -->
+        <button class="pl-solve-opt-btn" data-solve-type="help">
+          <div class="pl-solve-opt-icon bg-amber-500/10 text-amber-600 border border-amber-500/20">
+            <span class="material-symbols-outlined text-[18px]">psychology</span>
+          </div>
+          <div class="text-left flex-1 min-w-0">
+            <div class="text-sm font-semibold text-slate-800 dark:text-white flex items-center gap-1.5">
+              <span>~30% Help from AI / Other</span>
+              <span class="text-[10px] uppercase font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded">Assisted</span>
+            </div>
+            <div class="text-xs text-slate-500">Understood concept but needed hints, syntax, or guidance</div>
+          </div>
+        </button>
+
+        <!-- Option 3: Copy / Paste / Couldn't Solve (Cross ✗) -->
+        <button class="pl-solve-opt-btn" data-solve-type="cross">
+          <div class="pl-solve-opt-icon bg-rose-500/10 text-rose-600 border border-rose-500/20">
+            <span class="material-symbols-outlined text-[18px]">cancel</span>
+          </div>
+          <div class="text-left flex-1 min-w-0">
+            <div class="text-sm font-semibold text-slate-800 dark:text-white flex items-center gap-1.5">
+              <span>Copy / Paste / Direct Solution</span>
+              <span class="text-[10px] uppercase font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/40 px-1.5 py-0.5 rounded">Cross ✗</span>
+            </div>
+            <div class="text-xs text-slate-500">Could not solve on my own / looked up code / failed attempt</div>
+          </div>
+        </button>
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+        <button id="pl-solve-modal-clear" class="text-xs text-slate-400 hover:text-rose-500 transition-colors font-medium flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">undo</span>
+          <span>Reset to Unattempted</span>
+        </button>
+        <button id="pl-solve-modal-cancel" class="btn-secondary text-xs py-1.5 px-4 font-medium">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Training Arena Modal -->
   <div class="modal-backdrop hidden" id="pl-arena-modal" role="dialog" aria-modal="true" aria-labelledby="arena-modal-title">
     <div class="modal-card max-w-2xl p-6 relative">
