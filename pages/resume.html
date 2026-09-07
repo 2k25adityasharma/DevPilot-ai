@@ -314,6 +314,10 @@
           <button class="btn-icon" id="btn-redo" title="Redo">
             <span class="material-symbols-outlined text-[18px]">redo</span>
           </button>
+          <button class="btn-secondary btn-sm" id="btn-reset-resume" title="Reset Resume / Restore Previous State (Jaisa tha bilkul vaise)">
+            <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+            <span class="hidden sm:inline">Reset</span>
+          </button>
           <button class="btn-secondary btn-sm" id="btn-save-draft">
             <span class="material-symbols-outlined text-[16px]">save</span>
             <span class="hidden sm:inline">Save</span>
@@ -664,6 +668,94 @@
       <!-- Template Cards Grid -->
       <div class="template-cards-grid" id="template-cards-grid">
         <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset / Restore Resume Modal -->
+  <div class="modal-backdrop" id="reset-modal-backdrop" style="display:none;" aria-modal="true" role="dialog" aria-labelledby="reset-modal-title">
+    <div class="reset-modal">
+      <div class="reset-modal-header">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
+            <span class="material-symbols-outlined text-[20px]">restart_alt</span>
+          </div>
+          <div>
+            <h2 class="reset-modal-title" id="reset-modal-title">Reset / Restore Resume</h2>
+            <p class="reset-modal-subtitle">Take resume back to original sample data or revert changes (jaisa tha bilkul vaise).</p>
+          </div>
+        </div>
+        <button class="btn-icon" id="close-reset-modal" aria-label="Close Reset Dialog">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="reset-modal-body custom-scrollbar">
+        <!-- Option 1: Restore Original Sample Resume (Recommended) -->
+        <div class="reset-option-card recommended">
+          <div class="reset-option-header">
+            <div class="reset-option-title-wrap">
+              <span class="reset-option-badge">Recommended</span>
+              <h3 class="reset-option-title">
+                <span class="material-symbols-outlined text-indigo-600 text-[20px]">auto_fix_high</span>
+                Restore Original Sample Resume
+              </h3>
+            </div>
+            <button class="btn-primary btn-sm" id="btn-confirm-restore-default">
+              <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+              Restore Default
+            </button>
+          </div>
+          <p class="reset-option-desc">
+            Restores the complete, clean professional developer profile (<strong>Aditya Sharma</strong> • Full Stack Engineer) with all original sample projects, experience, skills, education, and achievements — <em>bilkul jaisa pehle tha</em>.
+          </p>
+        </div>
+
+        <!-- Option 2: Revert to Last Saved Draft -->
+        <div class="reset-option-card">
+          <div class="reset-option-header">
+            <div class="reset-option-title-wrap">
+              <h3 class="reset-option-title">
+                <span class="material-symbols-outlined text-slate-600 text-[20px]">history</span>
+                Revert to Last Saved Draft
+              </h3>
+            </div>
+            <button class="btn-secondary btn-sm" id="btn-confirm-revert-saved">
+              <span class="material-symbols-outlined text-[16px]">restore</span>
+              Revert to Saved
+            </button>
+          </div>
+          <p class="reset-option-desc">
+            Discards unsaved edits from this session and restores your last saved resume draft from local storage.
+          </p>
+        </div>
+
+        <!-- Option 3: Clear All Fields -->
+        <div class="reset-option-card">
+          <div class="reset-option-header">
+            <div class="reset-option-title-wrap">
+              <h3 class="reset-option-title text-slate-700">
+                <span class="material-symbols-outlined text-rose-500 text-[20px]">delete_sweep</span>
+                Clear All Fields (Blank Canvas)
+              </h3>
+            </div>
+            <button class="btn-secondary btn-sm text-rose-600 hover:bg-rose-50 hover:border-rose-300" id="btn-confirm-clear-all">
+              <span class="material-symbols-outlined text-[16px]">delete</span>
+              Clear All
+            </button>
+          </div>
+          <p class="reset-option-desc">
+            Empties all text fields, skills, and dynamic entries so you can start writing your resume completely from scratch.
+          </p>
+        </div>
+      </div>
+
+      <div class="reset-modal-footer">
+        <div class="reset-modal-tip">
+          <span class="material-symbols-outlined text-[16px] text-amber-500">lightbulb</span>
+          <span>Press <strong>Ctrl+Z</strong> or click <strong>Undo</strong> anytime to reverse any reset.</span>
+        </div>
+        <button class="btn-secondary btn-sm" id="btn-cancel-reset">Cancel</button>
       </div>
     </div>
   </div>

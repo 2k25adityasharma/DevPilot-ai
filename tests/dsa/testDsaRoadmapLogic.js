@@ -209,6 +209,32 @@ runTest('Pro search UI elements, multi-token search, and non-overlapping icon pa
   assert.ok(treeHardMatches.every(q => q.difficulty === 'Hard'), 'All matches must be Hard');
 });
 
+// 9. Verify DSA Roadmap has honesty evaluation boxes and pills WITHOUT any locked features
+runTest('DSA Roadmap integrates honesty evaluation boxes and pills without any locking restrictions', () => {
+  const dsaJs = fs.readFileSync(path.join(rootDir, 'js/pages/dsa.js'), 'utf8');
+
+  // Verify honesty evaluation box and pills exist in roadmap rendering
+  assert.ok(dsaJs.includes('dsa-trigger-eval'), 'Must support dsa-trigger-eval to open 4-tier honesty modal');
+  assert.ok(dsaJs.includes('pl-eval-box'), 'Must render pl-eval-box in roadmap questions');
+  assert.ok(dsaJs.includes('pl-eval-pill'), 'Must render pl-eval-pill on roadmap question rows');
+  assert.ok(dsaJs.includes('verified'), 'Must support verified icon');
+  assert.ok(dsaJs.includes('psychology'), 'Must support psychology icon');
+  assert.ok(dsaJs.includes('smart_toy'), 'Must support smart_toy icon');
+  assert.ok(dsaJs.includes('content_paste_off'), 'Must support content_paste_off icon');
+
+  // Verify that lock feature is NOT applied to DSA Roadmap
+  assert.ok(!dsaJs.includes('pl-locked-pill'), 'DSA Roadmap must NOT include pl-locked-pill (no locking)');
+  assert.ok(!dsaJs.includes('pl-locked-question'), 'DSA Roadmap must NOT include pl-locked-question (no locking)');
+  assert.ok(!dsaJs.includes('isQuestionLocked'), 'DSA Roadmap must NOT enforce sequential locking');
+
+  // Verify HTML has honesty stats
+  const dsaHtml = fs.readFileSync(path.join(rootDir, 'pages/dsa.html'), 'utf8');
+  assert.ok(dsaHtml.includes('id="dsa-count-self"'), 'Hero must include dsa-count-self');
+  assert.ok(dsaHtml.includes('id="dsa-count-help30"'), 'Hero must include dsa-count-help30');
+  assert.ok(dsaHtml.includes('id="dsa-count-help50"'), 'Hero must include dsa-count-help50');
+  assert.ok(dsaHtml.includes('id="dsa-count-cross"'), 'Hero must include dsa-count-cross');
+});
+
 console.log('\n====================================================');
 console.log(` Verification Results: ${passedTests} / ${totalTests} Passed`);
 console.log('====================================================\n');

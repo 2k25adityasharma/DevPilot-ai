@@ -6,6 +6,24 @@
   <title>DSA Roadmap - DevPilot-AI</title>
 
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" id="tailwind-cdn"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca'
+            }
+          }
+        }
+      }
+    };
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -14,6 +32,7 @@
   <link rel="stylesheet" href="../css/base/global.css"/>
   <link rel="stylesheet" href="../css/base/components.css"/>
   <link rel="stylesheet" href="../css/pages/dsa.css"/>
+  <link rel="stylesheet" href="../css/pages/dsaProblem.css"/>
   <link rel="stylesheet" href="../css/base/responsive.css"/>
 
   <script>
@@ -152,7 +171,7 @@
           </div>
         </div>
 
-        <!-- View Switcher Pills: Roadmap vs Pattern Learning -->
+        <!-- View Switcher Pills: Roadmap vs Pattern Learning vs Revision -->
         <div class="dsa-view-switcher" role="tablist" aria-label="DSA Views">
           <button class="dsa-tab-pill active" id="tab-btn-roadmap" role="tab" aria-selected="true">
             <span class="material-symbols-outlined text-[18px]">alt_route</span>
@@ -162,6 +181,10 @@
             <span class="material-symbols-outlined text-[18px]">psychology</span>
             <span>Pattern Learning</span>
             <span class="pl-tab-glow-badge">New</span>
+          </button>
+          <button class="dsa-tab-pill" id="tab-btn-revision" role="tab" aria-selected="false">
+            <span class="material-symbols-outlined text-[18px]">history_edu</span>
+            <span>Revision</span>
           </button>
         </div>
       </div>
@@ -223,6 +246,27 @@
             </div>
           </div>
         </div>
+
+        <!-- Honesty Evaluation Breakdown Chips -->
+        <div class="flex flex-wrap items-center gap-2 mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Solve Quality:</span>
+          <span class="pl-breakdown-chip bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" id="dsa-stat-self">
+            <span class="material-symbols-outlined text-[13px]">verified</span>
+            <span id="dsa-count-self">0</span> - Self
+          </span>
+          <span class="pl-breakdown-chip bg-amber-500/10 text-amber-600 border border-amber-500/20" id="dsa-stat-help30">
+            <span class="material-symbols-outlined text-[13px]">psychology</span>
+            <span id="dsa-count-help30">0</span> - 30% Help
+          </span>
+          <span class="pl-breakdown-chip bg-orange-500/10 text-orange-600 border border-orange-500/20" id="dsa-stat-help50">
+            <span class="material-symbols-outlined text-[13px]">smart_toy</span>
+            <span id="dsa-count-help50">0</span> - 50% Help
+          </span>
+          <span class="pl-breakdown-chip bg-rose-500/10 text-rose-600 border border-rose-500/20" id="dsa-stat-cross">
+            <span class="material-symbols-outlined text-[13px]">content_paste_off</span>
+            <span id="dsa-count-cross">0</span> - Copied
+          </span>
+        </div>
       </section>
 
       <!-- Controls Toolbar: Smart Pro Search & Filters -->
@@ -253,6 +297,7 @@
             <button class="dsa-segment-btn active" data-filter-status="all">All</button>
             <button class="dsa-segment-btn" data-filter-status="solved">Solved</button>
             <button class="dsa-segment-btn" data-filter-status="unsolved">Unsolved</button>
+            <button class="dsa-segment-btn" data-filter-status="review">Review</button>
           </div>
 
           <!-- Reset Button in the last -->
@@ -511,6 +556,17 @@
           <div id="pl-study-container"></div>
         </section>
       </div>
+      <!-- /dsa-pattern-learning-view -->
+
+      <!-- Dedicated Revision Dashboard View Container -->
+      <div id="dsa-revision-view" class="hidden">
+        <!-- Rendered dynamically by dsaProblem.js -->
+      </div>
+
+      <!-- Problem Detail View Container (15-Point Thought Process) -->
+      <div id="dsa-problem-detail-view" class="hidden">
+        <!-- Rendered dynamically by dsaProblem.js -->
+      </div>
 
     </div>
   </main>
@@ -518,19 +574,19 @@
 
   <!-- Reset Confirmation Modal -->
   <div class="modal-backdrop hidden" id="dsa-reset-modal" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title">
-    <div class="modal-card max-w-md p-6 text-center">
-      <div class="dsa-modal-warning-icon">
-        <span class="material-symbols-outlined">warning</span>
+    <div class="modal-card pl-modal-card max-w-md p-6 text-center">
+      <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center border border-rose-200 shadow-sm">
+        <span class="material-symbols-outlined text-[28px]">warning</span>
       </div>
-      <h3 class="text-lg font-bold text-slate-900 mb-2" id="reset-modal-title">Reset DSA Progress?</h3>
-      <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+      <h3 class="pl-modal-title text-lg font-bold text-slate-900 mb-2" id="reset-modal-title">Reset DSA Progress?</h3>
+      <p class="pl-modal-subtitle text-sm text-slate-500 mb-6 leading-relaxed">
         Are you sure you want to reset your DSA progress? All solved problems and statistics will be cleared. This action cannot be undone.
       </p>
       <div class="flex items-center justify-center gap-3">
-        <button id="dsa-btn-cancel-reset" class="btn-secondary text-sm py-2 px-5 font-medium">
+        <button id="dsa-btn-cancel-reset" class="pl-btn-modal-cancel text-sm py-2 px-5 font-medium rounded-lg">
           Cancel
         </button>
-        <button id="dsa-btn-confirm-reset" class="btn-primary text-sm py-2 px-5 bg-rose-600 hover:bg-rose-700 border-rose-600 text-white font-medium shadow-sm flex items-center gap-1.5">
+        <button id="dsa-btn-confirm-reset" class="btn-primary text-sm py-2 px-5 bg-rose-600 hover:bg-rose-700 border-rose-600 text-white font-medium shadow-sm flex items-center gap-1.5 rounded-lg">
           <span class="material-symbols-outlined text-[16px]">restart_alt</span>
           <span>Yes, Reset All</span>
         </button>
@@ -540,19 +596,19 @@
 
   <!-- Pattern Learning Reset Confirmation Modal -->
   <div class="modal-backdrop hidden" id="pl-reset-modal" role="dialog" aria-modal="true" aria-labelledby="pl-reset-modal-title">
-    <div class="modal-card max-w-md p-6 text-center">
-      <div class="dsa-modal-warning-icon">
-        <span class="material-symbols-outlined">warning</span>
+    <div class="modal-card pl-modal-card max-w-md p-6 text-center">
+      <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center border border-rose-200 shadow-sm">
+        <span class="material-symbols-outlined text-[28px]">warning</span>
       </div>
-      <h3 class="text-lg font-bold text-slate-900 mb-2" id="pl-reset-modal-title">Reset Pattern Learning?</h3>
-      <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+      <h3 class="pl-modal-title text-lg font-bold text-slate-900 mb-2" id="pl-reset-modal-title">Reset Pattern Learning?</h3>
+      <p class="pl-modal-subtitle text-sm text-slate-500 mb-6 leading-relaxed">
         Are you sure you want to reset your Pattern Learning progress? All viewed patterns, quiz scores, and practice tracking will be cleared. This action cannot be undone.
       </p>
       <div class="flex items-center justify-center gap-3">
-        <button id="pl-btn-cancel-reset" class="btn-secondary text-sm py-2 px-5 font-medium">
+        <button id="pl-btn-cancel-reset" class="pl-btn-modal-cancel text-sm py-2 px-5 font-medium rounded-lg">
           Cancel
         </button>
-        <button id="pl-btn-confirm-reset" class="btn-primary text-sm py-2 px-5 bg-rose-600 hover:bg-rose-700 border-rose-600 text-white font-medium shadow-sm flex items-center gap-1.5">
+        <button id="pl-btn-confirm-reset" class="btn-primary text-sm py-2 px-5 bg-rose-600 hover:bg-rose-700 border-rose-600 text-white font-medium shadow-sm flex items-center gap-1.5 rounded-lg">
           <span class="material-symbols-outlined text-[16px]">restart_alt</span>
           <span>Yes, Reset All</span>
         </button>
@@ -560,73 +616,140 @@
     </div>
   </div>
 
-  <!-- Question Solve Evaluation Modal (Honesty Check: 100% Self / 30% AI Help / Cross) -->
+  <!-- Question Solve Evaluation Modal (Honesty Check: 100% Self / 30% AI Help / 50% AI Help / Copy-Paste) -->
   <div class="modal-backdrop hidden" id="pl-solve-modal" role="dialog" aria-modal="true" aria-labelledby="pl-solve-modal-title">
-    <div class="modal-card max-w-md p-6">
+    <div class="modal-card pl-modal-card max-w-md p-6">
       <div class="flex items-start justify-between mb-3">
         <div>
-          <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400" id="pl-solve-modal-lcnum">#1</span>
-          <h3 class="text-base font-bold text-slate-900 dark:text-white leading-snug mt-0.5" id="pl-solve-modal-title">Problem Title</h3>
+          <span class="pl-modal-lcnum font-mono text-xs font-bold uppercase tracking-wider text-indigo-600" id="pl-solve-modal-lcnum">#1</span>
+          <h3 class="pl-modal-title text-lg font-bold text-slate-900 leading-snug mt-0.5" id="pl-solve-modal-title">Problem Title</h3>
         </div>
-        <button id="pl-solve-modal-close" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-1" aria-label="Close dialog">
+        <button id="pl-solve-modal-close" class="pl-modal-close-btn p-1 text-slate-400 hover:text-slate-700 transition-colors" aria-label="Close dialog">
           <span class="material-symbols-outlined text-[20px]">close</span>
         </button>
       </div>
-      <p class="text-xs text-slate-500 mb-4 leading-relaxed">
-        How did you solve this problem? Rate honestly to detect pattern weaknesses and build authentic algorithmic problem-solving mastery:
+      <p class="pl-modal-subtitle text-xs text-slate-500 mb-5 leading-relaxed">
+        How did you solve this problem? Rate honestly to track genuine algorithmic intuition. If you rely on help or copy-paste on more than 4 problems in a pattern, it will be flagged as Weak:
       </p>
 
       <div class="space-y-2.5 mb-5" id="pl-solve-modal-options">
-        <!-- Option 1: 100% Self -->
+        <!-- Option 1: 100% Self / Full Tumne Kiya -->
         <button class="pl-solve-opt-btn" data-solve-type="self">
-          <div class="pl-solve-opt-icon bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+          <div class="pl-solve-opt-icon pl-icon-self">
             <span class="material-symbols-outlined text-[18px]">verified</span>
           </div>
-          <div class="text-left flex-1 min-w-0">
-            <div class="text-sm font-semibold text-slate-800 dark:text-white flex items-center gap-1.5">
-              <span>100% Solved on my own</span>
-              <span class="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded">Optimal</span>
+          <div class="pl-solve-opt-content flex-1 min-w-0">
+            <div class="pl-solve-opt-header flex items-center justify-between gap-2">
+              <span class="pl-solve-opt-title text-sm font-bold text-slate-800">100% Solved on my own</span>
+              <span class="pl-solve-opt-badge pl-badge-self">Full Self</span>
             </div>
-            <div class="text-xs text-slate-500">Solved independently without hints, AI, or editorial</div>
+            <p class="pl-solve-opt-desc text-xs text-slate-500 mt-1">Full tumne kiya — solved independently without hints, AI, or editorial</p>
           </div>
         </button>
 
-        <!-- Option 2: ~30% AI / Other Help -->
-        <button class="pl-solve-opt-btn" data-solve-type="help">
-          <div class="pl-solve-opt-icon bg-amber-500/10 text-amber-600 border border-amber-500/20">
+        <!-- Option 2: ~30% AI / Hints Help -->
+        <button class="pl-solve-opt-btn" data-solve-type="help30">
+          <div class="pl-solve-opt-icon pl-icon-help30">
             <span class="material-symbols-outlined text-[18px]">psychology</span>
           </div>
-          <div class="text-left flex-1 min-w-0">
-            <div class="text-sm font-semibold text-slate-800 dark:text-white flex items-center gap-1.5">
-              <span>~30% Help from AI / Other</span>
-              <span class="text-[10px] uppercase font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded">Assisted</span>
+          <div class="pl-solve-opt-content flex-1 min-w-0">
+            <div class="pl-solve-opt-header flex items-center justify-between gap-2">
+              <span class="pl-solve-opt-title text-sm font-bold text-slate-800">~30% Help from AI / Hints</span>
+              <span class="pl-solve-opt-badge pl-badge-help30">Light Assist</span>
             </div>
-            <div class="text-xs text-slate-500">Understood concept but needed hints, syntax, or guidance</div>
+            <p class="pl-solve-opt-desc text-xs text-slate-500 mt-1">Understood the core pattern, needed hints, minor syntax, or debugging</p>
           </div>
         </button>
 
-        <!-- Option 3: Copy / Paste / Couldn't Solve (Cross ✗) -->
-        <button class="pl-solve-opt-btn" data-solve-type="cross">
-          <div class="pl-solve-opt-icon bg-rose-500/10 text-rose-600 border border-rose-500/20">
-            <span class="material-symbols-outlined text-[18px]">cancel</span>
+        <!-- Option 3: ~50% AI / Editorial Help -->
+        <button class="pl-solve-opt-btn" data-solve-type="help50">
+          <div class="pl-solve-opt-icon pl-icon-help50">
+            <span class="material-symbols-outlined text-[18px]">smart_toy</span>
           </div>
-          <div class="text-left flex-1 min-w-0">
-            <div class="text-sm font-semibold text-slate-800 dark:text-white flex items-center gap-1.5">
-              <span>Copy / Paste / Direct Solution</span>
-              <span class="text-[10px] uppercase font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/40 px-1.5 py-0.5 rounded">Cross ✗</span>
+          <div class="pl-solve-opt-content flex-1 min-w-0">
+            <div class="pl-solve-opt-header flex items-center justify-between gap-2">
+              <span class="pl-solve-opt-title text-sm font-bold text-slate-800">~50% Help from AI / Editorial</span>
+              <span class="pl-solve-opt-badge pl-badge-help50">Moderate Assist</span>
             </div>
-            <div class="text-xs text-slate-500">Could not solve on my own / looked up code / failed attempt</div>
+            <p class="pl-solve-opt-desc text-xs text-slate-500 mt-1">Needed detailed explanation of data structures or algorithm steps</p>
+          </div>
+        </button>
+
+        <!-- Option 4: Copy / Paste / Direct Solution (Cross ✗) -->
+        <button class="pl-solve-opt-btn" data-solve-type="cross">
+          <div class="pl-solve-opt-icon pl-icon-cross">
+            <span class="material-symbols-outlined text-[18px]">content_paste_off</span>
+          </div>
+          <div class="pl-solve-opt-content flex-1 min-w-0">
+            <div class="pl-solve-opt-header flex items-center justify-between gap-2">
+              <span class="pl-solve-opt-title text-sm font-bold text-slate-800">Copy / Paste / Direct Solution</span>
+              <span class="pl-solve-opt-badge pl-badge-cross">Cross ✗</span>
+            </div>
+            <p class="pl-solve-opt-desc text-xs text-slate-500 mt-1">Copied code directly from AI or editorial / could not formulate approach</p>
           </div>
         </button>
       </div>
 
-      <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
-        <button id="pl-solve-modal-clear" class="text-xs text-slate-400 hover:text-rose-500 transition-colors font-medium flex items-center gap-1">
+      <div class="flex items-center justify-between pt-3 border-t border-slate-200">
+        <button id="pl-solve-modal-clear" class="text-xs text-slate-500 hover:text-rose-600 transition-colors font-medium flex items-center gap-1">
           <span class="material-symbols-outlined text-[14px]">undo</span>
           <span>Reset to Unattempted</span>
         </button>
-        <button id="pl-solve-modal-cancel" class="btn-secondary text-xs py-1.5 px-4 font-medium">
+        <button id="pl-solve-modal-cancel" class="pl-btn-modal-cancel text-xs py-1.5 px-4 font-medium rounded-lg">
           Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Locked Question Sequence Alert Modal -->
+  <div class="modal-backdrop hidden" id="pl-locked-modal" role="dialog" aria-modal="true" aria-labelledby="pl-locked-modal-title">
+    <div class="modal-card pl-modal-card max-w-md p-6 text-center">
+      <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-200 shadow-sm">
+        <span class="material-symbols-outlined text-[28px]">lock</span>
+      </div>
+      <span class="text-xs font-bold uppercase tracking-wider text-indigo-600" id="pl-locked-modal-step">Step 2 of 10</span>
+      <h3 class="pl-modal-title text-lg font-bold text-slate-900 mt-1 mb-2" id="pl-locked-modal-title">Question is Locked</h3>
+      <p class="pl-modal-subtitle text-sm text-slate-500 mb-6 leading-relaxed" id="pl-locked-modal-msg">
+        Please complete the previous problem first before moving forward. DevPilot-AI follows a sequential 1 → 10 curriculum to guarantee progressive pattern mastery!
+      </p>
+      <div class="flex items-center justify-center gap-3">
+        <button id="pl-btn-locked-cancel" class="pl-btn-modal-cancel text-xs py-2 px-5 font-medium rounded-lg">
+          Close
+        </button>
+        <button id="pl-btn-locked-goto" class="btn-primary text-xs py-2 px-5 font-medium flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+          <span id="pl-locked-goto-text">Go to Previous Problem</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Excessive Assistance Alert Modal (> 4 Non-100% Solves) -->
+  <div class="modal-backdrop hidden" id="pl-excessive-help-modal" role="dialog" aria-modal="true" aria-labelledby="pl-excessive-help-title">
+    <div class="modal-card pl-modal-card max-w-md p-6 text-center">
+      <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200 shadow-sm animate-pulse">
+        <span class="material-symbols-outlined text-[28px]">warning</span>
+      </div>
+      <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Pattern Mastery Alert</span>
+      <h3 class="pl-modal-title text-lg font-bold text-slate-900 mt-1 mb-2" id="pl-excessive-help-title">Pattern Flagged as Weak</h3>
+      <p class="pl-modal-subtitle text-sm text-slate-500 mb-5 leading-relaxed" id="pl-excessive-help-msg">
+        You have selected AI help or copy/paste on <strong class="text-amber-600" id="pl-excessive-help-count">5</strong> problems in this pattern. Exceeding 4 assisted solves flags this pattern as <strong class="text-amber-600">Weak</strong>.
+      </p>
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 text-left mb-6">
+        <strong class="flex items-center gap-1 font-semibold mb-1">
+          <span class="material-symbols-outlined text-[14px]">lightbulb</span>
+          Mastery Recommendation:
+        </strong>
+        Re-read the <em>Core Idea & Intuitive Mental Model</em> and try solving problems 100% independently (Full tumne kiya) to conquer technical interview patterns.
+      </div>
+      <div class="flex items-center justify-center gap-3">
+        <button id="pl-btn-excessive-review" class="btn-secondary text-xs py-2 px-4 font-medium flex items-center gap-1.5 rounded-lg">
+          <span class="material-symbols-outlined text-[16px]">menu_book</span>
+          <span>Review Pattern Guide</span>
+        </button>
+        <button id="pl-btn-excessive-dismiss" class="btn-primary text-xs py-2 px-4 font-medium rounded-lg">
+          I Understand
         </button>
       </div>
     </div>
@@ -648,6 +771,8 @@
   <script src="../js/core/app.js"></script>
   <script src="../js/data/dsaData.js"></script>
   <script src="../js/data/dsaPatternsData.js"></script>
+  <script src="../js/data/dsa/problemExplanations.js"></script>
+  <script src="../js/pages/dsaProblem.js"></script>
   <script src="../js/pages/dsa.js"></script>
   <script src="../js/pages/dsaPatterns.js"></script>
 </body>

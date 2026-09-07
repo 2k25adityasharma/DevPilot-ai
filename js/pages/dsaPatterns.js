@@ -19,6 +19,7 @@
   let currentArenaIndex = 0;
   let arenaScore = { correct: 0, total: 0, streak: 0 };
   let activeEvaluatingQuestion = null;
+  let currentPatternQuestions = [];
 
   const catalogFilterState = {
     search: '',
@@ -78,6 +79,21 @@
       solveModalClear: document.getElementById('pl-solve-modal-clear'),
       solveModalOptions: document.getElementById('pl-solve-modal-options'),
 
+      // Locked Question Sequence Modal
+      lockedModal: document.getElementById('pl-locked-modal'),
+      lockedModalStep: document.getElementById('pl-locked-modal-step'),
+      lockedModalTitle: document.getElementById('pl-locked-modal-title'),
+      lockedModalMsg: document.getElementById('pl-locked-modal-msg'),
+      btnLockedCancel: document.getElementById('pl-btn-locked-cancel'),
+      btnLockedGoto: document.getElementById('pl-btn-locked-goto'),
+      lockedGotoText: document.getElementById('pl-locked-goto-text'),
+
+      // Excessive Assistance Alert Modal
+      excessiveModal: document.getElementById('pl-excessive-help-modal'),
+      excessiveCount: document.getElementById('pl-excessive-help-count'),
+      btnExcessiveReview: document.getElementById('pl-btn-excessive-review'),
+      btnExcessiveDismiss: document.getElementById('pl-btn-excessive-dismiss'),
+
       // Weak patterns banner/section
       weakBanner: document.getElementById('pl-weak-section'),
       weakChipsList: document.getElementById('pl-weak-chips'),
@@ -120,10 +136,11 @@
    * Calculates the mastery level for a pattern:
    * 'Not Started' | 'Learning' | 'Practicing' | 'Mastered' | 'Weak'
    *
-   * Weak Criteria (User Specification):
+   * Weak Criteria:
    * 1. crossCount >= 5 (User has 5 or more failed/copied crosses in this pattern)
    * 2. helpCount > 3 (User clicked AI / other help on more than 3 questions in this pattern)
-   * 3. Pattern Recognition Quiz accuracy < 60%
+   * 3. nonSelfCount > 4 (User clicked non-100% options more than 4 times in this pattern)
+   * 4. Pattern Recognition Quiz accuracy < 60%
    */
   function calculatePatternMastery(pattern) {
     const pid = pattern.id;
@@ -136,18 +153,28 @@
 
     let crossCount = 0;
     let helpCount = 0;
+    let help30Count = 0;
+    let help50Count = 0;
     let selfCount = 0;
     let solvedCount = 0;
 
     questionIds.forEach(qid => {
       const ev = evaluations[qid];
       if (ev === 'cross') crossCount++;
-      if (ev === 'help') helpCount++;
+      if (ev === 'help' || ev === 'help30') {
+        helpCount++;
+        help30Count++;
+      }
+      if (ev === 'help50') {
+        helpCount++;
+        help50Count++;
+      }
       if (ev === 'self') selfCount++;
       if (dsaProgress[qid]) solvedCount++;
     });
 
-    const isWeakByEvaluation = crossCount >= 5 || helpCount > 3;
+    const nonSelfCount = crossCount + helpCount;
+    const isWeakByEvaluation = crossCount >= 5 || helpCount > 3 || nonSelfCount > 4;
     const isWeak = isWeakByEvaluation || isWeakByQuiz;
 
     const isAllSolved = questionIds.length > 0 && solvedCount >= questionIds.length;
@@ -160,6 +187,38 @@
   }
 
   /**
+   * Calculates deterministic Pattern Mastery Score (0 - 100%)
+   * Formula: 60% problem completion + 30% quiz accuracy + 10% revision
+   */
+  function calculatePatternMasteryScore(pattern) {
+    if (!pattern) return 0;
+    const questionIds = pattern.practiceQuestionIds || [];
+    const reviews = Storage.get('dsa_reviews', {}) || {};
+    let solved = 0;
+    let reviewed = 0;
+
+    questionIds.forEach(qid => {
+      if (dsaProgress[qid]) solved++;
+      if (reviews[qid]) reviewed++;
+    });
+
+    const completionRate = questionIds.length > 0 ? (solved / questionIds.length) : 0;
+
+    const quizRecord = patternStats.quizzes[pattern.id];
+    let quizAccuracy = 0;
+    if (quizRecord && quizRecord.total > 0) {
+      quizAccuracy = (quizRecord.correct || 0) / quizRecord.total;
+    } else if (patternStats.viewed[pattern.id]) {
+      quizAccuracy = 0.5;
+    }
+
+    const revisionRate = questionIds.length > 0 ? Math.min(1, reviewed / Math.max(1, solved || 1)) : 0;
+
+    const score = Math.round((completionRate * 60) + (quizAccuracy * 30) + (revisionRate * 10));
+    return Math.min(100, Math.max(0, score));
+  }
+
+  /**
    * Counts solved questions and evaluation breakdown for a given pattern
    */
   function getPatternSolvedCount(pattern) {
@@ -168,23 +227,37 @@
     let solved = 0;
     let crossCount = 0;
     let helpCount = 0;
+    let help30Count = 0;
+    let help50Count = 0;
     let selfCount = 0;
 
     questionIds.forEach(qid => {
       const ev = evaluations[qid];
       if (ev === 'cross') crossCount++;
-      if (ev === 'help') helpCount++;
+      if (ev === 'help' || ev === 'help30') {
+        helpCount++;
+        help30Count++;
+      }
+      if (ev === 'help50') {
+        helpCount++;
+        help50Count++;
+      }
       if (ev === 'self') selfCount++;
       if (dsaProgress[qid]) solved++;
     });
+
+    const nonSelfCount = crossCount + helpCount;
 
     return {
       solved,
       total: questionIds.length,
       crossCount,
       helpCount,
+      help30Count,
+      help50Count,
       selfCount,
-      isWeakByEvaluation: crossCount >= 5 || helpCount > 3
+      nonSelfCount,
+      isWeakByEvaluation: crossCount >= 5 || helpCount > 3 || nonSelfCount > 4
     };
   }
 
@@ -366,6 +439,7 @@
 
     dom.patternCardsGrid.innerHTML = filtered.map(pat => {
       const mastery = calculatePatternMastery(pat);
+      const masteryScore = calculatePatternMasteryScore(pat);
       const solvedStats = getPatternSolvedCount(pat);
       const pct = solvedStats.total > 0 ? Math.round((solvedStats.solved / solvedStats.total) * 100) : 0;
       const masteryClass = `mastery-${mastery.toLowerCase().replace(/\s+/g, '-')}`;
@@ -409,7 +483,7 @@
               <div class="pl-progress-mini-fill" style="width: ${pct}%;"></div>
             </div>
             <div class="pl-footer-actions">
-              <span class="pl-solved-ratio">${solvedStats.solved}/${solvedStats.total || 10} Solved</span>
+              <span class="pl-solved-ratio">${solvedStats.solved}/${solvedStats.total || 10} Solved • ${masteryScore}% Mastery</span>
               <button class="pl-btn-study" data-study-pattern="${pat.id}">
                 <span>Study Pattern</span>
                 <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
@@ -473,6 +547,8 @@
     if (patternQuestions.length === 0) {
       patternQuestions = allQuestions.filter(q => q.patternId === pat.id).slice(0, 10);
     }
+    currentPatternQuestions = patternQuestions;
+    const masteryScore = calculatePatternMasteryScore(pat);
 
     // Render curriculum content
     dom.studyViewContainer.innerHTML = `
@@ -489,7 +565,10 @@
         <div class="pl-study-hero-right">
           <div class="pl-study-mastery-card">
             <span class="pl-study-mastery-label">Mastery Status</span>
-            <span class="pl-mastery-badge mastery-${mastery.toLowerCase().replace(/\s+/g, '-')} text-sm px-3 py-1">${mastery}</span>
+            <div class="flex items-center gap-2">
+              <span class="pl-mastery-badge mastery-${mastery.toLowerCase().replace(/\s+/g, '-')} text-sm px-3 py-1">${mastery}</span>
+              <span class="font-bold text-sm text-indigo-600 font-mono">${masteryScore}%</span>
+            </div>
             <span class="pl-study-solved-stat text-xs text-slate-500 mt-2">${solvedStats.solved} / ${solvedStats.total || 10} Practice Problems Solved</span>
           </div>
         </div>
@@ -684,21 +763,31 @@
               <span class="material-symbols-outlined text-indigo-600">checklist</span>
               <span>9. Practice Problems (10 Curated Problems)</span>
             </h3>
-            <p class="text-xs text-slate-500">Rate honestly: <strong>5 Easy • 3 Medium • 2 Hard</strong>. ≥5 crosses or >3 AI solves flags pattern as Weak.</p>
+            <p class="text-xs text-slate-500">Sequential Mastery (1 → 10): <strong>5 Easy • 3 Medium • 2 Hard</strong>. ≥5 crosses or >4 non-100% solves flags pattern as Weak.</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
-            <span class="pl-breakdown-chip bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" title="Solved 100% on your own">
+            <span class="pl-breakdown-chip bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" title="Solved 100% on your own (Full tumne kiya)">
               <span class="material-symbols-outlined text-[13px]">verified</span>
-              <span>${solvedStats.selfCount} Self</span>
+              <span>${solvedStats.selfCount} - Self</span>
             </span>
-            <span class="pl-breakdown-chip ${solvedStats.helpCount > 3 ? 'bg-amber-500/20 text-amber-700 border border-amber-500/40 font-bold' : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'}" title="${solvedStats.helpCount > 3 ? 'More than 3 AI-assisted solves flags this pattern as Weak' : 'Solved with ~30% AI/Other help'}">
+            <span class="pl-breakdown-chip bg-amber-500/10 text-amber-600 border border-amber-500/20" title="Solved with ~30% AI/Hints help">
               <span class="material-symbols-outlined text-[13px]">psychology</span>
-              <span>${solvedStats.helpCount} AI Help ${solvedStats.helpCount > 3 ? '⚠️' : ''}</span>
+              <span>${solvedStats.help30Count || 0} - 30% Help</span>
             </span>
-            <span class="pl-breakdown-chip ${solvedStats.crossCount >= 5 ? 'bg-rose-500/20 text-rose-700 border border-rose-500/40 font-bold' : 'bg-rose-500/10 text-rose-600 border border-rose-500/20'}" title="${solvedStats.crossCount >= 5 ? '5 or more crosses flags this pattern as Weak' : 'Copy-pasted or failed attempts'}">
-              <span class="material-symbols-outlined text-[13px]">cancel</span>
-              <span>${solvedStats.crossCount} Crosses ${solvedStats.crossCount >= 5 ? '⚠️' : ''}</span>
+            <span class="pl-breakdown-chip bg-orange-500/10 text-orange-600 border border-orange-500/20" title="Solved with ~50% AI/Editorial help">
+              <span class="material-symbols-outlined text-[13px]">smart_toy</span>
+              <span>${solvedStats.help50Count || 0} - 50% Help</span>
             </span>
+            <span class="pl-breakdown-chip ${solvedStats.crossCount >= 5 ? 'bg-rose-500/20 text-rose-700 border border-rose-500/40 font-bold' : 'bg-rose-500/10 text-rose-600 border border-rose-500/20'}" title="${solvedStats.crossCount >= 5 ? '5 or more crosses flags this pattern as Weak' : 'Copy-pasted or direct solution'}">
+              <span class="material-symbols-outlined text-[13px]">content_paste_off</span>
+              <span>${solvedStats.crossCount} - Copied ${solvedStats.crossCount >= 5 ? '⚠️' : ''}</span>
+            </span>
+            ${solvedStats.nonSelfCount > 4 ? `
+              <span class="pl-breakdown-chip bg-rose-500/20 text-rose-700 border border-rose-500/40 font-bold" title="Exceeded 4 assisted/copied problems threshold">
+                <span class="material-symbols-outlined text-[13px]">warning</span>
+                <span>${solvedStats.nonSelfCount}/10 With Help (> 4 limit) ⚠️</span>
+              </span>
+            ` : ''}
             <span class="pl-practice-counter-badge text-xs font-semibold px-2.5 py-1 rounded-full ${solvedStats.solved === (solvedStats.total || 10) && solvedStats.total > 0 && !solvedStats.isWeakByEvaluation ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30' : 'bg-indigo-500/10 text-indigo-600 border border-indigo-500/30'}">
               ${solvedStats.solved} / ${solvedStats.total || 10} Solved
             </span>
@@ -711,8 +800,8 @@
             <div>
               <strong>Pattern Flagged as Weak:</strong>
               ${solvedStats.crossCount >= 5 ? `You have accumulated <strong>${solvedStats.crossCount} crosses</strong> (≥ 5). ` : ''}
-              ${solvedStats.helpCount > 3 ? `You used AI / other help on <strong>${solvedStats.helpCount} problems</strong> (> 3). ` : ''}
-              Re-attempt these problems independently without copying or AI to conquer this pattern!
+              ${solvedStats.nonSelfCount > 4 ? `You used AI help or copy/paste on <strong>${solvedStats.nonSelfCount} problems</strong> (> 4). ` : (solvedStats.helpCount > 3 ? `You used AI / other help on <strong>${solvedStats.helpCount} problems</strong> (> 3). ` : '')}
+              Re-attempt these problems independently (100% on your own) to conquer this pattern!
             </div>
           </div>
         ` : ''}
@@ -749,7 +838,7 @@
   }
 
   /**
-   * Generates HTML for practice questions inside the study view
+   * Generates HTML for practice questions inside the study view with strict sequential locking (1 -> 10)
    */
   function renderPracticeQuestionsList(questions) {
     if (!questions || questions.length === 0) {
@@ -758,7 +847,20 @@
 
     const evaluations = patternStats.evaluations || {};
 
-    return questions.map(q => {
+    return questions.map((q, idx) => {
+      const currentNum = idx + 1; // 1-based number
+      const prevNum = idx;
+      const prevQ = idx > 0 ? questions[idx - 1] : null;
+
+      // Sequential lock rule:
+      // Question 1 (idx === 0) is always unlocked.
+      // Question i (idx > 0) is locked unless ALL preceding questions 0..(idx-1) have been attempted/evaluated.
+      const prevQuestions = questions.slice(0, idx);
+      const isLocked = idx > 0 && !prevQuestions.every(prev => {
+        const evPrev = evaluations[prev.id];
+        return (evPrev && evPrev.length > 0) || !!dsaProgress[prev.id];
+      });
+
       const ev = evaluations[q.id];
       const isSolved = !!dsaProgress[q.id];
       const diffClass = (q.difficulty || 'easy').toLowerCase();
@@ -766,6 +868,40 @@
       const lcUrl = q.leetcodeUrl || '#';
       const signals = q.signals ? q.signals.join(' • ') : '';
 
+      if (isLocked) {
+        return `
+          <div class="dsa-question-row is-locked pl-locked-question" id="pl-qrow-${q.id}" data-qid="${q.id}" data-qnum="${currentNum}" data-prev-num="${prevNum}" data-prev-qid="${prevQ ? prevQ.id : ''}" data-prev-title="${prevQ ? escapeHtml(prevQ.title) : ''}">
+            <div class="dsa-question-left">
+              <button class="dsa-checkbox-container pl-trigger-locked cursor-pointer border-0 bg-transparent p-0" data-qid="${q.id}" data-qnum="${currentNum}" data-prev-num="${prevNum}" data-prev-qid="${prevQ ? prevQ.id : ''}" data-prev-title="${prevQ ? escapeHtml(prevQ.title) : ''}" title="Complete Question #${prevNum} first to unlock" aria-label="Question ${currentNum} is locked">
+                <span class="dsa-checkbox-custom dsa-checkbox-locked pl-eval-box pl-eval-box-locked">
+                  <span class="material-symbols-outlined text-[13px] leading-none">lock</span>
+                </span>
+              </button>
+              <span class="pl-seq-badge pl-seq-badge-locked">#${currentNum}</span>
+              <span class="dsa-lc-num text-slate-400">#${lcNum}</span>
+              <div class="dsa-question-info">
+                <div class="dsa-question-title-wrap">
+                  <span class="dsa-question-title text-slate-400 dark:text-slate-500" title="${escapeHtml(q.title)}">${escapeHtml(q.title)}</span>
+                </div>
+                ${signals ? `<div class="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5"><span class="material-symbols-outlined text-[12px]">radar</span><span>${escapeHtml(signals)}</span></div>` : ''}
+              </div>
+            </div>
+            <div class="dsa-question-right">
+              <button class="pl-locked-pill pl-trigger-locked" data-qid="${q.id}" data-qnum="${currentNum}" data-prev-num="${prevNum}" data-prev-qid="${prevQ ? prevQ.id : ''}" data-prev-title="${prevQ ? escapeHtml(prevQ.title) : ''}">
+                <span class="material-symbols-outlined text-[13px]">lock</span>
+                <span>Locked (Solve #${prevNum} first)</span>
+              </button>
+              <span class="dsa-badge-diff dsa-badge-${diffClass} opacity-60">${q.difficulty}</span>
+              <button class="dsa-btn-leetcode pl-locked-btn" disabled aria-disabled="true" title="Complete Question #${prevNum} first to unlock LeetCode link">
+                <span>Locked</span>
+                <span class="material-symbols-outlined text-[13px]">lock</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      // Unlocked Question Row
       let evalPillHtml = '';
       let rowStatusClass = '';
 
@@ -777,19 +913,27 @@
             <span>100% Self</span>
           </button>
         `;
-      } else if (ev === 'help') {
+      } else if (ev === 'help30' || ev === 'help') {
         rowStatusClass = 'is-solved status-help';
         evalPillHtml = `
-          <button class="pl-eval-pill pl-eval-pill-help pl-trigger-eval" data-qid="${q.id}" title="Click to change solve evaluation">
+          <button class="pl-eval-pill pl-eval-pill-help30 pl-trigger-eval" data-qid="${q.id}" title="Click to change solve evaluation">
             <span class="material-symbols-outlined text-[14px]">psychology</span>
-            <span>30% AI Help</span>
+            <span>30% Help</span>
+          </button>
+        `;
+      } else if (ev === 'help50') {
+        rowStatusClass = 'is-solved status-help50';
+        evalPillHtml = `
+          <button class="pl-eval-pill pl-eval-pill-help50 pl-trigger-eval" data-qid="${q.id}" title="Click to change solve evaluation">
+            <span class="material-symbols-outlined text-[14px]">smart_toy</span>
+            <span>50% Help</span>
           </button>
         `;
       } else if (ev === 'cross') {
         rowStatusClass = 'status-cross';
         evalPillHtml = `
           <button class="pl-eval-pill pl-eval-pill-cross pl-trigger-eval" data-qid="${q.id}" title="Click to change solve evaluation">
-            <span class="material-symbols-outlined text-[14px]">cancel</span>
+            <span class="material-symbols-outlined text-[14px]">content_paste_off</span>
             <span>Cross ✗</span>
           </button>
         `;
@@ -802,18 +946,43 @@
         `;
       }
 
+      // Checkbox Box Custom Styling & Exact Modal Evaluation Icon
+      let boxCustomClass = 'pl-eval-box';
+      let boxIconHtml = '';
+
+      if (ev === 'self') {
+        boxCustomClass += ' pl-eval-box-self dsa-checkbox-checked';
+        boxIconHtml = '<span class="material-symbols-outlined text-[15px] leading-none text-white">verified</span>';
+      } else if (ev === 'help30' || ev === 'help') {
+        boxCustomClass += ' pl-eval-box-help30 dsa-checkbox-checked';
+        boxIconHtml = '<span class="material-symbols-outlined text-[15px] leading-none text-white">psychology</span>';
+      } else if (ev === 'help50') {
+        boxCustomClass += ' pl-eval-box-help50 dsa-checkbox-checked';
+        boxIconHtml = '<span class="material-symbols-outlined text-[15px] leading-none text-white">smart_toy</span>';
+      } else if (ev === 'cross') {
+        boxCustomClass += ' pl-eval-box-cross dsa-checkbox-cross';
+        boxIconHtml = '<span class="material-symbols-outlined text-[15px] leading-none text-white">content_paste_off</span>';
+      } else if (isSolved) {
+        boxCustomClass += ' pl-eval-box-self dsa-checkbox-checked';
+        boxIconHtml = '<span class="material-symbols-outlined text-[15px] leading-none text-white">verified</span>';
+      } else {
+        boxCustomClass += ' pl-eval-box-empty';
+        boxIconHtml = '';
+      }
+
       return `
         <div class="dsa-question-row ${rowStatusClass}" id="pl-qrow-${q.id}">
           <div class="dsa-question-left">
             <button class="dsa-checkbox-container pl-trigger-eval cursor-pointer border-0 bg-transparent p-0" data-qid="${q.id}" title="Rate how you solved this problem" aria-label="Evaluate solve for ${escapeHtml(q.title)}">
-              <span class="dsa-checkbox-custom ${isSolved ? 'dsa-checkbox-checked' : ''} ${ev === 'cross' ? 'dsa-checkbox-cross' : ''}">
-                ${ev === 'cross' ? '<span class="material-symbols-outlined text-[13px] text-rose-600 leading-none">close</span>' : (isSolved ? '<span class="material-symbols-outlined text-[13px] text-white leading-none">check</span>' : '')}
+              <span class="dsa-checkbox-custom ${boxCustomClass}">
+                ${boxIconHtml}
               </span>
             </button>
+            <span class="pl-seq-badge">#${currentNum}</span>
             <span class="dsa-lc-num">#${lcNum}</span>
-            <div class="dsa-question-info">
+            <div class="dsa-question-info cursor-pointer hover:opacity-90 pl-practice-open-detail" data-open-detail="${q.id}" title="Click to view full 15-part step-by-step thought process">
               <div class="dsa-question-title-wrap">
-                <span class="dsa-question-title" title="${escapeHtml(q.title)}">${escapeHtml(q.title)}</span>
+                <span class="dsa-question-title hover:text-indigo-600 transition-colors" data-open-detail="${q.id}" title="${escapeHtml(q.title)}">${escapeHtml(q.title)}</span>
               </div>
               ${signals ? `<div class="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5"><span class="material-symbols-outlined text-[12px] text-indigo-500">radar</span><span>${escapeHtml(signals)}</span></div>` : ''}
             </div>
@@ -1108,6 +1277,7 @@
     window.dispatchEvent(event);
 
     renderDashboard();
+  }
 
   /**
    * Opens the Question Solve Evaluation Modal for a specific problem
@@ -1115,22 +1285,34 @@
   function openSolveEvaluationModal(qid) {
     if (!dom.solveModal) return;
     const allQuestions = window.dsaAllQuestions || [];
-    const q = allQuestions.find(item => item.id === qid);
+    let q = allQuestions.find(item => item.id === qid);
+    if (!q && window.dsaRoadmap) {
+      for (const cat of window.dsaRoadmap) {
+        for (const pat of cat.patterns) {
+          const found = pat.questions.find(item => item.id === qid);
+          if (found) { q = found; break; }
+        }
+        if (q) break;
+      }
+    }
     if (!q) return;
 
     activeEvaluatingQuestion = q;
 
-    if (dom.solveModalLcNum) dom.solveModalLcNum.textContent = `#${q.leetcodeNumber || ''}`;
+    const lcNum = q.leetcodeNumber || q.number || '';
+    if (dom.solveModalLcNum) dom.solveModalLcNum.textContent = lcNum ? `#${lcNum}` : '';
     if (dom.solveModalTitle) dom.solveModalTitle.textContent = q.title;
 
     // Highlight existing selection if any
     const ev = (patternStats.evaluations || {})[qid];
     const optButtons = dom.solveModal.querySelectorAll('.pl-solve-opt-btn');
     optButtons.forEach(btn => {
-      if (btn.dataset.solveType === ev) {
-        btn.classList.add('ring-2', 'ring-indigo-500', 'bg-indigo-50/50');
+      const bType = btn.dataset.solveType;
+      const isMatch = (bType === ev) || (bType === 'help30' && ev === 'help');
+      if (isMatch) {
+        btn.classList.add('ring-2', 'ring-indigo-500', 'bg-indigo-50/60', 'dark:bg-indigo-950/40');
       } else {
-        btn.classList.remove('ring-2', 'ring-indigo-500', 'bg-indigo-50/50');
+        btn.classList.remove('ring-2', 'ring-indigo-500', 'bg-indigo-50/60', 'dark:bg-indigo-950/40');
       }
     });
 
@@ -1150,7 +1332,7 @@
   }
 
   /**
-   * Handles user selecting a solve quality option (self | help | cross)
+   * Handles user selecting a solve quality option (self | help30 | help50 | cross)
    */
   function onSolveOptionSelected(solveType) {
     if (!activeEvaluatingQuestion) return;
@@ -1159,10 +1341,10 @@
     if (!patternStats.evaluations) patternStats.evaluations = {};
     patternStats.evaluations[qid] = solveType;
 
-    // If 'self' or 'help', mark as solved in dsaProgress
+    // If 'self' or 'help30' or 'help50' or 'help', mark as solved in dsaProgress
     // If 'cross', mark as not solved in dsaProgress
     dsaProgress = Storage.get('dsa_progress', {}) || {};
-    if (solveType === 'self' || solveType === 'help') {
+    if (solveType === 'self' || solveType === 'help30' || solveType === 'help50' || solveType === 'help') {
       dsaProgress[qid] = true;
     } else {
       delete dsaProgress[qid];
@@ -1173,15 +1355,30 @@
 
     closeSolveEvaluationModal();
 
+    // Check how many problems in this pattern have non-100% options
+    let nonSelfCount = 0;
+    if (currentPattern) {
+      const qids = currentPattern.practiceQuestionIds || [];
+      qids.forEach(id => {
+        const ev = patternStats.evaluations[id];
+        if (ev && ev !== 'self') nonSelfCount++;
+      });
+    }
+
     // Dispatch progress sync to Roadmap
     window.dispatchEvent(new CustomEvent('dsaProgressSync', {
-      detail: { qid, isChecked: solveType === 'self' || solveType === 'help', source: 'patternLearning' }
+      detail: { qid, isChecked: solveType !== 'cross', source: 'patternLearning' }
     }));
 
     renderDashboard();
 
     if (currentPattern) {
       renderPatternStudyContent(currentPattern);
+    }
+
+    // If user clicked non-100% options more than 4 times in this pattern, show excessive help blur popup!
+    if (nonSelfCount > 4 && solveType !== 'self') {
+      openExcessiveHelpModal(nonSelfCount, currentPattern ? currentPattern.name : 'this pattern');
     }
   }
 
@@ -1214,6 +1411,72 @@
       renderPatternStudyContent(currentPattern);
     }
   }
+
+  /**
+   * Opens the Locked Question Sequence Alert Modal
+   */
+  function openLockedModal(qNum, prevNum, prevQid, prevTitle) {
+    if (!dom.lockedModal) return;
+
+    if (dom.lockedModalStep) dom.lockedModalStep.textContent = `Question ${qNum} of 10`;
+    if (dom.lockedModalTitle) dom.lockedModalTitle.textContent = `Question #${qNum} is Locked`;
+    if (dom.lockedModalMsg) {
+      dom.lockedModalMsg.innerHTML = `Question #${qNum} is locked. You must solve or rate <strong>Question #${prevNum}${prevTitle ? ': ' + escapeHtml(prevTitle) : ''}</strong> first to unlock this problem. DevPilot-AI enforces a sequential 1 → 10 curriculum to ensure progressive mastery!`;
+    }
+    if (dom.lockedGotoText) dom.lockedGotoText.textContent = `Go to Question #${prevNum}`;
+
+    if (dom.btnLockedGoto) {
+      dom.btnLockedGoto.onclick = () => {
+        closeLockedModal();
+        if (prevQid) {
+          const targetRow = document.getElementById(`pl-qrow-${prevQid}`);
+          if (targetRow) {
+            targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            targetRow.classList.add('pl-row-highlight');
+            setTimeout(() => targetRow.classList.remove('pl-row-highlight'), 2500);
+          }
+        }
+      };
+    }
+
+    dom.lockedModal.classList.remove('hidden');
+    dom.lockedModal.classList.add('open');
+  }
+
+  /**
+   * Closes the Locked Question Sequence Alert Modal
+   */
+  function closeLockedModal() {
+    if (dom.lockedModal) {
+      dom.lockedModal.classList.remove('open');
+      dom.lockedModal.classList.add('hidden');
+    }
+  }
+
+  /**
+   * Opens the Excessive Assistance Alert Modal (> 4 Non-100% Solves)
+   */
+  function openExcessiveHelpModal(count, patName) {
+    if (!dom.excessiveModal) return;
+
+    if (dom.excessiveCount) dom.excessiveCount.textContent = count;
+    const msgEl = document.getElementById('pl-excessive-help-msg');
+    if (msgEl) {
+      msgEl.innerHTML = `You have selected AI help or copy/paste on <strong class="text-amber-600 dark:text-amber-400">${count} of 10 problems</strong> in <strong>${escapeHtml(patName)}</strong>. Exceeding 4 assisted solves flags this pattern as <strong class="text-amber-600 dark:text-amber-400">Weak</strong>.`;
+    }
+
+    dom.excessiveModal.classList.remove('hidden');
+    dom.excessiveModal.classList.add('open');
+  }
+
+  /**
+   * Closes the Excessive Assistance Alert Modal
+   */
+  function closeExcessiveHelpModal() {
+    if (dom.excessiveModal) {
+      dom.excessiveModal.classList.remove('open');
+      dom.excessiveModal.classList.add('hidden');
+    }
   }
 
   /**
@@ -1284,6 +1547,19 @@
     if (dom.btnBackToCatalog) {
       dom.btnBackToCatalog.addEventListener('click', closePatternStudyView);
     }
+
+    // Delegated click on practice questions to open Problem Detail
+    document.addEventListener('click', (e) => {
+      const detailTrigger = e.target.closest('#pl-practice-list [data-open-detail], #pl-practice-list .dsa-question-title, #pl-practice-list .dsa-question-info');
+      if (!detailTrigger) return;
+      if (detailTrigger.closest('.is-locked') || detailTrigger.closest('.pl-locked-question')) return;
+      if (e.target.closest('.pl-trigger-eval, .dsa-btn-leetcode')) return;
+
+      const qid = detailTrigger.dataset.openDetail || detailTrigger.dataset.qid || detailTrigger.closest('[data-open-detail]')?.dataset.openDetail || detailTrigger.closest('.dsa-question-row')?.id.replace('pl-qrow-', '');
+      if (qid && window.DsaProblemController && typeof window.DsaProblemController.openProblemDetail === 'function') {
+        window.DsaProblemController.openProblemDetail(qid, currentPatternQuestions, 'patterns');
+      }
+    });
 
     // 4. Catalog Search Input
     if (dom.catalogSearch) {
@@ -1435,18 +1711,71 @@
       });
     }
 
-    // Handle clicking evaluation options (Self, AI Help, Cross)
-    const solveOptButtons = document.querySelectorAll('.pl-solve-opt-btn');
-    solveOptButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const solveType = btn.dataset.solveType;
-        if (solveType) onSolveOptionSelected(solveType);
-      });
-    });
+    // 11. Locked Question Sequence Modal Controls
+    if (dom.btnLockedCancel) {
+      dom.btnLockedCancel.addEventListener('click', closeLockedModal);
+    }
 
-    // Delegated click for opening evaluation modal from question rows
+    if (dom.lockedModal) {
+      dom.lockedModal.addEventListener('click', (e) => {
+        if (e.target === dom.lockedModal) {
+          closeLockedModal();
+        }
+      });
+    }
+
+    // 12. Excessive Assistance Alert Modal Controls
+    if (dom.btnExcessiveDismiss) {
+      dom.btnExcessiveDismiss.addEventListener('click', closeExcessiveHelpModal);
+    }
+
+    if (dom.btnExcessiveReview) {
+      dom.btnExcessiveReview.addEventListener('click', () => {
+        closeExcessiveHelpModal();
+        const secMental = document.getElementById('sec-mental-model') || document.getElementById('sec-overview');
+        if (secMental) {
+          secMental.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    }
+
+    if (dom.excessiveModal) {
+      dom.excessiveModal.addEventListener('click', (e) => {
+        if (e.target === dom.excessiveModal) {
+          closeExcessiveHelpModal();
+        }
+      });
+    }
+
+    // Handle clicking evaluation options (Self, AI Help 30%, AI Help 50%, Cross)
+    if (dom.solveModalOptions) {
+      dom.solveModalOptions.addEventListener('click', (e) => {
+        const btn = e.target.closest('.pl-solve-opt-btn');
+        if (btn) {
+          e.preventDefault();
+          const solveType = btn.dataset.solveType;
+          if (solveType) onSolveOptionSelected(solveType);
+        }
+      });
+    }
+
+    // Delegated click for question rows (locked clicks & evaluation clicks)
     if (dom.studyViewContainer) {
       dom.studyViewContainer.addEventListener('click', (e) => {
+        // A. If clicked a locked question or its lock icon/pill
+        const lockedTrigger = e.target.closest('.pl-trigger-locked') || e.target.closest('.pl-locked-question');
+        if (lockedTrigger) {
+          e.preventDefault();
+          e.stopPropagation();
+          const qNum = lockedTrigger.dataset.qnum || (parseInt(lockedTrigger.dataset.qindex, 10) + 1) || 2;
+          const prevNum = lockedTrigger.dataset.prevNum || lockedTrigger.dataset.prevIndex || 1;
+          const prevQid = lockedTrigger.dataset.prevQid || '';
+          const prevTitle = lockedTrigger.dataset.prevTitle || '';
+          openLockedModal(qNum, prevNum, prevQid, prevTitle);
+          return;
+        }
+
+        // B. If clicked to evaluate an unlocked question
         const trigger = e.target.closest('.pl-trigger-eval');
         if (trigger) {
           e.preventDefault();
@@ -1456,6 +1785,12 @@
         }
       });
     }
+    // Listen for open evaluation modal requests from Roadmap
+    window.addEventListener('openDsaSolveModal', (e) => {
+      if (e.detail && e.detail.qid) {
+        openSolveEvaluationModal(e.detail.qid);
+      }
+    });
   }
 
   // Expose API on namespace
@@ -1463,7 +1798,8 @@
     init,
     openPatternStudyView,
     closePatternStudyView,
-    openTrainingArena
+    openTrainingArena,
+    openSolveEvaluationModal
   };
 
   // Run on DOM ready

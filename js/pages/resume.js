@@ -595,11 +595,41 @@ function initBuilderControls() {
   if (undoBtn) undoBtn.addEventListener('click', doUndo);
   if (redoBtn) redoBtn.addEventListener('click', doRedo);
 
+  // Reset / Restore Resume Modal
+  const resetBtn = document.getElementById('btn-reset-resume');
+  if (resetBtn) resetBtn.addEventListener('click', openResetModal);
+
+  const closeResetBtn = document.getElementById('close-reset-modal');
+  if (closeResetBtn) closeResetBtn.addEventListener('click', closeResetModal);
+
+  const cancelResetBtn = document.getElementById('btn-cancel-reset');
+  if (cancelResetBtn) cancelResetBtn.addEventListener('click', closeResetModal);
+
+  const resetBackdrop = document.getElementById('reset-modal-backdrop');
+  if (resetBackdrop) {
+    resetBackdrop.addEventListener('click', e => {
+      if (e.target === resetBackdrop) closeResetModal();
+    });
+  }
+
+  const confirmRestoreDefaultBtn = document.getElementById('btn-confirm-restore-default');
+  if (confirmRestoreDefaultBtn) confirmRestoreDefaultBtn.addEventListener('click', restoreDefaultResume);
+
+  const confirmRevertSavedBtn = document.getElementById('btn-confirm-revert-saved');
+  if (confirmRevertSavedBtn) confirmRevertSavedBtn.addEventListener('click', revertToSavedDraft);
+
+  const confirmClearAllBtn = document.getElementById('btn-confirm-clear-all');
+  if (confirmClearAllBtn) confirmClearAllBtn.addEventListener('click', clearAllResumeFields);
+
   // Keyboard shortcuts
   document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); doUndo(); }
     if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); doRedo(); }
     if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveDraft(); }
+    if (e.key === 'Escape') {
+      closeResetModal();
+      closeTemplateModal();
+    }
   });
 
   // AI Summary Assist
@@ -674,6 +704,106 @@ function doRedo() {
   updateLivePreview();
   updateAtsScore();
   showToast('Redone', 'info');
+}
+
+/* ============================================================
+   RESET / RESTORE RESUME ("JAISA THA BILKUL VAISE")
+   ============================================================ */
+function openResetModal() {
+  const backdrop = document.getElementById('reset-modal-backdrop');
+  if (backdrop) {
+    backdrop.style.display = 'flex';
+    document.getElementById('btn-confirm-restore-default')?.focus();
+  }
+}
+
+function closeResetModal() {
+  const backdrop = document.getElementById('reset-modal-backdrop');
+  if (backdrop) backdrop.style.display = 'none';
+}
+
+function restoreDefaultResume() {
+  pushUndo();
+  currentResume = JSON.parse(JSON.stringify(defaultResumeState));
+  if (currentResume.personal) {
+    currentResume.personal.phone = '+91 XXX XXX XXXX';
+  }
+  Storage.set('resume_data', currentResume);
+  populateFormFields();
+  renderDynamicLists();
+  updateLivePreview();
+  updateAtsScore();
+  updateHubStats();
+
+  const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const savedEl = document.getElementById('hub-stat-saved');
+  if (savedEl) savedEl.textContent = now;
+
+  closeResetModal();
+  showToast('Resume restored to original state! ("Jaisa tha bilkul vaise") ✨', 'success');
+}
+
+function revertToSavedDraft() {
+  const saved = Storage.get('resume_data', null);
+  if (!saved) {
+    showToast('No saved draft found. Restoring original sample resume instead.', 'info');
+    restoreDefaultResume();
+    return;
+  }
+  pushUndo();
+  currentResume = JSON.parse(JSON.stringify(saved));
+  populateFormFields();
+  renderDynamicLists();
+  updateLivePreview();
+  updateAtsScore();
+  updateHubStats();
+  closeResetModal();
+  showToast('Reverted to last saved resume draft! 🔄', 'info');
+}
+
+function clearAllResumeFields() {
+  pushUndo();
+  currentResume = {
+    personal: {
+      name: '',
+      title: '',
+      email: '',
+      phone: '',
+      location: '',
+      github: '',
+      linkedin: '',
+      portfolio: ''
+    },
+    summary: '',
+    skills: {
+      languages: '',
+      frontend: '',
+      backend: '',
+      databases: '',
+      tools: ''
+    },
+    experience: [],
+    projects: [],
+    education: [],
+    achievements: [],
+    certifications: []
+  };
+  Storage.set('resume_data', currentResume);
+  populateFormFields();
+  renderDynamicLists();
+  updateLivePreview();
+  updateAtsScore();
+  updateHubStats();
+  closeResetModal();
+  showToast('All resume fields cleared to blank canvas.', 'info');
+}
+
+if (typeof window !== 'undefined') {
+  window.openResetModal = openResetModal;
+  window.closeResetModal = closeResetModal;
+  window.restoreDefaultResume = restoreDefaultResume;
+  window.revertToSavedDraft = revertToSavedDraft;
+  window.clearAllResumeFields = clearAllResumeFields;
 }
 
 /* ============================================================

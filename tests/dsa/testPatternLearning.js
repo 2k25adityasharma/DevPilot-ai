@@ -414,6 +414,172 @@ runTest('TEST 10: Pattern is flagged Weak when >= 5 crosses or > 3 AI/help solve
   assert.strictEqual(res.mastery, 'Mastered', 'Pattern with all 10 solved and <=3 help must be Mastered');
 });
 
+// TEST 11: 4-Tier Honesty Evaluation Modal & Dedicated Blur Popups in HTML
+runTest('TEST 11: pages/dsa.html includes 4 honesty tiers, pl-locked-modal, and pl-excessive-help-modal', () => {
+  const dsaHtmlPath = path.join(rootDir, 'pages/dsa.html');
+  const html = fs.readFileSync(dsaHtmlPath, 'utf8');
+
+  // Check 4 honesty evaluation option data attributes
+  assert.ok(html.includes('data-solve-type="self"'), 'Missing data-solve-type="self"');
+  assert.ok(html.includes('data-solve-type="help30"'), 'Missing data-solve-type="help30"');
+  assert.ok(html.includes('data-solve-type="help50"'), 'Missing data-solve-type="help50"');
+  assert.ok(html.includes('data-solve-type="cross"'), 'Missing data-solve-type="cross"');
+
+  // Check new blur modal dialogs
+  assert.ok(html.includes('id="pl-locked-modal"'), 'Missing pl-locked-modal');
+  assert.ok(html.includes('id="pl-btn-locked-goto"'), 'Missing pl-btn-locked-goto');
+  assert.ok(html.includes('id="pl-excessive-help-modal"'), 'Missing pl-excessive-help-modal');
+  assert.ok(html.includes('id="pl-excessive-help-count"'), 'Missing pl-excessive-help-count');
+  assert.ok(html.includes('id="pl-btn-excessive-review"'), 'Missing pl-btn-excessive-review');
+});
+
+// TEST 12: Sequential 1 to 10 Progression & Lock Logic
+runTest('TEST 12: Sequential progression logic enforces Question 1 unlocked and Questions 2..10 locked until previous are evaluated', () => {
+  const questions = [
+    { id: 'q-1', title: 'Two Sum' },
+    { id: 'q-2', title: 'Valid Palindrome' },
+    { id: 'q-3', title: '3Sum' },
+    { id: 'q-4', title: 'Container With Most Water' },
+    { id: 'q-5', title: 'Trapping Rain Water' }
+  ];
+
+  let evaluations = {};
+  let dsaProgress = {};
+
+  function isQuestionLocked(idx) {
+    if (idx === 0) return false;
+    const prevQuestions = questions.slice(0, idx);
+    return !prevQuestions.every(prev => {
+      const ev = evaluations[prev.id];
+      return (ev && ev.length > 0) || !!dsaProgress[prev.id];
+    });
+  }
+
+  // 1. Initially: Q1 is unlocked, Q2..Q5 are locked
+  assert.strictEqual(isQuestionLocked(0), false, 'Q1 (index 0) must be unlocked initially');
+  assert.strictEqual(isQuestionLocked(1), true, 'Q2 (index 1) must be locked initially');
+  assert.strictEqual(isQuestionLocked(2), true, 'Q3 (index 2) must be locked initially');
+  assert.strictEqual(isQuestionLocked(3), true, 'Q4 (index 3) must be locked initially');
+
+  // 2. Evaluate Q1 with 'self' -> Q2 unlocks, Q3..Q5 remain locked
+  evaluations['q-1'] = 'self';
+  dsaProgress['q-1'] = true;
+  assert.strictEqual(isQuestionLocked(0), false, 'Q1 remains unlocked');
+  assert.strictEqual(isQuestionLocked(1), false, 'Q2 must unlock after Q1 is evaluated');
+  assert.strictEqual(isQuestionLocked(2), true, 'Q3 remains locked');
+
+  // 3. Evaluate Q2 with 'help30' -> Q3 unlocks
+  evaluations['q-2'] = 'help30';
+  dsaProgress['q-2'] = true;
+  assert.strictEqual(isQuestionLocked(2), false, 'Q3 must unlock after Q2 is evaluated');
+  assert.strictEqual(isQuestionLocked(3), true, 'Q4 remains locked');
+
+  // 4. Evaluate Q3 with 'cross' -> Q4 unlocks
+  evaluations['q-3'] = 'cross';
+  assert.strictEqual(isQuestionLocked(3), false, 'Q4 must unlock after Q3 is attempted (cross)');
+
+  // 5. Reset Q2 to unattempted -> Q3, Q4, Q5 lock again!
+  delete evaluations['q-2'];
+  delete dsaProgress['q-2'];
+  assert.strictEqual(isQuestionLocked(1), false, 'Q2 is unlocked since Q1 is done');
+  assert.strictEqual(isQuestionLocked(2), true, 'Q3 locks again because Q2 was cleared');
+  assert.strictEqual(isQuestionLocked(3), true, 'Q4 locks again because sequence broke at Q2');
+});
+
+// TEST 13: Non-100% Options (>4 Selections Threshold) Flags Pattern as Weak
+runTest('TEST 13: Selecting non-100% options (30%, 50%, cross) on > 4 questions flags pattern as Weak', () => {
+  const pat = dsaPatternsRoadmap[1];
+  const qids = pat.practiceQuestionIds;
+  let patternStats = { viewed: { [pat.id]: true }, quizzes: {}, weak: {}, evaluations: {} };
+  let dsaProgress = {};
+
+  function checkWeak() {
+    let crossCount = 0;
+    let helpCount = 0;
+    let selfCount = 0;
+    let solvedCount = 0;
+
+    qids.forEach(qid => {
+      const ev = patternStats.evaluations[qid];
+      if (ev === 'cross') crossCount++;
+      if (ev === 'help' || ev === 'help30' || ev === 'help50') helpCount++;
+      if (ev === 'self') selfCount++;
+      if (dsaProgress[qid]) solvedCount++;
+    });
+
+    const nonSelfCount = crossCount + helpCount;
+    return {
+      crossCount,
+      helpCount,
+      nonSelfCount,
+      isWeak: crossCount >= 5 || helpCount > 3 || nonSelfCount > 4
+    };
+  }
+
+  // 1. 5 self, 2 help30, 1 help50, 2 cross -> nonSelfCount = 5 (> 4), helpCount = 3 (<= 3), crossCount = 2 (< 5)
+  // This isolates nonSelfCount > 4 as the sole trigger for Weak!
+  patternStats.evaluations[qids[0]] = 'self';
+  patternStats.evaluations[qids[1]] = 'self';
+  patternStats.evaluations[qids[2]] = 'self';
+  patternStats.evaluations[qids[3]] = 'self';
+  patternStats.evaluations[qids[4]] = 'self';
+  patternStats.evaluations[qids[5]] = 'help30';
+  patternStats.evaluations[qids[6]] = 'help30';
+  patternStats.evaluations[qids[7]] = 'help50';
+  patternStats.evaluations[qids[8]] = 'cross';
+  patternStats.evaluations[qids[9]] = 'cross';
+
+  let status = checkWeak();
+  assert.strictEqual(status.nonSelfCount, 5, 'Must have 5 non-100% solves');
+  assert.strictEqual(status.helpCount, 3, 'Help count must be 3 (<= 3)');
+  assert.strictEqual(status.crossCount, 2, 'Cross count must be 2 (< 5)');
+  assert.strictEqual(status.isWeak, true, 'Must be flagged as Weak because nonSelfCount (5) > 4');
+
+  // 2. Reduce non-self count to 4 (change qids[9] to 'self') -> not weak
+  patternStats.evaluations[qids[9]] = 'self';
+  status = checkWeak();
+  assert.strictEqual(status.nonSelfCount, 4, 'Must have 4 non-100% solves');
+  assert.strictEqual(status.helpCount, 3, 'Help count is 3 (<= 3)');
+  assert.strictEqual(status.crossCount, 1, 'Cross count is 1 (< 5)');
+  assert.strictEqual(status.isWeak, false, 'Should NOT be weak when nonSelfCount <= 4, helpCount <= 3, and crossCount < 5');
+});
+
+// TEST 14: CSS Rules for Locked Rows, Pills, and Honesty Badges
+runTest('TEST 14: css/pages/dsa.css contains styling rules for locked questions, 30%/50% pills, and sequence badges', () => {
+  const cssPath = path.join(rootDir, 'css/pages/dsa.css');
+  const css = fs.readFileSync(cssPath, 'utf8');
+
+  assert.ok(css.includes('.dsa-question-row.is-locked'), 'Missing .dsa-question-row.is-locked CSS');
+  assert.ok(css.includes('.dsa-checkbox-custom.dsa-checkbox-locked'), 'Missing .dsa-checkbox-locked CSS');
+  assert.ok(css.includes('.pl-seq-badge'), 'Missing .pl-seq-badge CSS');
+  assert.ok(css.includes('.pl-locked-pill'), 'Missing .pl-locked-pill CSS');
+  assert.ok(css.includes('.pl-locked-btn'), 'Missing .pl-locked-btn CSS');
+  assert.ok(css.includes('.pl-eval-pill-help30'), 'Missing .pl-eval-pill-help30 CSS');
+  assert.ok(css.includes('.pl-eval-pill-help50'), 'Missing .pl-eval-pill-help50 CSS');
+});
+
+// TEST 15: Evaluation Checkbox Box Styling & Exact Modal Icon Synchronization
+runTest('TEST 15: Question evaluation boxes match modal selection icons (verified, psychology, smart_toy, content_paste_off) without duplicate CSS checkmarks', () => {
+  const cssPath = path.join(rootDir, 'css/pages/dsa.css');
+  const css = fs.readFileSync(cssPath, 'utf8');
+
+  assert.ok(css.includes('.pl-eval-box'), 'Missing .pl-eval-box CSS');
+  assert.ok(css.includes('.pl-eval-box-self'), 'Missing .pl-eval-box-self CSS');
+  assert.ok(css.includes('.pl-eval-box-help30'), 'Missing .pl-eval-box-help30 CSS');
+  assert.ok(css.includes('.pl-eval-box-help50'), 'Missing .pl-eval-box-help50 CSS');
+  assert.ok(css.includes('.pl-eval-box-cross'), 'Missing .pl-eval-box-cross CSS');
+  assert.ok(css.includes('.pl-eval-box::after'), 'Missing .pl-eval-box::after suppression CSS');
+  assert.ok(css.includes('display: none !important'), 'Missing display: none !important on ::after');
+
+  const jsPath = path.join(rootDir, 'js/pages/dsaPatterns.js');
+  const js = fs.readFileSync(jsPath, 'utf8');
+
+  assert.ok(js.includes('verified'), 'dsaPatterns.js must render verified icon for self evaluation');
+  assert.ok(js.includes('psychology'), 'dsaPatterns.js must render psychology icon for help30 evaluation');
+  assert.ok(js.includes('smart_toy'), 'dsaPatterns.js must render smart_toy icon for help50 evaluation');
+  assert.ok(js.includes('content_paste_off'), 'dsaPatterns.js must render content_paste_off icon for cross evaluation');
+});
+
 console.log('\n================================================================');
 console.log(` Test Results: ${passedTests} / ${totalTests} Passed`);
 console.log('================================================================\n');

@@ -9,10 +9,14 @@
 
   // State
   let progress = {};
+  let patternStats = {};
+  let reviews = {};
+  let currentVisibleQuestionsList = [];
   const filterState = {
     search: '',
     difficulty: 'all',
-    status: 'all'
+    status: 'all',
+    quality: 'all'
   };
 
   // DOM Elements cache
@@ -28,8 +32,16 @@
       return;
     }
 
-    // Load progress from Storage
+    // Load progress, reviews, and honesty evaluations from Storage
     progress = Storage.get('dsa_progress', {}) || {};
+    reviews = Storage.get('dsa_reviews', {}) || {};
+    patternStats = Storage.get('dsa_pattern_stats', {
+      viewed: {},
+      quizzes: {},
+      weak: {},
+      evaluations: {}
+    }) || { viewed: {}, quizzes: {}, weak: {}, evaluations: {} };
+    if (!patternStats.evaluations) patternStats.evaluations = {};
 
     // Cache elements
     dom = {
@@ -43,6 +55,14 @@
       mediumFill: document.getElementById('dsa-medium-fill'),
       hardCount: document.getElementById('dsa-hard-count'),
       hardFill: document.getElementById('dsa-hard-fill'),
+      statSelf: document.getElementById('dsa-count-self'),
+      statHelp30: document.getElementById('dsa-count-help30'),
+      statHelp50: document.getElementById('dsa-count-help50'),
+      statCross: document.getElementById('dsa-count-cross'),
+      chipSelf: document.getElementById('dsa-stat-self'),
+      chipHelp30: document.getElementById('dsa-stat-help30'),
+      chipHelp50: document.getElementById('dsa-stat-help50'),
+      chipCross: document.getElementById('dsa-stat-cross'),
       searchInput: document.getElementById('dsa-search-input'),
       searchClearBtn: document.getElementById('dsa-search-clear'),
       searchKbd: document.getElementById('dsa-search-kbd'),
@@ -160,6 +180,31 @@
       }
     });
 
+    // Update honesty breakdown counts
+    let countSelf = 0;
+    let countHelp30 = 0;
+    let countHelp50 = 0;
+    let countCross = 0;
+
+    const evaluations = (patternStats && patternStats.evaluations) ? patternStats.evaluations : {};
+    window.dsaRoadmap.forEach(cat => {
+      cat.patterns.forEach(pat => {
+        pat.questions.forEach(q => {
+          const ev = evaluations[q.id];
+          if (ev === 'self') countSelf++;
+          else if (ev === 'help30' || ev === 'help') countHelp30++;
+          else if (ev === 'help50') countHelp50++;
+          else if (ev === 'cross') countCross++;
+          else if (progress[q.id]) countSelf++;
+        });
+      });
+    });
+
+    if (dom.statSelf) dom.statSelf.textContent = countSelf;
+    if (dom.statHelp30) dom.statHelp30.textContent = countHelp30;
+    if (dom.statHelp50) dom.statHelp50.textContent = countHelp50;
+    if (dom.statCross) dom.statCross.textContent = countCross;
+
     // Update sidebar counts
     window.dsaRoadmap.forEach(cat => {
       const countBadge = document.getElementById(`nav-count-${cat.id}`);
@@ -255,6 +300,7 @@
     const cleanTokens = rawQuery.replace(/^#+/, '').split(/\s+/).filter(Boolean);
     let visibleCategoriesCount = 0;
     let visibleQuestionsCount = 0;
+    currentVisibleQuestionsList = [];
 
     const categoriesHtml = window.dsaRoadmap.map((cat, catIdx) => {
       const catStats = computeCategoryStats(cat);
@@ -286,9 +332,21 @@
 
           // Status filter
           const isSolved = !!progress[q.id];
+          const ev = (patternStats.evaluations || {})[q.id];
+          const isReviewed = !!reviews[q.id] || ev === 'help30' || ev === 'help' || ev === 'help50' || ev === 'cross';
           if (filterState.status === 'solved' && !isSolved) return false;
           if (filterState.status === 'unsolved' && isSolved) return false;
+          if (filterState.status === 'review' && !isReviewed) return false;
 
+          // Solve Quality filter (Self, 30% Help, 50% Help, Copied)
+          if (filterState.quality !== 'all') {
+            if (filterState.quality === 'self' && !(ev === 'self' || (!ev && isSolved))) return false;
+            if (filterState.quality === 'help30' && !(ev === 'help30' || ev === 'help')) return false;
+            if (filterState.quality === 'help50' && ev !== 'help50') return false;
+            if (filterState.quality === 'cross' && ev !== 'cross') return false;
+          }
+
+          currentVisibleQuestionsList.push(q);
           return true;
         });
 
@@ -310,24 +368,95 @@
       const patternsHtml = matchingPatterns.map(pat => {
         const questionsHtml = pat.visibleQuestions.map(q => {
           const isSolved = !!progress[q.id];
+          const isReviewed = !!reviews[q.id];
           const diffClass = q.difficulty.toLowerCase();
           const lcNum = q.leetcodeNumber || q.number || '';
           const lcUrl = q.leetcodeUrl || q.url || '#';
           const dsName = q.pattern || catName;
           const patName = q.subPattern || pat.name || 'General';
           const titleHtml = highlightMatch(q.title, filterState.search);
+          const ev = (patternStats.evaluations || {})[q.id];
+
+          // Checkbox Box Custom Styling & Exact Modal Evaluation Icon (NO LOCKS ON ROADMAP)
+          let boxCustomClass = 'pl-eval-box';
+          let boxIconHtml = '';
+          let evalPillHtml = '';
+          let rowStatusClass = '';
+
+          if (ev === 'self') {
+            rowStatusClass = 'is-solved status-self';
+            boxCustomClass += ' pl-eval-box-self dsa-checkbox-checked';
+            boxIconHtml = '<span class="material-symbols-outlined text-[15px] leading-none text-white">verified</span>';
+            evalPillHtml = `
+              <button class="pl-eval-pill pl-eval-pill-self dsa-trigger-eval cursor-pointer" data-qid="${q.id}" title="Click to change solve evaluation">
+                <span class="material-symbols-outlined text-[14px]">verified</span>
+                <span>100% Self</span>
+              </button>
+            `;
+          } else if (ev === 'help30' || ev === 'help') {
+            rowStatusClass = 'is-solved status-help';
+            boxCustomClass += ' pl-eval-box-help30 dsa-checkbox-checked';
+            boxIconHtml = '<span class="material-symbols-outlined text-[15px] leading-none text-white">psychology</span>';
+            evalPillHtml = `
+              <button class="pl-eval-pill pl-eval-pill-help30 dsa-trigger-eval cursor-pointer" data-qid="${q.id}" title="Click to change solve evaluation">
+                <span class="material-symbols-outlined text-[14px]">psychology</span>
+                <span>30% Help</span>
+              </button>
+            `;
+          } else if (ev === 'help50') {
+            rowStatusClass = 'is-solved status-help50';
+            boxCustomClass += ' pl-eval-box-help50 dsa-checkbox-checked';
+            boxIconHtml = '<span class="material-symbols-outlined text-[15px] leading-none text-white">smart_toy</span>';
+            evalPillHtml = `
+              <button class="pl-eval-pill pl-eval-pill-help50 dsa-trigger-eval cursor-pointer" data-qid="${q.id}" title="Click to change solve evaluation">
+                <span class="material-symbols-outlined text-[14px]">smart_toy</span>
+                <span>50% Help</span>
+              </button>
+            `;
+          } else if (ev === 'cross') {
+            rowStatusClass = 'status-cross';
+            boxCustomClass += ' pl-eval-box-cross dsa-checkbox-cross';
+            boxIconHtml = '<span class="material-symbols-outlined text-[15px] leading-none text-white">content_paste_off</span>';
+            evalPillHtml = `
+              <button class="pl-eval-pill pl-eval-pill-cross dsa-trigger-eval cursor-pointer" data-qid="${q.id}" title="Click to change solve evaluation">
+                <span class="material-symbols-outlined text-[14px]">content_paste_off</span>
+                <span>Cross ✗</span>
+              </button>
+            `;
+          } else if (isSolved) {
+            rowStatusClass = 'is-solved status-self';
+            boxCustomClass += ' pl-eval-box-self dsa-checkbox-checked';
+            boxIconHtml = '<span class="material-symbols-outlined text-[15px] leading-none text-white">verified</span>';
+            evalPillHtml = `
+              <button class="pl-eval-pill pl-eval-pill-self dsa-trigger-eval cursor-pointer" data-qid="${q.id}" title="Click to change solve evaluation">
+                <span class="material-symbols-outlined text-[14px]">verified</span>
+                <span>100% Self</span>
+              </button>
+            `;
+          } else {
+            boxCustomClass += ' pl-eval-box-empty';
+            boxIconHtml = '';
+            evalPillHtml = `
+              <button class="pl-eval-pill pl-eval-pill-unattempted dsa-trigger-eval cursor-pointer" data-qid="${q.id}" title="Click to evaluate your solve">
+                <span class="material-symbols-outlined text-[14px]">rate_review</span>
+                <span>Rate Solve</span>
+              </button>
+            `;
+          }
 
           return `
-            <div class="dsa-question-row ${isSolved ? 'is-solved' : ''}" id="row-${q.id}">
+            <div class="dsa-question-row ${rowStatusClass}" id="row-${q.id}">
               <div class="dsa-question-left">
-                <label class="dsa-checkbox-container" title="Mark as solved">
-                  <input type="checkbox" class="dsa-checkbox-input" data-qid="${q.id}" ${isSolved ? 'checked' : ''} aria-label="Mark ${escapeHtml(q.title)} as solved"/>
-                  <span class="dsa-checkbox-custom"></span>
-                </label>
+                <button class="dsa-checkbox-container dsa-trigger-eval cursor-pointer border-0 bg-transparent p-0" data-qid="${q.id}" title="Rate how you solved this problem" aria-label="Evaluate solve for ${escapeHtml(q.title)}">
+                  <span class="dsa-checkbox-custom ${boxCustomClass}">
+                    ${boxIconHtml}
+                  </span>
+                </button>
                 <span class="dsa-lc-num">#${lcNum}</span>
-                <div class="dsa-question-info">
+                <div class="dsa-question-info cursor-pointer hover:opacity-90" data-open-detail="${q.id}" title="Click to open 15-point problem explanation">
                   <div class="dsa-question-title-wrap">
-                    <span class="dsa-question-title" title="${escapeHtml(q.title)}">${titleHtml}</span>
+                    <span class="dsa-question-title hover:text-indigo-600 transition-colors" data-open-detail="${q.id}" title="${escapeHtml(q.title)}">${titleHtml}</span>
+                    ${isReviewed ? `<span class="inline-flex items-center text-amber-500 ml-1.5" title="In Review (★)"><span class="material-symbols-outlined text-[15px]">star</span></span>` : ''}
                   </div>
                   <div class="dsa-question-tags">
                     <span class="dsa-tag-ds" title="Data Structure: ${escapeHtml(dsName)}">
@@ -342,6 +471,7 @@
                 </div>
               </div>
               <div class="dsa-question-right">
+                ${evalPillHtml}
                 <span class="dsa-badge-diff dsa-badge-${diffClass}">${q.difficulty}</span>
                 <a href="${lcUrl}" target="_blank" rel="noopener noreferrer" class="dsa-btn-leetcode" aria-label="Open ${escapeHtml(q.title)} on LeetCode">
                   <span>Solve</span>
@@ -396,11 +526,21 @@
 
     // Update results counter badge
     if (dom.resultsBadge) {
-      const isFiltered = filterState.search || filterState.difficulty !== 'all' || filterState.status !== 'all';
-      if (isFiltered) {
-        dom.resultsBadge.textContent = `${visibleQuestionsCount} of 260 Problems`;
+      const stats = computeStats();
+      const totalRoadmapQuestions = stats.total || 260;
+      const isFiltered = filterState.search || filterState.difficulty !== 'all' || filterState.status !== 'all' || filterState.quality !== 'all';
+      if (filterState.quality !== 'all') {
+        const qualityLabels = {
+          self: '100% Self',
+          help30: '30% Help',
+          help50: '50% Help',
+          cross: 'Copied'
+        };
+        dom.resultsBadge.textContent = `${visibleQuestionsCount} of ${totalRoadmapQuestions} (${qualityLabels[filterState.quality] || filterState.quality})`;
+      } else if (isFiltered) {
+        dom.resultsBadge.textContent = `${visibleQuestionsCount} of ${totalRoadmapQuestions} Problems`;
       } else {
-        dom.resultsBadge.textContent = `260 Problems`;
+        dom.resultsBadge.textContent = `${totalRoadmapQuestions} Problems`;
       }
     }
 
@@ -418,8 +558,43 @@
    * Attaches interactive event listeners
    */
   function attachEventListeners() {
-    // 1. Delegated checkbox toggling on questions container
+    // 1. Delegated click on questions container to open Problem Detail or Honesty Evaluation
     if (dom.questionsContainer) {
+      dom.questionsContainer.addEventListener('click', (e) => {
+        // If clicking LeetCode external solve button, let standard target="_blank" handle it
+        if (e.target.closest('.dsa-btn-leetcode')) return;
+
+        // Honesty evaluation modal trigger
+        const evalTrigger = e.target.closest('.dsa-trigger-eval');
+        if (evalTrigger) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const qid = evalTrigger.dataset.qid;
+          if (!qid) return;
+
+          if (window.DsaPatternController && typeof window.DsaPatternController.openSolveEvaluationModal === 'function') {
+            window.DsaPatternController.openSolveEvaluationModal(qid);
+          } else {
+            window.dispatchEvent(new CustomEvent('openDsaSolveModal', { detail: { qid } }));
+          }
+          return;
+        }
+
+        // Problem detail trigger (click problem title, tags, or question info)
+        const detailTrigger = e.target.closest('[data-open-detail], .dsa-question-title, .dsa-question-info, .dsa-lc-num');
+        if (detailTrigger) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const qid = detailTrigger.dataset.openDetail || detailTrigger.dataset.qid || detailTrigger.closest('[data-open-detail]')?.dataset.openDetail || detailTrigger.closest('.dsa-question-row')?.id.replace('row-', '');
+          if (qid && window.DsaProblemController && typeof window.DsaProblemController.openProblemDetail === 'function') {
+            window.DsaProblemController.openProblemDetail(qid, currentVisibleQuestionsList, 'roadmap');
+          }
+        }
+      });
+
+      // Backward-compatible change listener if an input checkbox is used
       dom.questionsContainer.addEventListener('change', (e) => {
         const checkbox = e.target.closest('.dsa-checkbox-input');
         if (!checkbox) return;
@@ -434,31 +609,14 @@
           delete progress[qid];
         }
 
-        // Persist to localStorage
         Storage.set('dsa_progress', progress);
 
-        // Dispatch sync event for Pattern Learning
         window.dispatchEvent(new CustomEvent('dsaProgressSync', {
           detail: { qid, isChecked, source: 'roadmap' }
         }));
 
-        // Update row styling
-        const row = document.getElementById(`row-${qid}`);
-        if (row) {
-          if (isChecked) {
-            row.classList.add('is-solved');
-          } else {
-            row.classList.remove('is-solved');
-          }
-        }
-
-        // Update progress counters without full page re-render
         updateProgressUI();
-
-        // If status filter is active, re-render to reflect new filter state
-        if (filterState.status !== 'all') {
-          renderQuestions();
-        }
+        renderQuestions();
       });
     }
 
@@ -582,12 +740,47 @@
       });
     }
 
+    // 6b. Solve Quality filter chips
+    function updateQualityChipsUI() {
+      [
+        { el: dom.chipSelf, quality: 'self' },
+        { el: dom.chipHelp30, quality: 'help30' },
+        { el: dom.chipHelp50, quality: 'help50' },
+        { el: dom.chipCross, quality: 'cross' }
+      ].forEach(({ el, quality }) => {
+        if (el) {
+          el.classList.toggle('is-active', filterState.quality === quality);
+        }
+      });
+    }
+
+    [
+      { el: dom.chipSelf, quality: 'self', label: '100% Self' },
+      { el: dom.chipHelp30, quality: 'help30', label: '~30% AI Help' },
+      { el: dom.chipHelp50, quality: 'help50', label: '~50% Editorial Help' },
+      { el: dom.chipCross, quality: 'cross', label: 'Copied Solution' }
+    ].forEach(({ el, quality, label }) => {
+      if (el) {
+        el.classList.add('is-interactive');
+        el.setAttribute('role', 'button');
+        el.setAttribute('tabindex', '0');
+        el.setAttribute('title', `Click to filter problems solved with ${label}`);
+        el.addEventListener('click', () => {
+          filterState.quality = (filterState.quality === quality) ? 'all' : quality;
+          updateQualityChipsUI();
+          renderQuestions();
+        });
+      }
+    });
+
     // 7. Clear Filters button in empty state
     if (dom.btnClearFilters) {
       dom.btnClearFilters.addEventListener('click', () => {
         filterState.search = '';
         filterState.difficulty = 'all';
         filterState.status = 'all';
+        filterState.quality = 'all';
+        updateQualityChipsUI();
 
         if (dom.searchInput) dom.searchInput.value = '';
         updateSearchControls();
@@ -641,6 +834,9 @@
       dom.confirmResetBtn.addEventListener('click', () => {
         Storage.remove('dsa_progress');
         progress = {};
+        patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
+        patternStats.evaluations = {};
+        Storage.set('dsa_pattern_stats', patternStats);
         dom.resetModal.classList.remove('open');
         dom.resetModal.classList.add('hidden');
         updateProgressUI();
@@ -654,26 +850,22 @@
       });
     }
 
-    // 9. Bidirectional progress sync listener from Pattern Learning view
+    // 9. Bidirectional progress & evaluation sync listener
     window.addEventListener('dsaProgressSync', (e) => {
       if (e.detail && e.detail.source === 'roadmap') return;
       progress = Storage.get('dsa_progress', {}) || {};
-      const { qid, isChecked } = e.detail || {};
-
-      if (qid) {
-        const row = document.getElementById(`row-${qid}`);
-        if (row) {
-          const checkbox = row.querySelector('.dsa-checkbox-input');
-          if (checkbox) checkbox.checked = isChecked;
-          if (isChecked) row.classList.add('is-solved');
-          else row.classList.remove('is-solved');
-        }
-      }
+      reviews = Storage.get('dsa_reviews', {}) || {};
+      patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
+      if (!patternStats.evaluations) patternStats.evaluations = {};
 
       updateProgressUI();
-      if (filterState.status !== 'all') {
-        renderQuestions();
-      }
+      renderQuestions();
+    });
+
+    // 10. Review status sync listener
+    window.addEventListener('dsaReviewSync', () => {
+      reviews = Storage.get('dsa_reviews', {}) || {};
+      renderQuestions();
     });
   }
 
