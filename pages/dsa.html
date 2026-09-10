@@ -171,7 +171,7 @@
           </div>
         </div>
 
-        <!-- View Switcher Pills: Roadmap vs Pattern Learning vs Revision -->
+        <!-- View Switcher Pills: Roadmap vs Pattern Learning -->
         <div class="dsa-view-switcher" role="tablist" aria-label="DSA Views">
           <button class="dsa-tab-pill active" id="tab-btn-roadmap" role="tab" aria-selected="true">
             <span class="material-symbols-outlined text-[18px]">alt_route</span>
@@ -181,10 +181,6 @@
             <span class="material-symbols-outlined text-[18px]">psychology</span>
             <span>Pattern Learning</span>
             <span class="pl-tab-glow-badge">New</span>
-          </button>
-          <button class="dsa-tab-pill" id="tab-btn-revision" role="tab" aria-selected="false">
-            <span class="material-symbols-outlined text-[18px]">history_edu</span>
-            <span>Revision</span>
           </button>
         </div>
       </div>
@@ -558,12 +554,7 @@
       </div>
       <!-- /dsa-pattern-learning-view -->
 
-      <!-- Dedicated Revision Dashboard View Container -->
-      <div id="dsa-revision-view" class="hidden">
-        <!-- Rendered dynamically by dsaProblem.js -->
-      </div>
-
-      <!-- Problem Detail View Container (15-Point Thought Process) -->
+      <!-- Dedicated Question Explanation View Container (15-Point Deep Dive) -->
       <div id="dsa-problem-detail-view" class="hidden">
         <!-- Rendered dynamically by dsaProblem.js -->
       </div>
@@ -772,6 +763,7 @@
   <script src="../js/data/dsaData.js"></script>
   <script src="../js/data/dsaPatternsData.js"></script>
   <script src="../js/data/dsa/problemExplanations.js"></script>
+  <script src="../js/data/dsa/explanations/array.js"></script>
   <script src="../js/pages/dsaProblem.js"></script>
   <script src="../js/pages/dsa.js"></script>
   <script src="../js/pages/dsaPatterns.js"></script>

@@ -50,6 +50,18 @@
     }) || { viewed: {}, quizzes: {}, weak: {}, evaluations: {} };
     if (!patternStats.evaluations) patternStats.evaluations = {};
 
+    // Auto-heal/sync any evaluated questions into dsaProgress
+    let needsProgressSync = false;
+    Object.keys(patternStats.evaluations).forEach(qid => {
+      if (patternStats.evaluations[qid] && !dsaProgress[qid]) {
+        dsaProgress[qid] = true;
+        needsProgressSync = true;
+      }
+    });
+    if (needsProgressSync) {
+      Storage.set('dsa_progress', dsaProgress);
+    }
+
     // Cache elements
     dom = {
       // Main container & views
@@ -170,7 +182,7 @@
         help50Count++;
       }
       if (ev === 'self') selfCount++;
-      if (dsaProgress[qid]) solvedCount++;
+      if (dsaProgress[qid] || (patternStats.evaluations && patternStats.evaluations[qid])) solvedCount++;
     });
 
     const nonSelfCount = crossCount + helpCount;
@@ -198,7 +210,7 @@
     let reviewed = 0;
 
     questionIds.forEach(qid => {
-      if (dsaProgress[qid]) solved++;
+      if (dsaProgress[qid] || (patternStats.evaluations && patternStats.evaluations[qid])) solved++;
       if (reviews[qid]) reviewed++;
     });
 
@@ -243,7 +255,7 @@
         help50Count++;
       }
       if (ev === 'self') selfCount++;
-      if (dsaProgress[qid]) solved++;
+      if (dsaProgress[qid] || ev) solved++;
     });
 
     const nonSelfCount = crossCount + helpCount;
@@ -980,9 +992,9 @@
             </button>
             <span class="pl-seq-badge">#${currentNum}</span>
             <span class="dsa-lc-num">#${lcNum}</span>
-            <div class="dsa-question-info cursor-pointer hover:opacity-90 pl-practice-open-detail" data-open-detail="${q.id}" title="Click to view full 15-part step-by-step thought process">
+            <div class="dsa-question-info">
               <div class="dsa-question-title-wrap">
-                <span class="dsa-question-title hover:text-indigo-600 transition-colors" data-open-detail="${q.id}" title="${escapeHtml(q.title)}">${escapeHtml(q.title)}</span>
+                <span class="dsa-question-title font-medium text-slate-800" title="${escapeHtml(q.title)}">${escapeHtml(q.title)}</span>
               </div>
               ${signals ? `<div class="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5"><span class="material-symbols-outlined text-[12px] text-indigo-500">radar</span><span>${escapeHtml(signals)}</span></div>` : ''}
             </div>
@@ -990,6 +1002,10 @@
           <div class="dsa-question-right">
             ${evalPillHtml}
             <span class="dsa-badge-diff dsa-badge-${diffClass}">${q.difficulty}</span>
+            <button class="dsa-btn-explain cursor-pointer" data-open-explain="${q.id}" title="View full 15-point code explanation and walkthrough" aria-label="Explain ${escapeHtml(q.title)}">
+              <span class="material-symbols-outlined text-[15px]">menu_book</span>
+              <span>Explain</span>
+            </button>
             <a href="${lcUrl}" target="_blank" rel="noopener noreferrer" class="dsa-btn-leetcode" aria-label="Open ${escapeHtml(q.title)} on LeetCode">
               <span>Solve</span>
               <span class="material-symbols-outlined">open_in_new</span>
@@ -1299,6 +1315,11 @@
 
     activeEvaluatingQuestion = q;
 
+    // Refresh state from Storage so it's always up-to-date with any resets or changes
+    patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
+    if (!patternStats.evaluations) patternStats.evaluations = {};
+    dsaProgress = Storage.get('dsa_progress', {}) || {};
+
     const lcNum = q.leetcodeNumber || q.number || '';
     if (dom.solveModalLcNum) dom.solveModalLcNum.textContent = lcNum ? `#${lcNum}` : '';
     if (dom.solveModalTitle) dom.solveModalTitle.textContent = q.title;
@@ -1338,17 +1359,14 @@
     if (!activeEvaluatingQuestion) return;
     const qid = activeEvaluatingQuestion.id;
 
+    // Always fetch fresh patternStats and dsaProgress from Storage
+    patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
     if (!patternStats.evaluations) patternStats.evaluations = {};
     patternStats.evaluations[qid] = solveType;
 
-    // If 'self' or 'help30' or 'help50' or 'help', mark as solved in dsaProgress
-    // If 'cross', mark as not solved in dsaProgress
+    // All solve quality evaluations (self, help30, help50, cross) mark the problem as completed/attempted
     dsaProgress = Storage.get('dsa_progress', {}) || {};
-    if (solveType === 'self' || solveType === 'help30' || solveType === 'help50' || solveType === 'help') {
-      dsaProgress[qid] = true;
-    } else {
-      delete dsaProgress[qid];
-    }
+    dsaProgress[qid] = true;
 
     Storage.set('dsa_progress', dsaProgress);
     Storage.set('dsa_pattern_stats', patternStats);
@@ -1367,7 +1385,7 @@
 
     // Dispatch progress sync to Roadmap
     window.dispatchEvent(new CustomEvent('dsaProgressSync', {
-      detail: { qid, isChecked: solveType !== 'cross', source: 'patternLearning' }
+      detail: { qid, isChecked: true, source: 'patternLearning' }
     }));
 
     renderDashboard();
@@ -1389,6 +1407,7 @@
     if (!activeEvaluatingQuestion) return;
     const qid = activeEvaluatingQuestion.id;
 
+    patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
     if (patternStats.evaluations) {
       delete patternStats.evaluations[qid];
     }
@@ -1484,9 +1503,16 @@
    */
   function onProgressSync(e) {
     dsaProgress = Storage.get('dsa_progress', {}) || {};
+    patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
+    if (!patternStats.evaluations) patternStats.evaluations = {};
     const { qid, isChecked, source } = e.detail || {};
 
     if (source === 'patternLearning') return; // Already handled locally
+
+    if (source === 'roadmapReset') {
+      dsaProgress = {};
+      patternStats.evaluations = {};
+    }
 
     // Update practice questions checkbox if visible
     if (qid) {
@@ -1548,14 +1574,14 @@
       dom.btnBackToCatalog.addEventListener('click', closePatternStudyView);
     }
 
-    // Delegated click on practice questions to open Problem Detail
+    // Delegated click on practice questions to open Problem Detail (ONLY on Explain button)
     document.addEventListener('click', (e) => {
-      const detailTrigger = e.target.closest('#pl-practice-list [data-open-detail], #pl-practice-list .dsa-question-title, #pl-practice-list .dsa-question-info');
-      if (!detailTrigger) return;
-      if (detailTrigger.closest('.is-locked') || detailTrigger.closest('.pl-locked-question')) return;
+      const explainBtn = e.target.closest('#pl-practice-list .dsa-btn-explain, #pl-practice-list [data-open-explain]');
+      if (!explainBtn) return;
+      if (explainBtn.closest('.is-locked') || explainBtn.closest('.pl-locked-question')) return;
       if (e.target.closest('.pl-trigger-eval, .dsa-btn-leetcode')) return;
 
-      const qid = detailTrigger.dataset.openDetail || detailTrigger.dataset.qid || detailTrigger.closest('[data-open-detail]')?.dataset.openDetail || detailTrigger.closest('.dsa-question-row')?.id.replace('pl-qrow-', '');
+      const qid = explainBtn.dataset.openExplain || explainBtn.dataset.openDetail || explainBtn.dataset.qid || explainBtn.closest('.dsa-question-row')?.id.replace('pl-qrow-', '');
       if (qid && window.DsaProblemController && typeof window.DsaProblemController.openProblemDetail === 'function') {
         window.DsaProblemController.openProblemDetail(qid, currentPatternQuestions, 'patterns');
       }
@@ -1677,6 +1703,8 @@
       dom.btnConfirmReset.addEventListener('click', () => {
         patternStats = { viewed: {}, quizzes: {}, weak: {}, evaluations: {} };
         Storage.set('dsa_pattern_stats', patternStats);
+        dsaProgress = {};
+        Storage.set('dsa_progress', {});
         dom.resetModal.classList.remove('open');
         dom.resetModal.classList.add('hidden');
         renderDashboard();

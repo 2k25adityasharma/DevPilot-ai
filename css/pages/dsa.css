@@ -842,14 +842,9 @@
   font-weight: 600;
   color: var(--color-on-surface);
   line-height: 1.35;
-  transition: color var(--transition-fast);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.dsa-question-title:hover {
-  color: var(--color-primary);
 }
 
 .dsa-question-tags {
@@ -931,6 +926,107 @@
 .dsa-badge-hard {
   background: #fee2e2;
   color: #b91c1c;
+}
+
+/* Question Explain Button (Opens Clean 15-Point Code Explanation) */
+.dsa-btn-explain {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.38rem 0.85rem;
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  border-radius: var(--radius-md);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(79, 70, 229, 0.15);
+}
+
+.dsa-btn-explain:hover {
+  background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
+  box-shadow: 0 3px 8px rgba(79, 70, 229, 0.28);
+  transform: translateY(-1px);
+}
+
+.dsa-btn-explain:active {
+  transform: translateY(0);
+}
+
+.dsa-btn-explain .material-symbols-outlined {
+  font-size: 15px;
+  transition: transform var(--transition-fast);
+}
+
+.dsa-btn-explain:hover .material-symbols-outlined {
+  transform: scale(1.1);
+}
+
+/* Primary Internal Solve Button */
+.dsa-btn-solve {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.38rem 0.85rem;
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  border-radius: var(--radius-md);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(79, 70, 229, 0.15);
+}
+
+.dsa-btn-solve:hover {
+  background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
+  box-shadow: 0 3px 8px rgba(79, 70, 229, 0.28);
+  transform: translateY(-1px);
+}
+
+.dsa-btn-solve:active {
+  transform: translateY(0);
+}
+
+.dsa-btn-solve .material-symbols-outlined {
+  font-size: 15px;
+  transition: transform var(--transition-fast);
+}
+
+.dsa-btn-solve:hover .material-symbols-outlined {
+  transform: translateX(2px);
+}
+
+/* Secondary direct LeetCode icon button */
+.dsa-btn-lc-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-outline-variant);
+  background: var(--color-surface-container);
+  color: var(--color-on-surface-variant);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.dsa-btn-lc-icon:hover {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #ea580c;
+  transform: translateY(-1px);
+}
+
+.dsa-btn-lc-icon .material-symbols-outlined {
+  font-size: 15px;
 }
 
 /* External LeetCode Action Button */

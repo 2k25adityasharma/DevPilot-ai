@@ -44,20 +44,11 @@
     dom.detailView = document.getElementById('dsa-problem-detail-view');
     dom.roadmapView = document.getElementById('dsa-roadmap-view');
     dom.patternsView = document.getElementById('dsa-pattern-learning-view');
-    dom.revisionView = document.getElementById('dsa-revision-view');
     dom.tabRoadmap = document.getElementById('tab-btn-roadmap');
     dom.tabPatterns = document.getElementById('tab-btn-patterns');
-    dom.tabRevision = document.getElementById('tab-btn-revision');
 
     // Load preferred language if saved
     currentLanguage = Storage.get('dsa_preferred_lang', 'python');
-
-    // Attach view switcher listeners for Revision tab
-    if (dom.tabRevision) {
-      dom.tabRevision.addEventListener('click', () => {
-        switchToView('revision');
-      });
-    }
 
     if (dom.tabRoadmap) {
       dom.tabRoadmap.addEventListener('click', () => {
@@ -81,23 +72,16 @@
   }
 
   /**
-   * Switch between top-level views: 'roadmap' | 'patterns' | 'revision'
+   * Switch between top-level views: 'roadmap' | 'patterns'
    */
   function switchToView(viewName) {
     if (dom.detailView) dom.detailView.classList.add('hidden');
 
     if (dom.tabRoadmap) dom.tabRoadmap.classList.toggle('active', viewName === 'roadmap');
     if (dom.tabPatterns) dom.tabPatterns.classList.toggle('active', viewName === 'patterns');
-    if (dom.tabRevision) dom.tabRevision.classList.toggle('active', viewName === 'revision');
 
     if (dom.roadmapView) dom.roadmapView.classList.toggle('hidden', viewName !== 'roadmap');
     if (dom.patternsView) dom.patternsView.classList.toggle('hidden', viewName !== 'patterns');
-    if (dom.revisionView) {
-      dom.revisionView.classList.toggle('hidden', viewName !== 'revision');
-      if (viewName === 'revision') {
-        renderRevisionDashboard();
-      }
-    }
 
     currentSourceView = viewName;
   }
@@ -135,10 +119,9 @@
       currentContextIndex = 0;
     }
 
-    // Hide other views and display problem detail
+    // Hide other views and display question explanation view
     if (dom.roadmapView) dom.roadmapView.classList.add('hidden');
     if (dom.patternsView) dom.patternsView.classList.add('hidden');
-    if (dom.revisionView) dom.revisionView.classList.add('hidden');
     if (dom.detailView) {
       dom.detailView.classList.remove('hidden');
       renderProblemDetailContent();
@@ -220,38 +203,7 @@
       `;
     }
 
-    let revisionBannerHtml = '';
-    if (qEv === 'help30' || qEv === 'help') {
-      revisionBannerHtml = `
-        <div class="dp-revision-notice dp-notice-help30">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[18px]">psychology</span>
-            <span><strong>Solved with ~30% AI Help:</strong> You understood the core pattern but needed light guidance. Re-attempt independently without hints to upgrade to 100% Self!</span>
-          </div>
-          <button class="dp-btn-re-eval-notice" id="dp-btn-notice-re-eval" data-qid="${qid}">Re-attempt & Re-rate</button>
-        </div>
-      `;
-    } else if (qEv === 'help50') {
-      revisionBannerHtml = `
-        <div class="dp-revision-notice dp-notice-help50">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[18px]">smart_toy</span>
-            <span><strong>Solved with ~50% AI / Editorial Help:</strong> Algorithmic or structural assistance was needed. Re-attempting from scratch is recommended to cement this pattern!</span>
-          </div>
-          <button class="dp-btn-re-eval-notice" id="dp-btn-notice-re-eval" data-qid="${qid}">Re-attempt & Re-rate</button>
-        </div>
-      `;
-    } else if (qEv === 'cross') {
-      revisionBannerHtml = `
-        <div class="dp-revision-notice dp-notice-cross">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[18px]">content_paste_off</span>
-            <span><strong>Direct Solution Copied:</strong> Copied code does not build algorithmic muscle memory. Practice writing the optimal approach from scratch!</span>
-          </div>
-          <button class="dp-btn-re-eval-notice" id="dp-btn-notice-re-eval" data-qid="${qid}">Re-attempt & Re-rate</button>
-        </div>
-      `;
-    }
+
 
     // Update status badge if progress
     let finalStatusBadgeClass = statusBadgeClass;
@@ -326,28 +278,33 @@
     dom.detailView.innerHTML = `
       <div class="dsa-problem-view-container">
 
-        <!-- Top Breadcrumbs & Back Bar -->
+        <!-- Top Navigation Bar -->
         <div class="dp-breadcrumb-bar">
-          <div class="dp-breadcrumb-nav">
-            <a href="#" class="dp-breadcrumb-item" id="dp-crumb-home">DSA Master Vault</a>
-            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-            <span class="dp-breadcrumb-item">${escapeHtml(exp.category || 'Category')}</span>
-            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-            <span class="dp-breadcrumb-item">${escapeHtml(exp.pattern || 'Pattern')}</span>
-            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-            <span class="dp-breadcrumb-current">#${exp.leetcodeNumber} ${escapeHtml(exp.title)}</span>
-          </div>
           <button class="dp-btn-back" id="dp-btn-back-nav">
             <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-            <span>Back to ${currentSourceView === 'patterns' ? 'Pattern Learning' : (currentSourceView === 'revision' ? 'Revision' : 'Roadmap')}</span>
+            <span>Back to ${currentSourceView === 'patterns' ? 'Pattern Learning' : 'DSA Roadmap'}</span>
           </button>
+          <div class="dp-actions-toolbar">
+            <a href="${exp.leetcodeUrl}" target="_blank" rel="noopener noreferrer" class="dp-btn-action dp-btn-leetcode" id="dp-btn-open-leetcode" title="Solve on canonical LeetCode problem page">
+              <span>Open on LeetCode</span>
+              <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+            </a>
+            <button class="dp-btn-action dp-btn-solve-rate" id="dp-btn-rate-solve" title="Mark solved or update solve evaluation">
+              <span class="material-symbols-outlined text-[16px]">verified</span>
+              <span>${isSolved ? '✓ Solved' : 'Mark as Solved'}</span>
+            </button>
+          </div>
         </div>
 
-        <!-- Problem Header Card -->
+        <!-- Question Header Card (Starting cleanly with Question Number & Title) -->
         <div class="dp-header-card">
           <div class="dp-header-top">
             <div class="dp-title-group">
-              <div class="dp-badges-row">
+              <h1 class="dp-problem-title">
+                <span class="dp-problem-num">#${exp.leetcodeNumber}.</span>
+                <span>${escapeHtml(exp.title)}</span>
+              </h1>
+              <div class="dp-badges-row mt-2">
                 <span class="dp-badge-pill dp-badge-diff-${diffClass}">
                   <span class="material-symbols-outlined text-[13px]">speed</span>
                   <span>${exp.difficulty}</span>
@@ -360,43 +317,19 @@
                   <span class="material-symbols-outlined text-[13px]">schema</span>
                   <span>${escapeHtml(exp.category)}</span>
                 </span>
+                ${exp.subPattern && exp.subPattern !== exp.pattern ? `
+                  <span class="dp-badge-pill dp-badge-subpattern">
+                    <span class="material-symbols-outlined text-[13px]">psychology</span>
+                    <span>${escapeHtml(exp.subPattern)}</span>
+                  </span>
+                ` : ''}
                 <span class="dp-badge-pill ${statusBadgeClass}" id="dp-status-badge">
                   <span>${statusBadgeText}</span>
                 </span>
                 ${evalBadgeHtml}
-                ${isInReview ? `
-                  <span class="dp-badge-pill dp-badge-status-review" id="dp-review-indicator">
-                    <span class="material-symbols-outlined text-[13px]">star</span>
-                    <span>In Review</span>
-                  </span>
-                ` : ''}
               </div>
-              <h2 class="dp-problem-title">
-                <span class="dp-problem-num">#${exp.leetcodeNumber}.</span>
-                <span>${escapeHtml(exp.title)}</span>
-              </h2>
-              <p class="text-xs text-slate-500 mt-1 font-mono">${escapeHtml(exp.subPattern || exp.pattern)}</p>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="dp-actions-toolbar">
-              <a href="${exp.leetcodeUrl}" target="_blank" rel="noopener noreferrer" class="dp-btn-action dp-btn-leetcode" id="dp-btn-open-leetcode" title="Solve on canonical LeetCode problem page">
-                <span>Open on LeetCode</span>
-                <span class="material-symbols-outlined text-[16px]">open_in_new</span>
-              </a>
-
-              <button class="dp-btn-action dp-btn-review ${isInReview ? 'in-review' : ''}" id="dp-btn-toggle-review" title="Mark for future revision">
-                <span class="material-symbols-outlined text-[16px]">${isInReview ? 'star' : 'star_border'}</span>
-                <span id="dp-review-btn-text">${isInReview ? '★ In Review' : '☆ Review Later'}</span>
-              </button>
-
-              <button class="dp-btn-action dp-btn-solve-rate" id="dp-btn-rate-solve" title="Rate how you solved this problem">
-                <span class="material-symbols-outlined text-[16px]">verified</span>
-                <span>${isSolved ? 'Update Solve' : '✓ Mark as Solved'}</span>
-              </button>
             </div>
           </div>
-          ${revisionBannerHtml}
         </div>
 
         <!-- Hint System -->

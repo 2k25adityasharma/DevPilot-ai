@@ -43,6 +43,18 @@
     }) || { viewed: {}, quizzes: {}, weak: {}, evaluations: {} };
     if (!patternStats.evaluations) patternStats.evaluations = {};
 
+    // Ensure any question with an evaluation is synced to progress
+    let needsSync = false;
+    Object.keys(patternStats.evaluations).forEach(qid => {
+      if (patternStats.evaluations[qid] && !progress[qid]) {
+        progress[qid] = true;
+        needsSync = true;
+      }
+    });
+    if (needsSync) {
+      Storage.set('dsa_progress', progress);
+    }
+
     // Cache elements
     dom = {
       totalSolvedCount: document.getElementById('dsa-total-solved-count'),
@@ -101,12 +113,13 @@
       Medium: { total: 0, solved: 0 },
       Hard: { total: 0, solved: 0 }
     };
+    const evaluations = (patternStats && patternStats.evaluations) ? patternStats.evaluations : {};
 
     window.dsaRoadmap.forEach(cat => {
       cat.patterns.forEach(pat => {
         pat.questions.forEach(q => {
           total++;
-          const isDone = !!progress[q.id];
+          const isDone = !!progress[q.id] || !!evaluations[q.id];
           if (isDone) solved++;
 
           if (diffStats[q.difficulty]) {
@@ -134,11 +147,12 @@
   function computeCategoryStats(cat) {
     let total = 0;
     let solved = 0;
+    const evaluations = (patternStats && patternStats.evaluations) ? patternStats.evaluations : {};
 
     cat.patterns.forEach(pat => {
       pat.questions.forEach(q => {
         total++;
-        if (progress[q.id]) solved++;
+        if (progress[q.id] || evaluations[q.id]) solved++;
       });
     });
 
@@ -331,8 +345,8 @@
           }
 
           // Status filter
-          const isSolved = !!progress[q.id];
           const ev = (patternStats.evaluations || {})[q.id];
+          const isSolved = !!progress[q.id] || !!ev;
           const isReviewed = !!reviews[q.id] || ev === 'help30' || ev === 'help' || ev === 'help50' || ev === 'cross';
           if (filterState.status === 'solved' && !isSolved) return false;
           if (filterState.status === 'unsolved' && isSolved) return false;
@@ -367,7 +381,8 @@
 
       const patternsHtml = matchingPatterns.map(pat => {
         const questionsHtml = pat.visibleQuestions.map(q => {
-          const isSolved = !!progress[q.id];
+          const ev = (patternStats.evaluations || {})[q.id];
+          const isSolved = !!progress[q.id] || !!ev;
           const isReviewed = !!reviews[q.id];
           const diffClass = q.difficulty.toLowerCase();
           const lcNum = q.leetcodeNumber || q.number || '';
@@ -375,7 +390,6 @@
           const dsName = q.pattern || catName;
           const patName = q.subPattern || pat.name || 'General';
           const titleHtml = highlightMatch(q.title, filterState.search);
-          const ev = (patternStats.evaluations || {})[q.id];
 
           // Checkbox Box Custom Styling & Exact Modal Evaluation Icon (NO LOCKS ON ROADMAP)
           let boxCustomClass = 'pl-eval-box';
@@ -414,7 +428,7 @@
               </button>
             `;
           } else if (ev === 'cross') {
-            rowStatusClass = 'status-cross';
+            rowStatusClass = 'is-solved status-cross';
             boxCustomClass += ' pl-eval-box-cross dsa-checkbox-cross';
             boxIconHtml = '<span class="material-symbols-outlined text-[15px] leading-none text-white">content_paste_off</span>';
             evalPillHtml = `
@@ -445,7 +459,7 @@
           }
 
           return `
-            <div class="dsa-question-row ${rowStatusClass}" id="row-${q.id}">
+            <div class="dsa-question-row ${rowStatusClass} hover:bg-slate-50 transition-colors" id="row-${q.id}">
               <div class="dsa-question-left">
                 <button class="dsa-checkbox-container dsa-trigger-eval cursor-pointer border-0 bg-transparent p-0" data-qid="${q.id}" title="Rate how you solved this problem" aria-label="Evaluate solve for ${escapeHtml(q.title)}">
                   <span class="dsa-checkbox-custom ${boxCustomClass}">
@@ -453,9 +467,9 @@
                   </span>
                 </button>
                 <span class="dsa-lc-num">#${lcNum}</span>
-                <div class="dsa-question-info cursor-pointer hover:opacity-90" data-open-detail="${q.id}" title="Click to open 15-point problem explanation">
+                <div class="dsa-question-info">
                   <div class="dsa-question-title-wrap">
-                    <span class="dsa-question-title hover:text-indigo-600 transition-colors" data-open-detail="${q.id}" title="${escapeHtml(q.title)}">${titleHtml}</span>
+                    <span class="dsa-question-title font-medium text-slate-800" title="${escapeHtml(q.title)}">${titleHtml}</span>
                     ${isReviewed ? `<span class="inline-flex items-center text-amber-500 ml-1.5" title="In Review (★)"><span class="material-symbols-outlined text-[15px]">star</span></span>` : ''}
                   </div>
                   <div class="dsa-question-tags">
@@ -473,9 +487,13 @@
               <div class="dsa-question-right">
                 ${evalPillHtml}
                 <span class="dsa-badge-diff dsa-badge-${diffClass}">${q.difficulty}</span>
-                <a href="${lcUrl}" target="_blank" rel="noopener noreferrer" class="dsa-btn-leetcode" aria-label="Open ${escapeHtml(q.title)} on LeetCode">
+                <button class="dsa-btn-explain cursor-pointer" data-open-explain="${q.id}" data-open-detail="${q.id}" title="View full 15-point code explanation and walkthrough" aria-label="Explain ${escapeHtml(q.title)}">
+                  <span class="material-symbols-outlined text-[15px]">menu_book</span>
+                  <span>Explain</span>
+                </button>
+                <a href="${lcUrl}" target="_blank" rel="noopener noreferrer" class="dsa-btn-leetcode" title="Solve on LeetCode" aria-label="Solve ${escapeHtml(q.title)} on LeetCode">
                   <span>Solve</span>
-                  <span class="material-symbols-outlined">open_in_new</span>
+                  <span class="material-symbols-outlined text-[14px]">open_in_new</span>
                 </a>
               </div>
             </div>
@@ -561,7 +579,7 @@
     // 1. Delegated click on questions container to open Problem Detail or Honesty Evaluation
     if (dom.questionsContainer) {
       dom.questionsContainer.addEventListener('click', (e) => {
-        // If clicking LeetCode external solve button, let standard target="_blank" handle it
+        // Direct LeetCode external solve link should open target="_blank"
         if (e.target.closest('.dsa-btn-leetcode')) return;
 
         // Honesty evaluation modal trigger
@@ -581,16 +599,17 @@
           return;
         }
 
-        // Problem detail trigger (click problem title, tags, or question info)
-        const detailTrigger = e.target.closest('[data-open-detail], .dsa-question-title, .dsa-question-info, .dsa-lc-num');
-        if (detailTrigger) {
+        // Question explanation trigger (ONLY when clicking dedicated Explain button)
+        const explainTrigger = e.target.closest('.dsa-btn-explain, [data-open-explain]');
+        if (explainTrigger) {
           e.preventDefault();
           e.stopPropagation();
 
-          const qid = detailTrigger.dataset.openDetail || detailTrigger.dataset.qid || detailTrigger.closest('[data-open-detail]')?.dataset.openDetail || detailTrigger.closest('.dsa-question-row')?.id.replace('row-', '');
+          const qid = explainTrigger.dataset.openExplain || explainTrigger.dataset.openDetail || explainTrigger.dataset.qid;
           if (qid && window.DsaProblemController && typeof window.DsaProblemController.openProblemDetail === 'function') {
             window.DsaProblemController.openProblemDetail(qid, currentVisibleQuestionsList, 'roadmap');
           }
+          return;
         }
       });
 
@@ -833,6 +852,7 @@
     if (dom.confirmResetBtn && dom.resetModal) {
       dom.confirmResetBtn.addEventListener('click', () => {
         Storage.remove('dsa_progress');
+        Storage.set('dsa_progress', {});
         progress = {};
         patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
         patternStats.evaluations = {};
@@ -853,10 +873,22 @@
     // 9. Bidirectional progress & evaluation sync listener
     window.addEventListener('dsaProgressSync', (e) => {
       if (e.detail && e.detail.source === 'roadmap') return;
+      if (e.detail && (e.detail.source === 'roadmapReset' || e.detail.source === 'patternReset')) {
+        progress = {};
+        patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
+        patternStats.evaluations = {};
+        updateProgressUI();
+        renderQuestions();
+        return;
+      }
       progress = Storage.get('dsa_progress', {}) || {};
       reviews = Storage.get('dsa_reviews', {}) || {};
       patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
       if (!patternStats.evaluations) patternStats.evaluations = {};
+
+      Object.keys(patternStats.evaluations).forEach(qid => {
+        if (patternStats.evaluations[qid]) progress[qid] = true;
+      });
 
       updateProgressUI();
       renderQuestions();

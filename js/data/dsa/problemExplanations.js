@@ -22,7 +22,8 @@
 (function () {
   'use strict';
 
-  window.DsaProblemDatabase = {};
+  const root = typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : this);
+  root.DsaProblemDatabase = root.DsaProblemDatabase || {};
 
   // Hand-curated flagship problem explanations
   const curatedExplanations = {
@@ -1044,23 +1045,38 @@ var ${fnName} = function(nums) {
   /**
    * Main Public API: Get explanation for any question by ID
    */
-  window.DsaProblemDatabase.getExplanation = function (qid) {
+  root.DsaProblemDatabase.getExplanation = function (qid) {
     if (!qid) return null;
 
-    // 1. Return hand-curated explanation if exists
+    // 1. Return hand-curated explanation if exists by exact ID
     if (curatedExplanations[qid]) {
       return curatedExplanations[qid];
     }
 
-    // 2. Lookup question in global questions list
-    let question = null;
-    if (window.dsaAllQuestions && Array.isArray(window.dsaAllQuestions)) {
-      question = window.dsaAllQuestions.find(q => q.id === qid);
+    // 2. Check if curated has matching leetcodeNumber
+    const numericStr = String(qid).replace(/[^0-9]/g, '');
+    if (numericStr) {
+      if (curatedExplanations[`lc-${numericStr}`]) {
+        return curatedExplanations[`lc-${numericStr}`];
+      }
+      for (const key in curatedExplanations) {
+        if (curatedExplanations[key] && String(curatedExplanations[key].leetcodeNumber) === numericStr) {
+          return curatedExplanations[key];
+        }
+      }
     }
 
-    // 3. Lookup in dsaRoadmap if not found
-    if (!question && window.dsaRoadmap && Array.isArray(window.dsaRoadmap)) {
-      for (const cat of window.dsaRoadmap) {
+    // 3. Lookup question in global questions list
+    let question = null;
+    const allQ = root.dsaAllQuestions;
+    if (allQ && Array.isArray(allQ)) {
+      question = allQ.find(q => q.id === qid);
+    }
+
+    // 4. Lookup in dsaRoadmap if not found
+    const rMap = root.dsaRoadmap;
+    if (!question && rMap && Array.isArray(rMap)) {
+      for (const cat of rMap) {
         for (const pat of cat.patterns) {
           const match = pat.questions.find(q => q.id === qid);
           if (match) {
@@ -1078,15 +1094,32 @@ var ${fnName} = function(nums) {
       }
     }
 
-    // 4. If found, synthesize explanation
+    // 5. If found, synthesize explanation
     if (question) {
       return synthesizeExplanation(question);
     }
 
-    // Fallback if ID is numeric (e.g. 367)
-    const numericStr = String(qid).replace(/[^0-9]/g, '');
+    // Fallback if ID is numeric
     if (numericStr) {
-      const matchNum = (window.dsaAllQuestions || []).find(q => String(q.leetcodeNumber) === numericStr);
+      let matchNum = (allQ || []).find(q => String(q.leetcodeNumber) === numericStr);
+      if (!matchNum && rMap && Array.isArray(rMap)) {
+        for (const cat of rMap) {
+          for (const pat of cat.patterns) {
+            const m = pat.questions.find(q => String(q.leetcodeNumber) === numericStr);
+            if (m) {
+              matchNum = {
+                ...m,
+                categoryId: cat.id,
+                category: cat.name,
+                pattern: pat.name,
+                patternId: pat.id
+              };
+              break;
+            }
+          }
+          if (matchNum) break;
+        }
+      }
       if (matchNum) {
         if (curatedExplanations[matchNum.id]) return curatedExplanations[matchNum.id];
         return synthesizeExplanation(matchNum);
@@ -1099,8 +1132,33 @@ var ${fnName} = function(nums) {
   /**
    * Register a custom explanation dynamically
    */
-  window.DsaProblemDatabase.registerExplanation = function (qid, explanationData) {
+  root.DsaProblemDatabase.registerExplanation = function (qid, explanationData) {
+    if (!qid || !explanationData) return;
     curatedExplanations[qid] = explanationData;
   };
+
+  /**
+   * Register a batch of problem explanations
+   * @param {Object} batchMap - Map of question ID to explanation object
+   */
+  root.DsaProblemDatabase.registerBatch = function (batchMap) {
+    if (!batchMap || typeof batchMap !== 'object') return;
+    for (const qid in batchMap) {
+      if (batchMap.hasOwnProperty(qid)) {
+        curatedExplanations[qid] = batchMap[qid];
+      }
+    }
+  };
+
+  /**
+   * Get all registered curated explanations
+   */
+  root.DsaProblemDatabase.getAllCurated = function () {
+    return curatedExplanations;
+  };
+
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = root.DsaProblemDatabase;
+  }
 
 })();

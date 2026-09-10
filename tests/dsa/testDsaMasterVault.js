@@ -39,20 +39,18 @@ console.log(' DevPilot-AI: Running DSA Master Vault Comprehensive Test Suite');
 console.log('================================================================\n');
 
 // 1. Verify HTML Structure, View Switcher, and Script Order
-runTest('pages/dsa.html contains 3-view switcher, detail container, revision container, and scripts', () => {
+runTest('pages/dsa.html contains 2-view switcher (Roadmap, Pattern Learning), explanation container, and scripts', () => {
   const htmlPath = path.join(rootDir, 'pages/dsa.html');
   assert.ok(fs.existsSync(htmlPath), 'pages/dsa.html must exist');
   const content = fs.readFileSync(htmlPath, 'utf8');
 
-  // View switcher pills
+  // View switcher pills (clean 2-view switcher without revision tab)
   assert.ok(content.includes('id="tab-btn-roadmap"'), 'Must have Roadmap tab pill');
   assert.ok(content.includes('id="tab-btn-patterns"'), 'Must have Pattern Learning tab pill');
-  assert.ok(content.includes('id="tab-btn-revision"'), 'Must have Revision tab pill');
 
   // Containers
   assert.ok(content.includes('id="dsa-roadmap-view"'), 'Must have dsa-roadmap-view container');
   assert.ok(content.includes('id="dsa-pattern-learning-view"'), 'Must have dsa-pattern-learning-view container');
-  assert.ok(content.includes('id="dsa-revision-view"'), 'Must have dsa-revision-view container');
   assert.ok(content.includes('id="dsa-problem-detail-view"'), 'Must have dsa-problem-detail-view container');
 
   // Status review filter
@@ -211,21 +209,16 @@ runTest('dsa.js contains review status filter and delegated problem detail opene
   assert.ok(dsaJs.includes('dsaReviewSync'), 'Must listen to dsaReviewSync');
 });
 
-// 8. Verify 30% & 50% Help Solves in Revision System and Solve Quality Filters
-runTest('30% and 50% help solves are tracked in Revision Mode and filterable in Roadmap', () => {
+// 8. Verify 30% & 50% Help Solves Quality Tracking and Filtering in Roadmap
+runTest('30% and 50% help solves are tracked and filterable in Roadmap without revision notice clutter', () => {
   const problemJs = fs.readFileSync(path.join(rootDir, 'js/pages/dsaProblem.js'), 'utf8');
   const dsaJs = fs.readFileSync(path.join(rootDir, 'js/pages/dsa.js'), 'utf8');
   const css = fs.readFileSync(path.join(rootDir, 'css/pages/dsaProblem.css'), 'utf8');
 
-  // Check dsaProblem.js revision logic
-  assert.ok(problemJs.includes('help30List'), 'Revision must explicitly track help30List');
-  assert.ok(problemJs.includes('help50List'), 'Revision must explicitly track help50List');
-  assert.ok(problemJs.includes('data-rev-filter="help30"'), 'Must have dedicated 30% Help revision filter chip');
-  assert.ok(problemJs.includes('data-rev-filter="help50"'), 'Must have dedicated 50% Help revision filter chip');
-  assert.ok(problemJs.includes('~30% AI Help'), 'Must render 30% help card/label');
-  assert.ok(problemJs.includes('~50% Editorial Help'), 'Must render 50% help card/label');
-  assert.ok(problemJs.includes('dp-btn-re-rate'), 'Must provide Re-rate action on revision rows');
-  assert.ok(problemJs.includes('dp-revision-notice'), 'Must render revision notice in Problem Detail');
+  // Check dsaProblem.js clean explanation view
+  assert.ok(problemJs.includes('dp-badge-quality-help30'), 'Problem explanation renders 30% help badge');
+  assert.ok(problemJs.includes('dp-badge-quality-help50'), 'Problem explanation renders 50% help badge');
+  assert.ok(!problemJs.includes('dp-notice-help30'), 'Problem explanation does not render legacy revision banner clutter');
 
   // Check dsa.js quality filtering
   assert.ok(dsaJs.includes('chipHelp30'), 'Roadmap must cache 30% help chip');
@@ -236,9 +229,51 @@ runTest('30% and 50% help solves are tracked in Revision Mode and filterable in 
   // Check CSS styles
   assert.ok(css.includes('.dp-badge-quality-help30'), 'Must style 30% quality badge');
   assert.ok(css.includes('.dp-badge-quality-help50'), 'Must style 50% quality badge');
-  assert.ok(css.includes('.dp-notice-help30'), 'Must style 30% revision notice');
-  assert.ok(css.includes('.dp-notice-help50'), 'Must style 50% revision notice');
-  assert.ok(css.includes('.dp-btn-re-rate'), 'Must style revision re-rate button');
+});
+
+// 9. Verify Explain button in Roadmap opens Problem Detail & all 260 questions have full 15-part explanation parity
+runTest('DSA Roadmap Explain button opens clean 15-point explanation with full content parity across all 260 questions', () => {
+  const dsaJs = fs.readFileSync(path.join(rootDir, 'js/pages/dsa.js'), 'utf8');
+  const dsaCss = fs.readFileSync(path.join(rootDir, 'css/pages/dsa.css'), 'utf8');
+
+  // Verify Explain and Solve buttons markup and styles
+  assert.ok(dsaJs.includes('dsa-btn-explain'), 'Roadmap question row must render dsa-btn-explain button');
+  assert.ok(dsaJs.includes('dsa-btn-leetcode'), 'Roadmap question row must render LeetCode solve link');
+  assert.ok(dsaJs.includes('data-open-explain="${q.id}"'), 'dsa-btn-explain must have data-open-explain attribute');
+  assert.ok(dsaJs.includes('.dsa-btn-explain'), 'attachEventListeners must delegate click on .dsa-btn-explain to openProblemDetail');
+  assert.ok(dsaCss.includes('.dsa-btn-explain'), 'dsa.css must style .dsa-btn-explain');
+
+  // Mock global environment and test all 260 questions
+  const globalMock = { window: {}, Storage: { get: () => ({}), set: () => {} } };
+  const dsaDataCode = fs.readFileSync(path.join(rootDir, 'js/data/dsaData.js'), 'utf8');
+  const dsaPatternsDataCode = fs.readFileSync(path.join(rootDir, 'js/data/dsaPatternsData.js'), 'utf8');
+  const problemExpCode = fs.readFileSync(path.join(rootDir, 'js/data/dsa/problemExplanations.js'), 'utf8');
+
+  const fn = new Function('window', 'Storage', `${dsaDataCode}\n${dsaPatternsDataCode}\n${problemExpCode}\nreturn { dsaRoadmap: window.dsaRoadmap, DsaProblemDatabase: window.DsaProblemDatabase };`);
+  const { dsaRoadmap, DsaProblemDatabase } = fn(globalMock.window, globalMock.Storage);
+
+  let verifiedCount = 0;
+  for (const cat of dsaRoadmap) {
+    for (const pat of cat.patterns) {
+      for (const q of pat.questions) {
+        const exp = DsaProblemDatabase.getExplanation(q.id);
+        assert.ok(exp, `Explanation must exist for question ${q.id} (#${q.leetcodeNumber} ${q.title})`);
+        assert.ok(exp.problemUnderstanding && exp.problemUnderstanding.length > 20, `problemUnderstanding must be valid for ${q.id}`);
+        assert.ok(exp.whyItMatters && exp.whyItMatters.length > 20, `whyItMatters must be valid for ${q.id}`);
+        assert.ok(exp.patternExplanation && exp.patternExplanation.length > 20, `patternExplanation must be valid for ${q.id}`);
+        assert.ok(Array.isArray(exp.hints) && exp.hints.length >= 3, `Must have at least 3 hints for ${q.id}`);
+        assert.ok(exp.walkthrough && exp.walkthrough.tableHeaders && exp.walkthrough.tableRows, `Must have walkthrough table for ${q.id}`);
+        assert.ok(exp.code && exp.code.python && exp.code.cpp && exp.code.java && exp.code.javascript, `Must have 4 language code for ${q.id}`);
+        assert.ok(exp.codeExplanation && exp.codeExplanation.python, `Must have code explanation for ${q.id}`);
+        assert.ok(exp.timeComplexity && exp.spaceComplexity, `Must have time and space complexity for ${q.id}`);
+        assert.ok(Array.isArray(exp.edgeCases) && exp.edgeCases.length > 0, `Must have edge cases for ${q.id}`);
+        assert.ok(exp.takeaway, `Must have key takeaway for ${q.id}`);
+        verifiedCount++;
+      }
+    }
+  }
+
+  assert.strictEqual(verifiedCount, 260, 'All 260 roadmap questions must be verified with full 15-part explanation parity');
 });
 
 console.log('\n================================================================');
