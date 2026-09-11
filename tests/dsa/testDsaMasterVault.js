@@ -199,12 +199,11 @@ runTest('Pattern Mastery Score calculates deterministically: 60% completion + 30
   assert.ok(dsaPatternsRaw.includes('revisionRate * 10'), 'Must allocate 10% weight to revision consistency');
 });
 
-// 7. Verify Review Status and Problem Click Delegation in dsa.js
+// 7. Verify Review Status and Problem Detail handler in dsa.js
 runTest('dsa.js contains review status filter and delegated problem detail opener', () => {
   const dsaJs = fs.readFileSync(path.join(rootDir, 'js/pages/dsa.js'), 'utf8');
 
   assert.ok(dsaJs.includes('filterState.status === \'review\''), 'Must handle review status filter');
-  assert.ok(dsaJs.includes('data-open-detail'), 'Must attach data-open-detail to problem title/row');
   assert.ok(dsaJs.includes('openProblemDetail'), 'Must delegate click to openProblemDetail');
   assert.ok(dsaJs.includes('dsaReviewSync'), 'Must listen to dsaReviewSync');
 });
@@ -232,16 +231,13 @@ runTest('30% and 50% help solves are tracked and filterable in Roadmap without r
 });
 
 // 9. Verify Explain button in Roadmap opens Problem Detail & all 260 questions have full 15-part explanation parity
-runTest('DSA Roadmap Explain button opens clean 15-point explanation with full content parity across all 260 questions', () => {
+runTest('DSA Roadmap questions render cleanly without Explain button and retain Solve button', () => {
   const dsaJs = fs.readFileSync(path.join(rootDir, 'js/pages/dsa.js'), 'utf8');
   const dsaCss = fs.readFileSync(path.join(rootDir, 'css/pages/dsa.css'), 'utf8');
 
-  // Verify Explain and Solve buttons markup and styles
-  assert.ok(dsaJs.includes('dsa-btn-explain'), 'Roadmap question row must render dsa-btn-explain button');
+  // Verify Explain button is removed from question row, Solve button is retained
+  assert.ok(!dsaJs.includes('<button class="dsa-btn-explain'), 'Roadmap question row must NOT render dsa-btn-explain button');
   assert.ok(dsaJs.includes('dsa-btn-leetcode'), 'Roadmap question row must render LeetCode solve link');
-  assert.ok(dsaJs.includes('data-open-explain="${q.id}"'), 'dsa-btn-explain must have data-open-explain attribute');
-  assert.ok(dsaJs.includes('.dsa-btn-explain'), 'attachEventListeners must delegate click on .dsa-btn-explain to openProblemDetail');
-  assert.ok(dsaCss.includes('.dsa-btn-explain'), 'dsa.css must style .dsa-btn-explain');
 
   // Mock global environment and test all 260 questions
   const globalMock = { window: {}, Storage: { get: () => ({}), set: () => {} } };

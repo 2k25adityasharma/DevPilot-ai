@@ -32,28 +32,9 @@
       return;
     }
 
-    // Load progress, reviews, and honesty evaluations from Storage
+    // Load progress, reviews, and roadmap evaluations from Storage
     progress = Storage.get('dsa_progress', {}) || {};
     reviews = Storage.get('dsa_reviews', {}) || {};
-    patternStats = Storage.get('dsa_pattern_stats', {
-      viewed: {},
-      quizzes: {},
-      weak: {},
-      evaluations: {}
-    }) || { viewed: {}, quizzes: {}, weak: {}, evaluations: {} };
-    if (!patternStats.evaluations) patternStats.evaluations = {};
-
-    // Ensure any question with an evaluation is synced to progress
-    let needsSync = false;
-    Object.keys(patternStats.evaluations).forEach(qid => {
-      if (patternStats.evaluations[qid] && !progress[qid]) {
-        progress[qid] = true;
-        needsSync = true;
-      }
-    });
-    if (needsSync) {
-      Storage.set('dsa_progress', progress);
-    }
 
     // Cache elements
     dom = {
@@ -96,6 +77,7 @@
     renderSidebarNav();
     updateProgressUI();
     renderQuestions();
+    handleResponsiveLayout();
 
     // Attach event listeners
     attachEventListeners();
@@ -113,7 +95,7 @@
       Medium: { total: 0, solved: 0 },
       Hard: { total: 0, solved: 0 }
     };
-    const evaluations = (patternStats && patternStats.evaluations) ? patternStats.evaluations : {};
+    const evaluations = Storage.get('dsa_roadmap_evaluations', {}) || {};
 
     window.dsaRoadmap.forEach(cat => {
       cat.patterns.forEach(pat => {
@@ -147,7 +129,7 @@
   function computeCategoryStats(cat) {
     let total = 0;
     let solved = 0;
-    const evaluations = (patternStats && patternStats.evaluations) ? patternStats.evaluations : {};
+    const evaluations = Storage.get('dsa_roadmap_evaluations', {}) || {};
 
     cat.patterns.forEach(pat => {
       pat.questions.forEach(q => {
@@ -200,7 +182,7 @@
     let countHelp50 = 0;
     let countCross = 0;
 
-    const evaluations = (patternStats && patternStats.evaluations) ? patternStats.evaluations : {};
+    const evaluations = Storage.get('dsa_roadmap_evaluations', {}) || {};
     window.dsaRoadmap.forEach(cat => {
       cat.patterns.forEach(pat => {
         pat.questions.forEach(q => {
@@ -345,7 +327,8 @@
           }
 
           // Status filter
-          const ev = (patternStats.evaluations || {})[q.id];
+          const roadmapEvaluations = Storage.get('dsa_roadmap_evaluations', {}) || {};
+          const ev = roadmapEvaluations[q.id];
           const isSolved = !!progress[q.id] || !!ev;
           const isReviewed = !!reviews[q.id] || ev === 'help30' || ev === 'help' || ev === 'help50' || ev === 'cross';
           if (filterState.status === 'solved' && !isSolved) return false;
@@ -381,7 +364,8 @@
 
       const patternsHtml = matchingPatterns.map(pat => {
         const questionsHtml = pat.visibleQuestions.map(q => {
-          const ev = (patternStats.evaluations || {})[q.id];
+          const roadmapEvaluations = Storage.get('dsa_roadmap_evaluations', {}) || {};
+          const ev = roadmapEvaluations[q.id];
           const isSolved = !!progress[q.id] || !!ev;
           const isReviewed = !!reviews[q.id];
           const diffClass = q.difficulty.toLowerCase();
@@ -487,10 +471,6 @@
               <div class="dsa-question-right">
                 ${evalPillHtml}
                 <span class="dsa-badge-diff dsa-badge-${diffClass}">${q.difficulty}</span>
-                <button class="dsa-btn-explain cursor-pointer" data-open-explain="${q.id}" data-open-detail="${q.id}" title="View full 15-point code explanation and walkthrough" aria-label="Explain ${escapeHtml(q.title)}">
-                  <span class="material-symbols-outlined text-[15px]">menu_book</span>
-                  <span>Explain</span>
-                </button>
                 <a href="${lcUrl}" target="_blank" rel="noopener noreferrer" class="dsa-btn-leetcode" title="Solve on LeetCode" aria-label="Solve ${escapeHtml(q.title)} on LeetCode">
                   <span>Solve</span>
                   <span class="material-symbols-outlined text-[14px]">open_in_new</span>
@@ -592,9 +572,9 @@
           if (!qid) return;
 
           if (window.DsaPatternController && typeof window.DsaPatternController.openSolveEvaluationModal === 'function') {
-            window.DsaPatternController.openSolveEvaluationModal(qid);
+            window.DsaPatternController.openSolveEvaluationModal(qid, 'roadmap');
           } else {
-            window.dispatchEvent(new CustomEvent('openDsaSolveModal', { detail: { qid } }));
+            window.dispatchEvent(new CustomEvent('openDsaSolveModal', { detail: { qid, context: 'roadmap' } }));
           }
           return;
         }
@@ -853,10 +833,8 @@
       dom.confirmResetBtn.addEventListener('click', () => {
         Storage.remove('dsa_progress');
         Storage.set('dsa_progress', {});
+        Storage.set('dsa_roadmap_evaluations', {});
         progress = {};
-        patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
-        patternStats.evaluations = {};
-        Storage.set('dsa_pattern_stats', patternStats);
         dom.resetModal.classList.remove('open');
         dom.resetModal.classList.add('hidden');
         updateProgressUI();
@@ -870,26 +848,28 @@
       });
     }
 
-    // 9. Bidirectional progress & evaluation sync listener
+    // 9. Roadmap progress sync listeners
+    window.addEventListener('dsaRoadmapProgressSync', () => {
+      progress = Storage.get('dsa_progress', {}) || {};
+      reviews = Storage.get('dsa_reviews', {}) || {};
+      updateProgressUI();
+      renderQuestions();
+    });
+
     window.addEventListener('dsaProgressSync', (e) => {
+      if (e.detail && (e.detail.source === 'patternLearning' || e.detail.source === 'patternReset')) {
+        // Pattern Learning changes must NEVER affect DSA Roadmap!
+        return;
+      }
       if (e.detail && e.detail.source === 'roadmap') return;
-      if (e.detail && (e.detail.source === 'roadmapReset' || e.detail.source === 'patternReset')) {
+      if (e.detail && e.detail.source === 'roadmapReset') {
         progress = {};
-        patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
-        patternStats.evaluations = {};
         updateProgressUI();
         renderQuestions();
         return;
       }
       progress = Storage.get('dsa_progress', {}) || {};
       reviews = Storage.get('dsa_reviews', {}) || {};
-      patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
-      if (!patternStats.evaluations) patternStats.evaluations = {};
-
-      Object.keys(patternStats.evaluations).forEach(qid => {
-        if (patternStats.evaluations[qid]) progress[qid] = true;
-      });
-
       updateProgressUI();
       renderQuestions();
     });
@@ -899,6 +879,76 @@
       reviews = Storage.get('dsa_reviews', {}) || {};
       renderQuestions();
     });
+
+    // 11. Viewport detection and responsive layout listener
+    window.addEventListener('resize', handleResponsiveLayout);
+
+    // 12. Category slider navigation arrows (Prev/Next)
+    const navPrevBtn = document.getElementById('dsa-nav-prev');
+    const navNextBtn = document.getElementById('dsa-nav-next');
+    if (navPrevBtn && dom.sidebarNavList) {
+      navPrevBtn.addEventListener('click', () => {
+        dom.sidebarNavList.scrollBy({ left: -220, behavior: 'smooth' });
+      });
+    }
+    if (navNextBtn && dom.sidebarNavList) {
+      navNextBtn.addEventListener('click', () => {
+        dom.sidebarNavList.scrollBy({ left: 220, behavior: 'smooth' });
+      });
+    }
+
+    // 13. Floating Jump-to-Section Up Button (Appears only when reaching this section)
+    const scrollToSectionBtn = document.getElementById('dsa-scroll-to-section-btn');
+    if (scrollToSectionBtn) {
+      function updateScrollBtn() {
+        const roadmapView = document.getElementById('dsa-roadmap-view');
+        // Arrow button is only for Roadmap category options; never show in Pattern Learning
+        if (!roadmapView || roadmapView.classList.contains('hidden') || roadmapView.offsetParent === null) {
+          scrollToSectionBtn.classList.remove('is-visible');
+          return;
+        }
+
+        const workspace = document.querySelector('.dsa-workspace');
+        if (!workspace) return;
+        const rect = workspace.getBoundingClientRect();
+        // Appears only when the user scrolls down to reach this category options section
+        if (rect.top <= 120) {
+          scrollToSectionBtn.classList.add('is-visible');
+        } else {
+          scrollToSectionBtn.classList.remove('is-visible');
+        }
+      }
+
+      window.addEventListener('scroll', updateScrollBtn, { passive: true });
+      updateScrollBtn();
+
+      scrollToSectionBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const workspace = document.querySelector('.dsa-workspace');
+        if (workspace) {
+          const topOffset = workspace.getBoundingClientRect().top + window.pageYOffset - 16;
+          window.scrollTo({
+            top: Math.max(0, topOffset),
+            behavior: 'smooth'
+          });
+        }
+      });
+    }
+  }
+
+  /**
+   * Detects current viewport width on initial render and window resize,
+   * ensuring the responsive horizontal category/pattern slider is properly initialized.
+   */
+  function handleResponsiveLayout() {
+    const isMobileOrTablet = window.innerWidth <= 1099;
+    if (dom.sidebarNavList) {
+      if (isMobileOrTablet) {
+        dom.sidebarNavList.classList.add('dsa-nav-slider');
+      } else {
+        dom.sidebarNavList.classList.remove('dsa-nav-slider');
+      }
+    }
   }
 
   /**
@@ -915,6 +965,10 @@
           navItems.forEach(item => {
             if (item.dataset.categoryId === categoryId) {
               item.classList.add('is-active');
+              // When in responsive slider mode, scroll active category item smoothly into center
+              if (dom.sidebarNavList && window.innerWidth <= 1099) {
+                item.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+              }
             } else {
               item.classList.remove('is-active');
             }

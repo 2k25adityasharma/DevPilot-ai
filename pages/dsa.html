@@ -40,7 +40,7 @@
       const htmlDoc = document.documentElement;
       htmlDoc.classList.add('js', 'preload');
       const isCollapsed = localStorage.getItem('devpilot-sidebar-collapsed') === 'true';
-      if (isCollapsed && window.innerWidth >= 768) {
+      if (isCollapsed) {
         htmlDoc.classList.add('sidebar-collapsed');
       }
       function reveal() {
@@ -59,7 +59,7 @@
 
   <!-- SideNavBar -->
   <aside class="fixed left-0 top-0 h-full w-[260px] bg-white border-r border-slate-200 flex flex-col py-6 z-50 transform md:translate-x-0" id="sidebar">
-    <button aria-label="Toggle Sidebar" class="absolute -right-3.5 top-6 w-7 h-7 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:border-indigo-600 transition-colors z-50 hidden md:flex shadow-sm" id="sidebar-toggle">
+    <button aria-label="Toggle Sidebar" class="absolute -right-3.5 top-6 w-7 h-7 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:border-indigo-600 transition-colors z-50 shadow-sm" id="sidebar-toggle">
       <span class="material-symbols-outlined text-[18px]" id="sidebar-toggle-icon">chevron_left</span>
     </button>
     <div class="flex-1 flex flex-col overflow-hidden">
@@ -339,8 +339,16 @@
             </h2>
             <span class="dsa-nav-sidebar-badge">260 Qs</span>
           </div>
-          <div class="dsa-nav-list custom-scrollbar" id="dsa-sidebar-nav-list">
-            <!-- Rendered by js/pages/dsa.js -->
+          <div class="dsa-nav-slider-wrapper">
+            <button type="button" class="dsa-nav-arrow dsa-nav-arrow-prev" id="dsa-nav-prev" aria-label="Previous categories" title="Scroll left">
+              <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            <div class="dsa-nav-list custom-scrollbar" id="dsa-sidebar-nav-list">
+              <!-- Rendered by js/pages/dsa.js -->
+            </div>
+            <button type="button" class="dsa-nav-arrow dsa-nav-arrow-next" id="dsa-nav-next" aria-label="Next categories" title="Scroll right">
+              <span class="material-symbols-outlined">chevron_right</span>
+            </button>
           </div>
         </aside>
 
@@ -716,7 +724,7 @@
     </div>
   </div>
 
-  <!-- Excessive Assistance Alert Modal (> 4 Non-100% Solves) -->
+  <!-- Excessive Assistance Alert Modal (>= 2 Non-100% Solves) -->
   <div class="modal-backdrop hidden" id="pl-excessive-help-modal" role="dialog" aria-modal="true" aria-labelledby="pl-excessive-help-title">
     <div class="modal-card pl-modal-card max-w-md p-6 text-center">
       <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200 shadow-sm animate-pulse">
@@ -725,7 +733,7 @@
       <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Pattern Mastery Alert</span>
       <h3 class="pl-modal-title text-lg font-bold text-slate-900 mt-1 mb-2" id="pl-excessive-help-title">Pattern Flagged as Weak</h3>
       <p class="pl-modal-subtitle text-sm text-slate-500 mb-5 leading-relaxed" id="pl-excessive-help-msg">
-        You have selected AI help or copy/paste on <strong class="text-amber-600" id="pl-excessive-help-count">5</strong> problems in this pattern. Exceeding 4 assisted solves flags this pattern as <strong class="text-amber-600">Weak</strong>.
+        You have selected AI help or copy/paste on <strong class="text-amber-600" id="pl-excessive-help-count">2</strong> problems in this pattern. Exceeding 1 assisted solve (≥ 2) flags this pattern as <strong class="text-amber-600">Weak</strong>.
       </p>
       <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 text-left mb-6">
         <strong class="flex items-center gap-1 font-semibold mb-1">
@@ -757,6 +765,11 @@
       </div>
     </div>
   </div>
+
+  <!-- Floating Jump-to-Section Up Button -->
+  <button id="dsa-scroll-to-section-btn" class="dsa-scroll-up-btn" aria-label="Jump to Category Options" title="Jump to Category Options">
+    <span class="material-symbols-outlined">arrow_upward</span>
+  </button>
 
   <script src="../js/core/utils.js"></script>
   <script src="../js/core/app.js"></script>

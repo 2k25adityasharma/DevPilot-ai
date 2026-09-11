@@ -238,6 +238,14 @@
   border-radius: var(--radius-full);
 }
 
+.dsa-nav-slider-wrapper {
+  display: contents;
+}
+
+.dsa-nav-arrow {
+  display: none !important;
+}
+
 .dsa-nav-list {
   overflow-y: auto;
   padding-right: 4px;
@@ -1103,18 +1111,104 @@
 @media (max-width: 1099px) {
   .dsa-workspace {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1rem;
   }
 
   .dsa-nav-sidebar {
-    position: static;
-    max-height: 280px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: var(--color-surface);
+    border: 1px solid var(--color-outline-variant);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+    max-height: none;
+    padding: 0.625rem 0.875rem;
+    overflow: visible;
   }
 
-  .dsa-nav-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  .dsa-nav-sidebar-header {
+    padding: 0 0.25rem 0.35rem 0.25rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .dsa-nav-slider-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 100%;
+    min-width: 0;
     gap: 0.35rem;
+  }
+
+  .dsa-nav-arrow {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: var(--radius-full);
+    background: #ffffff;
+    border: 1px solid var(--color-outline-variant);
+    color: var(--color-on-surface);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+    z-index: 2;
+  }
+
+  .dsa-nav-arrow:hover {
+    background: #eef2ff;
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+    transform: scale(1.05);
+  }
+
+  .dsa-nav-arrow:active {
+    transform: scale(0.95);
+  }
+
+  .dsa-nav-arrow .material-symbols-outlined {
+    font-size: 18px;
+  }
+
+  .dsa-nav-list,
+  .dsa-nav-list.dsa-nav-slider {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    padding: 0.25rem 0.25rem 0.5rem 0.25rem;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .dsa-nav-item {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .dsa-quick-chips {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dsa-chip-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .dsa-quick-chips-label {
+    flex-shrink: 0;
+    white-space: nowrap;
   }
 }
 
@@ -1126,8 +1220,8 @@
   }
 
   .dsa-diff-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
   }
 
   .dsa-toolbar {
@@ -1208,6 +1302,11 @@
     padding: 1.25rem 1rem;
   }
 
+  .dsa-diff-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
   .dsa-hero-stats-count {
     font-size: 1.5rem;
   }
@@ -1221,12 +1320,18 @@
   }
 
   .dsa-nav-sidebar {
-    padding: 1rem 0.75rem;
-    max-height: 240px;
+    padding: 0.75rem;
+    max-height: none;
   }
 
-  .dsa-nav-list {
-    grid-template-columns: 1fr;
+  .dsa-nav-list,
+  .dsa-nav-list.dsa-nav-slider {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
   }
 }
 
@@ -1825,6 +1930,7 @@
   top: 1rem;
   z-index: 20;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  scroll-behavior: smooth;
 }
 
 .pl-anchor-link {
@@ -1836,6 +1942,8 @@
   padding: 0.35rem 0.75rem;
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
+  cursor: pointer;
+  user-select: none;
 }
 
 .pl-anchor-link:hover, .pl-anchor-link.active {
@@ -1851,6 +1959,7 @@
   padding: 1.75rem;
   margin-bottom: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  scroll-margin-top: 5rem;
 }
 
 .pl-study-section-title {
@@ -3137,4 +3246,79 @@
   background: rgba(245, 158, 11, 0.1);
   border-color: rgba(245, 158, 11, 0.2);
   color: #fcd34d;
+}
+
+/* ==========================================================================
+   11. Floating Jump-to-Section Up Button
+   ========================================================================== */
+.dsa-scroll-up-btn {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.38), 0 2px 6px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 45;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(16px) scale(0.9);
+  transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.dsa-scroll-up-btn.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+/* Remove floating jump arrow in Pattern Learning view only */
+#dsa-pattern-learning-view:not(.hidden) ~ #dsa-scroll-to-section-btn,
+#dsa-roadmap-view.hidden ~ #dsa-scroll-to-section-btn,
+body:has(#dsa-pattern-learning-view:not(.hidden)) #dsa-scroll-to-section-btn,
+body:has(#dsa-roadmap-view.hidden) #dsa-scroll-to-section-btn {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.dsa-scroll-up-btn:hover {
+  background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.48), 0 2px 6px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px) scale(1.05);
+}
+
+.dsa-scroll-up-btn:active {
+  transform: translateY(0) scale(0.95);
+}
+
+.dsa-scroll-up-btn .material-symbols-outlined {
+  font-size: 22px;
+  font-weight: 700;
+  transition: transform var(--transition-fast);
+}
+
+.dsa-scroll-up-btn:hover .material-symbols-outlined {
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .dsa-scroll-up-btn {
+    bottom: 1.25rem;
+    right: 1.25rem;
+    width: 40px;
+    height: 40px;
+  }
+
+  .dsa-scroll-up-btn .material-symbols-outlined {
+    font-size: 20px;
+  }
 }

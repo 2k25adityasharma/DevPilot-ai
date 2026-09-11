@@ -256,7 +256,7 @@ runTest('TEST 8: css/pages/dsa.css contains styling rules for Pattern Learning a
 });
 
 // TEST 9: Pattern Practice & Mastery Increment Logic
-runTest('TEST 9: Solving all 10 questions increments Practiced Patterns and Mastered Patterns accordingly', () => {
+runTest('TEST 9: Solving 1 question increments Practiced Patterns, solving all 10 questions masters pattern', () => {
   let dsaProgress = {};
   let patternStats = { viewed: {}, quizzes: {}, weak: {} };
 
@@ -286,8 +286,11 @@ runTest('TEST 9: Solving all 10 questions increments Practiced Patterns and Mast
       });
       const isAllSolved = questionIds.length > 0 && solvedCount >= questionIds.length;
       const mastery = calculatePatternMastery(pat);
-      if (isAllSolved || mastery === 'Mastered') {
+      const isWeak = mastery === 'Weak';
+      if (!isWeak && (solvedCount >= 1 || mastery === 'Practicing' || mastery === 'Mastered')) {
         practicedCount++;
+      }
+      if (!isWeak && (isAllSolved || mastery === 'Mastered')) {
         masteredCount++;
       }
     });
@@ -299,36 +302,35 @@ runTest('TEST 9: Solving all 10 questions increments Practiced Patterns and Mast
   assert.strictEqual(m.practicedCount, 0, 'Initially practicedCount must be 0');
   assert.strictEqual(m.masteredCount, 0, 'Initially masteredCount must be 0');
 
-  // 2. Partial solve (e.g. 5 questions) of Pattern 0 -> mastery is 'Practicing', not counted as complete practiced pattern
-  const pat0 = dsaPatternsRoadmap[0];
-  pat0.practiceQuestionIds.slice(0, 5).forEach(qid => dsaProgress[qid] = true);
-  m = getMetrics();
-  assert.strictEqual(calculatePatternMastery(pat0), 'Practicing');
-  assert.strictEqual(m.practicedCount, 0, 'Partial solve should not increment practicedCount');
-  assert.strictEqual(m.masteredCount, 0, 'Partial solve should not increment masteredCount');
-
-  // 3. Complete all 10 questions of Pattern 0 -> Practiced = 1, Mastered = 1
-  pat0.practiceQuestionIds.slice(5).forEach(qid => dsaProgress[qid] = true);
-  m = getMetrics();
-  assert.strictEqual(calculatePatternMastery(pat0), 'Mastered');
-  assert.strictEqual(m.practicedCount, 1, 'Solving all 10 questions must increment practicedCount to 1');
-  assert.strictEqual(m.masteredCount, 1, 'Solving all 10 questions must increment masteredCount to 1');
-
-  // 4. Complete all 10 questions of Pattern 1 -> Practiced = 2, Mastered = 2
+  // 2. Solve 1 question of Pattern 1 -> mastery is 'Practicing', counted as Practiced Pattern!
   const pat1 = dsaPatternsRoadmap[1];
-  pat1.practiceQuestionIds.forEach(qid => dsaProgress[qid] = true);
+  dsaProgress[pat1.practiceQuestionIds[0]] = true;
+  m = getMetrics();
+  assert.strictEqual(calculatePatternMastery(pat1), 'Practicing');
+  assert.strictEqual(m.practicedCount, 1, 'Solving 1 question must increment practicedCount to 1');
+  assert.strictEqual(m.masteredCount, 0, 'Solving 1 question does not master pattern yet');
+
+  // 3. Complete all 10 questions of Pattern 1 -> Practiced = 1, Mastered = 1
+  pat1.practiceQuestionIds.slice(1).forEach(qid => dsaProgress[qid] = true);
   m = getMetrics();
   assert.strictEqual(calculatePatternMastery(pat1), 'Mastered');
-  assert.strictEqual(m.practicedCount, 2, 'Solving all questions of 2 patterns must increment practicedCount to 2');
-  assert.strictEqual(m.masteredCount, 2, 'Solving all questions of 2 patterns must increment masteredCount to 2');
+  assert.strictEqual(m.practicedCount, 1, 'Practiced remains 1');
+  assert.strictEqual(m.masteredCount, 1, 'Solving all 10 questions must increment masteredCount to 1');
 
-  // 5. Complete all 10 questions of Pattern 2 -> Practiced = 3, Mastered = 3
+  // 4. Solve 1 question of Pattern 2 -> Practiced = 2, Mastered = 1
   const pat2 = dsaPatternsRoadmap[2];
-  pat2.practiceQuestionIds.forEach(qid => dsaProgress[qid] = true);
+  dsaProgress[pat2.practiceQuestionIds[0]] = true;
+  m = getMetrics();
+  assert.strictEqual(calculatePatternMastery(pat2), 'Practicing');
+  assert.strictEqual(m.practicedCount, 2, 'Solving 1 question of 2nd pattern must increment practicedCount to 2');
+  assert.strictEqual(m.masteredCount, 1, 'Mastered remains 1');
+
+  // 5. Complete all 10 questions of Pattern 2 -> Practiced = 2, Mastered = 2
+  pat2.practiceQuestionIds.slice(1).forEach(qid => dsaProgress[qid] = true);
   m = getMetrics();
   assert.strictEqual(calculatePatternMastery(pat2), 'Mastered');
-  assert.strictEqual(m.practicedCount, 3, 'Solving all questions of 3 patterns must increment practicedCount to 3');
-  assert.strictEqual(m.masteredCount, 3, 'Solving all questions of 3 patterns must increment masteredCount to 3');
+  assert.strictEqual(m.practicedCount, 2, 'Practiced remains 2');
+  assert.strictEqual(m.masteredCount, 2, 'Mastered becomes 2');
 });
 
 // TEST 10: Weak Pattern Detection (>= 5 crosses OR > 3 AI/other help solves)
@@ -486,8 +488,8 @@ runTest('TEST 12: Sequential progression logic enforces Question 1 unlocked and 
   assert.strictEqual(isQuestionLocked(3), true, 'Q4 locks again because sequence broke at Q2');
 });
 
-// TEST 13: Non-100% Options (>4 Selections Threshold) Flags Pattern as Weak
-runTest('TEST 13: Selecting non-100% options (30%, 50%, cross) on > 4 questions flags pattern as Weak', () => {
+// TEST 13: Non-100% Options (>= 2 Selections Threshold) Flags Pattern as Weak
+runTest('TEST 13: Selecting non-100% options (30%, 50%, cross) on >= 2 questions flags pattern as Weak', () => {
   const pat = dsaPatternsRoadmap[1];
   const qids = pat.practiceQuestionIds;
   let patternStats = { viewed: { [pat.id]: true }, quizzes: {}, weak: {}, evaluations: {} };
@@ -512,36 +514,31 @@ runTest('TEST 13: Selecting non-100% options (30%, 50%, cross) on > 4 questions 
       crossCount,
       helpCount,
       nonSelfCount,
-      isWeak: crossCount >= 5 || helpCount > 3 || nonSelfCount > 4
+      isWeak: crossCount >= 2 || helpCount >= 2 || nonSelfCount >= 2
     };
   }
 
-  // 1. 5 self, 2 help30, 1 help50, 2 cross -> nonSelfCount = 5 (> 4), helpCount = 3 (<= 3), crossCount = 2 (< 5)
-  // This isolates nonSelfCount > 4 as the sole trigger for Weak!
+  // 1. 8 self, 1 help30, 1 cross -> nonSelfCount = 2 (>= 2) -> flags as Weak!
   patternStats.evaluations[qids[0]] = 'self';
   patternStats.evaluations[qids[1]] = 'self';
   patternStats.evaluations[qids[2]] = 'self';
   patternStats.evaluations[qids[3]] = 'self';
   patternStats.evaluations[qids[4]] = 'self';
-  patternStats.evaluations[qids[5]] = 'help30';
-  patternStats.evaluations[qids[6]] = 'help30';
-  patternStats.evaluations[qids[7]] = 'help50';
-  patternStats.evaluations[qids[8]] = 'cross';
+  patternStats.evaluations[qids[5]] = 'self';
+  patternStats.evaluations[qids[6]] = 'self';
+  patternStats.evaluations[qids[7]] = 'self';
+  patternStats.evaluations[qids[8]] = 'help30';
   patternStats.evaluations[qids[9]] = 'cross';
 
   let status = checkWeak();
-  assert.strictEqual(status.nonSelfCount, 5, 'Must have 5 non-100% solves');
-  assert.strictEqual(status.helpCount, 3, 'Help count must be 3 (<= 3)');
-  assert.strictEqual(status.crossCount, 2, 'Cross count must be 2 (< 5)');
-  assert.strictEqual(status.isWeak, true, 'Must be flagged as Weak because nonSelfCount (5) > 4');
+  assert.strictEqual(status.nonSelfCount, 2, 'Must have 2 non-100% solves');
+  assert.strictEqual(status.isWeak, true, 'Must be flagged as Weak because nonSelfCount (2) >= 2');
 
-  // 2. Reduce non-self count to 4 (change qids[9] to 'self') -> not weak
+  // 2. Reduce non-self count to 1 (change qids[9] to 'self') -> not weak
   patternStats.evaluations[qids[9]] = 'self';
   status = checkWeak();
-  assert.strictEqual(status.nonSelfCount, 4, 'Must have 4 non-100% solves');
-  assert.strictEqual(status.helpCount, 3, 'Help count is 3 (<= 3)');
-  assert.strictEqual(status.crossCount, 1, 'Cross count is 1 (< 5)');
-  assert.strictEqual(status.isWeak, false, 'Should NOT be weak when nonSelfCount <= 4, helpCount <= 3, and crossCount < 5');
+  assert.strictEqual(status.nonSelfCount, 1, 'Must have 1 non-100% solve');
+  assert.strictEqual(status.isWeak, false, 'Should NOT be weak when nonSelfCount < 2');
 });
 
 // TEST 14: CSS Rules for Locked Rows, Pills, and Honesty Badges

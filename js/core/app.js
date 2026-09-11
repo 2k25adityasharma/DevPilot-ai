@@ -16,9 +16,9 @@ function initSidebar() {
   const mobileOverlay = document.getElementById('mobile-overlay');
   const htmlDoc = document.documentElement;
 
-  // Restore desktop collapsed state
+  // Restore collapsed state
   const isCollapsed = localStorage.getItem('devpilot-sidebar-collapsed') === 'true';
-  if (isCollapsed && window.innerWidth >= 768) {
+  if (isCollapsed) {
     htmlDoc.classList.add('sidebar-collapsed');
     if (sidebarToggleIcon) sidebarToggleIcon.textContent = 'chevron_right';
   }

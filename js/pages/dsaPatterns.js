@@ -13,13 +13,15 @@
   window.DsaPatternController = {};
 
   // State
-  let dsaProgress = {};
+  let dsaProgress = {}; // Dedicated Pattern Learning progress: tracks solved questions in Pattern Learning
   let patternStats = {};
   let currentPattern = null;
   let currentArenaIndex = 0;
   let arenaScore = { correct: 0, total: 0, streak: 0 };
   let activeEvaluatingQuestion = null;
+  let activeEvaluatingContext = 'patternLearning'; // 'patternLearning' | 'roadmap'
   let currentPatternQuestions = [];
+  let studyScrollSpyObserver = null;
 
   const catalogFilterState = {
     search: '',
@@ -40,8 +42,8 @@
       return;
     }
 
-    // Load progress from Storage
-    dsaProgress = Storage.get('dsa_progress', {}) || {};
+    // Load progress from dedicated Pattern Learning Storage key
+    dsaProgress = Storage.get('dsa_pattern_progress', {}) || {};
     patternStats = Storage.get('dsa_pattern_stats', {
       viewed: {},
       quizzes: {},
@@ -50,7 +52,7 @@
     }) || { viewed: {}, quizzes: {}, weak: {}, evaluations: {} };
     if (!patternStats.evaluations) patternStats.evaluations = {};
 
-    // Auto-heal/sync any evaluated questions into dsaProgress
+    // Auto-heal/sync any evaluated questions into dsaProgress for Pattern Learning
     let needsProgressSync = false;
     Object.keys(patternStats.evaluations).forEach(qid => {
       if (patternStats.evaluations[qid] && !dsaProgress[qid]) {
@@ -59,7 +61,7 @@
       }
     });
     if (needsProgressSync) {
-      Storage.set('dsa_progress', dsaProgress);
+      Storage.set('dsa_pattern_progress', dsaProgress);
     }
 
     // Cache elements
@@ -149,10 +151,8 @@
    * 'Not Started' | 'Learning' | 'Practicing' | 'Mastered' | 'Weak'
    *
    * Weak Criteria:
-   * 1. crossCount >= 5 (User has 5 or more failed/copied crosses in this pattern)
-   * 2. helpCount > 3 (User clicked AI / other help on more than 3 questions in this pattern)
-   * 3. nonSelfCount > 4 (User clicked non-100% options more than 4 times in this pattern)
-   * 4. Pattern Recognition Quiz accuracy < 60%
+   * 1. nonSelfCount >= 2 (User selected AI help or copy/paste on 2 or more questions in this pattern)
+   * 2. Pattern Recognition Quiz accuracy < 60%
    */
   function calculatePatternMastery(pattern) {
     const pid = pattern.id;
@@ -186,7 +186,7 @@
     });
 
     const nonSelfCount = crossCount + helpCount;
-    const isWeakByEvaluation = crossCount >= 5 || helpCount > 3 || nonSelfCount > 4;
+    const isWeakByEvaluation = crossCount >= 2 || helpCount >= 2 || nonSelfCount >= 2;
     const isWeak = isWeakByEvaluation || isWeakByQuiz;
 
     const isAllSolved = questionIds.length > 0 && solvedCount >= questionIds.length;
@@ -269,7 +269,7 @@
       help50Count,
       selfCount,
       nonSelfCount,
-      isWeakByEvaluation: crossCount >= 5 || helpCount > 3 || nonSelfCount > 4
+      isWeakByEvaluation: crossCount >= 2 || helpCount >= 2 || nonSelfCount >= 2
     };
   }
 
@@ -289,10 +289,14 @@
       const isWeak = mastery === 'Weak' || stats.isWeakByEvaluation || !!patternStats.weak[pat.id];
       const isAllSolved = stats.total > 0 && stats.solved >= stats.total;
 
-      // When user solves all questions and is not weak:
-      // Practiced pattern increments by 1 and mastered pattern increments by 1
-      if (!isWeak && (isAllSolved || mastery === 'Mastered')) {
+      // When user solves 1 or more questions on any pattern in Pattern Learning:
+      // Counted as a Practiced Pattern!
+      if (!isWeak && (stats.solved >= 1 || mastery === 'Practicing' || mastery === 'Mastered')) {
         practicedCount++;
+      }
+
+      // Mastered patterns require all 10 questions solved
+      if (!isWeak && (isAllSolved || mastery === 'Mastered')) {
         masteredCount++;
       }
 
@@ -528,6 +532,11 @@
 
     renderPatternStudyContent(pat);
 
+    // Initialize Scroll Spy for the 9 sections
+    setTimeout(() => {
+      initStudyScrollSpy();
+    }, 150);
+
     // Scroll to top of study view smoothly
     window.scrollTo({ top: 120, behavior: 'smooth' });
   }
@@ -536,6 +545,7 @@
    * Closes the Dedicated Pattern View and returns to the catalog
    */
   function closePatternStudyView() {
+    disconnectStudyScrollSpy();
     currentPattern = null;
     if (dom.studyViewSection) dom.studyViewSection.classList.add('hidden');
     if (dom.catalogSection) dom.catalogSection.classList.remove('hidden');
@@ -543,11 +553,130 @@
     renderDashboard();
   }
 
+  let isManualAnchorClick = false;
+  let manualScrollTimeout = null;
+  let onStudyWindowScroll = null;
+
+  function scrollAnchorBarToLink(linkEl) {
+    const bar = document.getElementById('pl-study-anchor-bar');
+    if (!bar || !linkEl) return;
+    const barRect = bar.getBoundingClientRect();
+    const linkRect = linkEl.getBoundingClientRect();
+    const targetScrollLeft = bar.scrollLeft + (linkRect.left - barRect.left) - (bar.clientWidth / 2) + (linkRect.width / 2);
+    bar.scrollTo({ left: Math.max(0, targetScrollLeft), behavior: 'smooth' });
+  }
+
+  function setActiveAnchor(id) {
+    const bar = document.getElementById('pl-study-anchor-bar');
+    if (!bar) return;
+    const links = bar.querySelectorAll('.pl-anchor-link');
+    let activeLink = null;
+    links.forEach(a => {
+      const match = a.dataset.target === id || a.getAttribute('href') === `#${id}`;
+      if (match) {
+        a.classList.add('active');
+        activeLink = a;
+      } else {
+        a.classList.remove('active');
+      }
+    });
+    if (activeLink) {
+      scrollAnchorBarToLink(activeLink);
+    }
+  }
+
+  /**
+   * Initializes IntersectionObserver & scroll-based Scroll Spy for the 9 curriculum sections
+   */
+  function initStudyScrollSpy() {
+    disconnectStudyScrollSpy();
+
+    const sectionIds = [
+      'sec-overview',
+      'sec-signals',
+      'sec-mental-model',
+      'sec-variations',
+      'sec-complexity',
+      'sec-template',
+      'sec-trace',
+      'sec-quiz',
+      'sec-practice'
+    ];
+
+    const sections = sectionIds.map(id => document.getElementById(id)).filter(Boolean);
+    if (sections.length === 0) return;
+
+    onStudyWindowScroll = () => {
+      if (isManualAnchorClick) return;
+      if (!currentPattern || !dom.studyViewSection || dom.studyViewSection.classList.contains('hidden')) return;
+
+      // 1. If reached bottom of page (Practice Problems), guarantee sec-practice is active
+      const isBottom = (window.innerHeight + window.pageYOffset) >= (document.documentElement.scrollHeight - 70);
+      if (isBottom) {
+        setActiveAnchor('sec-practice');
+        return;
+      }
+
+      // 2. Determine section currently under the sticky anchor bar
+      const bar = document.getElementById('pl-study-anchor-bar');
+      const barHeight = bar ? bar.offsetHeight : 54;
+      const threshold = barHeight + 70;
+
+      let currentSecId = sectionIds[0];
+      for (const id of sectionIds) {
+        const el = document.getElementById(id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= threshold) {
+            currentSecId = id;
+          } else {
+            break;
+          }
+        }
+      }
+      setActiveAnchor(currentSecId);
+    };
+
+    studyScrollSpyObserver = new IntersectionObserver((entries) => {
+      if (isManualAnchorClick) return;
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          setActiveAnchor(id);
+        }
+      });
+    }, {
+      root: null,
+      rootMargin: '-70px 0px -50% 0px',
+      threshold: 0.05
+    });
+
+    sections.forEach(sec => studyScrollSpyObserver.observe(sec));
+    window.addEventListener('scroll', onStudyWindowScroll, { passive: true });
+  }
+
+  function disconnectStudyScrollSpy() {
+    if (studyScrollSpyObserver) {
+      studyScrollSpyObserver.disconnect();
+      studyScrollSpyObserver = null;
+    }
+    if (onStudyWindowScroll) {
+      window.removeEventListener('scroll', onStudyWindowScroll);
+      onStudyWindowScroll = null;
+    }
+  }
+
   /**
    * Renders the full 12-point curriculum inside the Dedicated Pattern Study View
    */
   function renderPatternStudyContent(pat) {
     if (!dom.studyViewContainer) return;
+
+    let currentActiveSectionId = 'sec-overview';
+    const existingActive = dom.studyViewContainer.querySelector('.pl-anchor-link.active');
+    if (existingActive && existingActive.dataset.target) {
+      currentActiveSectionId = existingActive.dataset.target;
+    }
 
     const mastery = calculatePatternMastery(pat);
     const solvedStats = getPatternSolvedCount(pat);
@@ -587,16 +716,16 @@
       </div>
 
       <!-- Quick Section Anchor Navigation -->
-      <div class="pl-study-anchor-bar custom-scrollbar">
-        <a href="#sec-overview" class="pl-anchor-link active">1. Overview & When to Use</a>
-        <a href="#sec-signals" class="pl-anchor-link">2. Recognition Signals</a>
-        <a href="#sec-mental-model" class="pl-anchor-link">3. Core Idea & Model</a>
-        <a href="#sec-variations" class="pl-anchor-link">4. Variations</a>
-        <a href="#sec-complexity" class="pl-anchor-link">5. Complexity & Pitfalls</a>
-        <a href="#sec-template" class="pl-anchor-link">6. C++ Code Template</a>
-        <a href="#sec-trace" class="pl-anchor-link">7. Walkthrough Trace</a>
-        <a href="#sec-quiz" class="pl-anchor-link">8. Pattern Recognition Quiz</a>
-        <a href="#sec-practice" class="pl-anchor-link">9. Practice Problems (${patternQuestions.length})</a>
+      <div class="pl-study-anchor-bar custom-scrollbar" id="pl-study-anchor-bar">
+        <a href="#sec-overview" class="pl-anchor-link ${currentActiveSectionId === 'sec-overview' ? 'active' : ''}" data-target="sec-overview">1. Overview & When to Use</a>
+        <a href="#sec-signals" class="pl-anchor-link ${currentActiveSectionId === 'sec-signals' ? 'active' : ''}" data-target="sec-signals">2. Recognition Signals</a>
+        <a href="#sec-mental-model" class="pl-anchor-link ${currentActiveSectionId === 'sec-mental-model' ? 'active' : ''}" data-target="sec-mental-model">3. Core Idea & Model</a>
+        <a href="#sec-variations" class="pl-anchor-link ${currentActiveSectionId === 'sec-variations' ? 'active' : ''}" data-target="sec-variations">4. Variations</a>
+        <a href="#sec-complexity" class="pl-anchor-link ${currentActiveSectionId === 'sec-complexity' ? 'active' : ''}" data-target="sec-complexity">5. Complexity & Pitfalls</a>
+        <a href="#sec-template" class="pl-anchor-link ${currentActiveSectionId === 'sec-template' ? 'active' : ''}" data-target="sec-template">6. C++ Code Template</a>
+        <a href="#sec-trace" class="pl-anchor-link ${currentActiveSectionId === 'sec-trace' ? 'active' : ''}" data-target="sec-trace">7. Walkthrough Trace</a>
+        <a href="#sec-quiz" class="pl-anchor-link ${currentActiveSectionId === 'sec-quiz' ? 'active' : ''}" data-target="sec-quiz">8. Pattern Recognition Quiz</a>
+        <a href="#sec-practice" class="pl-anchor-link ${currentActiveSectionId === 'sec-practice' ? 'active' : ''}" data-target="sec-practice">9. Practice Problems (${patternQuestions.length})</a>
       </div>
 
       <!-- 1. What is it & When to Use -->
@@ -775,7 +904,7 @@
               <span class="material-symbols-outlined text-indigo-600">checklist</span>
               <span>9. Practice Problems (10 Curated Problems)</span>
             </h3>
-            <p class="text-xs text-slate-500">Sequential Mastery (1 → 10): <strong>5 Easy • 3 Medium • 2 Hard</strong>. ≥5 crosses or >4 non-100% solves flags pattern as Weak.</p>
+            <p class="text-xs text-slate-500">Sequential Mastery (1 → 10): <strong>5 Easy • 3 Medium • 2 Hard</strong>. ≥2 assisted or copied solves flags pattern as Weak.</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
             <span class="pl-breakdown-chip bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" title="Solved 100% on your own (Full tumne kiya)">
@@ -790,14 +919,14 @@
               <span class="material-symbols-outlined text-[13px]">smart_toy</span>
               <span>${solvedStats.help50Count || 0} - 50% Help</span>
             </span>
-            <span class="pl-breakdown-chip ${solvedStats.crossCount >= 5 ? 'bg-rose-500/20 text-rose-700 border border-rose-500/40 font-bold' : 'bg-rose-500/10 text-rose-600 border border-rose-500/20'}" title="${solvedStats.crossCount >= 5 ? '5 or more crosses flags this pattern as Weak' : 'Copy-pasted or direct solution'}">
+            <span class="pl-breakdown-chip ${solvedStats.crossCount >= 2 ? 'bg-rose-500/20 text-rose-700 border border-rose-500/40 font-bold' : 'bg-rose-500/10 text-rose-600 border border-rose-500/20'}" title="${solvedStats.crossCount >= 2 ? '2 or more crosses flags this pattern as Weak' : 'Copy-pasted or direct solution'}">
               <span class="material-symbols-outlined text-[13px]">content_paste_off</span>
-              <span>${solvedStats.crossCount} - Copied ${solvedStats.crossCount >= 5 ? '⚠️' : ''}</span>
+              <span>${solvedStats.crossCount} - Copied ${solvedStats.crossCount >= 2 ? '⚠️' : ''}</span>
             </span>
-            ${solvedStats.nonSelfCount > 4 ? `
-              <span class="pl-breakdown-chip bg-rose-500/20 text-rose-700 border border-rose-500/40 font-bold" title="Exceeded 4 assisted/copied problems threshold">
+            ${solvedStats.nonSelfCount >= 2 ? `
+              <span class="pl-breakdown-chip bg-rose-500/20 text-rose-700 border border-rose-500/40 font-bold" title="Exceeded 1 assisted/copied problem threshold">
                 <span class="material-symbols-outlined text-[13px]">warning</span>
-                <span>${solvedStats.nonSelfCount}/10 With Help (> 4 limit) ⚠️</span>
+                <span>${solvedStats.nonSelfCount}/10 With Help (≥ 2 limit) ⚠️</span>
               </span>
             ` : ''}
             <span class="pl-practice-counter-badge text-xs font-semibold px-2.5 py-1 rounded-full ${solvedStats.solved === (solvedStats.total || 10) && solvedStats.total > 0 && !solvedStats.isWeakByEvaluation ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30' : 'bg-indigo-500/10 text-indigo-600 border border-indigo-500/30'}">
@@ -811,8 +940,7 @@
             <span class="material-symbols-outlined text-amber-600 shrink-0 text-[18px]">warning</span>
             <div>
               <strong>Pattern Flagged as Weak:</strong>
-              ${solvedStats.crossCount >= 5 ? `You have accumulated <strong>${solvedStats.crossCount} crosses</strong> (≥ 5). ` : ''}
-              ${solvedStats.nonSelfCount > 4 ? `You used AI help or copy/paste on <strong>${solvedStats.nonSelfCount} problems</strong> (> 4). ` : (solvedStats.helpCount > 3 ? `You used AI / other help on <strong>${solvedStats.helpCount} problems</strong> (> 3). ` : '')}
+              ${solvedStats.nonSelfCount >= 2 ? `You used AI help or copy/paste on <strong>${solvedStats.nonSelfCount} problems</strong> (≥ 2 limit). ` : ''}
               Re-attempt these problems independently (100% on your own) to conquer this pattern!
             </div>
           </div>
@@ -847,6 +975,10 @@
     quizOptions.forEach(btn => {
       btn.addEventListener('click', onQuizOptionClick);
     });
+
+    // Re-initialize Scroll Spy on fresh DOM nodes and position anchor bar
+    initStudyScrollSpy();
+    setActiveAnchor(currentActiveSectionId);
   }
 
   /**
@@ -1002,10 +1134,6 @@
           <div class="dsa-question-right">
             ${evalPillHtml}
             <span class="dsa-badge-diff dsa-badge-${diffClass}">${q.difficulty}</span>
-            <button class="dsa-btn-explain cursor-pointer" data-open-explain="${q.id}" title="View full 15-point code explanation and walkthrough" aria-label="Explain ${escapeHtml(q.title)}">
-              <span class="material-symbols-outlined text-[15px]">menu_book</span>
-              <span>Explain</span>
-            </button>
             <a href="${lcUrl}" target="_blank" rel="noopener noreferrer" class="dsa-btn-leetcode" aria-label="Open ${escapeHtml(q.title)} on LeetCode">
               <span>Solve</span>
               <span class="material-symbols-outlined">open_in_new</span>
@@ -1260,26 +1388,33 @@
   }
 
   /**
-   * Question Checkbox Toggle Handler with Bidirectional Synchronization
+   * Question Checkbox Toggle Handler with Decoupled Storage
    */
   function onQuestionCheckboxChange(e) {
-    const checkbox = e.target.closest('.dsa-checkbox-input');
+    const checkbox = e.target.closest('.dsa-checkbox-input, .pl-question-check');
     if (!checkbox) return;
 
     const qid = checkbox.dataset.qid;
     if (!qid) return;
 
     const isChecked = checkbox.checked;
-    dsaProgress = Storage.get('dsa_progress', {}) || {};
+    patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
+    if (!patternStats.evaluations) patternStats.evaluations = {};
+    dsaProgress = Storage.get('dsa_pattern_progress', {}) || {};
 
     if (isChecked) {
       dsaProgress[qid] = true;
+      if (!patternStats.evaluations[qid]) {
+        patternStats.evaluations[qid] = 'self';
+      }
     } else {
       delete dsaProgress[qid];
+      delete patternStats.evaluations[qid];
     }
 
-    // Persist to localStorage
-    Storage.set('dsa_progress', dsaProgress);
+    // Persist to dedicated Pattern Learning storage
+    Storage.set('dsa_pattern_progress', dsaProgress);
+    Storage.set('dsa_pattern_stats', patternStats);
 
     // Update row styling
     const row = document.getElementById(`pl-qrow-${qid}`);
@@ -1288,17 +1423,20 @@
       else row.classList.remove('is-solved');
     }
 
-    // Notify roadmap view and other components
+    // Notify pattern learning components only
     const event = new CustomEvent('dsaProgressSync', { detail: { qid, isChecked, source: 'patternLearning' } });
     window.dispatchEvent(event);
 
     renderDashboard();
+    if (currentPattern) {
+      renderPatternStudyContent(currentPattern);
+    }
   }
 
   /**
    * Opens the Question Solve Evaluation Modal for a specific problem
    */
-  function openSolveEvaluationModal(qid) {
+  function openSolveEvaluationModal(qid, context = 'patternLearning') {
     if (!dom.solveModal) return;
     const allQuestions = window.dsaAllQuestions || [];
     let q = allQuestions.find(item => item.id === qid);
@@ -1314,18 +1452,26 @@
     if (!q) return;
 
     activeEvaluatingQuestion = q;
+    activeEvaluatingContext = context || 'patternLearning';
 
-    // Refresh state from Storage so it's always up-to-date with any resets or changes
+    // Refresh state from Storage
     patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
     if (!patternStats.evaluations) patternStats.evaluations = {};
-    dsaProgress = Storage.get('dsa_progress', {}) || {};
+    dsaProgress = Storage.get('dsa_pattern_progress', {}) || {};
 
     const lcNum = q.leetcodeNumber || q.number || '';
     if (dom.solveModalLcNum) dom.solveModalLcNum.textContent = lcNum ? `#${lcNum}` : '';
     if (dom.solveModalTitle) dom.solveModalTitle.textContent = q.title;
 
-    // Highlight existing selection if any
-    const ev = (patternStats.evaluations || {})[qid];
+    // Highlight existing selection based on context
+    let ev = null;
+    if (activeEvaluatingContext === 'roadmap') {
+      const roadmapEvaluations = Storage.get('dsa_roadmap_evaluations', {}) || {};
+      ev = roadmapEvaluations[qid];
+    } else {
+      ev = (patternStats.evaluations || {})[qid];
+    }
+
     const optButtons = dom.solveModal.querySelectorAll('.pl-solve-opt-btn');
     optButtons.forEach(btn => {
       const bType = btn.dataset.solveType;
@@ -1346,6 +1492,7 @@
    */
   function closeSolveEvaluationModal() {
     activeEvaluatingQuestion = null;
+    activeEvaluatingContext = 'patternLearning';
     if (dom.solveModal) {
       dom.solveModal.classList.remove('open');
       dom.solveModal.classList.add('hidden');
@@ -1359,16 +1506,32 @@
     if (!activeEvaluatingQuestion) return;
     const qid = activeEvaluatingQuestion.id;
 
-    // Always fetch fresh patternStats and dsaProgress from Storage
+    // If evaluated from Roadmap, update Roadmap's storage ONLY
+    if (activeEvaluatingContext === 'roadmap') {
+      const roadmapProgress = Storage.get('dsa_progress', {}) || {};
+      const roadmapEvaluations = Storage.get('dsa_roadmap_evaluations', {}) || {};
+      roadmapProgress[qid] = true;
+      roadmapEvaluations[qid] = solveType;
+      Storage.set('dsa_progress', roadmapProgress);
+      Storage.set('dsa_roadmap_evaluations', roadmapEvaluations);
+
+      closeSolveEvaluationModal();
+
+      window.dispatchEvent(new CustomEvent('dsaRoadmapProgressSync', {
+        detail: { qid, isChecked: true, solveType, source: 'roadmap' }
+      }));
+      return;
+    }
+
+    // Pattern Learning path: save to dedicated pattern stores
     patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
     if (!patternStats.evaluations) patternStats.evaluations = {};
     patternStats.evaluations[qid] = solveType;
 
-    // All solve quality evaluations (self, help30, help50, cross) mark the problem as completed/attempted
-    dsaProgress = Storage.get('dsa_progress', {}) || {};
+    dsaProgress = Storage.get('dsa_pattern_progress', {}) || {};
     dsaProgress[qid] = true;
 
-    Storage.set('dsa_progress', dsaProgress);
+    Storage.set('dsa_pattern_progress', dsaProgress);
     Storage.set('dsa_pattern_stats', patternStats);
 
     closeSolveEvaluationModal();
@@ -1383,7 +1546,6 @@
       });
     }
 
-    // Dispatch progress sync to Roadmap
     window.dispatchEvent(new CustomEvent('dsaProgressSync', {
       detail: { qid, isChecked: true, source: 'patternLearning' }
     }));
@@ -1394,8 +1556,8 @@
       renderPatternStudyContent(currentPattern);
     }
 
-    // If user clicked non-100% options more than 4 times in this pattern, show excessive help blur popup!
-    if (nonSelfCount > 4 && solveType !== 'self') {
+    // If user clicked non-100% options 2 or more times in this pattern, show excessive help blur popup!
+    if (nonSelfCount >= 2 && solveType !== 'self') {
       openExcessiveHelpModal(nonSelfCount, currentPattern ? currentPattern.name : 'this pattern');
     }
   }
@@ -1407,15 +1569,31 @@
     if (!activeEvaluatingQuestion) return;
     const qid = activeEvaluatingQuestion.id;
 
+    if (activeEvaluatingContext === 'roadmap') {
+      const roadmapProgress = Storage.get('dsa_progress', {}) || {};
+      const roadmapEvaluations = Storage.get('dsa_roadmap_evaluations', {}) || {};
+      delete roadmapProgress[qid];
+      delete roadmapEvaluations[qid];
+      Storage.set('dsa_progress', roadmapProgress);
+      Storage.set('dsa_roadmap_evaluations', roadmapEvaluations);
+
+      closeSolveEvaluationModal();
+
+      window.dispatchEvent(new CustomEvent('dsaRoadmapProgressSync', {
+        detail: { qid, isChecked: false, source: 'roadmap' }
+      }));
+      return;
+    }
+
     patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
     if (patternStats.evaluations) {
       delete patternStats.evaluations[qid];
     }
 
-    dsaProgress = Storage.get('dsa_progress', {}) || {};
+    dsaProgress = Storage.get('dsa_pattern_progress', {}) || {};
     delete dsaProgress[qid];
 
-    Storage.set('dsa_progress', dsaProgress);
+    Storage.set('dsa_pattern_progress', dsaProgress);
     Storage.set('dsa_pattern_stats', patternStats);
 
     closeSolveEvaluationModal();
@@ -1473,7 +1651,7 @@
   }
 
   /**
-   * Opens the Excessive Assistance Alert Modal (> 4 Non-100% Solves)
+   * Opens the Excessive Assistance Alert Modal (>= 2 Non-100% Solves)
    */
   function openExcessiveHelpModal(count, patName) {
     if (!dom.excessiveModal) return;
@@ -1481,7 +1659,7 @@
     if (dom.excessiveCount) dom.excessiveCount.textContent = count;
     const msgEl = document.getElementById('pl-excessive-help-msg');
     if (msgEl) {
-      msgEl.innerHTML = `You have selected AI help or copy/paste on <strong class="text-amber-600 dark:text-amber-400">${count} of 10 problems</strong> in <strong>${escapeHtml(patName)}</strong>. Exceeding 4 assisted solves flags this pattern as <strong class="text-amber-600 dark:text-amber-400">Weak</strong>.`;
+      msgEl.innerHTML = `You have selected AI help or copy/paste on <strong class="text-amber-600 dark:text-amber-400">${count} of 10 problems</strong> in <strong>${escapeHtml(patName)}</strong>. Exceeding 1 assisted solve (≥ 2) flags this pattern as <strong class="text-amber-600 dark:text-amber-400">Weak</strong>.`;
     }
 
     dom.excessiveModal.classList.remove('hidden');
@@ -1499,20 +1677,18 @@
   }
 
   /**
-   * Sync event listener when Roadmap modifies progress
+   * Sync event listener when other components modify progress
    */
   function onProgressSync(e) {
-    dsaProgress = Storage.get('dsa_progress', {}) || {};
-    patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
-    if (!patternStats.evaluations) patternStats.evaluations = {};
-    const { qid, isChecked, source } = e.detail || {};
+    const { source, qid, isChecked } = e.detail || {};
 
+    // Roadmap actions must NEVER mutate Pattern Learning!
+    if (source === 'roadmap' || source === 'roadmapReset') return;
     if (source === 'patternLearning') return; // Already handled locally
 
-    if (source === 'roadmapReset') {
-      dsaProgress = {};
-      patternStats.evaluations = {};
-    }
+    dsaProgress = Storage.get('dsa_pattern_progress', {}) || {};
+    patternStats = Storage.get('dsa_pattern_stats', { viewed: {}, quizzes: {}, weak: {}, evaluations: {} }) || {};
+    if (!patternStats.evaluations) patternStats.evaluations = {};
 
     // Update practice questions checkbox if visible
     if (qid) {
@@ -1535,6 +1711,36 @@
    * Attaches interactive event listeners
    */
   function attachEventListeners() {
+    // 0. Anchor Bar Navigation within Pattern Study View
+    document.addEventListener('click', (e) => {
+      const anchor = e.target.closest('.pl-anchor-link');
+      if (!anchor) return;
+      e.preventDefault();
+
+      const targetId = anchor.dataset.target || (anchor.getAttribute('href') || '').replace('#', '');
+      if (!targetId) return;
+
+      const targetEl = document.getElementById(targetId);
+      if (!targetEl) return;
+
+      const bar = document.getElementById('pl-study-anchor-bar') || document.querySelector('.pl-study-anchor-bar');
+      const barHeight = bar ? bar.offsetHeight : 54;
+      const targetTop = targetEl.getBoundingClientRect().top + window.pageYOffset - (barHeight + 20);
+
+      isManualAnchorClick = true;
+      if (manualScrollTimeout) clearTimeout(manualScrollTimeout);
+      manualScrollTimeout = setTimeout(() => {
+        isManualAnchorClick = false;
+      }, 750);
+
+      setActiveAnchor(targetId);
+
+      window.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior: 'smooth'
+      });
+    });
+
     // 1. Dual View Tab Pill Switching (Roadmap vs Pattern Learning)
     if (dom.tabRoadmap && dom.tabPatterns) {
       dom.tabRoadmap.addEventListener('click', () => {
@@ -1542,6 +1748,7 @@
         dom.tabPatterns.classList.remove('active');
         if (dom.roadmapView) dom.roadmapView.classList.remove('hidden');
         if (dom.container) dom.container.classList.add('hidden');
+        window.dispatchEvent(new Event('scroll'));
       });
 
       dom.tabPatterns.addEventListener('click', () => {
@@ -1549,6 +1756,10 @@
         dom.tabRoadmap.classList.remove('active');
         if (dom.roadmapView) dom.roadmapView.classList.add('hidden');
         if (dom.container) dom.container.classList.remove('hidden');
+        const scrollBtn = document.getElementById('dsa-scroll-to-section-btn');
+        if (scrollBtn) {
+          scrollBtn.classList.remove('is-visible');
+        }
         renderDashboard();
         renderPatternCatalog();
       });
@@ -1704,7 +1915,7 @@
         patternStats = { viewed: {}, quizzes: {}, weak: {}, evaluations: {} };
         Storage.set('dsa_pattern_stats', patternStats);
         dsaProgress = {};
-        Storage.set('dsa_progress', {});
+        Storage.set('dsa_pattern_progress', {});
         dom.resetModal.classList.remove('open');
         dom.resetModal.classList.add('hidden');
         renderDashboard();
@@ -1816,7 +2027,7 @@
     // Listen for open evaluation modal requests from Roadmap
     window.addEventListener('openDsaSolveModal', (e) => {
       if (e.detail && e.detail.qid) {
-        openSolveEvaluationModal(e.detail.qid);
+        openSolveEvaluationModal(e.detail.qid, e.detail.context || 'patternLearning');
       }
     });
   }
