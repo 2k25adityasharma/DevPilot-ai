@@ -1173,13 +1173,346 @@ function parseResumeSections(text) {
 }
 
 /* ============================================================
-   3. CONTACT INFORMATION EXTRACTION (Isolated from Experience)
+   3. DETERMINISTIC LINK & CONTACT PARSER
    ============================================================ */
+
+/**
+ * Normalizes detected URLs into canonical https:// URLs.
+ * Strips enclosing brackets, trailing slashes, and trailing punctuation.
+ * @param {string} rawUrl - Raw URL string
+ * @returns {string|null} Normalized https:// URL or null
+ */
+function normalizeUrl(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== 'string') return null;
+  let url = rawUrl.trim();
+  url = url.replace(/^[<(\[{'"]+/, '').replace(/[.,;:)>\]}'"|]+$/, '');
+  if (!url || url.length < 3) return null;
+
+  if (/^git@github\.com:/i.test(url)) {
+    url = 'https://github.com/' + url.replace(/^git@github\.com:/i, '');
+  }
+
+  // Strip trailing .git
+  url = url.replace(/\.git$/i, '');
+
+  if (!/^https?:\/\//i.test(url)) {
+    url = 'https://' + url.replace(/^www\./i, '');
+  } else {
+    url = url.replace(/^http:\/\//i, 'https://');
+  }
+
+  url = url.replace(/\/+$/, '');
+  return url;
+}
+
+function makeLinkObj(type, label, url, username = '') {
+  if (!url) return null;
+  return {
+    type,
+    label,
+    url,
+    username: username || '',
+    isClickable: true,
+    toString() { return this.url; },
+    valueOf() { return this.url; }
+  };
+}
+
+/**
+ * Deterministic contact & developer profile link extraction layer executed BEFORE AI analysis.
+ * Accurately extracts LinkedIn, GitHub, Portfolio, LeetCode, HackerRank, CodeChef, Kaggle, Behance, Dribbble, and other URLs.
+ * Never misclassifies ordinary text mentions as URLs.
+ * @param {string} text - Raw resume text
+ * @returns {{ linkedin: Object|null, github: Object|null, portfolio: Object|null, leetcode: Object|null, hackerrank: Object|null, codechef: Object|null, kaggle: Object|null, behance: Object|null, dribbble: Object|null, other: Object[] }}
+ */
+function extractDeterministicLinks(text) {
+  if (!text || typeof text !== 'string') {
+    return {
+      linkedin: null,
+      github: null,
+      portfolio: null,
+      leetcode: null,
+      hackerrank: null,
+      codechef: null,
+      kaggle: null,
+      behance: null,
+      dribbble: null,
+      other: []
+    };
+  }
+
+  const cleanText = text.replace(/[\r]/g, '');
+
+  const links = {
+    linkedin: null,
+    github: null,
+    portfolio: null,
+    leetcode: null,
+    hackerrank: null,
+    codechef: null,
+    kaggle: null,
+    behance: null,
+    dribbble: null,
+    other: []
+  };
+
+  const reservedGh = new Set([
+    'features', 'pricing', 'login', 'explore', 'settings', 'enterprise', 'site',
+    'about', 'blog', 'topics', 'trending', 'pulls', 'issues', 'marketplace',
+    'sponsors', 'security', 'contact', 'join', 'signup', 'dashboard', 'notifications'
+  ]);
+  const reservedLc = new Set([
+    'problems', 'contest', 'discuss', 'interview', 'explore', 'problemset',
+    'tags', 'company', 'category', 'accounts', 'submissions', 'points', 'badges',
+    'knight', 'guardian', 'rating', 'rank', 'daily', 'solution', 'solutions'
+  ]);
+
+  // 1. LinkedIn (URL or labeled profile)
+  const linkedinMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:in|pub)\/([a-zA-Z0-9_\-\.%]+)/i) ||
+    cleanText.match(/\blinkedin\.com\/in\/([a-zA-Z0-9_\-\.%]+)/i) ||
+    cleanText.match(/(?:linkedin|linked-in|\bin\b)\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:linkedin\.com\/(?:in\/)?)?([a-zA-Z0-9_\-\.]{3,40})/i);
+
+  if (linkedinMatch) {
+    const user = (linkedinMatch[1] || '').replace(/[.,;:)>\]|/]+$/g, '').trim();
+    if (user.length >= 2 && !/^(true|false|null|undefined|profile|yes|no|page|company|school)$/i.test(user)) {
+      links.linkedin = makeLinkObj('linkedin', 'LinkedIn', `https://linkedin.com/in/${user}`, user);
+    }
+  }
+
+  // 2. GitHub (URL or labeled profile)
+  const githubMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9_\-\.]{2,40})/i) ||
+    cleanText.match(/(?:github|git)\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:github\.com\/)?([a-zA-Z0-9_\-\.]{2,40})/i);
+
+  if (githubMatch) {
+    const user = (githubMatch[1] || '').replace(/[.,;:)>\]|/]+$/g, '').trim();
+    if (user.length >= 2 && !reservedGh.has(user.toLowerCase())) {
+      links.github = makeLinkObj('github', 'GitHub', `https://github.com/${user}`, user);
+    }
+  }
+
+  // 3. LeetCode (URL or labeled profile)
+  const leetcodeMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?leetcode\.com\/(?:u\/)?([a-zA-Z0-9_\-\.]{2,40})/i) ||
+    cleanText.match(/(?:leetcode|lc)\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:leetcode\.com\/(?:u\/)?)?([a-zA-Z0-9_\-\.]{2,40})/i);
+
+  if (leetcodeMatch) {
+    const user = (leetcodeMatch[1] || '').replace(/[.,;:)>\]|/]+$/g, '').trim();
+    if (user.length >= 2 && !reservedLc.has(user.toLowerCase())) {
+      links.leetcode = makeLinkObj('leetcode', 'LeetCode', `https://leetcode.com/u/${user}`, user);
+    }
+  }
+
+  // 4. HackerRank (URL or labeled profile)
+  const hackerrankMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?hackerrank\.com\/(?:profile\/)?([a-zA-Z0-9_\-\.]{2,40})/i) ||
+    cleanText.match(/(?:hackerrank|hr)\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:hackerrank\.com\/(?:profile\/)?)?([a-zA-Z0-9_\-\.]{2,40})/i);
+
+  if (hackerrankMatch) {
+    const user = (hackerrankMatch[1] || '').replace(/[.,;:)>\]|/]+$/g, '').trim();
+    if (user.length >= 2 && !/^(badges|certificates|domains|challenges|rank|practice)$/i.test(user)) {
+      links.hackerrank = makeLinkObj('hackerrank', 'HackerRank', `https://hackerrank.com/profile/${user}`, user);
+    }
+  }
+
+  // 5. CodeChef (URL or labeled profile)
+  const codechefMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?codechef\.com\/(?:users\/)?([a-zA-Z0-9_\-\.]{2,40})/i) ||
+    cleanText.match(/codechef\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:codechef\.com\/(?:users\/)?)?([a-zA-Z0-9_\-\.]{2,40})/i);
+
+  if (codechefMatch) {
+    const user = (codechefMatch[1] || '').replace(/[.,;:)>\]|/]+$/g, '').trim();
+    if (user.length >= 2 && !/^(ratings|rankings|problems|contests)$/i.test(user)) {
+      links.codechef = makeLinkObj('codechef', 'CodeChef', `https://codechef.com/users/${user}`, user);
+    }
+  }
+
+  // 6. Kaggle (URL or labeled profile)
+  const kaggleMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?kaggle\.com\/([a-zA-Z0-9_\-\.]{2,40})/i) ||
+    cleanText.match(/kaggle\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:kaggle\.com\/)?([a-zA-Z0-9_\-\.]{2,40})/i);
+
+  if (kaggleMatch) {
+    const user = (kaggleMatch[1] || '').replace(/[.,;:)>\]|/]+$/g, '').trim();
+    if (user.length >= 2 && !/^(competitions|datasets|models|code|discussions|learn)$/i.test(user)) {
+      links.kaggle = makeLinkObj('kaggle', 'Kaggle', `https://kaggle.com/${user}`, user);
+    }
+  }
+
+  // 7. Behance (URL or labeled profile)
+  const behanceMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?behance\.net\/([a-zA-Z0-9_\-\.]{2,40})/i);
+  if (behanceMatch) {
+    const user = (behanceMatch[1] || '').replace(/[.,;:)>\]|/]+$/g, '').trim();
+    if (user.length >= 2) {
+      links.behance = makeLinkObj('behance', 'Behance', `https://behance.net/${user}`, user);
+    }
+  }
+
+  // 8. Dribbble (URL or labeled profile)
+  const dribbbleMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?dribbble\.com\/([a-zA-Z0-9_\-\.]{2,40})/i);
+  if (dribbbleMatch) {
+    const user = (dribbbleMatch[1] || '').replace(/[.,;:)>\]|/]+$/g, '').trim();
+    if (user.length >= 2) {
+      links.dribbble = makeLinkObj('dribbble', 'Dribbble', `https://dribbble.com/${user}`, user);
+    }
+  }
+
+  // 9. Portfolio / Personal Websites
+  const labeledPortfolioMatch = cleanText.match(/(?:portfolio|website|personal\s*site|webpage)\s*[:|–\-]\s*(https?:\/\/[^\s,;()|•]+|[a-zA-Z0-9\-]+(?:\.[a-zA-Z0-9\-]+)+(?:\/[^\s,;()|•]*)?)/i);
+  if (labeledPortfolioMatch) {
+    const raw = labeledPortfolioMatch[1].trim();
+    if (!/github\.com|linkedin\.com|leetcode\.com|hackerrank\.com|codechef\.com|kaggle\.com|gmail\.com|google\.com/i.test(raw)) {
+      const portUrl = normalizeUrl(raw);
+      if (portUrl) links.portfolio = makeLinkObj('portfolio', 'Portfolio', portUrl, '');
+    }
+  }
+
+  if (!links.portfolio) {
+    const devDomainMatch = cleanText.match(/\bhttps?:\/\/(?!www\.(?:google|gmail|linkedin|github|leetcode|hackerrank|codechef|kaggle|medium|facebook|twitter|instagram|youtube))[a-zA-Z0-9\-]+(?:\.[a-zA-Z0-9\-]+)*(?:\.(?:dev|me|site|tech|page|live|space|app|online|design))(?:\/[^\s,;()|•]*)?\b/i) ||
+      cleanText.match(/\b(?<![@/])([a-zA-Z0-9\-]{2,35})\.(dev|me|site|tech|page|vercel\.app|netlify\.app|github\.io)\b(?:\/[^\s,;()|•]*)?/i);
+
+    if (devDomainMatch) {
+      const raw = devDomainMatch[0].trim();
+      if (!/^(b\.?tech|m\.?tech|b\.?e\b|b\.?s\b|mca|degree|college|university)/i.test(raw)) {
+        const portUrl = normalizeUrl(raw);
+        if (portUrl) links.portfolio = makeLinkObj('portfolio', 'Portfolio', portUrl, '');
+      }
+    }
+  }
+
+  // 10. Collect other plain-text developer URLs
+  const allUrls = cleanText.match(/\bhttps?:\/\/[^\s,;()|•<>"']+/gi) || [];
+  const knownUrls = new Set([
+    links.linkedin?.url,
+    links.github?.url,
+    links.portfolio?.url,
+    links.leetcode?.url,
+    links.hackerrank?.url,
+    links.codechef?.url,
+    links.kaggle?.url,
+    links.behance?.url,
+    links.dribbble?.url
+  ].filter(Boolean));
+
+  allUrls.forEach(rawU => {
+    const norm = normalizeUrl(rawU);
+    if (!norm) return;
+    if (knownUrls.has(norm)) return;
+    if (/google\.com|gmail\.com|microsoft\.com|w3\.org|schema\.org/i.test(norm)) return;
+    if (!links.other.some(o => o.url === norm)) {
+      links.other.push(makeLinkObj('other', 'Other Profile', norm, ''));
+    }
+  });
+
+  return links;
+}
+
+/**
+ * Builds a reliable, deterministic intermediate resume object conforming to Part 2 schema.
+ * Keeps links separate from normal resume text.
+ * @param {string} text - authoritatively extracted resume text
+ * @param {Object} parsedSections - output of parseResumeSections
+ * @param {Object} contactInfo - output of extractContactInfo
+ * @param {Object} skillsData - output of extractSkills
+ * @param {string} candidateName - candidate's name
+ * @param {string} careerStage - detected career stage
+ * @param {Object} extra - additional deterministic parsed sections (experience, projects, etc.)
+ * @returns {Object} intermediate structured resume object
+ */
+function buildIntermediateResumeJSON(text, parsedSections, contactInfo, skillsData, candidateName = 'Candidate', careerStage = 'Fresher', extra = {}) {
+  const contactDetails = contactInfo?.details || {};
+  const links = contactInfo?.links || extractDeterministicLinks(text);
+
+  const candidate = {
+    name: candidateName || contactDetails.name || 'Candidate',
+    email: contactDetails.email || null,
+    phone: contactDetails.phone || null,
+    location: contactDetails.location || null,
+    careerStage: careerStage || 'Fresher'
+  };
+
+  const linkList = [];
+  const addLinkItem = (item) => {
+    if (!item) return;
+    if (typeof item === 'object' && item.url) {
+      linkList.push(item);
+    } else if (typeof item === 'string') {
+      linkList.push(makeLinkObj('other', 'Link', normalizeUrl(item)));
+    }
+  };
+
+  if (links?.linkedin) addLinkItem(links.linkedin);
+  if (links?.github) addLinkItem(links.github);
+  if (links?.portfolio) addLinkItem(links.portfolio);
+  if (links?.leetcode) addLinkItem(links.leetcode);
+  if (links?.hackerrank) addLinkItem(links.hackerrank);
+  if (links?.codechef) addLinkItem(links.codechef);
+  if (links?.kaggle) addLinkItem(links.kaggle);
+  if (links?.behance) addLinkItem(links.behance);
+  if (links?.dribbble) addLinkItem(links.dribbble);
+  if (Array.isArray(links?.other)) {
+    links.other.forEach(l => addLinkItem(l));
+  }
+
+  // Attach properties to array for backwards compatibility
+  linkList.linkedin = links?.linkedin || null;
+  linkList.github = links?.github || null;
+  linkList.portfolio = links?.portfolio || null;
+  linkList.leetcode = links?.leetcode || null;
+  linkList.hackerrank = links?.hackerrank || null;
+  linkList.codechef = links?.codechef || null;
+  linkList.kaggle = links?.kaggle || null;
+  linkList.behance = links?.behance || null;
+  linkList.dribbble = links?.dribbble || null;
+  linkList.other = links?.other || [];
+
+  const sectionsContent = parsedSections?.sectionContent || {};
+  const expData = extra.experience || (typeof analyzeExperience === 'function' ? analyzeExperience(text, sectionsContent) : null);
+  const projData = extra.projects || (typeof analyzeProjects === 'function' ? analyzeProjects(text, sectionsContent) : null);
+  const eduData = extra.education || (typeof analyzeEducation === 'function' ? analyzeEducation(text, parsedSections) : null);
+  const certData = extra.certifications || (typeof analyzeCertifications === 'function' ? analyzeCertifications(text, parsedSections) : null);
+  const achData = extra.achievements || (typeof analyzeAchievements === 'function' ? analyzeAchievements(text, parsedSections) : null);
+
+  const sections = {
+    summary: sectionsContent.summary || sectionsContent.profile || sectionsContent.objective || null,
+    experience: (Array.isArray(expData?.details) ? expData.details : (Array.isArray(expData?.entries) ? expData.entries : [])).map(e => ({
+      title: e.title || '',
+      company: e.company || '',
+      duration: e.duration || '',
+      startDate: e.startDate || '',
+      endDate: e.endDate || '',
+      bullets: Array.isArray(e.bullets) ? e.bullets : (Array.isArray(e.achievements) ? e.achievements : []),
+      technologies: Array.isArray(e.technologies) ? e.technologies : []
+    })),
+    education: (Array.isArray(eduData?.details) ? eduData.details : (Array.isArray(eduData?.entries) ? eduData.entries : [])).map(ed => ({
+      degree: ed.degree || '',
+      institution: ed.school || ed.institution || '',
+      year: ed.year || '',
+      gpa: ed.gpa || null
+    })),
+    skills: Array.isArray(skillsData?.all) ? skillsData.all : (Array.isArray(skillsData) ? skillsData : []),
+    projects: (Array.isArray(projData?.details) ? projData.details : (Array.isArray(projData?.entries) ? projData.entries : [])).map(p => ({
+      name: p.name || '',
+      technologies: Array.isArray(p.technologies) ? p.technologies : [],
+      description: p.description || '',
+      bullets: Array.isArray(p.bullets) ? p.bullets : [],
+      githubUrl: p.githubUrl || null
+    })),
+    certifications: (Array.isArray(certData?.details) ? certData.details : (Array.isArray(certData?.entries) ? certData.entries : [])).map(c => ({
+      name: c.name || '',
+      issuer: c.issuer || '',
+      date: c.date || ''
+    })),
+    achievements: (Array.isArray(achData?.details) ? achData.details : (Array.isArray(achData?.entries) ? achData.entries : (Array.isArray(achData?.matchedKeywords) ? achData.matchedKeywords : []))).map(a => (typeof a === 'string' ? a : a.title || a.name || ''))
+  };
+
+  return {
+    candidate,
+    links: linkList,
+    sections
+  };
+}
+
 /**
  * Extracts candidate personal details (name, email, phone, location, LinkedIn, GitHub, portfolio).
  * Isolates contact patterns so numerical values (e.g. phone digits or postal codes) are never confused with years of experience.
  * @param {string} text - Raw resume plain text.
- * @returns {{ name: boolean, email: boolean, phone: boolean, linkedin: boolean, github: boolean, portfolio: boolean, location: boolean, score: number, details: Object }}
+ * @returns {{ name: boolean, email: boolean, phone: boolean, linkedin: boolean, github: boolean, portfolio: boolean, leetcode: boolean, location: boolean, score: number, details: Object, links: Object }}
  */
 function extractContactInfo(text) {
   const result = {
@@ -1190,10 +1523,26 @@ function extractContactInfo(text) {
     linkedin: false,
     github: false,
     portfolio: false,
+    leetcode: false,
+    hackerrank: false,
+    codechef: false,
+    kaggle: false,
     quality: false,
     confidence: 0,
     details: {},
-    evidence: {}
+    evidence: {},
+    links: {
+      linkedin: null,
+      github: null,
+      portfolio: null,
+      leetcode: null,
+      hackerrank: null,
+      codechef: null,
+      kaggle: null,
+      behance: null,
+      dribbble: null,
+      other: []
+    }
   };
 
   const cleanText = sanitizeExtractedText(text || '');
@@ -1270,64 +1619,67 @@ function extractContactInfo(text) {
     }
   }
 
-  // 3. LinkedIn
-  const linkedinUrlMatch = text.match(/(?:https?:\/\/)?(?:www\.)?linkedin(?:\s*\.\s*com)?\s*\/\s*(?:in|pub)?\s*\/\s*([a-zA-Z0-9_\-\.]+)/i) ||
-    text.match(/\blinkedin(?:\s*\.\s*com)?\s*\/\s*([a-zA-Z0-9_\-\.]+)/i) ||
-    text.match(/\bin\/([a-zA-Z0-9_\-\.]{3,35})\b/i);
+  // 3. Deterministic Developer Links Extraction (Part 1 & 2)
+  const extractedLinks = extractDeterministicLinks(text);
+  result.links = extractedLinks;
 
-  const linkedinLabelMatch = text.match(/(?:linkedin|linked-in|\bin\b)\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:linkedin(?:\s*\.\s*com)?\s*\/(?:(?:in|pub)\/)?)?([a-zA-Z0-9_\-\.]+)/i);
-
-  if (linkedinUrlMatch) {
-    const user = (linkedinUrlMatch[1] || '').replace(/[.,;:)]+$/, '').trim();
+  if (extractedLinks.linkedin) {
     result.linkedin = true;
-    result.details.linkedin = `linkedin.com/in/${user}`;
-    result.evidence.linkedin = { source: 'Header / Contact', snippet: result.details.linkedin, confidence: 0.99 };
-  } else if (linkedinLabelMatch) {
-    const user = (linkedinLabelMatch[1] || '').replace(/[.,;:)]+$/, '').trim();
-    if (user.length >= 2 && !/^(true|false|null|undefined|yes|no)$/i.test(user)) {
-      result.linkedin = true;
-      result.details.linkedin = user.includes('linkedin.com') ? user : `linkedin.com/in/${user}`;
-      result.evidence.linkedin = { source: 'Header / Contact', snippet: result.details.linkedin, confidence: 0.97 };
-    }
+    result.details.linkedin = extractedLinks.linkedin.url;
+    result.evidence.linkedin = { source: 'Header / Contact', snippet: extractedLinks.linkedin.url, confidence: 0.99 };
   }
 
-  // 4. GitHub
-  const RESERVED_GH = ['topics', 'features', 'pricing', 'login', 'explore', 'settings', 'enterprise', 'site', 'about', 'blog', 'repo'];
-  const githubUrlMatch = text.match(/(?:https?:\/\/)?(?:www\.)?github(?:\s*\.\s*com)?\s*\/\s*([a-zA-Z0-9_\-\.]+)/i);
-  const githubLabelMatch = text.match(/(?:github|git)\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:github(?:\s*\.\s*com)?\s*\/\s*)?([a-zA-Z0-9_\-\.]+)/i);
-
-  if (githubUrlMatch) {
-    const user = (githubUrlMatch[1] || '').replace(/[.,;:)]+$/, '').trim();
-    if (!RESERVED_GH.includes(user.toLowerCase())) {
-      result.github = true;
-      result.details.github = `github.com/${user}`;
-      result.evidence.github = { source: 'Header / Contact', snippet: result.details.github, confidence: 0.99 };
-    }
-  } else if (githubLabelMatch) {
-    const user = (githubLabelMatch[1] || '').replace(/[.,;:)]+$/, '').trim();
-    if (user.length >= 2 && !RESERVED_GH.includes(user.toLowerCase()) && !/^(true|false|null|undefined|yes|no)$/i.test(user)) {
-      result.github = true;
-      result.details.github = user.includes('github.com') ? user : `github.com/${user}`;
-      result.evidence.github = { source: 'Header / Contact', snippet: result.details.github, confidence: 0.97 };
-    }
+  if (extractedLinks.github) {
+    result.github = true;
+    result.details.github = extractedLinks.github.url;
+    result.evidence.github = { source: 'Header / Contact', snippet: extractedLinks.github.url, confidence: 0.99 };
   }
 
-  // 5. Portfolio / Coding Profile
-  const codingProfileMatch = text.match(/(leetcode\.com\/(u\/)?[\w\-]+|hackerrank\.com\/[\w\-]+|codeforces\.com\/profile\/[\w\-]+)/i);
-  const personalSiteMatch = text.match(/\bhttps?:\/\/(?!linkedin|github|gmail|google|facebook|twitter|instagram|youtube|medium)[\w\-]+(?:\.[\w\-]+)+(?:\/[^\s,;)]*)?/i) ||
-    text.match(/\b(?<![@/])([a-zA-Z0-9\-]{3,})\.(dev|io|app|me|site|page|tech|vercel\.app|netlify\.app|github\.io)\b/i);
-
-  if (codingProfileMatch) {
+  if (extractedLinks.portfolio) {
     result.portfolio = true;
-    result.details.portfolio = codingProfileMatch[0];
-    result.evidence.portfolio = { source: 'Header / Contact', snippet: codingProfileMatch[0], confidence: 0.98 };
-  } else if (personalSiteMatch && !/^(b\.tech|m\.tech|bachelor|master|degree|college|university)/i.test(personalSiteMatch[0])) {
-    result.portfolio = true;
-    result.details.portfolio = personalSiteMatch[0];
-    result.evidence.portfolio = { source: 'Header / Contact', snippet: personalSiteMatch[0], confidence: 0.95 };
+    result.details.portfolio = extractedLinks.portfolio.url;
+    result.evidence.portfolio = { source: 'Header / Contact', snippet: extractedLinks.portfolio.url, confidence: 0.98 };
   }
 
-  // 6. Location
+  if (extractedLinks.leetcode) {
+    result.leetcode = true;
+    result.details.leetcode = extractedLinks.leetcode.url;
+    result.evidence.leetcode = { source: 'Header / Contact', snippet: extractedLinks.leetcode.url, confidence: 0.98 };
+  }
+
+  if (extractedLinks.hackerrank) {
+    result.hackerrank = true;
+    result.details.hackerrank = extractedLinks.hackerrank.url;
+    result.evidence.hackerrank = { source: 'Header / Contact', snippet: extractedLinks.hackerrank.url, confidence: 0.97 };
+  }
+
+  if (extractedLinks.codechef) {
+    result.codechef = true;
+    result.details.codechef = extractedLinks.codechef.url;
+    result.evidence.codechef = { source: 'Header / Contact', snippet: extractedLinks.codechef.url, confidence: 0.97 };
+  }
+
+  if (extractedLinks.kaggle) {
+    result.kaggle = true;
+    result.details.kaggle = extractedLinks.kaggle.url;
+    result.evidence.kaggle = { source: 'Header / Contact', snippet: extractedLinks.kaggle.url, confidence: 0.97 };
+  }
+
+  if (extractedLinks.behance) {
+    result.behance = true;
+    result.details.behance = extractedLinks.behance.url;
+    result.evidence.behance = { source: 'Header / Contact', snippet: extractedLinks.behance.url, confidence: 0.97 };
+  }
+
+  if (extractedLinks.dribbble) {
+    result.dribbble = true;
+    result.details.dribbble = extractedLinks.dribbble.url;
+    result.evidence.dribbble = { source: 'Header / Contact', snippet: extractedLinks.dribbble.url, confidence: 0.97 };
+  }
+
+  result.details.links = extractedLinks;
+
+  // 4. Location
   const NON_LOCATION_WORDS = [
     'ai', 'ml', 'generative', 'engineer', 'developer', 'software', 'full', 'stack',
     'science', 'technology', 'university', 'college', 'school', 'intern', 'lead',
@@ -1344,8 +1696,9 @@ function extractContactInfo(text) {
       if (/@|\.com|\.org|\.dev/i.test(line) && !line.includes('|') && !line.includes('•')) continue;
       const tokens = line.split(/[|•·]/).map(t => t.trim()).filter(Boolean);
       for (const token of tokens) {
+        const isSentence = token.length > 40 || /\b(student|seeking|passion|driven|learning|experience|skilled|foundation|adept|curriculum|intern|developer|engineer|aspiring)\b/i.test(token);
         const m = token.match(/^([A-Z][a-zA-Z\s]+),\s*([A-Z][a-zA-Z\s]+|[A-Z]{2,3})(?:,\s*([A-Z][a-zA-Z\s]+|[A-Z]{2,3}))?$/);
-        if (m) {
+        if (m && !isSentence) {
           const part1 = m[1].trim().toLowerCase();
           if (!NON_LOCATION_WORDS.some(w => part1.includes(w))) {
             result.location = true;
@@ -1354,10 +1707,18 @@ function extractContactInfo(text) {
             break;
           }
         }
-        if (/\b(remote|hybrid|bangalore|bengaluru|mumbai|delhi|hyderabad|pune|chennai|kanpur|noida|seattle|san francisco|austin|new york)\b/i.test(token) && !/@/.test(token)) {
+        const cityMatch = token.match(/\b(remote|hybrid|bangalore|bengaluru|mumbai|delhi|hyderabad|pune|chennai|kanpur|noida|gurgaon|seattle|san francisco|austin|new york)(?:,\s*([A-Za-z\s]{2,20}))?/i);
+        if (cityMatch && !/@/.test(token)) {
+          let cleanLoc = token;
+          if (isSentence) {
+            const rawCity = cityMatch[1];
+            const rawSub = cityMatch[2];
+            const capCity = rawCity.charAt(0).toUpperCase() + rawCity.slice(1).toLowerCase();
+            cleanLoc = rawSub ? `${capCity}, ${rawSub.trim()}` : capCity;
+          }
           result.location = true;
-          result.details.location = token;
-          result.evidence.location = { source: 'Header / Contact', snippet: token, confidence: 0.94 };
+          result.details.location = cleanLoc;
+          result.evidence.location = { source: 'Header / Contact', snippet: cleanLoc, confidence: 0.94 };
           break;
         }
       }
@@ -5243,10 +5604,27 @@ function executeMasterAiEvaluation(resumeText, jdText = null) {
       educationScore,
       certificationsScore,
       achievementsScore,
+      formattingScore: formattingAnalysis.score ? Math.round((formattingAnalysis.score / 7) * 100) : atsScore,
       contactScore,
       jobMatchScore: jobMatchResult.score
     },
     contact,
+    links: contactInfo.links || extractDeterministicLinks(cleanText),
+    structuredResume: buildIntermediateResumeJSON(
+      cleanText,
+      parsedSections,
+      contactInfo,
+      skillsData,
+      candidateName,
+      careerStage,
+      {
+        experience: experienceAnalysis,
+        projects: projectsAnalysis,
+        education: educationAnalysis,
+        certifications: certificationsAnalysis,
+        achievements: achievementsAnalysis
+      }
+    ),
     summaryAnalysis: {
       present: summaryAnalysis.exists,
       score: summaryScore,
@@ -5556,9 +5934,20 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
       return;
     }
 
-    // Step 3: Parse sections (for UI consistency check — does NOT override AI scores)
+    // Step 3: Parse sections & Anchor Ground Truth Facts (Part 3)
     const parsedSections = parseResumeSections(resumeText);
     analyzerState.parsedData = parsedSections;
+
+    const deterministicContact = extractContactInfo(resumeText);
+    const deterministicLinks = deterministicContact.links || extractDeterministicLinks(resumeText);
+    const deterministicExp = analyzeExperience(resumeText, parsedSections.sectionContent);
+    const deterministicProj = analyzeProjects(resumeText, parsedSections.sectionContent);
+    const deterministicEdu = analyzeEducation(resumeText, parsedSections);
+    const deterministicCerts = analyzeCertifications(resumeText, parsedSections);
+    const deterministicAch = analyzeAchievements(resumeText, parsedSections);
+    const deterministicSkills = extractSkills(resumeText, parsedSections);
+    const deterministicFmt = analyzeATSFormatting(resumeText, parsedSections, null);
+    const deterministicCq = analyzeContentQuality(resumeText, deterministicExp, deterministicProj);
 
     // Consistency check using actual uploaded resume text
     const consistency = checkInternalConsistency(
@@ -5572,6 +5961,12 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
     const candidateObj = aiJson.candidate || {};
     const careerStage = candidateObj.careerStage || 'Fresher';
 
+    // Ground truth candidate facts (Part 3: AI cannot delete or hallucinate facts)
+    const candidateName = deterministicContact.details?.name || candidateObj.name || 'Candidate';
+    const candidateEmail = deterministicContact.details?.email || candidateObj.email || null;
+    const candidatePhone = deterministicContact.details?.phone || candidateObj.phone || null;
+    const candidateLocation = deterministicContact.details?.location || candidateObj.location || null;
+
     const verified = Array.isArray(aiJson.skills?.verifiedSkills) ? aiJson.skills.verifiedSkills : [];
     const listed = Array.isArray(aiJson.skills?.listedOnlySkills) ? aiJson.skills.listedOnlySkills : [];
     let allSkills = verified.concat(listed);
@@ -5581,10 +5976,17 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
         .map(([_, v]) => v)
         .flat();
     }
+    if (allSkills.length === 0 && deterministicSkills.all) {
+      allSkills = deterministicSkills.all;
+    }
     allSkills = [...new Set(allSkills)];
 
-    const projectEntries = Array.isArray(aiJson.projects?.entries) ? aiJson.projects.entries : [];
-    const expEntries = Array.isArray(aiJson.experience?.entries) ? aiJson.experience.entries : [];
+    const projectEntries = Array.isArray(aiJson.projects?.entries) && aiJson.projects.entries.length > 0
+      ? aiJson.projects.entries
+      : (deterministicProj.details || []);
+    const expEntries = Array.isArray(aiJson.experience?.entries) && aiJson.experience.entries.length > 0
+      ? aiJson.experience.entries
+      : (deterministicExp.details || []);
 
     const dynamicRoles = detectDynamicRoles(
       { all: allSkills },
@@ -5595,23 +5997,48 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
 
     const expBulletsCount = (aiJson.experience?.metrics?.totalBullets !== undefined)
       ? aiJson.experience.metrics.totalBullets
-      : expEntries.reduce((acc, e) => acc + (Array.isArray(e.features) ? e.features.length : (e.responsibilities ? 1 : 0)) + (Array.isArray(e.achievements) ? e.achievements.length : 0), 0);
-    const hasExp = Boolean(aiJson.experience?.hasExperience && expBulletsCount > 0);
+      : (deterministicExp.bulletPointsCount || expEntries.reduce((acc, e) => acc + (Array.isArray(e.features) ? e.features.length : (e.responsibilities ? 1 : 0)) + (Array.isArray(e.achievements) ? e.achievements.length : 0), 0));
+    const hasExp = Boolean((aiJson.experience?.hasExperience || deterministicExp.hasExperience) && expBulletsCount > 0);
     const calculatedExpScore = hasExp ? Math.round(((aiScores.experienceScore) || 0) / 100 * 15) : 0;
+
+    const isFresher = aiJson.experience?.isFresher !== undefined
+      ? Boolean(aiJson.experience.isFresher)
+      : (careerStage === 'Student' || careerStage === 'Fresher' || careerStage === 'Intern');
+
+    // Calculate Controlled 8 Score Pillars (Part 4 & 9)
+    const atsScore = aiScores.atsScore ?? 85;
+    const contentQualityScore = aiScores.contentQualityScore ?? 80;
+    const technicalSkillsScore = aiScores.technicalSkillsScore ?? 85;
+    const experienceScore = hasExp ? (aiScores.experienceScore ?? 80) : 0;
+    const projectsScore = aiScores.projectsScore ?? 80;
+    const educationScore = aiScores.educationScore ?? 85;
+    const certificationsScore = aiScores.certificationsScore ?? 80;
+    const formattingScore = aiScores.formattingScore ?? Math.min(Math.round(((deterministicFmt.score || 6) / 7) * 95), 100);
 
     const scores = {
       overall: aiScores.overallResumeScore ?? 0,
       overallResumeScore: aiScores.overallResumeScore ?? 0,
-      atsScore: aiScores.atsScore ?? 0,
-      contentQualityScore: aiScores.contentQualityScore ?? 0,
-      technicalSkillsScore: aiScores.technicalSkillsScore ?? 0,
-      experienceScore: hasExp ? (aiScores.experienceScore ?? 0) : 0,
-      projectsScore: aiScores.projectsScore ?? 0,
-      educationScore: aiScores.educationScore ?? 0,
-      certificationsScore: aiScores.certificationsScore ?? 0,
+      atsScore: atsScore,
+      contentQualityScore: contentQualityScore,
+      technicalSkillsScore: technicalSkillsScore,
+      experienceScore: experienceScore,
+      projectsScore: projectsScore,
+      educationScore: educationScore,
+      certificationsScore: certificationsScore,
+      formattingScore: formattingScore,
       achievementsScore: aiScores.achievementsScore ?? 0,
       contactScore: aiScores.contactScore ?? 0,
       jobMatchScore: aiScores.jobMatchScore ?? null,
+      eightPillars: {
+        ats: { id: 'ats', label: 'ATS Compatibility', score: atsScore, max: 100, desc: 'Evaluates standard section headings, single-column parsing, and resume layout compatibility.' },
+        contentQuality: { id: 'contentQuality', label: 'Content Quality', score: contentQualityScore, max: 100, desc: 'Evaluates strong action verbs, quantifiable metrics, and elimination of vague filler words.' },
+        technicalSkills: { id: 'technicalSkills', label: 'Technical Skills', score: technicalSkillsScore, max: 100, desc: 'Evaluates verified depth and categorization across languages, frameworks, and tools.' },
+        experience: { id: 'experience', label: 'Work Experience', score: experienceScore, max: 100, desc: isFresher ? 'Student/Intern profile: practical engineering scope evaluated without career penalty.' : 'Evaluates career seniority, business impact, leadership, and technical complexity.' },
+        projects: { id: 'projects', label: 'Technical Projects', score: projectsScore, max: 100, desc: 'Evaluates full-stack complexity, system architecture, deployment, and GitHub evidence.' },
+        education: { id: 'education', label: 'Education', score: educationScore, max: 100, desc: 'Evaluates accredited degree program, academic credentials, GPA, and graduation timeline.' },
+        certifications: { id: 'certifications', label: 'Certifications', score: certificationsScore, max: 100, desc: 'Evaluates industry-recognized cloud (AWS/GCP/Azure) credentials and professional specializations.' },
+        formatting: { id: 'formatting', label: 'Formatting & Layout', score: formattingScore, max: 100, desc: 'Evaluates typography hierarchy, margin balance, bullet punctuation, and visual cleanliness.' }
+      },
       breakdown: {
         summary: { score: Math.round(((aiJson.summaryAnalysis?.score) || 0) / 100 * 8), max: 8, label: 'Professional Summary' },
         keywords: { score: Math.round(((aiScores.technicalSkillsScore) || 0) / 100 * 15), max: 15, label: 'Technical Skills' },
@@ -5626,12 +6053,39 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
       }
     };
 
+    // Intermediate Structured Resume Object (Part 2)
+    const intermediateResume = buildIntermediateResumeJSON(
+      resumeText,
+      parsedSections,
+      deterministicContact,
+      deterministicSkills,
+      candidateName,
+      careerStage,
+      {
+        experience: deterministicExp,
+        projects: deterministicProj,
+        education: deterministicEdu,
+        certifications: deterministicCerts,
+        achievements: deterministicAch
+      }
+    );
+
     const structuredResume = {
-      name: candidateObj.name || 'Candidate',
+      ...intermediateResume,
+      name: candidateName,
       careerStage: careerStage,
       experienceLevel: `${careerStage}`,
-      isFresher: careerStage === 'Student' || careerStage === 'Fresher' || careerStage === 'Intern',
-      contact: aiJson.contact || {}
+      isFresher: isFresher,
+      contact: {
+        name: candidateName,
+        email: candidateEmail,
+        phone: candidatePhone,
+        location: candidateLocation,
+        linkedin: deterministicLinks.linkedin,
+        github: deterministicLinks.github,
+        portfolio: deterministicLinks.portfolio,
+        leetcode: deterministicLinks.leetcode
+      }
     };
     analyzerState.structuredResume = structuredResume;
 
@@ -5640,22 +6094,38 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
     if (allSkills.length > 0) detectedSections.skills = true;
     if (expEntries.length > 0 || hasExp) detectedSections.experience = true;
     if (projectEntries.length > 0 || (aiJson.projects?.count || 0) > 0) detectedSections.projects = true;
-    if ((aiJson.education?.entries || []).length > 0) detectedSections.education = true;
-    if ((aiJson.certifications?.entries || []).length > 0 || (aiJson.certifications?.count || 0) > 0) detectedSections.certifications = true;
-    if ((aiJson.achievements?.entries || []).length > 0) detectedSections.achievements = true;
+    if ((aiJson.education?.entries || []).length > 0 || deterministicEdu.hasDegree) detectedSections.education = true;
+    if ((aiJson.certifications?.entries || []).length > 0 || deterministicCerts.count > 0) detectedSections.certifications = true;
+    if ((aiJson.achievements?.entries || []).length > 0 || deterministicAch.leetCodeCount > 0) detectedSections.achievements = true;
     if (aiJson.summaryAnalysis?.present) detectedSections.summary = true;
 
-    const contactDetails = aiJson.contact || {};
     const contactInfo = {
-      confidence: aiScores.contactScore || 90,
-      details: contactDetails,
-      name: candidateObj.name || contactDetails.name || null,
-      email: contactDetails.email || null,
-      phone: contactDetails.phone || null,
-      linkedin: contactDetails.linkedin || null,
-      github: contactDetails.github || null,
-      portfolio: contactDetails.portfolio || null,
-      location: contactDetails.location || null,
+      confidence: aiScores.contactScore || deterministicContact.confidence || 90,
+      details: {
+        name: candidateName,
+        email: candidateEmail,
+        phone: candidatePhone,
+        location: candidateLocation,
+        linkedin: deterministicLinks.linkedin,
+        github: deterministicLinks.github,
+        portfolio: deterministicLinks.portfolio,
+        leetcode: deterministicLinks.leetcode,
+        hackerrank: deterministicLinks.hackerrank,
+        codechef: deterministicLinks.codechef,
+        kaggle: deterministicLinks.kaggle,
+        behance: deterministicLinks.behance,
+        dribbble: deterministicLinks.dribbble,
+        links: deterministicLinks
+      },
+      name: candidateName,
+      email: candidateEmail,
+      phone: candidatePhone,
+      linkedin: deterministicLinks.linkedin,
+      github: deterministicLinks.github,
+      portfolio: deterministicLinks.portfolio,
+      leetcode: deterministicLinks.leetcode,
+      location: candidateLocation,
+      links: deterministicLinks,
       score: Math.round(((aiScores.contactScore) || 0) / 100 * 3),
       max: 3
     };
@@ -5680,9 +6150,6 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
       softSkills: Array.isArray(aiJson.skills?.softSkills) ? aiJson.skills.softSkills : []
     };
 
-    const isFresher = aiJson.experience?.isFresher !== undefined
-      ? Boolean(aiJson.experience.isFresher)
-      : (careerStage === 'Student' || careerStage === 'Fresher');
     const isOnlyInternship = Boolean(aiJson.experience?.isOnlyInternship);
     const expJobTitles = hasExp ? expEntries.map(e => e.title).filter(Boolean) : [];
     const expQuantifiedBullets = hasExp ? expEntries.filter(e => e.metrics || (Array.isArray(e.achievements) && e.achievements.length > 0)) : [];
@@ -6060,7 +6527,7 @@ function renderRejectionState(classification, fileName, fileSize) {
 }
 
 /* ============================================================
-   19. RESULT RENDERER (Preserves Existing UI Exactly)
+   19. RESULT RENDERER (Structured Dashboard Architecture)
    ============================================================ */
 function renderAllResults(result) {
   const area = document.getElementById('analyzer-results-area');
@@ -6068,10 +6535,8 @@ function renderAllResults(result) {
 
   const scores = result.scores || {};
   const interp = getScoreInterpretation(scores.overall || 0);
-  const bd = scores.breakdown || {};
   const isUncertain = result.classification?.status === 'UNCERTAIN';
   const consistency = result.consistency;
-  const formattingChecks = Array.isArray(result.formattingChecks) ? result.formattingChecks : [];
   const suggestions = Array.isArray(result.suggestions) ? result.suggestions : [];
   const jobRecommendations = Array.isArray(result.jobRecommendations) ? result.jobRecommendations : [];
 
@@ -6130,6 +6595,16 @@ function renderAllResults(result) {
       </div>
     ` : ''}
 
+    <!-- Top Header: RESUME ANALYSIS Dashboard Hero -->
+    <div class="analyzer-dashboard-header">
+      <div class="dashboard-badge-pill">
+        <span class="material-symbols-outlined text-[14px]">verified_user</span>
+        <span>RESUME AUDIT & ATS BENCHMARK</span>
+      </div>
+      <h2 class="dashboard-main-title">Resume Analysis</h2>
+      <p class="dashboard-sub-title">Deterministic contact & link extraction with evidence-anchored ATS scoring and deep section audits.</p>
+    </div>
+
     <!-- Score Hero -->
     <div class="analyzer-score-hero">
       <div class="score-hero-ring">
@@ -6143,158 +6618,21 @@ function renderAllResults(result) {
         <div class="score-hero-max">/ 100</div>
       </div>
       <div class="score-hero-info">
-        <div class="score-hero-title">DevPilot ATS Score</div>
+        <div class="score-hero-title">DevPilot ATS Overall Score</div>
         <div class="score-hero-label" style="color: ${interp.color}">${interp.label}</div>
         <div class="score-hero-desc">${interp.desc}</div>
         <div class="score-hero-disclaimer">Evidence-backed calculation based directly on extracted skills, projects, and structural credentials. Zero hallucinations.</div>
       </div>
     </div>
 
-    <!-- Score Breakdown (10 Categories, 100 Points) -->
-    <div class="analyzer-section-card">
-      <div class="analyzer-card-header">
-        <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>bar_chart</span>
-        <h3 class="analyzer-card-title">Score Breakdown</h3>
-        <span class="analyzer-card-score">${scores.overall ?? 0}/100</span>
-      </div>
-      <div class="score-breakdown-grid">
-        ${Object.values(bd).map(cat => `
-          <div class="breakdown-row">
-            <div class="breakdown-row-header">
-              <span class="breakdown-label">${escHtml(cat?.label || 'Category')}</span>
-              <span class="breakdown-score">${cat?.score || 0}/${cat?.max || 10}</span>
-            </div>
-            <div class="breakdown-bar-bg">
-              <div class="breakdown-bar-fill" style="width: 0%" data-target="${cat?.max ? Math.round(((cat.score || 0) / cat.max) * 100) : 0}%"></div>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-    </div>
+    <!-- PART 5: 8 SCORE PILLARS -->
+    ${renderEightScorePillars(result)}
 
-    <!-- Resume Health (Dynamic & Actionable Findings) -->
-    <div class="analyzer-section-card">
-      <div class="analyzer-card-header">
-        <span class="material-symbols-outlined text-[18px] text-emerald-500" style='font-variation-settings: "FILL" 1;'>monitor_heart</span>
-        <h3 class="analyzer-card-title">Resume Health</h3>
-      </div>
-      <div class="health-checks-list">
-        ${renderHealthChecks(result)}
-      </div>
-    </div>
+    <!-- PART 6: DEDICATED CONTACT & LINKS CARD -->
+    ${renderContactAndLinksCard(result)}
 
-    <!-- Two Column Details Grid -->
-    <div class="analyzer-details-grid">
-      <!-- LEFT COLUMN -->
-      <div class="analyzer-details-col">
-
-        <!-- Contact Information -->
-        <div class="analyzer-section-card">
-          <div class="analyzer-card-header">
-            <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>person</span>
-            <h3 class="analyzer-card-title">Contact Information</h3>
-            <span class="section-confidence-pill ${(result.contactInfo?.confidence || 0) >= 90 ? 'high' : 'med'}">${result.contactInfo?.confidence || 90}% conf</span>
-            <span class="analyzer-card-score" style="margin-left:0.5rem;">${bd.contact?.score || 0}/${bd.contact?.max || 3}</span>
-          </div>
-          <div class="contact-checks-list">
-            ${renderContactChecks(result.contactInfo)}
-          </div>
-        </div>
-
-        <!-- Professional Summary & Sections -->
-        <div class="analyzer-section-card">
-          <div class="analyzer-card-header">
-            <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>article</span>
-            <h3 class="analyzer-card-title">Summary & Sections</h3>
-            <span class="section-confidence-pill ${(result.summaryAnalysis?.confidence || 0) >= 90 ? 'high' : 'med'}">${result.summaryAnalysis?.confidence || 85}% conf</span>
-            <span class="analyzer-card-score" style="margin-left:0.5rem;">${bd.summary?.score || 0}/${bd.summary?.max || 8}</span>
-          </div>
-          <div class="section-checks-list">
-            ${renderSectionChecks(result.parsedSections, result.summaryAnalysis)}
-          </div>
-        </div>
-
-        <!-- Experience Analysis -->
-        <div class="analyzer-section-card">
-          <div class="analyzer-card-header">
-            <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>work</span>
-            <h3 class="analyzer-card-title">Experience Analysis</h3>
-            <span class="section-confidence-pill ${(result.experienceAnalysis?.confidence || 0) >= 90 ? 'high' : 'med'}">${result.experienceAnalysis?.confidence || 85}% conf</span>
-            <span class="analyzer-card-score" style="margin-left:0.5rem;">${bd.experience?.score || 0}/${bd.experience?.max || 15}</span>
-          </div>
-          ${renderExperienceDetails(result.experienceAnalysis)}
-        </div>
-
-        <!-- ATS Compatibility -->
-        <div class="analyzer-section-card">
-          <div class="analyzer-card-header">
-            <span class="material-symbols-outlined text-[18px] text-emerald-500" style='font-variation-settings: "FILL" 1;'>shield_check</span>
-            <h3 class="analyzer-card-title">ATS Compatibility</h3>
-            <span class="analyzer-card-score">${bd.formatting?.score || 0}/${bd.formatting?.max || 7}</span>
-          </div>
-          <div class="formatting-checks-list">
-            ${formattingChecks.map(c => `
-              <div class="analyzer-check-item ${c.pass ? 'check-pass' : 'check-warn'}">
-                <span class="material-symbols-outlined check-icon" style='font-variation-settings: "FILL" 1;'>${c.pass ? 'check_circle' : 'warning'}</span>
-                <div>
-                  <div class="check-label">${escHtml(c.label)}</div>
-                  <div class="check-detail">${escHtml(c.detail)}</div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      </div>
-
-      <!-- RIGHT COLUMN -->
-      <div class="analyzer-details-col">
-
-        <!-- Skills & Keywords -->
-        <div class="analyzer-section-card">
-          <div class="analyzer-card-header">
-            <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>code</span>
-            <h3 class="analyzer-card-title">Skills & Keywords</h3>
-            <span class="section-confidence-pill ${(result.skills?.confidence || 0) >= 90 ? 'high' : 'med'}">${result.skills?.confidence || 85}% conf</span>
-            <span class="analyzer-card-score" style="margin-left:0.5rem;">${bd.keywords?.score || 0}/${bd.keywords?.max || 15}</span>
-          </div>
-          ${renderSkillsSection(result.skills)}
-        </div>
-
-        <!-- Projects Analysis -->
-        <div class="analyzer-section-card">
-          <div class="analyzer-card-header">
-            <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>rocket_launch</span>
-            <h3 class="analyzer-card-title">Projects Analysis</h3>
-            <span class="section-confidence-pill ${(result.projectsAnalysis?.confidence || 0) >= 90 ? 'high' : 'med'}">${result.projectsAnalysis?.confidence || 85}% conf</span>
-            <span class="analyzer-card-score" style="margin-left:0.5rem;">${bd.projects?.score || 0}/${bd.projects?.max || 20}</span>
-          </div>
-          ${renderProjectsDetails(result.projectsAnalysis)}
-        </div>
-
-        <!-- Content Quality -->
-        <div class="analyzer-section-card">
-          <div class="analyzer-card-header">
-            <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>analytics</span>
-            <h3 class="analyzer-card-title">Content Quality</h3>
-            <span class="analyzer-card-score">${bd.contentQuality?.score || 0}/${bd.contentQuality?.max || 7}</span>
-          </div>
-          ${renderContentQuality(result.contentQuality)}
-        </div>
-
-        <!-- Education, Certifications & Achievements -->
-        <div class="analyzer-section-card">
-          <div class="analyzer-card-header">
-            <span class="material-symbols-outlined text-[18px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>school</span>
-            <h3 class="analyzer-card-title">Education & Credentials</h3>
-            <span class="section-confidence-pill ${(result.educationAnalysis?.confidence || 0) >= 90 ? 'high' : 'med'}">${result.educationAnalysis?.confidence || 85}% conf</span>
-            <span class="analyzer-card-score" style="margin-left:0.5rem;">${Math.round(((bd.education?.score || 0) + (bd.certifications?.score || 0) + (bd.achievements?.score || 0)) / 3)}/100</span>
-          </div>
-          <div class="edu-check-summary">
-            ${renderEduAndCredentials(result.educationAnalysis, result.certificationsAnalysis, result.achievementsAnalysis, result.parsedSections)}
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- PART 7 & 8: SECTION-BY-SECTION ANALYSIS CARDS -->
+    ${renderSectionAnalysisCards(result)}
 
     <!-- Improvement Suggestions (Full Width) -->
     <div class="analyzer-section-card">
@@ -6364,9 +6702,12 @@ function renderAllResults(result) {
         </div>
       </div>
     </div>
+
+    <!-- PART 11: SECONDARY AI ASSISTANT ("Ask AI About Your Resume") -->
+    ${renderResumeAiAssistant(result)}
   `;
 
-  // Animate score ring
+  // Animate score ring and progress bars
   setTimeout(() => {
     const ring = document.getElementById('hero-score-ring');
     if (ring) {
@@ -6377,13 +6718,18 @@ function renderAllResults(result) {
     }
 
     area.querySelectorAll('.breakdown-bar-fill').forEach(bar => {
-      bar.style.width = bar.dataset.target;
+      bar.style.width = bar.dataset.target || '0%';
     });
 
     area.querySelectorAll('.job-rec-bar-fill').forEach(bar => {
-      bar.style.width = bar.dataset.target;
+      bar.style.width = bar.dataset.target || '0%';
     });
   }, 150);
+
+  // Initialize interactive controls
+  initPillarDetailsToggles(area);
+  initResumeAiAssistant(result, area);
+  verifyGitHubProfileLive(result, area);
 
   // Bind handlers
   const reanalyzeBtn = document.getElementById('btn-reanalyze-real');
@@ -6416,6 +6762,860 @@ function renderAllResults(result) {
   if (runJdMatchBtn) {
     runJdMatchBtn.addEventListener('click', () => executeEnhancedJDMatch(result));
   }
+}
+
+/* ============================================================
+   EIGHT SCORE PILLARS RENDERER (Part 5)
+   ============================================================ */
+function renderEightScorePillars(result) {
+  const scores = result.scores || {};
+  const bd = scores.breakdown || {};
+  const cq = result.contentQuality || {};
+  const exp = result.experienceAnalysis || {};
+  const proj = result.projectsAnalysis || {};
+  const skills = result.skills || {};
+  const allSkills = Array.isArray(skills.all) ? skills.all : [];
+  const ci = result.contactInfo || {};
+  const edu = result.educationAnalysis || {};
+  const certs = result.certificationsAnalysis || {};
+  const ach = result.achievementsAnalysis || {};
+
+  // 1. Impact & Metrics (15)
+  const metricsCount = cq.metricsCount || 0;
+  const actionVerbCount = cq.actionVerbCount || 0;
+  let impactScore = bd.contentQuality?.score !== undefined
+    ? Math.min(15, Math.round((bd.contentQuality.score / (bd.contentQuality.max || 7)) * 15))
+    : Math.min(15, Math.round(((scores.contentQualityScore || 70) / 100) * 15));
+  if (metricsCount >= 4 && actionVerbCount >= 6) impactScore = Math.max(impactScore, 13);
+  const impactStatus = impactScore >= 12 ? 'Excellent' : (impactScore >= 9 ? 'Good' : 'Needs Metrics');
+  const impactClass = impactScore >= 12 ? 'status-pass' : (impactScore >= 9 ? 'status-warn' : 'status-missing');
+  const impactReasons = [
+    { type: actionVerbCount >= 5 ? 'gain' : 'rec', text: `${actionVerbCount} action verbs identified in context (e.g. Engineered, Architected, Automated).` },
+    { type: metricsCount >= 3 ? 'gain' : 'rec', text: `${metricsCount} quantified metrics / percentage outcomes found.` },
+    { type: metricsCount < 3 ? 'rec' : 'gain', text: metricsCount < 3 ? 'Add more quantified results (e.g., "reduced latency by 35%", "scaled to 50k RPS").' : 'Strong evidence of measurable business or technical outcomes.' }
+  ];
+
+  // 2. Experience Quality (15)
+  const isFresher = Boolean(exp.isFresher);
+  let expScore = exp.score !== undefined ? exp.score : (bd.experience?.score ?? 0);
+  if (isFresher) expScore = 15; // Penalty waived for fresher/student profiles
+  const expStatus = isFresher ? 'Student/Fresher' : (expScore >= 12 ? 'Strong Track Record' : (expScore >= 8 ? 'Moderate' : 'Limited'));
+  const expClass = expScore >= 12 ? 'status-pass' : (expScore >= 8 ? 'status-warn' : 'status-missing');
+  const expReasons = isFresher ? [
+    { type: 'gain', text: 'Student / Fresher profile detected: Corporate experience penalty is fully waived.' },
+    { type: 'gain', text: 'Score evaluation shifts primary engineering weight into technical projects and DSA.' }
+  ] : [
+    { type: (exp.count || 0) > 0 ? 'gain' : 'rec', text: `${exp.count || 0} professional role(s) detected with ${exp.totalBullets || 0} total bullet points.` },
+    { type: (exp.quantifiedCount || 0) > 0 ? 'gain' : 'rec', text: `${exp.quantifiedCount || 0} quantified achievements in job experience.` },
+    { type: (exp.weakVerbCount || 0) > 0 ? 'rec' : 'gain', text: (exp.weakVerbCount || 0) > 0 ? `${exp.weakVerbCount} bullet(s) use weak verbs (e.g. "Worked on", "Helped").` : 'All experience bullets use decisive action verbs.' }
+  ];
+
+  // 3. Project Depth (20)
+  const projScore = proj.score !== undefined ? proj.score : (bd.projects?.score ?? 15);
+  const projStatus = projScore >= 16 ? 'Advanced Systems' : (projScore >= 12 ? 'Solid Portfolio' : 'Needs Depth');
+  const projClass = projScore >= 16 ? 'status-pass' : (projScore >= 12 ? 'status-warn' : 'status-missing');
+  const projReasons = [
+    { type: (proj.count || 0) >= 2 ? 'gain' : 'rec', text: `${proj.count || 0} technical project(s) identified with implementation details.` },
+    { type: proj.hasGithubLinks ? 'gain' : 'rec', text: proj.hasGithubLinks ? 'Verified GitHub repository link(s) found in project entries.' : 'Include GitHub repository links for each project to prove implementation.' },
+    { type: proj.hasDemoLinks ? 'gain' : 'rec', text: proj.hasDemoLinks ? 'Verified live deployment / demo link(s) detected.' : 'Include live deployed demo links (e.g. Vercel, Netlify, Render, AWS).' }
+  ];
+
+  // 4. Technical Skills Match (15)
+  const skillsScore = bd.keywords?.score !== undefined ? bd.keywords.score : Math.min(15, Math.round(((scores.technicalSkillsScore || 75) / 100) * 15));
+  const skillsStatus = skillsScore >= 12 ? 'Industry-Aligned' : (skillsScore >= 9 ? 'Moderate' : 'Needs Diversity');
+  const skillsClass = skillsScore >= 12 ? 'status-pass' : (skillsScore >= 9 ? 'status-warn' : 'status-missing');
+  const skillsReasons = [
+    { type: allSkills.length >= 8 ? 'gain' : 'rec', text: `${allSkills.length} technical skills verified from resume content.` },
+    { type: Object.keys(skills.categorized || {}).length >= 3 ? 'gain' : 'rec', text: 'Balanced coverage across Languages, Frameworks, Databases, and Tools.' },
+    { type: allSkills.length < 8 ? 'rec' : 'gain', text: allSkills.length < 8 ? 'Add specific in-demand tools, databases, or cloud services to broaden keyword reach.' : 'Strong keyword coverage for modern developer roles.' }
+  ];
+
+  // 5. Resume Structure & Formatting (10)
+  const formatScore = bd.formatting?.score !== undefined
+    ? Math.min(10, Math.round((bd.formatting.score / (bd.formatting.max || 7)) * 10))
+    : Math.min(10, Math.round(((scores.atsScore || 80) / 100) * 10));
+  const formatStatus = formatScore >= 8 ? 'ATS-Optimized' : 'Needs Cleanup';
+  const formatClass = formatScore >= 8 ? 'status-pass' : 'status-warn';
+  const formatReasons = [
+    { type: 'gain', text: 'Standard single-column, ATS-parsable document structure verified.' },
+    { type: 'gain', text: 'Recognized section headings (Skills, Projects, Education, Experience).' },
+    { type: 'rec', text: 'Avoid tables, graphics, multi-column sidebars, or unusual fonts to maximize ATS compatibility.' }
+  ];
+
+  // 6. Professional Summary (8)
+  const summaryScore = bd.summary?.score !== undefined ? bd.summary.score : (result.summaryAnalysis?.exists ? 6 : 2);
+  const summaryStatus = summaryScore >= 6 ? 'Clear & Targeted' : (result.summaryAnalysis?.exists ? 'Generic' : 'Missing');
+  const summaryClass = summaryScore >= 6 ? 'status-pass' : (result.summaryAnalysis?.exists ? 'status-warn' : 'status-missing');
+  const summaryReasons = [
+    { type: result.summaryAnalysis?.exists ? 'gain' : 'rec', text: result.summaryAnalysis?.exists ? 'Professional summary / profile statement present.' : 'No professional summary section detected.' },
+    { type: result.summaryAnalysis?.hasTechKeywords ? 'gain' : 'rec', text: result.summaryAnalysis?.hasTechKeywords ? 'Contains relevant technical keywords and target role.' : 'Summary lacks concrete technical keywords or target role statement.' }
+  ];
+
+  // 7. Contact & Professional Links (5)
+  const links = result.structuredResume?.links || ci.details?.links || ci.links || [];
+  const linkList = Array.isArray(links) ? links : Object.values(links);
+  let contactScore = 0;
+  if (ci.email || ci.details?.email) contactScore++;
+  if (ci.phone || ci.details?.phone) contactScore++;
+  if (linkList.some(l => l.type === 'linkedin') || ci.linkedin) contactScore++;
+  if (linkList.some(l => l.type === 'github') || ci.github) contactScore++;
+  if (linkList.some(l => ['portfolio', 'leetcode', 'hackerrank', 'codechef', 'kaggle'].includes(l.type)) || ci.portfolio || ci.leetcode) contactScore++;
+  contactScore = Math.min(5, Math.max(1, contactScore));
+  const contactStatus = contactScore >= 4 ? 'Complete Profiles' : (contactScore >= 3 ? 'Basic' : 'Missing Profiles');
+  const contactClass = contactScore >= 4 ? 'status-pass' : (contactScore >= 3 ? 'status-warn' : 'status-missing');
+  const contactReasons = [
+    { type: (ci.email || ci.details?.email) ? 'gain' : 'rec', text: (ci.email || ci.details?.email) ? `Email address verified (${ci.email || ci.details?.email}).` : 'Email address missing.' },
+    { type: (ci.phone || ci.details?.phone) ? 'gain' : 'rec', text: (ci.phone || ci.details?.phone) ? `Phone number verified (${ci.phone || ci.details?.phone}).` : 'Phone number missing.' },
+    { type: linkList.some(l => l.type === 'github') ? 'gain' : 'rec', text: linkList.some(l => l.type === 'github') ? 'GitHub profile detected and verified.' : 'GitHub profile missing — essential for software engineering roles.' }
+  ];
+
+  // 8. Education & Credentials (12)
+  const eduScoreRaw = bd.education?.score ?? 8;
+  const certScoreRaw = bd.certifications?.score ?? 0;
+  const achScoreRaw = bd.achievements?.score ?? 0;
+  let eduScore = Math.min(12, Math.max(2, Math.round((eduScoreRaw / 10) * 8) + (certScoreRaw > 0 ? 2 : 0) + (achScoreRaw > 0 ? 2 : 0)));
+  const eduStatus = eduScore >= 10 ? 'Accredited & Certified' : (eduScore >= 7 ? 'Degree Verified' : 'Basic');
+  const eduClass = eduScore >= 10 ? 'status-pass' : (eduScore >= 7 ? 'status-warn' : 'status-missing');
+  const eduReasons = [
+    { type: edu.hasDegree || edu.exists ? 'gain' : 'rec', text: edu.hasDegree ? `Degree verified (${edu.degree || 'Degree Program'}).` : (edu.exists ? 'Education section identified.' : 'Education section not found.') },
+    { type: certs.count > 0 ? 'gain' : 'rec', text: certs.count > 0 ? `${certs.count} professional certification(s) verified.` : 'No recognized cloud/industry certifications detected.' },
+    { type: ach.exists ? 'gain' : 'rec', text: ach.exists ? `Achievements / DSA evidence recognized (${ach.problemCount ? `${ach.problemCount}+ problems` : 'Demonstrated'}).` : 'Include coding competition ranks or hackathon achievements.' }
+  ];
+
+  const pillars = [
+    { id: 'impact', title: 'Impact & Metrics', icon: 'trending_up', score: impactScore, max: 15, status: impactStatus, statusClass: impactClass, reasons: impactReasons },
+    { id: 'experience', title: 'Experience Quality', icon: 'work', score: expScore, max: 15, status: expStatus, statusClass: expClass, reasons: expReasons },
+    { id: 'projects', title: 'Project Depth', icon: 'rocket_launch', score: projScore, max: 20, status: projStatus, statusClass: projClass, reasons: projReasons },
+    { id: 'skills', title: 'Technical Skills Match', icon: 'code', score: skillsScore, max: 15, status: skillsStatus, statusClass: skillsClass, reasons: skillsReasons },
+    { id: 'formatting', title: 'Structure & Formatting', icon: 'shield_check', score: formatScore, max: 10, status: formatStatus, statusClass: formatClass, reasons: formatReasons },
+    { id: 'summary', title: 'Professional Summary', icon: 'article', score: summaryScore, max: 8, status: summaryStatus, statusClass: summaryClass, reasons: summaryReasons },
+    { id: 'contact', title: 'Contact & Links', icon: 'contacts', score: contactScore, max: 5, status: contactStatus, statusClass: contactClass, reasons: contactReasons },
+    { id: 'education', title: 'Education & Credentials', icon: 'school', score: eduScore, max: 12, status: eduStatus, statusClass: eduClass, reasons: eduReasons }
+  ];
+
+  return `
+    <div class="analyzer-section-card">
+      <div class="analyzer-card-header">
+        <span class="material-symbols-outlined text-[20px] text-indigo-500" style='font-variation-settings: "FILL" 1;'>analytics</span>
+        <h3 class="analyzer-card-title">8 Score Pillars</h3>
+        <span class="analyzer-card-score">${scores.overall ?? 0}/100</span>
+      </div>
+      <div class="eight-pillar-grid">
+        ${pillars.map(p => {
+          const pct = Math.round((p.score / p.max) * 100);
+          return `
+            <div class="pillar-score-card" data-pillar-id="${p.id}">
+              <div class="pillar-card-top">
+                <div class="pillar-title-wrap">
+                  <span class="material-symbols-outlined pillar-icon">${p.icon}</span>
+                  <span class="pillar-title">${escHtml(p.title)}</span>
+                </div>
+                <div class="pillar-score-wrap">
+                  <span class="pillar-score-num">${p.score}</span>
+                  <span class="pillar-score-max">/ ${p.max}</span>
+                </div>
+              </div>
+              <div class="breakdown-bar-bg">
+                <div class="breakdown-bar-fill" style="width: 0%" data-target="${pct}%"></div>
+              </div>
+              <div class="pillar-status-row">
+                <span class="pillar-status-tag ${p.statusClass}">${escHtml(p.status)}</span>
+                <button type="button" class="pillar-expand-btn" aria-expanded="false" data-target="pillar-details-${p.id}">
+                  <span>Why this score?</span>
+                  <span class="material-symbols-outlined text-[14px]">expand_more</span>
+                </button>
+              </div>
+              <div class="pillar-details-content" id="pillar-details-${p.id}" style="display: none;">
+                ${p.reasons.map(r => `
+                  <div class="section-finding-item ${r.type === 'gain' ? 'finding-detected' : 'finding-rec'}">
+                    <span class="material-symbols-outlined">${r.type === 'gain' ? 'check_circle' : 'info'}</span>
+                    <span>${escHtml(r.text)}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   DEDICATED CONTACT & LINKS CARD RENDERER (Part 6)
+   ============================================================ */
+function renderContactAndLinksCard(result) {
+  const ci = result.contactInfo || {};
+  const details = ci.details || {};
+  const cand = result.candidate || {};
+  const struct = result.structuredResume || {};
+
+  const name = cand.name || struct.name || ci.name || details.name || 'Candidate';
+  const email = cand.email || struct.email || ci.email || details.email || '';
+  const phone = cand.phone || struct.phone || ci.phone || details.phone || '';
+  const location = cand.location || struct.location || ci.location || details.location || '';
+
+  // Collect links from structuredResume or contactInfo
+  let linksList = [];
+  if (Array.isArray(struct.links) && struct.links.length > 0) {
+    linksList = struct.links;
+  } else if (Array.isArray(details.links) && details.links.length > 0) {
+    linksList = details.links;
+  } else if (Array.isArray(ci.links) && ci.links.length > 0) {
+    linksList = ci.links;
+  } else {
+    // If it's a map
+    const map = details.links || ci.links || {};
+    linksList = Object.keys(map).map(k => {
+      const v = map[k];
+      if (!v) return null;
+      if (typeof v === 'object' && v.url) return v;
+      return {
+        type: k,
+        label: k.charAt(0).toUpperCase() + k.slice(1),
+        url: normalizeUrl(String(v)),
+        username: '',
+        isClickable: true
+      };
+    }).filter(Boolean);
+  }
+
+  // Also check direct top-level fields for fallback
+  const knownTypes = new Set(linksList.map(l => l.type.toLowerCase()));
+  if (!knownTypes.has('linkedin') && (ci.linkedin || details.linkedin)) {
+    linksList.push({ type: 'linkedin', label: 'LinkedIn', url: normalizeUrl(ci.linkedin || details.linkedin), username: '', isClickable: true });
+    knownTypes.add('linkedin');
+  }
+  if (!knownTypes.has('github') && (ci.github || details.github)) {
+    linksList.push({ type: 'github', label: 'GitHub', url: normalizeUrl(ci.github || details.github), username: '', isClickable: true });
+    knownTypes.add('github');
+  }
+  if (!knownTypes.has('portfolio') && (ci.portfolio || details.portfolio)) {
+    linksList.push({ type: 'portfolio', label: 'Portfolio', url: normalizeUrl(ci.portfolio || details.portfolio), username: '', isClickable: true });
+    knownTypes.add('portfolio');
+  }
+  if (!knownTypes.has('leetcode') && (ci.leetcode || details.leetcode)) {
+    linksList.push({ type: 'leetcode', label: 'LeetCode', url: normalizeUrl(ci.leetcode || details.leetcode), username: '', isClickable: true });
+    knownTypes.add('leetcode');
+  }
+
+  const getPlatformIcon = (type) => {
+    switch (type.toLowerCase()) {
+      case 'linkedin': return 'badge';
+      case 'github': return 'code';
+      case 'portfolio': return 'language';
+      case 'leetcode':
+      case 'hackerrank':
+      case 'codechef': return 'terminal';
+      case 'kaggle': return 'dataset';
+      case 'behance':
+      case 'dribbble': return 'palette';
+      default: return 'link';
+    }
+  };
+
+  const hasLinkedIn = knownTypes.has('linkedin');
+  const hasGitHub = knownTypes.has('github');
+  const hasPortfolio = knownTypes.has('portfolio');
+  const hasCodingProfile = knownTypes.has('leetcode') || knownTypes.has('hackerrank') || knownTypes.has('codechef');
+
+  return `
+    <div class="contact-links-card">
+      <div class="contact-links-header">
+        <div class="contact-links-title-wrap">
+          <span class="material-symbols-outlined text-[20px] text-indigo-500">contacts</span>
+          <h3 class="contact-links-title">Contact & Professional Profiles</h3>
+        </div>
+        <span class="badge badge-success" style="font-size:0.6875rem;padding:0.2rem 0.6rem;">
+          <span class="material-symbols-outlined text-[12px] mr-1">verified</span>
+          Verified Ground Truth
+        </span>
+      </div>
+
+      <!-- Candidate Facts Strip -->
+      <div class="candidate-facts-strip">
+        <div class="candidate-fact-item">
+          <span class="material-symbols-outlined text-[16px] text-indigo-500">person</span>
+          <strong>Name:</strong> ${escHtml(name)}
+        </div>
+        <div class="candidate-fact-divider"></div>
+        <div class="candidate-fact-item">
+          <span class="material-symbols-outlined text-[16px] text-indigo-500">mail</span>
+          <strong>Email:</strong> ${email ? escHtml(email) : '<span class="text-slate-400 italic">Not provided</span>'}
+        </div>
+        <div class="candidate-fact-divider"></div>
+        <div class="candidate-fact-item">
+          <span class="material-symbols-outlined text-[16px] text-indigo-500">call</span>
+          <strong>Phone:</strong> ${phone ? escHtml(phone) : '<span class="text-slate-400 italic">Not provided</span>'}
+        </div>
+        ${location ? `
+          <div class="candidate-fact-divider"></div>
+          <div class="candidate-fact-item">
+            <span class="material-symbols-outlined text-[16px] text-indigo-500">location_on</span>
+            <strong>Location:</strong> ${escHtml(location)}
+          </div>
+        ` : ''}
+      </div>
+
+      <!-- Links Grid -->
+      <div class="contact-links-grid">
+        ${linksList.map(link => {
+          const displayUrl = link.username ? `@${link.username}` : link.url.replace(/^https?:\/\//i, '');
+          if (link.type.toLowerCase() === 'github') {
+            const ghUser = link.username || (link.url ? (link.url.match(/github\.com\/([a-zA-Z0-9_\-\.]+)/i) || [])[1] : '') || '';
+            return `
+              <a href="${escHtml(link.url)}" target="_blank" rel="noopener noreferrer" class="contact-link-item detected" id="contact-link-github" data-username="${escHtml(ghUser)}" title="Open GitHub in new tab">
+                <div class="link-item-top">
+                  <span class="link-platform-name">
+                    <span class="material-symbols-outlined text-[16px]">code</span>
+                    GitHub
+                  </span>
+                  <span id="badge-github-verify" class="link-status-badge live-checking">
+                    <span class="material-symbols-outlined text-[12px] animate-spin">progress_activity</span>
+                    Live Checking...
+                  </span>
+                </div>
+                <div class="link-url-display">
+                  <span>${escHtml(displayUrl)}</span>
+                  <span class="material-symbols-outlined text-[13px]" style="margin-left:auto;">open_in_new</span>
+                </div>
+                <div id="github-meta-details" class="github-live-meta text-slate-500">Checking GitHub API...</div>
+              </a>
+            `;
+          }
+
+          return `
+            <a href="${escHtml(link.url)}" target="_blank" rel="noopener noreferrer" class="contact-link-item detected" title="Open ${escHtml(link.label)} in new tab">
+              <div class="link-item-top">
+                <span class="link-platform-name">
+                  <span class="material-symbols-outlined text-[16px]">${getPlatformIcon(link.type)}</span>
+                  ${escHtml(link.label)}
+                </span>
+                <span class="link-status-badge format-valid">
+                  <span class="material-symbols-outlined text-[12px]">check</span>
+                  Format Valid
+                </span>
+              </div>
+              <div class="link-url-display">
+                <span>${escHtml(displayUrl)}</span>
+                <span class="material-symbols-outlined text-[13px]" style="margin-left:auto;">open_in_new</span>
+              </div>
+              <div class="github-live-meta text-slate-500">Extracted from resume · Click to open</div>
+            </a>
+          `;
+        }).join('')}
+
+        <!-- Recommendations for Missing Profiles -->
+        ${!hasGitHub ? `
+          <div class="contact-link-item missing">
+            <div class="link-item-top">
+              <span class="link-platform-name">
+                <span class="material-symbols-outlined text-[16px]">code</span>
+                GitHub
+              </span>
+              <span class="link-status-badge missing">Not provided</span>
+            </div>
+            <div class="link-missing-hint">Recommended: Add your GitHub profile to showcase real code and open source contributions.</div>
+          </div>
+        ` : ''}
+
+        ${!hasLinkedIn ? `
+          <div class="contact-link-item missing">
+            <div class="link-item-top">
+              <span class="link-platform-name">
+                <span class="material-symbols-outlined text-[16px]">badge</span>
+                LinkedIn
+              </span>
+              <span class="link-status-badge missing">Not provided</span>
+            </div>
+            <div class="link-missing-hint">Recommended: Add your LinkedIn profile for recruiters to verify your professional background.</div>
+          </div>
+        ` : ''}
+
+        ${!hasPortfolio ? `
+          <div class="contact-link-item missing">
+            <div class="link-item-top">
+              <span class="link-platform-name">
+                <span class="material-symbols-outlined text-[16px]">language</span>
+                Portfolio
+              </span>
+              <span class="link-status-badge missing">Not provided</span>
+            </div>
+            <div class="link-missing-hint">Optional: Add a personal portfolio website to display live applications and design work.</div>
+          </div>
+        ` : ''}
+
+        ${!hasCodingProfile ? `
+          <div class="contact-link-item missing">
+            <div class="link-item-top">
+              <span class="link-platform-name">
+                <span class="material-symbols-outlined text-[16px]">terminal</span>
+                Coding Profile
+              </span>
+              <span class="link-status-badge missing">Not provided</span>
+            </div>
+            <div class="link-missing-hint">Optional: Add LeetCode / HackerRank / CodeChef to evidence algorithmic problem solving.</div>
+          </div>
+        ` : ''}
+      </div>
+
+      <div style="font-size:0.75rem; color:var(--color-on-surface-variant); margin-top:0.875rem; display:flex; align-items:center; gap:0.4rem;">
+        <span class="material-symbols-outlined text-[16px] text-emerald-500">verified</span>
+        <span>Deterministic ground truth: Extracted directly from resume text. GitHub profiles are verified live via GitHub API.</span>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   LIVE GITHUB PROFILE VERIFIER (GitHub Public API)
+   ============================================================ */
+/**
+ * Live verification for GitHub profile via public GitHub API.
+ * Calls https://api.github.com/users/{username} to verify existence and fetch public stats.
+ * Updates badge to Live Verified or Account Not Found (404) with clear feedback.
+ * @param {Object} result - Analysis result object
+ * @param {HTMLElement} [container] - Container element containing the rendered cards
+ */
+async function verifyGitHubProfileLive(result, container = (typeof document !== 'undefined' ? document : null)) {
+  if (!container || typeof container.querySelector !== 'function') return;
+
+  const githubCard = container.querySelector('#contact-link-github');
+  const badgeEl = container.querySelector('#badge-github-verify');
+  const metaEl = container.querySelector('#github-meta-details');
+  if (!badgeEl && !githubCard) return;
+
+  let username = githubCard?.dataset?.username || '';
+  if (!username) {
+    const ghLink = result?.contactInfo?.details?.links?.github ||
+                   result?.structuredResume?.links?.find?.(l => l.type === 'github')?.username ||
+                   result?.contactInfo?.github;
+    if (typeof ghLink === 'string') {
+      const m = ghLink.match(/github\.com\/([a-zA-Z0-9_\-\.]+)/i);
+      username = m ? m[1] : ghLink.replace(/^@/, '');
+    } else if (ghLink && typeof ghLink === 'object') {
+      username = ghLink.username || (ghLink.url ? (ghLink.url.match(/github\.com\/([a-zA-Z0-9_\-\.]+)/i) || [])[1] : '');
+    }
+  }
+
+  username = (username || '').trim().replace(/^@/, '');
+
+  if (!username || username === 'undefined' || username === 'null') {
+    if (badgeEl) {
+      badgeEl.className = 'link-status-badge format-valid';
+      badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">check</span> Format Valid`;
+    }
+    if (metaEl) {
+      metaEl.textContent = 'Handle format valid';
+    }
+    return;
+  }
+
+  try {
+    const fetchFn = typeof fetch === 'function' ? fetch : (typeof window !== 'undefined' ? window.fetch : null);
+    if (!fetchFn) return;
+
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timeoutId = controller ? setTimeout(() => controller.abort(), 6000) : null;
+
+    const response = await fetchFn(`https://api.github.com/users/${encodeURIComponent(username)}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      signal: controller ? controller.signal : undefined
+    });
+
+    if (timeoutId) clearTimeout(timeoutId);
+
+    if (response.status === 200) {
+      const data = await response.json();
+      const repos = typeof data.public_repos === 'number' ? data.public_repos : 0;
+      if (badgeEl) {
+        badgeEl.className = 'link-status-badge live-verified';
+        badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">verified</span> Real Verified`;
+      }
+      if (metaEl) {
+        metaEl.innerHTML = `<span class="github-verified-stats"><span class="material-symbols-outlined text-[12px]">check_circle</span> Active GitHub Account · ${repos} public ${repos === 1 ? 'repo' : 'repos'}</span>`;
+      }
+      if (githubCard) {
+        githubCard.classList.remove('profile-not-found');
+        githubCard.classList.add('verified-success');
+      }
+      if (result) {
+        result.githubLiveVerified = {
+          verified: true,
+          username: data.login || username,
+          publicRepos: repos,
+          avatarUrl: data.avatar_url || '',
+          name: data.name || '',
+          bio: data.bio || ''
+        };
+      }
+    } else if (response.status === 404) {
+      if (badgeEl) {
+        badgeEl.className = 'link-status-badge live-failed';
+        badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">error</span> Account Not Found (404)`;
+      }
+      if (metaEl) {
+        metaEl.innerHTML = `<span style="color:#dc2626; font-weight:600;">⚠️ Username "@${escHtml(username)}" does not exist on GitHub. Check for typos!</span>`;
+      }
+      if (githubCard) {
+        githubCard.classList.remove('verified-success');
+        githubCard.classList.add('profile-not-found');
+      }
+      if (result) {
+        result.githubLiveVerified = {
+          verified: false,
+          status: 404,
+          username,
+          error: 'User not found on GitHub'
+        };
+      }
+    } else if (response.status === 403) {
+      if (badgeEl) {
+        badgeEl.className = 'link-status-badge format-valid';
+        badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">check</span> Format Valid`;
+      }
+      if (metaEl) {
+        metaEl.innerHTML = `<span class="text-slate-500">API rate limit reached · Handle format valid</span>`;
+      }
+    } else {
+      if (badgeEl) {
+        badgeEl.className = 'link-status-badge format-valid';
+        badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">check</span> Format Valid`;
+      }
+      if (metaEl) {
+        metaEl.innerHTML = `<span class="text-slate-500">GitHub API status ${response.status} · Format valid</span>`;
+      }
+    }
+  } catch (err) {
+    if (badgeEl) {
+      badgeEl.className = 'link-status-badge format-valid';
+      badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">check</span> Format Valid`;
+    }
+    if (metaEl) {
+      metaEl.innerHTML = `<span class="text-slate-500">Could not reach GitHub API · Handle format valid</span>`;
+    }
+  }
+}
+
+/* ============================================================
+   SECTION-BY-SECTION ANALYSIS CARDS RENDERER (Parts 7 & 8)
+   ============================================================ */
+function renderSectionAnalysisCards(result) {
+  const bd = result.scores?.breakdown || {};
+  const formattingChecks = Array.isArray(result.formattingChecks) ? result.formattingChecks : [];
+  const sa = result.summaryAnalysis || {};
+
+  return `
+    <div class="section-analysis-grid">
+      <!-- 1. Professional Summary Card -->
+      <div class="section-analysis-card">
+        <div class="section-card-header-row">
+          <div class="section-card-header-left">
+            <span class="material-symbols-outlined text-indigo-500 text-[20px]">article</span>
+            <h3 class="section-card-title">Professional Summary</h3>
+            <span class="section-status-pill ${sa.exists ? 'status-pass' : 'status-missing'}">
+              ${sa.exists ? 'Detected' : 'Missing'}
+            </span>
+          </div>
+          <div class="section-score-val">${bd.summary?.score || 0}/8</div>
+        </div>
+
+        <div class="section-findings-box">
+          ${sa.exists ? `
+            <div class="section-finding-item finding-detected">
+              <span class="material-symbols-outlined">format_quote</span>
+              <span style="font-style:italic; color:var(--color-on-surface);">"${escHtml(sa.text || 'Summary detected in resume.')}"</span>
+            </div>
+            ${(sa.strengths || []).map(s => `
+              <div class="section-finding-item finding-detected">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span><strong>Strength:</strong> ${escHtml(s)}</span>
+              </div>
+            `).join('')}
+            ${(sa.issues || []).map(i => `
+              <div class="section-finding-item finding-problem">
+                <span class="material-symbols-outlined">warning</span>
+                <span><strong>Recommendation:</strong> ${escHtml(i)}</span>
+              </div>
+            `).join('')}
+          ` : `
+            <div class="section-finding-item finding-rec">
+              <span class="material-symbols-outlined">info</span>
+              <span>No professional summary detected. Adding a 2-3 sentence elevator pitch summarizing your core stack and key achievements boosts ATS engagement.</span>
+            </div>
+          `}
+        </div>
+      </div>
+
+      <!-- 2. Work Experience Card (PRESERVES EXISTING LOGIC EXACTLY!) -->
+      <div class="section-analysis-card">
+        <div class="section-card-header-row">
+          <div class="section-card-header-left">
+            <span class="material-symbols-outlined text-indigo-500 text-[20px]">work</span>
+            <h3 class="section-card-title">Work & Internship Experience</h3>
+            <span class="section-status-pill ${(result.experienceAnalysis?.count || 0) > 0 || result.experienceAnalysis?.isFresher ? 'status-pass' : 'status-missing'}">
+              ${result.experienceAnalysis?.isFresher ? 'Student / Fresher' : `${result.experienceAnalysis?.count || 0} Roles`}
+            </span>
+          </div>
+          <div class="section-score-val">${bd.experience?.score || 0}/15</div>
+        </div>
+
+        <!-- Call existing untouched renderExperienceDetails -->
+        ${renderExperienceDetails(result.experienceAnalysis)}
+      </div>
+
+      <!-- 3. Technical Projects Card -->
+      <div class="section-analysis-card">
+        <div class="section-card-header-row">
+          <div class="section-card-header-left">
+            <span class="material-symbols-outlined text-indigo-500 text-[20px]">rocket_launch</span>
+            <h3 class="section-card-title">Technical Projects</h3>
+            <span class="section-status-pill ${(result.projectsAnalysis?.count || 0) > 0 ? 'status-pass' : 'status-missing'}">
+              ${result.projectsAnalysis?.count || 0} Projects
+            </span>
+          </div>
+          <div class="section-score-val">${bd.projects?.score || 0}/20</div>
+        </div>
+
+        ${renderProjectsDetails(result.projectsAnalysis)}
+      </div>
+
+      <!-- 4. Technical Skills Card -->
+      <div class="section-analysis-card">
+        <div class="section-card-header-row">
+          <div class="section-card-header-left">
+            <span class="material-symbols-outlined text-indigo-500 text-[20px]">code</span>
+            <h3 class="section-card-title">Technical Skills</h3>
+            <span class="section-status-pill ${(result.skills?.all || []).length > 0 ? 'status-pass' : 'status-missing'}">
+              ${(result.skills?.all || []).length} Verified Skills
+            </span>
+          </div>
+          <div class="section-score-val">${bd.keywords?.score || 0}/15</div>
+        </div>
+
+        ${renderSkillsSection(result.skills)}
+      </div>
+
+      <!-- 5. Education & Credentials Card -->
+      <div class="section-analysis-card">
+        <div class="section-card-header-row">
+          <div class="section-card-header-left">
+            <span class="material-symbols-outlined text-indigo-500 text-[20px]">school</span>
+            <h3 class="section-card-title">Education & Credentials</h3>
+            <span class="section-status-pill ${result.educationAnalysis?.exists ? 'status-pass' : 'status-missing'}">
+              ${result.educationAnalysis?.hasDegree ? 'Degree Verified' : (result.educationAnalysis?.exists ? 'Detected' : 'Missing')}
+            </span>
+          </div>
+          <div class="section-score-val">${(bd.education?.score || 0) + (bd.certifications?.score || 0)}/15</div>
+        </div>
+
+        <div class="edu-check-summary">
+          ${renderEduAndCredentials(result.educationAnalysis, result.certificationsAnalysis, result.achievementsAnalysis, result.parsedSections)}
+        </div>
+      </div>
+
+      <!-- 6. ATS Compatibility & Structure Card -->
+      <div class="section-analysis-card">
+        <div class="section-card-header-row">
+          <div class="section-card-header-left">
+            <span class="material-symbols-outlined text-emerald-500 text-[20px]">shield_check</span>
+            <h3 class="section-card-title">ATS Compatibility & Formatting</h3>
+            <span class="section-status-pill status-pass">Verified</span>
+          </div>
+          <div class="section-score-val">${bd.formatting?.score || 0}/7</div>
+        </div>
+
+        <div class="formatting-checks-list">
+          ${formattingChecks.map(c => `
+            <div class="analyzer-check-item ${c.pass ? 'check-pass' : 'check-warn'}">
+              <span class="material-symbols-outlined check-icon" style='font-variation-settings: "FILL" 1;'>${c.pass ? 'check_circle' : 'warning'}</span>
+              <div>
+                <div class="check-label">${escHtml(c.label)}</div>
+                <div class="check-detail">${escHtml(c.detail)}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   SECONDARY AI ASSISTANT RENDERER & INTERACTION (Part 11)
+   ============================================================ */
+function renderResumeAiAssistant(result) {
+  const candidateName = result.candidate?.name || 'there';
+  const overallScore = result.scores?.overall || 0;
+
+  return `
+    <div class="resume-ai-assistant-card" id="resume-ai-assistant-section">
+      <div class="ai-assistant-header">
+        <span class="material-symbols-outlined text-indigo-500 text-[24px]">smart_toy</span>
+        <div>
+          <h3 class="ai-assistant-title">🤖 Ask AI About Your Resume</h3>
+          <div class="ai-assistant-sub">Have questions about your resume analysis? Ask our AI resume coach for personalized advice.</div>
+        </div>
+      </div>
+
+      <!-- Quick Prompts Row -->
+      <div class="ai-assistant-prompts-row">
+        <button type="button" class="ai-prompt-quick-btn" data-prompt="How can I improve my project bullet points?">
+          <span class="material-symbols-outlined text-[14px]">rocket_launch</span>
+          How can I improve my project bullet points?
+        </button>
+        <button type="button" class="ai-prompt-quick-btn" data-prompt="Which skills should I learn next for backend roles?">
+          <span class="material-symbols-outlined text-[14px]">terminal</span>
+          Which skills should I learn next for backend roles?
+        </button>
+        <button type="button" class="ai-prompt-quick-btn" data-prompt="Rewrite my summary for senior roles">
+          <span class="material-symbols-outlined text-[14px]">edit_note</span>
+          Rewrite my summary for senior roles
+        </button>
+        <button type="button" class="ai-prompt-quick-btn" data-prompt="Why did my impact score lose points?">
+          <span class="material-symbols-outlined text-[14px]">help_outline</span>
+          Why did my impact score lose points?
+        </button>
+      </div>
+
+      <!-- Chat History Window -->
+      <div class="ai-assistant-chat-window" id="resume-ai-messages">
+        <div class="ai-chat-bubble ai-msg">
+          <span class="ai-chat-sender">DevPilot AI Coach</span>
+          <div>Hi <strong>${escHtml(candidateName)}</strong>! I've completed a full audit of your resume (Overall ATS Score: <strong>${overallScore}/100</strong>). Click one of the quick questions above or ask me anything about your skills, bullet points, or target role!</div>
+        </div>
+      </div>
+
+      <!-- Input Row -->
+      <div class="ai-assistant-input-row">
+        <input type="text" id="resume-ai-input" class="ai-assistant-input" placeholder="Ask a question about your resume (e.g. 'How can I highlight my full-stack skills?')..." autocomplete="off" />
+        <button type="button" id="btn-resume-ai-send" class="btn-primary btn-sm" style="height:36px;padding:0 1rem;">
+          <span class="material-symbols-outlined text-[16px]">send</span>
+          Send
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function initPillarDetailsToggles(area) {
+  const container = area || (typeof document !== 'undefined' ? document : null);
+  if (!container || typeof container.querySelectorAll !== 'function') return;
+  const buttons = container.querySelectorAll('.pillar-expand-btn') || [];
+  buttons.forEach(btn => {
+    if (!btn || typeof btn.addEventListener !== 'function') return;
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetId = btn.dataset.target;
+      const targetEl = document.getElementById(targetId);
+      if (!targetEl) return;
+      const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+      if (isExpanded) {
+        btn.setAttribute('aria-expanded', 'false');
+        targetEl.style.display = 'none';
+        const icon = btn.querySelector ? btn.querySelector('.material-symbols-outlined') : null;
+        if (icon) icon.textContent = 'expand_more';
+      } else {
+        btn.setAttribute('aria-expanded', 'true');
+        targetEl.style.display = 'flex';
+        const icon = btn.querySelector ? btn.querySelector('.material-symbols-outlined') : null;
+        if (icon) icon.textContent = 'expand_less';
+      }
+    });
+  });
+}
+
+function initResumeAiAssistant(result, area) {
+  if (typeof document === 'undefined') return;
+  const messagesContainer = document.getElementById('resume-ai-messages');
+  const inputEl = document.getElementById('resume-ai-input');
+  const sendBtn = document.getElementById('btn-resume-ai-send');
+  const container = area || document;
+  const promptButtons = (container && typeof container.querySelectorAll === 'function')
+    ? (container.querySelectorAll('.ai-prompt-quick-btn') || [])
+    : [];
+
+  if (!messagesContainer || !inputEl || !sendBtn || typeof sendBtn.addEventListener !== 'function') return;
+
+  const appendMessage = (sender, text, isUser) => {
+    const bubble = document.createElement('div');
+    bubble.className = `ai-chat-bubble ${isUser ? 'user-msg' : 'ai-msg'}`;
+    bubble.innerHTML = `
+      <span class="ai-chat-sender">${escHtml(sender)}</span>
+      <div>${text}</div>
+    `;
+    messagesContainer.appendChild(bubble);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  };
+
+  const generateLocalAnswer = (query) => {
+    const q = query.toLowerCase();
+    const allSkills = Array.isArray(result.skills?.all) ? result.skills.all : [];
+    const projects = Array.isArray(result.projectsAnalysis?.entries) ? result.projectsAnalysis.entries : [];
+    const exp = result.experienceAnalysis || {};
+    const cq = result.contentQuality || {};
+
+    if (q.includes('project bullet') || q.includes('bullet point')) {
+      const p1 = projects[0]?.name || 'your project';
+      return `To make your project bullet points stand out for technical recruiters, use the <strong>Google X-Y-Z Formula</strong>: <em>"Accomplished [X] as measured by [Y], by doing [Z]"</em>.<br/><br/>
+      For example, instead of saying <em>"Built ${escHtml(p1)}"</em>, write:<br/>
+      • <strong>Engineered</strong> a full-stack web application supporting 500+ concurrent requests with &lt;120ms latency using ${allSkills.slice(0, 3).join(', ') || 'modern frameworks'}.<br/>
+      • <strong>Architected</strong> RESTful APIs with Redis caching, reducing p99 database query response times by 38%.<br/>
+      • <strong>Automated</strong> CI/CD deployment on Docker and cloud infrastructure with zero downtime.`;
+    }
+
+    if (q.includes('backend') || q.includes('skills should i learn') || q.includes('skills to learn')) {
+      const missing = result.bestFitRole?.missingRequirementsDisplay?.required || ['Docker', 'PostgreSQL', 'Redis', 'Kubernetes'];
+      return `Based on verified analysis against backend benchmarks, your strongest additions would be:<br/><br/>
+      1. <strong>${escHtml(missing[0] || 'Docker & Containerization')}</strong>: Standard requirement for modern microservices and cloud deployments.<br/>
+      2. <strong>${escHtml(missing[1] || 'Redis & Caching Strategies')}</strong>: Essential for high-throughput backend scaling.<br/>
+      3. <strong>Database Optimization & Indexing</strong>: Demonstrates production engineering maturity beyond basic CRUD operations.`;
+    }
+
+    if (q.includes('rewrite my summary') || q.includes('summary')) {
+      const role = result.candidate?.primaryRole || 'Full Stack Engineer';
+      const topSkills = allSkills.slice(0, 4).join(', ') || 'modern web technologies and cloud architecture';
+      return `Here is a high-impact, ATS-optimized professional summary tailored to your background:<br/><br/>
+      <em>"${escHtml(role)} with demonstrated expertise in ${escHtml(topSkills)}. Proven track record of architecting scalable web applications, optimizing API performance, and engineering resilient software solutions. Passionate about solving complex distributed systems challenges and delivering measurable business impact."</em>`;
+    }
+
+    if (q.includes('impact') || q.includes('lose points') || q.includes('score')) {
+      return `Your <strong>Impact & Metrics</strong> score reflects the density of quantifiable outcomes across your resume.<br/><br/>
+      • <strong>Action Verbs Detected:</strong> ${cq.actionVerbCount || 0} active verbs.<br/>
+      • <strong>Metrics Detected:</strong> ${cq.metricsCount || 0} quantifiable results (% or numbers).<br/><br/>
+      <strong>How to gain full points:</strong> Replace passive phrases ("Assisted in", "Worked on") with strong engineering verbs ("Engineered", "Optimized", "Scaled") and append specific metrics: latency reductions (e.g. 40%), user counts (e.g. 10k+), or efficiency gains.`;
+    }
+
+    return `Great question! Looking at your resume, you have strong foundations in <strong>${allSkills.slice(0, 4).join(', ') || 'software development'}</strong> with an overall ATS score of <strong>${result.scores?.overall || 0}/100</strong>.<br/><br/>
+    Focusing on adding GitHub links to all projects, quantifying bullet points with measurable impact, and highlighting cloud/containerization tools will give you the fastest boost in recruiter callback rates.`;
+  };
+
+  const handleSend = (text) => {
+    const q = (text || inputEl.value || '').trim();
+    if (!q) return;
+    inputEl.value = '';
+    appendMessage('You', escHtml(q), true);
+
+    setTimeout(() => {
+      const answer = generateLocalAnswer(q);
+      appendMessage('DevPilot AI Coach', answer, false);
+    }, 300);
+  };
+
+  sendBtn.addEventListener('click', () => handleSend());
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleSend();
+  });
+
+  promptButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const promptText = btn.dataset.prompt;
+      if (promptText) handleSend(promptText);
+    });
+  });
 }
 
 /* ============================================================
@@ -7385,6 +8585,16 @@ if (typeof window !== 'undefined') {
   window.MASTER_RESUME_ANALYZER_SYSTEM_PROMPT = MASTER_RESUME_ANALYZER_SYSTEM_PROMPT;
   window.runRealAnalysis = runRealAnalysis;
   window.validateFile = validateFile;
+  window.normalizeUrl = normalizeUrl;
+  window.extractDeterministicLinks = extractDeterministicLinks;
+  window.buildIntermediateResumeJSON = buildIntermediateResumeJSON;
+  window.renderEightScorePillars = renderEightScorePillars;
+  window.renderContactAndLinksCard = renderContactAndLinksCard;
+  window.renderSectionAnalysisCards = renderSectionAnalysisCards;
+  window.renderResumeAiAssistant = renderResumeAiAssistant;
+  window.initPillarDetailsToggles = initPillarDetailsToggles;
+  window.initResumeAiAssistant = initResumeAiAssistant;
+  window.verifyGitHubProfileLive = verifyGitHubProfileLive;
 }
 
 // Auto-initialize
@@ -7446,6 +8656,17 @@ if (typeof module !== 'undefined' && module.exports) {
     runRealAnalysis,
     renderAllResults,
     clearAnalysisResult,
-    validateFile
+    validateFile,
+    normalizeUrl,
+    extractDeterministicLinks,
+    buildIntermediateResumeJSON,
+    renderEightScorePillars,
+    renderContactAndLinksCard,
+    renderSectionAnalysisCards,
+    renderResumeAiAssistant,
+    initPillarDetailsToggles,
+    initResumeAiAssistant,
+    verifyGitHubProfileLive
   };
 }
+

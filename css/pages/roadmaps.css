@@ -547,3 +547,370 @@
   background: #1e293b;
   color: #f8fafc;
 }
+
+/* ==========================================================================
+   6. Career Commitment, Role States, and Progression Engine Styles
+   ========================================================================== */
+
+/* Role Card Status Overrides */
+.role-card.active-career {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25), 0 10px 25px -5px rgba(99, 102, 241, 0.15);
+  background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
+}
+
+.dark .role-card.active-career {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.35), 0 10px 25px -5px rgba(99, 102, 241, 0.25);
+  background: linear-gradient(180deg, #1e293b 0%, #172033 100%);
+}
+
+.role-card.locked-career {
+  opacity: 0.75;
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.role-card.locked-career:hover {
+  opacity: 0.95;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.dark .role-card.locked-career {
+  border-color: #334155;
+  background: #0f172a;
+}
+
+.dark .role-card.locked-career:hover {
+  border-color: #475569;
+}
+
+.role-card.paused-career {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+.dark .role-card.paused-career {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+}
+
+.role-card.completed-career {
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.dark .role-card.completed-career {
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+}
+
+.card-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.card-status-badge.active {
+  background: rgba(99, 102, 241, 0.12);
+  color: #4f46e5;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.dark .card-status-badge.active {
+  background: rgba(99, 102, 241, 0.25);
+  color: #818cf8;
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.card-status-badge.locked {
+  background: rgba(100, 116, 139, 0.12);
+  color: #64748b;
+  border: 1px solid rgba(100, 116, 139, 0.25);
+}
+
+.card-status-badge.paused {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.card-status-badge.completed {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+/* Career Modals Backdrop */
+.career-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 70;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.career-modal-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.career-modal-card {
+  background: #ffffff;
+  border-radius: 1.25rem;
+  max-width: 42rem;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.3);
+  transform: scale(0.95);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 2rem;
+}
+
+.career-modal-backdrop.active .career-modal-card {
+  transform: scale(1);
+}
+
+.dark .career-modal-card {
+  background: #1e293b;
+  color: #f8fafc;
+  border: 1px solid #334155;
+}
+
+/* Step Wizard Navigation */
+.step-indicator-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.step-indicator-dot {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  background: #f1f5f9;
+  transition: all 0.2s ease;
+}
+
+.step-indicator-dot.active {
+  color: #4f46e5;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+}
+
+.step-indicator-dot.completed {
+  color: #059669;
+  background: #ecfdf5;
+}
+
+.dark .step-indicator-dot {
+  background: #0f172a;
+  color: #64748b;
+}
+
+.dark .step-indicator-dot.active {
+  background: rgba(99, 102, 241, 0.2);
+  color: #818cf8;
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+/* Radio Choice Cards */
+.choice-card-option {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.choice-card-option:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.choice-card-option.selected {
+  border-color: #6366f1;
+  background: #eef2ff;
+}
+
+.dark .choice-card-option {
+  border-color: #334155;
+  background: #0f172a;
+}
+
+.dark .choice-card-option:hover {
+  border-color: #475569;
+  background: #1e293b;
+}
+
+.dark .choice-card-option.selected {
+  border-color: #6366f1;
+  background: rgba(99, 102, 241, 0.15);
+}
+
+.custom-radio-circle {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.choice-card-option.selected .custom-radio-circle {
+  border-color: #4f46e5;
+  background: #4f46e5;
+}
+
+.custom-radio-circle::after {
+  content: '';
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 9999px;
+  background: #ffffff;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.2s ease;
+}
+
+.choice-card-option.selected .custom-radio-circle::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* "You Are Here" Bar */
+.you-are-here-bar {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.05) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.dark .you-are-here-bar {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(168, 85, 247, 0.08) 100%);
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+/* Career Locked Screen */
+.career-locked-screen {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.25rem;
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.dark .career-locked-screen {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+/* Project Lock Card States */
+.project-card.project-locked {
+  opacity: 0.72;
+  border-style: dashed;
+}
+
+.project-card.project-unlocked {
+  border-color: #10b981;
+}
+
+/* Roadmap Dropdown Menu */
+.roadmap-settings-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 0.5rem;
+  width: 14rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+  padding: 0.35rem;
+  z-index: 50;
+  display: none;
+}
+
+.roadmap-settings-menu.show {
+  display: block;
+}
+
+.dark .roadmap-settings-menu {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
+}
+
+.roadmap-settings-item {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  color: #334155;
+  transition: all 0.15s ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.roadmap-settings-item:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.dark .roadmap-settings-item {
+  color: #cbd5e1;
+}
+
+.dark .roadmap-settings-item:hover {
+  background: #334155;
+  color: #ffffff;
+}
+
+.roadmap-settings-item.item-danger:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.dark .roadmap-settings-item.item-danger:hover {
+  background: rgba(220, 38, 38, 0.2);
+  color: #f87171;
+}

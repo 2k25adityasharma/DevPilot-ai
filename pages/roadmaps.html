@@ -196,7 +196,7 @@
             Job-Ready Career Roadmaps
           </h2>
           <p class="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-2 max-w-3xl leading-relaxed">
-            Choose your target career role, master skills in exact dependency order, build progressive milestone projects, and track real-time progress toward job readiness.
+            Choose a target role and follow a structured path from fundamentals to production-ready skills.
           </p>
         </div>
 
@@ -288,10 +288,53 @@
     </div>
   </div>
 
+  <!-- Career Commitment Wizard Modal (Choose Career Path) -->
+  <div class="career-modal-backdrop" id="career-commitment-modal" role="dialog" aria-modal="true" aria-labelledby="commitment-modal-title">
+    <div class="career-modal-card" id="commitment-modal-body">
+      <!-- Rendered dynamically by roadmaps.js (Step 1 -> Step 2 -> Step 3) -->
+    </div>
+  </div>
+
+  <!-- Career Locked Informational Modal (Clicked on a locked role card) -->
+  <div class="career-modal-backdrop" id="career-locked-modal" role="dialog" aria-modal="true" aria-labelledby="locked-modal-title">
+    <div class="career-modal-card max-w-lg" id="locked-modal-body">
+      <!-- Rendered dynamically by roadmaps.js -->
+    </div>
+  </div>
+
+  <!-- Deliberate Change Career Modal -->
+  <div class="career-modal-backdrop" id="career-change-modal" role="dialog" aria-modal="true" aria-labelledby="change-modal-title">
+    <div class="career-modal-card max-w-xl" id="change-modal-body">
+      <!-- Rendered dynamically by roadmaps.js -->
+    </div>
+  </div>
+
   <script src="../js/core/utils.js"></script>
   <script src="../js/core/app.js"></script>
   <script src="../js/data/careerRolesData.js"></script>
+  <!-- Career Roadmap Role Modules -->
+  <script src="../js/data/careerRoadmaps/frontend.js"></script>
+  <script src="../js/data/careerRoadmaps/backend.js"></script>
+  <script src="../js/data/careerRoadmaps/fullstack.js"></script>
+  <script src="../js/data/careerRoadmaps/mobile.js"></script>
+  <script src="../js/data/careerRoadmaps/game.js"></script>
+  <script src="../js/data/careerRoadmaps/web3.js"></script>
+  <script src="../js/data/careerRoadmaps/embedded.js"></script>
+  <script src="../js/data/careerRoadmaps/dataAnalyst.js"></script>
+  <script src="../js/data/careerRoadmaps/dataEngineer.js"></script>
+  <script src="../js/data/careerRoadmaps/dataScientist.js"></script>
+  <script src="../js/data/careerRoadmaps/aiEngineer.js"></script>
+  <script src="../js/data/careerRoadmaps/aiResearch.js"></script>
+  <script src="../js/data/careerRoadmaps/genAI.js"></script>
+  <script src="../js/data/careerRoadmaps/mlops.js"></script>
+  <script src="../js/data/careerRoadmaps/devops.js"></script>
+  <script src="../js/data/careerRoadmaps/cloud.js"></script>
+  <script src="../js/data/careerRoadmaps/sre.js"></script>
+  <script src="../js/data/careerRoadmaps/cloudSecurity.js"></script>
+  <script src="../js/data/careerRoadmaps/cybersecurity.js"></script>
+  <script src="../js/data/careerRoadmaps/qaSdet.js"></script>
   <script src="../js/data/careerRoadmapsData.js"></script>
+  <script src="../js/core/careerProgressionEngine.js"></script>
   <script src="../js/pages/roadmaps.js"></script>
 </body>
 </html>

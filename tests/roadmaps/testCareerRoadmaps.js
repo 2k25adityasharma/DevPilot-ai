@@ -284,6 +284,91 @@ runTest('AI relevance is sensibly represented across diverse roles without gener
   assert.ok(genRag, 'GenAI must have RAG core');
 });
 
+// 11. Section 10: Progressive Milestone Projects
+runTest('All 20 roles contain exactly 3 progressive projects (Beginner, Intermediate, Production)', () => {
+  const { getAllRoadmaps } = require(path.join(rootDir, 'js/data/careerRoadmapsData.js'));
+  const allRoadmaps = getAllRoadmaps();
+  assert.strictEqual(allRoadmaps.length, 20, 'Must have 20 unique roadmaps');
+
+  allRoadmaps.forEach(rm => {
+    assert.ok(Array.isArray(rm.projects), `${rm.title} must have projects array`);
+    assert.strictEqual(rm.projects.length, 3, `${rm.title} must have exactly 3 progressive projects`);
+
+    rm.projects.forEach((proj, idx) => {
+      assert.ok(proj.id, `${rm.title} project #${idx + 1} must have id`);
+      assert.ok(proj.title, `${rm.title} project #${idx + 1} must have title`);
+      assert.ok(proj.description, `${rm.title} project #${idx + 1} must have description`);
+      assert.ok(Array.isArray(proj.deliverables) && proj.deliverables.length > 0, `${rm.title} project #${idx + 1} must have deliverables`);
+      assert.ok(Array.isArray(proj.requirements) && proj.requirements.length > 0, `${rm.title} project #${idx + 1} must have requirements`);
+      assert.ok(Array.isArray(proj.technologies) && proj.technologies.length > 0, `${rm.title} project #${idx + 1} must have technologies`);
+    });
+  });
+});
+
+// 12. Section 11: 9-Category Job-Ready Checklists
+runTest('All 20 roles contain 9 standard Job-Ready checklist categories', () => {
+  const { getAllRoadmaps } = require(path.join(rootDir, 'js/data/careerRoadmapsData.js'));
+  const expectedCategories = [
+    'technicalSkills',
+    'projects',
+    'csFundamentals',
+    'tools',
+    'deployment',
+    'portfolio',
+    'github',
+    'resume',
+    'interviewReadiness'
+  ];
+
+  getAllRoadmaps().forEach(rm => {
+    const cl = rm.checklist;
+    assert.ok(cl, `${rm.title} must have checklist object`);
+    expectedCategories.forEach(cat => {
+      assert.ok(Array.isArray(cl[cat]), `${rm.title} checklist missing category: ${cat}`);
+      assert.ok(cl[cat].length > 0, `${rm.title} checklist category ${cat} must not be empty`);
+    });
+  });
+});
+
+// 13. Section 5: Rich Skill Schema Validation
+runTest('Skills across roadmaps have rich practical fields (productionUse, aiWorkflow, handsOnTask, resources)', () => {
+  const { getAllRoadmaps } = require(path.join(rootDir, 'js/data/careerRoadmapsData.js'));
+  getAllRoadmaps().forEach(rm => {
+    rm.levels.forEach(lvl => {
+      lvl.skills.forEach(skill => {
+        assert.ok(skill.productionUse, `${skill.id} in ${rm.title} must have productionUse`);
+        assert.ok(skill.handsOnTask, `${skill.id} in ${rm.title} must have handsOnTask`);
+        assert.ok(skill.projectApplication, `${skill.id} in ${rm.title} must have projectApplication`);
+        assert.ok(Array.isArray(skill.resources), `${skill.id} in ${rm.title} must have resources array`);
+      });
+    });
+  });
+});
+
+// 14. Section 19: Registry Retrieval Helper API
+runTest('getRoadmap, getAllRoadmaps, and getRoadmapsByCategory work across all lookups', () => {
+  const { getRoadmap, getAllRoadmaps, getRoadmapsByCategory } = require(path.join(rootDir, 'js/data/careerRoadmapsData.js'));
+  
+  assert.strictEqual(getAllRoadmaps().length, 20);
+  assert.strictEqual(getRoadmapsByCategory('development').length, 7);
+  assert.strictEqual(getRoadmapsByCategory('data-ai').length, 7);
+  assert.strictEqual(getRoadmapsByCategory('devops-cloud').length, 3);
+  assert.strictEqual(getRoadmapsByCategory('security-qa').length, 3);
+
+  // Lookups by various identifiers
+  assert.ok(getRoadmap('frontend-developer'));
+  assert.ok(getRoadmap('frontend'));
+  assert.ok(getRoadmap('Frontend Developer'));
+  assert.ok(getRoadmap('backend-developer'));
+  assert.ok(getRoadmap('backend'));
+  assert.ok(getRoadmap('data-analyst'));
+  assert.ok(getRoadmap('dataAnalyst'));
+  assert.ok(getRoadmap('llm-genai-engineer'));
+  assert.ok(getRoadmap('genAI'));
+  assert.ok(getRoadmap('sre-engineer'));
+  assert.ok(getRoadmap('sre'));
+});
+
 console.log('\n===========================================================');
 console.log(` Test Results: ${passedTests} / ${totalTests} Passed`);
 console.log('===========================================================');
