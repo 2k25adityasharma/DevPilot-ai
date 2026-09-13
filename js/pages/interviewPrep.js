@@ -180,19 +180,20 @@
     }
 
     banner.classList.remove('hidden');
+    banner.className = 'dev-card p-4 mb-6 flex items-center justify-between flex-wrap gap-4 bg-indigo-50/50 dark:bg-indigo-950/30 border-indigo-200/60 dark:border-indigo-800/60';
     banner.innerHTML = `
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
-          <span class="material-symbols-outlined">${cat.icon || 'history'}</span>
+        <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-2xl">${cat.icon || 'history'}</span>
         </div>
         <div>
-          <div class="text-xs text-blue-400 font-semibold uppercase tracking-wider">Jump Back In</div>
-          <div class="text-sm font-medium text-white">${state.recentActivity.topic || cat.title}</div>
+          <div class="text-xs text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-wider">Jump Back In</div>
+          <div class="text-sm font-bold text-on-surface">${state.recentActivity.topic || cat.title}</div>
         </div>
       </div>
-      <button id="ipResumeBtn" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition flex items-center gap-1.5 shadow-md">
+      <button id="ipResumeBtn" class="btn-primary text-xs py-2 px-4 flex items-center gap-1.5">
         <span>Continue Practice</span>
-        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        <span class="material-symbols-outlined text-xs">arrow_forward</span>
       </button>
     `;
 
@@ -227,11 +228,15 @@
     mainContainer.innerHTML = `
       <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div>
-          <h2 class="text-xl font-bold text-white">${technicalOnly ? 'Technical Interview Categories' : 'Placement & Interview Categories'}</h2>
-          <p class="text-sm text-gray-400">Select any category to practice authentic MCQs topic-by-topic with detailed explanations.</p>
+          <h2 class="text-xl font-bold text-on-surface" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+            ${technicalOnly ? 'Technical Interview Tracks' : 'Placement & Interview Categories'}
+          </h2>
+          <p class="text-sm text-on-surface-variant mt-0.5">
+            ${technicalOnly ? 'Deep-dive into programming languages, CS fundamentals, system design, and modern stacks.' : 'Select any category to practice authentic MCQs topic-by-topic with detailed explanations.'}
+          </p>
         </div>
-        <div class="text-xs text-gray-500 bg-gray-900 border border-gray-800 px-3 py-1.5 rounded-full">
-          Showing ${filtered.length} categories • 2,170 Questions
+        <div class="badge badge-neutral text-xs px-3 py-1.5 font-medium">
+          Showing ${filtered.length} ${technicalOnly ? 'Technical Tracks' : 'Categories'} • ${technicalOnly ? '1,570' : '2,170'} Questions
         </div>
       </div>
       <div class="ip-categories-grid" id="ipCategoriesGrid"></div>
@@ -240,7 +245,7 @@
     const grid = document.getElementById('ipCategoriesGrid');
     filtered.forEach(cat => {
       const card = document.createElement('div');
-      card.className = 'ip-cat-card';
+      card.className = 'ip-cat-card dev-card dev-card-interactive';
 
       // Calculate category progress
       let catAttempted = 0;
@@ -259,12 +264,12 @@
       card.innerHTML = `
         <div>
           <div class="ip-cat-header">
-            <div class="ip-cat-icon">
-              <span class="material-symbols-outlined text-2xl">${cat.icon || 'school'}</span>
+            <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-900/50">
+              <span class="material-symbols-outlined text-2xl" style='font-variation-settings: "FILL" 1;'>${cat.icon || 'school'}</span>
             </div>
             <div class="flex-1 min-w-0">
               <h3 class="ip-cat-title truncate">${cat.title}</h3>
-              <span class="text-xs px-2 py-0.5 rounded bg-gray-800 text-gray-400 font-medium">
+              <span class="badge badge-neutral text-xs">
                 ${cat.topics ? cat.topics.length : 0} Topics • ${cat.totalQuestions} MCQs
               </span>
             </div>
@@ -275,22 +280,22 @@
         <div>
           ${catAttempted > 0 ? `
             <div class="mb-3">
-              <div class="flex justify-between text-xs text-gray-400 mb-1">
+              <div class="flex justify-between text-xs text-on-surface-variant mb-1">
                 <span>Accuracy</span>
-                <span class="font-semibold text-white">${catAccuracy}% (${catCorrect}/${catAttempted})</span>
+                <span class="font-semibold text-on-surface">${catAccuracy}% (${catCorrect}/${catAttempted})</span>
               </div>
-              <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+              <div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
                 <div class="h-full ${catAccuracy >= 75 ? 'bg-emerald-500' : catAccuracy >= 50 ? 'bg-amber-500' : 'bg-red-500'}" style="width: ${catAccuracy}%"></div>
               </div>
             </div>
           ` : ''}
 
           <div class="ip-cat-actions">
-            <button class="flex-1 py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition ip-open-cat-btn" data-cat="${cat.id}">
+            <button class="btn-primary flex-1 text-xs py-2 px-3.5 ip-open-cat-btn" data-cat="${cat.id}">
               <span>Explore Topics</span>
               <span class="material-symbols-outlined text-xs">arrow_forward</span>
             </button>
-            <button class="py-2 px-3 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-medium transition ip-start-all-btn" data-cat="${cat.id}" title="Practice all questions randomly">
+            <button class="btn-secondary text-xs py-2 px-3 ip-start-all-btn" data-cat="${cat.id}" title="Practice all questions randomly">
               <span class="material-symbols-outlined text-xs">shuffle</span>
             </button>
           </div>
@@ -310,24 +315,24 @@
 
     mainContainer.innerHTML = `
       <div class="mb-6">
-        <button id="ipBackToCats" class="inline-flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-white mb-4 transition">
+        <button id="ipBackToCats" class="inline-flex items-center gap-1.5 text-sm font-medium text-on-surface-variant hover:text-primary mb-4 transition">
           <span class="material-symbols-outlined text-sm">arrow_back</span>
           <span>Back to All Categories</span>
         </button>
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
-            <span class="material-symbols-outlined text-2xl">${cat.icon}</span>
+          <div class="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900/50 shrink-0">
+            <span class="material-symbols-outlined text-2xl" style='font-variation-settings: "FILL" 1;'>${cat.icon}</span>
           </div>
           <div>
-            <h2 class="text-2xl font-bold text-white">${cat.title}</h2>
-            <p class="text-sm text-gray-400">${cat.description}</p>
+            <h2 class="text-2xl font-bold text-on-surface">${cat.title}</h2>
+            <p class="text-sm text-on-surface-variant mt-0.5">${cat.description}</p>
           </div>
         </div>
       </div>
 
-      <div class="flex items-center justify-between border-b border-gray-800 pb-3 mb-4">
-        <div class="text-sm font-semibold text-gray-300">Choose a Topic to Practice (10 MCQs each)</div>
-        <button id="ipShuffleAllTopicBtn" class="text-xs px-3 py-1.5 rounded bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-500/30 flex items-center gap-1">
+      <div class="flex items-center justify-between border-b border-outline-variant pb-3 mb-4 flex-wrap gap-2">
+        <div class="text-sm font-semibold text-on-surface">Choose a Topic to Practice (10 MCQs each)</div>
+        <button id="ipShuffleAllTopicBtn" class="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5">
           <span class="material-symbols-outlined text-xs">shuffle</span>
           <span>Practice All Topics (Random)</span>
         </button>
@@ -348,24 +353,24 @@
       const accuracy = prog.attempted > 0 ? Math.round((prog.correct / prog.attempted) * 100) : 0;
 
       const item = document.createElement('div');
-      item.className = 'ip-topic-item';
+      item.className = 'ip-topic-item dev-card p-3.5';
       item.innerHTML = `
         <div class="flex items-center gap-3 min-w-0">
-          <div class="w-8 h-8 rounded bg-gray-800 text-gray-400 flex items-center justify-center shrink-0">
+          <div class="w-8 h-8 rounded-lg bg-surface-container text-primary flex items-center justify-center shrink-0">
             <span class="material-symbols-outlined text-base">quiz</span>
           </div>
           <div class="min-w-0">
-            <div class="ip-topic-name truncate">${topicName}</div>
-            <div class="text-xs text-gray-500">${topicQs.length} Questions • ${prog.attempted > 0 ? `${prog.correct}/${prog.attempted} Correct (${accuracy}%)` : 'Not attempted yet'}</div>
+            <div class="ip-topic-name text-sm font-semibold text-on-surface truncate">${topicName}</div>
+            <div class="text-xs text-on-surface-variant">${topicQs.length} Questions • ${prog.attempted > 0 ? `${prog.correct}/${prog.attempted} Correct (${accuracy}%)` : 'Not attempted yet'}</div>
           </div>
         </div>
         <div class="flex items-center gap-2">
           ${prog.attempted > 0 ? `
-            <span class="text-xs font-semibold px-2 py-0.5 rounded ${accuracy >= 70 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">
+            <span class="badge ${accuracy >= 70 ? 'badge-success' : 'badge-warning'}">
               ${accuracy}%
             </span>
           ` : ''}
-          <button class="px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium flex items-center gap-1 transition ip-start-topic-btn">
+          <button class="btn-primary text-xs py-1.5 px-3 ip-start-topic-btn">
             <span>Start</span>
             <span class="material-symbols-outlined text-xs">play_arrow</span>
           </button>
@@ -478,17 +483,17 @@
       <div class="max-w-3xl mx-auto">
         <!-- Header Bar -->
         <div class="flex items-center justify-between mb-4">
-          <button id="ipExitQuizBtn" class="inline-flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-white transition">
+          <button id="ipExitQuizBtn" class="inline-flex items-center gap-1.5 text-sm font-medium text-on-surface-variant hover:text-primary transition">
             <span class="material-symbols-outlined text-sm">close</span>
             <span>Exit Practice</span>
           </button>
-          <div class="text-xs font-semibold px-2.5 py-1 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
+          <div class="badge badge-primary px-3 py-1 font-semibold">
             ${state.activeCategory ? state.activeCategory.title : 'Interview Prep'} • ${state.activeTopic || q.topic}
           </div>
         </div>
 
         <!-- Question Card -->
-        <div class="ip-quiz-card">
+        <div class="dev-card p-6 sm:p-8 mb-6">
           <!-- Progress Bar -->
           <div class="ip-quiz-progress-bar">
             <div class="ip-quiz-progress-fill" style="width: ${progressPercent}%"></div>
@@ -496,14 +501,14 @@
 
           <div class="ip-quiz-header">
             <div class="flex items-center gap-2">
-              <span class="text-sm font-bold text-white">Question ${currentNum} of ${total}</span>
-              <span class="text-xs px-2 py-0.5 rounded font-medium ${
-                q.difficulty === 'Easy' ? 'bg-emerald-500/20 text-emerald-400' :
-                q.difficulty === 'Hard' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'
+              <span class="text-sm font-bold text-on-surface">Question ${currentNum} of ${total}</span>
+              <span class="badge ${
+                q.difficulty === 'Easy' ? 'badge-success' :
+                q.difficulty === 'Hard' ? 'badge-warning' : 'badge-neutral'
               }">${q.difficulty || 'Medium'}</span>
             </div>
-            <div class="text-xs text-gray-400">
-              Score: <span class="text-emerald-400 font-bold">${state.quiz.sessionStats.correct}</span> Correct, <span class="text-red-400 font-bold">${state.quiz.sessionStats.incorrect}</span> Incorrect
+            <div class="text-xs text-on-surface-variant">
+              Score: <span class="text-emerald-600 dark:text-emerald-400 font-bold">${state.quiz.sessionStats.correct}</span> Correct, <span class="text-red-500 font-bold">${state.quiz.sessionStats.incorrect}</span> Incorrect
             </div>
           </div>
 
@@ -517,9 +522,9 @@
           <div id="ipExplanationBox" class="hidden"></div>
 
           <!-- Action Footer -->
-          <div class="flex items-center justify-between pt-4 border-t border-gray-800 mt-6">
-            <div class="text-xs text-gray-500">Select an option to immediately view solution & explanation.</div>
-            <button id="ipNextQuestionBtn" class="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold flex items-center gap-1.5 transition" disabled>
+          <div class="flex items-center justify-between pt-4 border-t border-outline-variant mt-6 flex-wrap gap-3">
+            <div class="text-xs text-on-surface-variant">Select an option to immediately view solution & explanation.</div>
+            <button id="ipNextQuestionBtn" class="btn-primary text-sm py-2 px-5 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5" disabled>
               <span>${currentNum === total ? 'Finish Practice' : 'Next Question'}</span>
               <span class="material-symbols-outlined text-sm">arrow_forward</span>
             </button>
@@ -651,47 +656,47 @@
     else if (accuracy < 75) scoreColor = '#f59e0b';
 
     mainContainer.innerHTML = `
-      <div class="ip-results-card">
+      <div class="dev-card p-8 text-center max-w-lg mx-auto">
         <div class="ip-score-circle" style="--score-color: ${scoreColor}; --score-percent: ${accuracy};">
           <div class="ip-score-inner">
-            <span class="text-3xl font-extrabold text-white">${accuracy}%</span>
-            <span class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Accuracy</span>
+            <span class="text-3xl font-extrabold text-on-surface">${accuracy}%</span>
+            <span class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Accuracy</span>
           </div>
         </div>
 
-        <h2 class="text-2xl font-bold text-white mb-1">Session Complete!</h2>
-        <p class="text-sm text-gray-400 mb-6">
+        <h2 class="text-2xl font-bold text-on-surface mb-1">Session Complete!</h2>
+        <p class="text-sm text-on-surface-variant mb-6">
           ${accuracy >= 80 ? 'Outstanding performance! You have a solid grasp of this material.' :
             accuracy >= 60 ? 'Good effort! Review the explanations to reinforce your understanding.' :
             'Keep going! Repeated practice on weak points is the key to interview mastery.'}
         </p>
 
-        <div class="ip-results-grid">
-          <div class="ip-results-stat">
-            <div class="text-2xl font-bold text-white">${stats.total}</div>
-            <div class="text-xs text-gray-400">Questions</div>
+        <div class="grid grid-cols-3 gap-3 my-6">
+          <div class="bg-surface-container-low border border-outline-variant rounded-xl p-3">
+            <div class="text-2xl font-bold text-on-surface">${stats.total}</div>
+            <div class="text-xs text-on-surface-variant">Questions</div>
           </div>
-          <div class="ip-results-stat">
-            <div class="text-2xl font-bold text-emerald-400">${stats.correct}</div>
-            <div class="text-xs text-gray-400">Correct</div>
+          <div class="bg-surface-container-low border border-outline-variant rounded-xl p-3">
+            <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">${stats.correct}</div>
+            <div class="text-xs text-on-surface-variant">Correct</div>
           </div>
-          <div class="ip-results-stat">
-            <div class="text-2xl font-bold text-red-400">${stats.incorrect}</div>
-            <div class="text-xs text-gray-400">Incorrect</div>
+          <div class="bg-surface-container-low border border-outline-variant rounded-xl p-3">
+            <div class="text-2xl font-bold text-red-500">${stats.incorrect}</div>
+            <div class="text-xs text-on-surface-variant">Incorrect</div>
           </div>
         </div>
 
         <!-- More Practice Action Menu -->
-        <div class="ip-more-practice-menu">
-          <button id="ipRetryTopicBtn" class="w-full py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm flex items-center justify-center gap-2 transition shadow-md">
+        <div class="flex flex-col gap-3 mt-6">
+          <button id="ipRetryTopicBtn" class="btn-primary w-full py-2.5 px-4 text-sm font-semibold flex items-center justify-center gap-2">
             <span class="material-symbols-outlined text-sm">replay</span>
             <span>Retry This Topic</span>
           </button>
-          <button id="ipPracticeWeakBtn" class="w-full py-2.5 px-4 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 font-medium text-sm flex items-center justify-center gap-2 transition">
+          <button id="ipPracticeWeakBtn" class="btn-secondary w-full py-2.5 px-4 text-sm font-medium flex items-center justify-center gap-2">
             <span class="material-symbols-outlined text-sm">healing</span>
             <span>Practice Weak Topics</span>
           </button>
-          <button id="ipBackToCategoryBtn" class="w-full py-2.5 px-4 rounded-lg border border-gray-700 hover:border-gray-600 text-gray-300 font-medium text-sm flex items-center justify-center gap-2 transition">
+          <button id="ipBackToCategoryBtn" class="btn-secondary w-full py-2.5 px-4 text-sm font-medium flex items-center justify-center gap-2">
             <span class="material-symbols-outlined text-sm">grid_view</span>
             <span>Back to All Categories</span>
           </button>
@@ -724,46 +729,145 @@
     if (!mainContainer) return;
 
     if (!state.mockTest.active) {
-      // Landing Screen
+      // Full-Width Landing Screen matching 18 Categories width & typography
       mainContainer.innerHTML = `
-        <div class="max-w-2xl mx-auto">
-          <div class="ip-mock-banner">
-            <div class="flex items-center gap-3 mb-3">
-              <span class="material-symbols-outlined text-3xl text-emerald-400">timer</span>
-              <h2 class="text-2xl font-bold text-white">Full-Length Placement Mock Test</h2>
-            </div>
-            <p class="text-gray-300 text-sm mb-6 leading-relaxed">
-              Simulate actual campus recruitment and technical screening tests. This comprehensive assessment spans 50 questions across Quantitative Aptitude, Verbal Ability, Logical Reasoning, Core CS, and Modern Tech Stacks under real-time constraints.
+        <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-on-surface" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+              60-Minute Full Assessment Mock Test
+            </h2>
+            <p class="text-sm text-on-surface-variant mt-0.5">
+              Simulate authentic campus recruitment tests and technical screening rounds under timed exam conditions.
             </p>
+          </div>
+          <div class="badge badge-neutral text-xs px-3 py-1.5 font-medium">
+            50 Questions • 60 Minutes • Tier-1 Exam Pattern
+          </div>
+        </div>
 
-            <div class="grid grid-cols-3 gap-3 mb-6">
-              <div class="bg-gray-900/80 border border-gray-800 rounded-lg p-3 text-center">
-                <div class="text-xl font-bold text-emerald-400">50</div>
-                <div class="text-xs text-gray-400">Questions</div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Main Overview Card (8 cols) -->
+          <div class="lg:col-span-8 space-y-6">
+            <div class="dev-card p-6">
+              <div class="flex items-center gap-3.5 mb-4">
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/40">
+                  <span class="material-symbols-outlined text-2xl" style='font-variation-settings: "FILL" 1;'>timer</span>
+                </div>
+                <div>
+                  <h3 class="text-lg font-bold text-on-surface" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">Full-Length Campus Placement Assessment</h3>
+                  <p class="text-xs text-on-surface-variant">Real exam conditions • Strict 60-minute countdown • Comprehensive analytics</p>
+                </div>
               </div>
-              <div class="bg-gray-900/80 border border-gray-800 rounded-lg p-3 text-center">
-                <div class="text-xl font-bold text-blue-400">60</div>
-                <div class="text-xs text-gray-400">Minutes</div>
+              
+              <p class="text-sm text-on-surface-variant mb-6 leading-relaxed">
+                This comprehensive mock assessment accurately replicates the pattern of major campus recruitment drives (TCS, Infosys, Cognizant, Wipro, Amazon, product startups). Questions are dynamically sampled across Quantitative Aptitude, Verbal Reasoning, Core Computer Science (OS, DBMS, CN), Programming & OOP, and Modern Tech Stacks.
+              </p>
+
+              <!-- 3 Stat Metrics -->
+              <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="bg-surface-container-low border border-outline-variant rounded-xl p-4 text-center">
+                  <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">50</div>
+                  <div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mt-1">Questions</div>
+                </div>
+                <div class="bg-surface-container-low border border-outline-variant rounded-xl p-4 text-center">
+                  <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">60</div>
+                  <div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mt-1">Minutes</div>
+                </div>
+                <div class="bg-surface-container-low border border-outline-variant rounded-xl p-4 text-center">
+                  <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">Detailed</div>
+                  <div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mt-1">Score Report</div>
+                </div>
               </div>
-              <div class="bg-gray-900/80 border border-gray-800 rounded-lg p-3 text-center">
-                <div class="text-xl font-bold text-purple-400">Comprehensive</div>
-                <div class="text-xs text-gray-400">Score Report</div>
+
+              <!-- Action Button -->
+              <button id="ipStartMockBtn" class="btn-primary w-full py-3 px-6 text-base font-bold flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined">play_arrow</span>
+                <span>Start 60-Minute Mock Test</span>
+              </button>
+            </div>
+
+            <!-- Exam Instructions & Tips Card -->
+            <div class="dev-card p-6">
+              <h4 class="text-sm font-bold text-on-surface uppercase tracking-wider mb-4 flex items-center gap-2" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                <span class="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-base">info</span>
+                Examination Rules & Navigation Guidelines
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-on-surface-variant">
+                <div class="flex items-start gap-2.5">
+                  <span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span>
+                  <span><strong>One Question at a Time:</strong> Use the sidebar Question Navigator to freely jump between any of the 50 questions.</span>
+                </div>
+                <div class="flex items-start gap-2.5">
+                  <span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span>
+                  <span><strong>No Negative Marking:</strong> Attempt all questions (+1 mark for correct, 0 for unattempted/incorrect).</span>
+                </div>
+                <div class="flex items-start gap-2.5">
+                  <span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span>
+                  <span><strong>Auto-Submit on Timer:</strong> When the 60-minute timer hits 00:00, your test will automatically finalize and score.</span>
+                </div>
+                <div class="flex items-start gap-2.5">
+                  <span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span>
+                  <span><strong>In-Depth Explanations:</strong> Detailed step-by-step solutions and category breakdown unlock immediately after submission.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Breakdown Column (4 cols) -->
+          <div class="lg:col-span-4 space-y-6">
+            <div class="dev-card p-6">
+              <h4 class="text-sm font-bold text-on-surface uppercase tracking-wider mb-4 flex items-center gap-2" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+                <span class="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-base">pie_chart</span>
+                Section-by-Section Distribution
+              </h4>
+              <div class="space-y-3 text-xs">
+                <div class="flex justify-between items-center p-3 rounded-lg bg-surface-container-low border border-outline-variant">
+                  <span class="font-medium text-on-surface flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                    Quantitative Aptitude
+                  </span>
+                  <span class="font-bold text-on-surface">10 Qs</span>
+                </div>
+                <div class="flex justify-between items-center p-3 rounded-lg bg-surface-container-low border border-outline-variant">
+                  <span class="font-medium text-on-surface flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                    Verbal & Logical Reasoning
+                  </span>
+                  <span class="font-bold text-on-surface">10 Qs</span>
+                </div>
+                <div class="flex justify-between items-center p-3 rounded-lg bg-surface-container-low border border-outline-variant">
+                  <span class="font-medium text-on-surface flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    Programming & OOP
+                  </span>
+                  <span class="font-bold text-on-surface">10 Qs</span>
+                </div>
+                <div class="flex justify-between items-center p-3 rounded-lg bg-surface-container-low border border-outline-variant">
+                  <span class="font-medium text-on-surface flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                    DBMS, SQL & Networks
+                  </span>
+                  <span class="font-bold text-on-surface">10 Qs</span>
+                </div>
+                <div class="flex justify-between items-center p-3 rounded-lg bg-surface-container-low border border-outline-variant">
+                  <span class="font-medium text-on-surface flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                    Core CS & Modern Tech
+                  </span>
+                  <span class="font-bold text-on-surface">10 Qs</span>
+                </div>
               </div>
             </div>
 
-            <div class="bg-gray-900/60 rounded-lg p-4 border border-gray-800 mb-6 text-xs text-gray-300 space-y-2">
-              <div class="font-semibold text-white">Test Breakdown:</div>
-              <div class="flex justify-between"><span>• Quantitative Aptitude</span><span class="text-gray-400">10 Questions</span></div>
-              <div class="flex justify-between"><span>• Verbal & Logical Reasoning</span><span class="text-gray-400">10 Questions</span></div>
-              <div class="flex justify-between"><span>• Programming & OOP</span><span class="text-gray-400">10 Questions</span></div>
-              <div class="flex justify-between"><span>• DBMS, SQL & Networks</span><span class="text-gray-400">10 Questions</span></div>
-              <div class="flex justify-between"><span>• Core CS & Modern Tech</span><span class="text-gray-400">10 Questions</span></div>
+            <div class="dev-card p-6 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/20 dark:to-purple-950/20 border-indigo-200/50 dark:border-indigo-800/50">
+              <div class="flex items-center gap-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-2">
+                <span class="material-symbols-outlined text-sm">military_tech</span>
+                Placement Benchmark
+              </div>
+              <p class="text-xs text-on-surface-variant leading-relaxed">
+                Scoring <strong>38/50 (76%+)</strong> is the target benchmark for campus placement shortlists at Microsoft, Amazon, and top product engineering firms.
+              </p>
             </div>
-
-            <button id="ipStartMockBtn" class="w-full py-3 px-6 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-base transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/30">
-              <span class="material-symbols-outlined">play_arrow</span>
-              <span>Start 60-Minute Mock Test</span>
-            </button>
           </div>
         </div>
       `;
@@ -811,13 +915,13 @@
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <!-- Question Main Area -->
         <div class="lg:col-span-3">
-          <div class="ip-quiz-card">
-            <div class="flex items-center justify-between pb-3 border-b border-gray-800 mb-4">
+          <div class="dev-card p-6 sm:p-8">
+            <div class="flex items-center justify-between pb-3 border-b border-outline-variant mb-4 flex-wrap gap-2">
               <div class="flex items-center gap-2">
-                <span class="text-xs px-2.5 py-1 rounded bg-blue-500/20 text-blue-400 font-semibold uppercase">
+                <span class="badge badge-primary font-semibold uppercase text-xs">
                   ${q.categoryTitle || q.categoryId || 'General'}
                 </span>
-                <span class="text-xs text-gray-400">${q.topic || ''}</span>
+                <span class="text-xs text-on-surface-variant">${q.topic || ''}</span>
               </div>
               <div id="ipMockTimer" class="ip-timer-badge">
                 <span class="material-symbols-outlined text-sm">timer</span>
@@ -825,21 +929,21 @@
               </div>
             </div>
 
-            <div class="text-sm font-semibold text-gray-400 mb-2">Question ${currentNum} of ${total}</div>
+            <div class="text-sm font-semibold text-on-surface-variant mb-2">Question ${currentNum} of ${total}</div>
             <div class="ip-question-text">${q.question}</div>
 
             <div class="ip-options-grid" id="ipMockOptionsGrid"></div>
 
-            <div class="flex items-center justify-between pt-4 border-t border-gray-800 mt-6">
-              <button id="ipPrevMockBtn" class="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium transition flex items-center gap-1" ${currentNum === 1 ? 'disabled style="opacity: 0.4;"' : ''}>
+            <div class="flex items-center justify-between pt-4 border-t border-outline-variant mt-6 flex-wrap gap-2">
+              <button id="ipPrevMockBtn" class="btn-secondary text-sm py-2 px-4 flex items-center gap-1" ${currentNum === 1 ? 'disabled style="opacity: 0.4;"' : ''}>
                 <span class="material-symbols-outlined text-sm">arrow_back</span>
                 <span>Previous</span>
               </button>
               <div class="flex gap-2">
-                <button id="ipClearMockBtn" class="px-3 py-2 rounded-lg border border-gray-800 hover:bg-gray-800 text-gray-400 text-xs font-medium transition">
+                <button id="ipClearMockBtn" class="btn-secondary text-xs py-2 px-3">
                   Clear
                 </button>
-                <button id="ipNextMockBtn" class="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition flex items-center gap-1">
+                <button id="ipNextMockBtn" class="btn-primary text-sm py-2 px-5 flex items-center gap-1">
                   <span>${currentNum === total ? 'Review' : 'Next'}</span>
                   <span class="material-symbols-outlined text-sm">arrow_forward</span>
                 </button>
@@ -850,15 +954,15 @@
 
         <!-- Sidebar / Question Navigator -->
         <div class="lg:col-span-1">
-          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <div class="dev-card p-4">
             <div class="flex items-center justify-between mb-3">
-              <div class="text-sm font-bold text-white">Questions</div>
-              <div class="text-xs text-gray-400">${Object.keys(state.mockTest.answers).length} of ${total} Answered</div>
+              <div class="text-sm font-bold text-on-surface">Questions</div>
+              <div class="text-xs text-on-surface-variant">${Object.keys(state.mockTest.answers).length} of ${total} Answered</div>
             </div>
 
             <div class="ip-qnav-grid mb-4" id="ipMockQNavGrid"></div>
 
-            <button id="ipSubmitMockTestBtn" class="w-full py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold transition flex items-center justify-center gap-2">
+            <button id="ipSubmitMockTestBtn" class="btn-primary w-full py-2.5 px-4 text-sm font-bold flex items-center justify-center gap-2">
               <span class="material-symbols-outlined text-sm">check_circle</span>
               <span>Submit Test</span>
             </button>
@@ -974,54 +1078,89 @@
     if (!mainContainer) return;
 
     mainContainer.innerHTML = `
-      <div class="max-w-2xl mx-auto">
-        <div class="ip-results-card">
-          <div class="inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 font-semibold mb-3">
-            <span class="material-symbols-outlined text-xs">assessment</span>
-            <span>Mock Placement Test Results</span>
-          </div>
-
-          <div class="ip-score-circle" style="--score-color: ${accuracy >= 70 ? '#10b981' : accuracy >= 40 ? '#f59e0b' : '#ef4444'}; --score-percent: ${accuracy};">
-            <div class="ip-score-inner">
-              <span class="text-3xl font-extrabold text-white">${accuracy}%</span>
-              <span class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Accuracy</span>
-            </div>
-          </div>
-
-          <h2 class="text-2xl font-bold text-white mb-1">${accuracy >= 75 ? 'Placement Ready!' : accuracy >= 50 ? 'Promising Score' : 'Needs Practice'}</h2>
-          <p class="text-sm text-gray-400 mb-6">
-            ${isTimeout ? 'Time expired! ' : ''}You answered ${correct} out of 50 questions correctly.
+      <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-on-surface" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+            Mock Assessment Diagnostic Report
+          </h2>
+          <p class="text-sm text-on-surface-variant mt-0.5">
+            Comprehensive evaluation across all 50 questions with section-wise performance analysis.
           </p>
+        </div>
+        <div class="badge ${accuracy >= 70 ? 'badge-success' : 'badge-warning'} text-xs px-3 py-1.5 font-semibold">
+          ${accuracy >= 75 ? 'Placement Ready (75%+)' : accuracy >= 50 ? 'Intermediate Score' : 'Needs Reinforcement'}
+        </div>
+      </div>
 
-          <div class="ip-results-grid mb-6">
-            <div class="ip-results-stat">
-              <div class="text-2xl font-bold text-white">50</div>
-              <div class="text-xs text-gray-400">Total Questions</div>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Main Score Card (7 cols) -->
+        <div class="lg:col-span-7">
+          <div class="dev-card p-6 sm:p-8 text-center">
+            <div class="badge badge-primary px-3 py-1 font-semibold mb-4 inline-flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-xs">assessment</span>
+              <span>Mock Placement Test Final Score</span>
             </div>
-            <div class="ip-results-stat">
-              <div class="text-2xl font-bold text-emerald-400">${correct}</div>
-              <div class="text-xs text-gray-400">Correct</div>
+
+            <div class="ip-score-circle mx-auto my-3" style="--score-color: ${accuracy >= 70 ? '#10b981' : accuracy >= 40 ? '#f59e0b' : '#ef4444'}; --score-percent: ${accuracy};">
+              <div class="ip-score-inner">
+                <span class="text-3xl font-extrabold text-on-surface">${accuracy}%</span>
+                <span class="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">Accuracy</span>
+              </div>
             </div>
-            <div class="ip-results-stat">
-              <div class="text-2xl font-bold text-red-400">${total - correct}</div>
-              <div class="text-xs text-gray-400">Incorrect / Skipped</div>
+
+            <h3 class="text-2xl font-bold text-on-surface mb-1" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+              ${accuracy >= 75 ? 'Placement Ready!' : accuracy >= 50 ? 'Promising Foundation' : 'Needs Practice'}
+            </h3>
+            <p class="text-sm text-on-surface-variant mb-6 leading-relaxed max-w-md mx-auto">
+              ${isTimeout ? 'Time expired! ' : ''}You scored <strong>${correct}</strong> correct answers out of 50 total questions under real-time conditions.
+            </p>
+
+            <div class="grid grid-cols-3 gap-3 mb-6">
+              <div class="bg-surface-container-low border border-outline-variant rounded-xl p-3 text-center">
+                <div class="text-2xl font-bold text-on-surface">50</div>
+                <div class="text-xs text-on-surface-variant mt-1">Total Questions</div>
+              </div>
+              <div class="bg-surface-container-low border border-outline-variant rounded-xl p-3 text-center">
+                <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">${correct}</div>
+                <div class="text-xs text-on-surface-variant mt-1">Correct</div>
+              </div>
+              <div class="bg-surface-container-low border border-outline-variant rounded-xl p-3 text-center">
+                <div class="text-2xl font-bold text-red-500">${total - correct}</div>
+                <div class="text-xs text-on-surface-variant mt-1">Incorrect / Skipped</div>
+              </div>
+            </div>
+
+            <div class="flex gap-3 flex-wrap">
+              <button id="ipRetakeMockBtn" class="btn-primary flex-1 py-2.5 px-4 text-sm font-semibold flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-sm">replay</span>
+                <span>Retake Mock Test</span>
+              </button>
+              <button id="ipBackToPrepBtn" class="btn-secondary flex-1 py-2.5 px-4 text-sm font-medium flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-sm">grid_view</span>
+                <span>Back to 18 Categories</span>
+              </button>
             </div>
           </div>
+        </div>
 
-          <!-- Category Breakdown -->
-          <div class="text-left bg-gray-900 border border-gray-800 rounded-lg p-4 mb-6">
-            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Performance by Section</h4>
-            <div class="space-y-3">
+        <!-- Section Breakdown Column (5 cols) -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="dev-card p-6">
+            <h4 class="text-sm font-bold text-on-surface uppercase tracking-wider mb-4 flex items-center gap-2" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+              <span class="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-base">pie_chart</span>
+              Performance by Section
+            </h4>
+            <div class="space-y-4">
               ${Object.keys(categoryBreakdown).map(cat => {
                 const b = categoryBreakdown[cat];
                 const acc = Math.round((b.correct / b.total) * 100);
                 return `
                   <div>
-                    <div class="flex justify-between text-xs text-gray-300 mb-1">
-                      <span>${cat}</span>
-                      <span class="font-semibold text-white">${b.correct}/${b.total} (${acc}%)</span>
+                    <div class="flex justify-between text-xs text-on-surface-variant mb-1.5">
+                      <span class="font-medium text-on-surface">${cat}</span>
+                      <span class="font-bold text-on-surface">${b.correct}/${b.total} (${acc}%)</span>
                     </div>
-                    <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                    <div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
                       <div class="h-full ${acc >= 70 ? 'bg-emerald-500' : acc >= 50 ? 'bg-amber-500' : 'bg-red-500'}" style="width: ${acc}%"></div>
                     </div>
                   </div>
@@ -1030,13 +1169,14 @@
             </div>
           </div>
 
-          <div class="flex gap-3">
-            <button id="ipRetakeMockBtn" class="flex-1 py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition">
-              Take Another Mock Test
-            </button>
-            <button id="ipBackToPrepBtn" class="flex-1 py-2.5 px-4 rounded-lg border border-gray-700 hover:bg-gray-800 text-gray-300 font-medium text-sm transition">
-              Back to Overview
-            </button>
+          <div class="dev-card p-5 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/20 dark:to-purple-950/20 border-indigo-200/50 dark:border-indigo-800/50">
+            <div class="flex items-center gap-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-1.5">
+              <span class="material-symbols-outlined text-sm">lightbulb</span>
+              Smart Practice Recommendation
+            </div>
+            <p class="text-xs text-on-surface-variant leading-relaxed">
+              Review missed questions in your lowest scoring sections by heading over to the <strong>Weak Topics</strong> tab for targeted revision.
+            </p>
           </div>
         </div>
       </div>
@@ -1062,17 +1202,26 @@
     const weakList = window.interviewPrepRegistry.getWeakTopics(state.progress);
 
     mainContainer.innerHTML = `
-      <div class="mb-6 flex items-center justify-between flex-wrap gap-4">
+      <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div>
-          <h2 class="text-xl font-bold text-white">Smart Weak Topics Diagnosis</h2>
-          <p class="text-sm text-gray-400">DevPilot analyzes your practice history and identifies topics where accuracy is below 60%.</p>
+          <h2 class="text-xl font-bold text-on-surface" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+            Smart Weak Topics Diagnosis
+          </h2>
+          <p class="text-sm text-on-surface-variant mt-0.5">
+            DevPilot AI analyzes your practice history and highlights topics where accuracy is below 60%.
+          </p>
         </div>
-        ${weakList.length > 0 ? `
-          <button id="ipStartWeakDrillBtn" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-semibold transition flex items-center gap-1.5 shadow-md">
-            <span class="material-symbols-outlined text-sm">healing</span>
-            <span>Drill All Weak Topics</span>
-          </button>
-        ` : ''}
+        <div class="flex items-center gap-3">
+          <div class="badge badge-neutral text-xs px-3 py-1.5 font-medium">
+            ${weakList.length > 0 ? `${weakList.length} Topics Need Revision` : 'All Topics On Track'}
+          </div>
+          ${weakList.length > 0 ? `
+            <button id="ipStartWeakDrillBtn" class="btn-primary px-4 py-1.5 text-xs font-semibold flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-xs">healing</span>
+              <span>Drill All Weak Topics</span>
+            </button>
+          ` : ''}
+        </div>
       </div>
       <div id="ipWeakTopicsContainer"></div>
     `;
@@ -1080,17 +1229,51 @@
     const container = document.getElementById('ipWeakTopicsContainer');
     if (weakList.length === 0) {
       container.innerHTML = `
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center max-w-lg mx-auto">
-          <div class="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto mb-4">
-            <span class="material-symbols-outlined text-3xl">verified</span>
+        <div class="space-y-6">
+          <div class="dev-card p-6 sm:p-8 flex items-center justify-between flex-wrap gap-6 bg-gradient-to-r from-emerald-50/50 to-indigo-50/30 dark:from-emerald-950/20 dark:to-indigo-950/10 border-emerald-200/60 dark:border-emerald-900/40">
+            <div class="flex items-center gap-4">
+              <div class="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-200 dark:border-emerald-800">
+                <span class="material-symbols-outlined text-3xl" style='font-variation-settings: "FILL" 1;'>verified</span>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-on-surface" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">No Weak Topics Detected Yet</h3>
+                <p class="text-sm text-on-surface-variant mt-1 max-w-2xl leading-relaxed">
+                  Great job! You haven't accumulated low-scoring topics yet. As you practice questions across the 18 placement categories, DevPilot will dynamically isolate topics where your accuracy drops below 60% so you can target them here.
+                </p>
+              </div>
+            </div>
+            <button class="btn-primary px-5 py-2.5 text-sm font-semibold flex items-center gap-2" onclick="document.querySelector('[data-mode=\\'categories\\']').click()">
+              <span>Browse 18 Categories</span>
+              <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            </button>
           </div>
-          <h3 class="text-lg font-bold text-white mb-2">No Weak Topics Detected</h3>
-          <p class="text-sm text-gray-400 mb-6">
-            You haven't accumulated low-scoring topics yet! Attempt more questions across the 18 placement categories, and DevPilot will highlight areas where you need reinforcement.
-          </p>
-          <button class="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition" onclick="document.querySelector('[data-mode=\\'categories\\']').click()">
-            Browse Categories
-          </button>
+
+          <!-- 3 Diagnostic Cards in 3-column grid matching 18 Categories -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="dev-card p-6">
+              <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-3 border border-indigo-100 dark:border-indigo-900/40">
+                <span class="material-symbols-outlined text-xl">quiz</span>
+              </div>
+              <h4 class="text-base font-bold text-on-surface mb-1" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">1. Continuous Practice</h4>
+              <p class="text-xs text-on-surface-variant leading-relaxed">Attempt topic-wise questions across Quantitative Aptitude, Verbal Reasoning, Core CS, and Tech tracks.</p>
+            </div>
+
+            <div class="dev-card p-6">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-3 border border-amber-100 dark:border-amber-900/40">
+                <span class="material-symbols-outlined text-xl">analytics</span>
+              </div>
+              <h4 class="text-base font-bold text-on-surface mb-1" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">2. Real-Time Tracking</h4>
+              <p class="text-xs text-on-surface-variant leading-relaxed">DevPilot calculates your accuracy in real-time. Any topic with accuracy under 60% is automatically flagged for revision.</p>
+            </div>
+
+            <div class="dev-card p-6">
+              <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3 border border-emerald-100 dark:border-emerald-900/40">
+                <span class="material-symbols-outlined text-xl">healing</span>
+              </div>
+              <h4 class="text-base font-bold text-on-surface mb-1" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">3. Focused Drills</h4>
+              <p class="text-xs text-on-surface-variant leading-relaxed">Launch 1-click targeted drills on your weak topics to review explanations and turn weaknesses into strengths.</p>
+            </div>
+          </div>
         </div>
       `;
       return;
@@ -1101,21 +1284,27 @@
     }
 
     const grid = document.createElement('div');
-    grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+    grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5';
     weakList.forEach(w => {
       const card = document.createElement('div');
-      card.className = 'bg-gray-900 border border-red-900/30 rounded-xl p-4 flex items-center justify-between gap-4';
+      card.className = 'dev-card p-5 flex flex-col justify-between gap-4 border border-red-200 dark:border-red-900/40';
       card.innerHTML = `
-        <div class="min-w-0">
-          <div class="flex items-center gap-2 mb-1">
-            <span class="material-symbols-outlined text-red-400 text-sm">warning</span>
-            <span class="text-xs font-semibold text-gray-400 uppercase">${w.categoryTitle}</span>
+        <div>
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <span class="badge badge-warning text-[11px] uppercase">${w.categoryTitle}</span>
+            <span class="text-xs font-bold text-red-500">${w.accuracy}% Accuracy</span>
           </div>
-          <h4 class="text-base font-semibold text-white truncate">${w.topic}</h4>
-          <div class="text-xs text-red-400 mt-1">Accuracy: ${w.accuracy}% (${w.incorrectCount} mistakes across ${w.attempted} attempts)</div>
+          <h4 class="text-base font-bold text-on-surface" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">${w.topic}</h4>
+          <p class="text-xs text-on-surface-variant mt-1">${w.incorrectCount} mistakes across ${w.attempted} attempts</p>
+          
+          <div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden mt-3">
+            <div class="h-full bg-red-500 rounded-full" style="width: ${w.accuracy}%"></div>
+          </div>
         </div>
-        <button class="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shrink-0 transition ip-drill-topic-btn">
-          Practice
+
+        <button class="btn-primary w-full text-xs py-2 px-3.5 flex items-center justify-center gap-1.5 ip-drill-topic-btn">
+          <span class="material-symbols-outlined text-xs">healing</span>
+          <span>Practice This Topic</span>
         </button>
       `;
 
@@ -1140,11 +1329,20 @@
     const subjects = Object.keys(checklists);
 
     mainContainer.innerHTML = `
-      <div class="mb-6">
-        <h2 class="text-xl font-bold text-white">Core CS Subject Checklists</h2>
-        <p class="text-sm text-gray-400">Track and review critical placement concepts across the 8 core computer science subjects.</p>
+      <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-on-surface" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+            Core CS Subject Checklists
+          </h2>
+          <p class="text-sm text-on-surface-variant mt-0.5">
+            Track and review critical placement concepts across the 8 core computer science subjects.
+          </p>
+        </div>
+        <div class="badge badge-neutral text-xs px-3 py-1.5 font-medium">
+          8 Core Subjects • 160 Essential Concepts
+        </div>
       </div>
-      <div class="space-y-4" id="ipChecklistsList"></div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5" id="ipChecklistsList"></div>
     `;
 
     const list = document.getElementById('ipChecklistsList');
@@ -1158,24 +1356,24 @@
       const progressPercent = items.length > 0 ? Math.round((checkedCount / items.length) * 100) : 0;
 
       const card = document.createElement('div');
-      card.className = 'ip-checklist-card';
+      card.className = 'ip-checklist-card dev-card p-0 overflow-hidden';
       card.innerHTML = `
         <div class="ip-checklist-header">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
-              <span class="material-symbols-outlined">${subject.icon || 'checklist'}</span>
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-900/40">
+              <span class="material-symbols-outlined text-xl">${subject.icon || 'checklist'}</span>
             </div>
-            <div>
-              <h3 class="text-base font-bold text-white">${subject.title}</h3>
-              <p class="text-xs text-gray-400">${items.length} Essential Concepts</p>
+            <div class="min-w-0">
+              <h3 class="text-base font-bold text-on-surface truncate" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">${subject.title}</h3>
+              <p class="text-xs text-on-surface-variant">${items.length} Essential Concepts</p>
             </div>
           </div>
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-3 shrink-0">
             <div class="text-right">
-              <div class="text-xs font-bold text-white">${checkedCount} / ${items.length}</div>
-              <div class="text-xs text-gray-400">${progressPercent}% Completed</div>
+              <div class="text-xs font-bold text-on-surface ip-chk-count">${checkedCount} / ${items.length}</div>
+              <div class="text-xs text-on-surface-variant ip-chk-pct">${progressPercent}% Completed</div>
             </div>
-            <span class="material-symbols-outlined text-gray-400 transition transform ip-chk-chevron">expand_more</span>
+            <span class="material-symbols-outlined text-on-surface-variant transition transform ip-chk-chevron">expand_more</span>
           </div>
         </div>
         <div class="ip-checklist-items hidden"></div>
@@ -1195,8 +1393,8 @@
             ${isChecked ? '<span class="material-symbols-outlined text-xs">check</span>' : ''}
           </div>
           <div class="flex-1 min-w-0">
-            <span class="text-sm text-gray-200 ip-chk-label ${isChecked ? 'checked' : ''}">${item.label}</span>
-            ${item.important ? '<span class="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">MUST KNOW</span>' : ''}
+            <span class="text-sm text-on-surface ip-chk-label ${isChecked ? 'checked' : ''}">${item.label}</span>
+            ${item.important ? '<span class="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 border border-amber-500/30">MUST KNOW</span>' : ''}
           </div>
         `;
 
@@ -1218,8 +1416,8 @@
           // Update header count
           const newCheckedCount = Object.values(state.checklists[subjKey]).filter(Boolean).length;
           const newPct = Math.round((newCheckedCount / items.length) * 100);
-          header.querySelector('.text-xs.font-bold').textContent = `${newCheckedCount} / ${items.length}`;
-          header.querySelector('.text-xs.text-gray-400').textContent = `${newPct}% Completed`;
+          header.querySelector('.ip-chk-count').textContent = `${newCheckedCount} / ${items.length}`;
+          header.querySelector('.ip-chk-pct').textContent = `${newPct}% Completed`;
         });
 
         itemsContainer.appendChild(row);
@@ -1249,22 +1447,33 @@
     const hrQuestions = hrCat && hrCat.hrQuestions ? hrCat.hrQuestions : [];
 
     mainContainer.innerHTML = `
-      <div class="mb-6">
-        <h2 class="text-xl font-bold text-white">Group Discussion & HR Behavioral Round Preparation</h2>
-        <p class="text-sm text-gray-400">Master campus GD rounds with structured arguments and ace behavioral interviews using the STAR framework.</p>
+      <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-on-surface" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+            Group Discussion & HR Behavioral Round Preparation
+          </h2>
+          <p class="text-sm text-on-surface-variant mt-0.5">
+            Master campus GD rounds with structured arguments and ace behavioral interviews using the STAR framework.
+          </p>
+        </div>
+        <div class="badge badge-neutral text-xs px-3 py-1.5 font-medium">
+          15 GD Topics • 15 STAR Behavioral Guides
+        </div>
       </div>
 
-      <div class="flex gap-4 border-b border-gray-800 pb-3 mb-6">
-        <button id="ipTabGD" class="text-sm font-bold text-white border-b-2 border-blue-500 pb-2">
-          Group Discussion Topics (${gdTopics.length})
+      <div class="filter-tabs mb-6" id="ipGdHrSubTabs">
+        <button id="ipTabGD" class="filter-tab active">
+          <span class="material-symbols-outlined text-[18px]">groups</span>
+          <span>Group Discussion Topics (${gdTopics.length})</span>
         </button>
-        <button id="ipTabHR" class="text-sm font-semibold text-gray-400 hover:text-white pb-2">
-          HR Interview Questions & STAR Framework (${hrQuestions.length})
+        <button id="ipTabHR" class="filter-tab">
+          <span class="material-symbols-outlined text-[18px]">psychology</span>
+          <span>HR Interview Questions & STAR Framework (${hrQuestions.length})</span>
         </button>
       </div>
 
-      <div id="ipGdContent" class="space-y-4"></div>
-      <div id="ipHrContent" class="space-y-4 hidden"></div>
+      <div id="ipGdContent" class="grid grid-cols-1 lg:grid-cols-2 gap-5"></div>
+      <div id="ipHrContent" class="grid grid-cols-1 lg:grid-cols-2 gap-5 hidden"></div>
     `;
 
     const tabGD = document.getElementById('ipTabGD');
@@ -1273,15 +1482,15 @@
     const hrContent = document.getElementById('ipHrContent');
 
     tabGD.addEventListener('click', () => {
-      tabGD.className = 'text-sm font-bold text-white border-b-2 border-blue-500 pb-2';
-      tabHR.className = 'text-sm font-semibold text-gray-400 hover:text-white pb-2';
+      tabGD.classList.add('active');
+      tabHR.classList.remove('active');
       gdContent.classList.remove('hidden');
       hrContent.classList.add('hidden');
     });
 
     tabHR.addEventListener('click', () => {
-      tabHR.className = 'text-sm font-bold text-white border-b-2 border-blue-500 pb-2';
-      tabGD.className = 'text-sm font-semibold text-gray-400 hover:text-white pb-2';
+      tabHR.classList.add('active');
+      tabGD.classList.remove('active');
       hrContent.classList.remove('hidden');
       gdContent.classList.add('hidden');
     });
@@ -1289,31 +1498,31 @@
     // Render GD topics
     gdTopics.forEach(gd => {
       const card = document.createElement('div');
-      card.className = 'ip-gd-card';
+      card.className = 'ip-gd-card dev-card';
       card.innerHTML = `
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="text-lg font-bold text-white">${gd.title}</h3>
-          <span class="text-xs px-2.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-medium">${gd.category}</span>
+        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <h3 class="text-lg font-bold text-on-surface">${gd.title}</h3>
+          <span class="badge badge-primary">${gd.category}</span>
         </div>
-        <div class="bg-gray-900/60 p-3 rounded-lg border border-gray-800 text-xs text-gray-300 mb-4">
-          <strong class="text-blue-400">Strong Opening Statement:</strong> "${gd.openingStatement}"
+        <div class="bg-surface-container-low p-3 rounded-lg border border-outline-variant text-xs text-on-surface mb-4">
+          <strong class="text-primary">Strong Opening Statement:</strong> "${gd.openingStatement}"
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div class="bg-emerald-950/20 border border-emerald-900/30 p-3 rounded-lg">
-            <h5 class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2">Points In Favor / Opportunities</h5>
-            <ul class="text-xs text-gray-300 space-y-1.5 list-disc list-inside">
+          <div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30 p-3 rounded-xl">
+            <h5 class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2">Points In Favor / Opportunities</h5>
+            <ul class="text-xs text-on-surface-variant space-y-1.5 list-disc list-inside">
               ${(gd.pointsInFavor || []).map(p => `<li>${p}</li>`).join('')}
             </ul>
           </div>
-          <div class="bg-red-950/20 border border-red-900/30 p-3 rounded-lg">
-            <h5 class="text-xs font-bold text-red-400 uppercase tracking-wider mb-2">Points Against / Challenges</h5>
-            <ul class="text-xs text-gray-300 space-y-1.5 list-disc list-inside">
+          <div class="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 p-3 rounded-xl">
+            <h5 class="text-xs font-bold text-red-500 dark:text-red-400 uppercase tracking-wider mb-2">Points Against / Challenges</h5>
+            <ul class="text-xs text-on-surface-variant space-y-1.5 list-disc list-inside">
               ${(gd.pointsAgainst || []).map(p => `<li>${p}</li>`).join('')}
             </ul>
           </div>
         </div>
-        <div class="bg-gray-900/40 p-3 rounded-lg text-xs text-gray-400">
-          <strong class="text-gray-300">Balanced Conclusion:</strong> ${gd.conclusion}
+        <div class="bg-surface-container-low p-3 rounded-xl text-xs text-on-surface-variant border border-outline-variant">
+          <strong class="text-on-surface">Balanced Conclusion:</strong> ${gd.conclusion}
         </div>
       `;
       gdContent.appendChild(card);
@@ -1322,40 +1531,40 @@
     // Render HR questions
     hrQuestions.forEach(hr => {
       const card = document.createElement('div');
-      card.className = 'ip-hr-card';
+      card.className = 'ip-hr-card dev-card';
       card.innerHTML = `
         <div class="flex items-start justify-between gap-4 mb-3">
           <div>
-            <span class="text-xs font-semibold text-blue-400 uppercase tracking-wider">${hr.category}</span>
-            <h3 class="text-lg font-bold text-white mt-0.5">"${hr.question}"</h3>
+            <span class="text-xs font-bold text-primary uppercase tracking-wider">${hr.category}</span>
+            <h3 class="text-lg font-bold text-on-surface mt-0.5" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">"${hr.question}"</h3>
           </div>
         </div>
-        <div class="bg-gray-900/80 p-3 rounded-lg border border-gray-800 text-xs text-gray-300 mb-4">
-          <strong class="text-purple-400">What the Interviewer is Evaluating:</strong> ${hr.evaluatingFor}
+        <div class="bg-surface-container-low p-3 rounded-xl border border-outline-variant text-xs text-on-surface mb-4">
+          <strong class="text-purple-600 dark:text-purple-400">What the Interviewer is Evaluating:</strong> ${hr.evaluatingFor}
         </div>
         <div class="ip-star-grid">
           <div class="ip-star-box">
             <div class="ip-star-letter">S</div>
-            <div class="text-xs font-bold text-gray-200 mb-1">Situation</div>
-            <p class="text-xs text-gray-400">${hr.starGuide.situation}</p>
+            <div class="text-xs font-bold text-on-surface mb-1">Situation</div>
+            <p class="text-xs text-on-surface-variant">${hr.starGuide.situation}</p>
           </div>
           <div class="ip-star-box">
             <div class="ip-star-letter">T</div>
-            <div class="text-xs font-bold text-gray-200 mb-1">Task</div>
-            <p class="text-xs text-gray-400">${hr.starGuide.task}</p>
+            <div class="text-xs font-bold text-on-surface mb-1">Task</div>
+            <p class="text-xs text-on-surface-variant">${hr.starGuide.task}</p>
           </div>
           <div class="ip-star-box">
             <div class="ip-star-letter">A</div>
-            <div class="text-xs font-bold text-gray-200 mb-1">Action</div>
-            <p class="text-xs text-gray-400">${hr.starGuide.action}</p>
+            <div class="text-xs font-bold text-on-surface mb-1">Action</div>
+            <p class="text-xs text-on-surface-variant">${hr.starGuide.action}</p>
           </div>
           <div class="ip-star-box">
             <div class="ip-star-letter">R</div>
-            <div class="text-xs font-bold text-gray-200 mb-1">Result</div>
-            <p class="text-xs text-gray-400">${hr.starGuide.result}</p>
+            <div class="text-xs font-bold text-on-surface mb-1">Result</div>
+            <p class="text-xs text-on-surface-variant">${hr.starGuide.result}</p>
           </div>
         </div>
-        <div class="mt-4 p-3 rounded-lg bg-amber-950/20 border border-amber-900/30 text-xs text-amber-300">
+        <div class="mt-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 text-xs text-amber-900 dark:text-amber-300">
           <strong>Common Trap to Avoid:</strong> ${hr.commonTraps}
         </div>
       `;

@@ -27,7 +27,6 @@
 <link rel="stylesheet" href="css/base/components.css"/>
 <link rel="stylesheet" href="css/pages/dashboard.css"/>
 <link rel="stylesheet" href="css/base/responsive.css"/>
-<script src="js/core/theme.js"></script>
 <script id="tailwind-config">
   tailwind.config = {
     darkMode: "class",
@@ -286,6 +285,11 @@
 <span class="material-symbols-outlined text-on-surface-variant">timer</span>
 <span class="font-label-md text-on-surface flex-1">Start 25m Focus Session</span>
 </button>
+<a href="pages/interviewPrep.html" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-container-low text-left transition-colors">
+<span class="material-symbols-outlined text-indigo-600 dark:text-indigo-400">work</span>
+<span class="font-label-md text-on-surface flex-1">Practice Interview Prep (Aptitude, Tech & HR)</span>
+<span class="text-label-sm text-outline border border-outline-variant px-1.5 py-0.5 rounded">I</span>
+</a>
 </div>
 </div>
 </div>
@@ -341,6 +345,11 @@
 <span class="material-symbols-outlined shrink-0">map</span>
 <span class="text-sm font-medium sidebar-text">Career Roadmaps</span>
 <span class="tooltip-text">Career Roadmaps</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="pages/interviewPrep.html">
+<span class="material-symbols-outlined shrink-0">work</span>
+<span class="text-sm font-medium sidebar-text">Interview Prep</span>
+<span class="tooltip-text">Interview Prep</span>
 </a>
 <div class="pt-4 pb-2 px-3 sidebar-text">
 <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Resources</p>
@@ -409,9 +418,6 @@
 <div class="flex items-center gap-2">
 <button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all sm:hidden">
 <span class="material-symbols-outlined">search</span>
-</button>
-<button id="theme-toggle" class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all" aria-label="Toggle Dark/Light Mode" title="Toggle theme">
-<span class="material-symbols-outlined" id="theme-toggle-icon">light_mode</span>
 </button>
 <button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all relative">
 <span class="material-symbols-outlined">notifications</span>
@@ -487,34 +493,34 @@
 </div>
 <!-- Quick Actions (Spans 4 cols) -->
 <div class="lg:col-span-4 grid grid-cols-2 gap-4">
-<!-- New Note -->
-<button class="bg-surface border border-outline-variant rounded-[16px] p-4 flex flex-col items-center justify-center gap-2 hover:bg-surface-container-low transition-all shadow-ambient hover:-translate-y-0.5 group">
-<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-<span class="material-symbols-outlined">edit_note</span>
+<!-- Interview Prep -->
+<a href="pages/interviewPrep.html" class="bg-surface border border-outline-variant rounded-[16px] p-4 flex flex-col items-center justify-center gap-2 hover:bg-surface-container-low transition-all shadow-ambient hover:-translate-y-0.5 group cursor-pointer">
+<div class="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-950/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" style='font-variation-settings: "FILL" 1;'>work</span>
 </div>
-<span class="font-label-md text-label-md text-on-surface">New Note</span>
-</button>
+<span class="font-label-md text-label-md text-on-surface font-medium">Interview Prep</span>
+</a>
 <!-- Ask AI -->
-<button class="bg-surface border border-outline-variant rounded-[16px] p-4 flex flex-col items-center justify-center gap-2 hover:bg-surface-container-low transition-all shadow-ambient hover:-translate-y-0.5 group">
+<a href="pages/chat.html" class="bg-surface border border-outline-variant rounded-[16px] p-4 flex flex-col items-center justify-center gap-2 hover:bg-surface-container-low transition-all shadow-ambient hover:-translate-y-0.5 group cursor-pointer">
 <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-md group-hover:scale-110 transition-transform">
 <span class="material-symbols-outlined">smart_toy</span>
 </div>
-<span class="font-label-md text-label-md text-on-surface">Ask AI</span>
-</button>
-<!-- New Snippet -->
-<button class="bg-surface border border-outline-variant rounded-[16px] p-4 flex flex-col items-center justify-center gap-2 hover:bg-surface-container-low transition-all shadow-ambient hover:-translate-y-0.5 group">
+<span class="font-label-md text-label-md text-on-surface font-medium">Ask AI</span>
+</a>
+<!-- New Note -->
+<a href="pages/notes.html" class="bg-surface border border-outline-variant rounded-[16px] p-4 flex flex-col items-center justify-center gap-2 hover:bg-surface-container-low transition-all shadow-ambient hover:-translate-y-0.5 group cursor-pointer">
 <div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-container group-hover:scale-110 transition-transform">
-<span class="material-symbols-outlined">terminal</span>
+<span class="material-symbols-outlined">edit_note</span>
 </div>
-<span class="font-label-md text-label-md text-on-surface">New Snippet</span>
-</button>
+<span class="font-label-md text-label-md text-on-surface font-medium">New Note</span>
+</a>
 <!-- Roadmap -->
-<button class="bg-surface border border-outline-variant rounded-[16px] p-4 flex flex-col items-center justify-center gap-2 hover:bg-surface-container-low transition-all shadow-ambient hover:-translate-y-0.5 group">
+<a href="pages/roadmaps.html" class="bg-surface border border-outline-variant rounded-[16px] p-4 flex flex-col items-center justify-center gap-2 hover:bg-surface-container-low transition-all shadow-ambient hover:-translate-y-0.5 group cursor-pointer">
 <div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant group-hover:scale-110 transition-transform">
 <span class="material-symbols-outlined">map</span>
 </div>
-<span class="font-label-md text-label-md text-on-surface">View Roadmap</span>
-</button>
+<span class="font-label-md text-label-md text-on-surface font-medium">View Roadmap</span>
+</a>
 </div>
 </div>
 <!-- New Section: Insights & Activity -->

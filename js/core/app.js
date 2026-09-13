@@ -2,6 +2,14 @@
  * DevPilot-AI - Main Application Controller
  */
 
+// Strictly enforce Light Mode across all sections
+(function () {
+  document.documentElement.classList.remove('dark');
+  try {
+    localStorage.removeItem('devpilot-theme');
+  } catch (e) {}
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
   initSidebar();
   highlightActiveRoute();

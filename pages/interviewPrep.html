@@ -34,7 +34,6 @@
   <link rel="stylesheet" href="../css/pages/interviewPrep.css"/>
   <link rel="stylesheet" href="../css/base/responsive.css"/>
 
-  <script src="../js/core/theme.js"></script>
   <script>
     (function () {
       const htmlDoc = document.documentElement;
@@ -169,37 +168,28 @@
     </div>
   </aside>
 
-  <!-- Main Workspace Area -->
-  <main class="md:ml-[260px] min-h-screen p-6 sm:p-8 flex flex-col transition-all duration-300" id="main-content">
-    
-    <!-- Page Header (Exact Image 2 / resume.html Pattern) -->
-    <div class="flex items-center justify-between gap-3 mb-2 no-print">
-      <div class="flex items-center gap-3">
-        <button class="mobile-nav-toggle md:hidden" id="mobile-menu-trigger" aria-label="Open Sidebar">
-          <span class="material-symbols-outlined">menu</span>
-        </button>
-        <div>
-          <h1 class="page-title">
-            <span class="material-symbols-outlined text-indigo-600 dark:text-indigo-400" style='font-variation-settings: "FILL" 1; font-size:28px;'>work</span>
-            Interview Preparation
-          </h1>
-          <p class="page-subtitle">Prepare for aptitude tests, communication rounds, technical interviews, and placement assessments.</p>
+  <!-- Main Content Area -->
+  <main class="md:ml-[260px] min-h-screen p-6 sm:p-8" id="main-content">
+    <div class="ip-container">
+      
+      <!-- Page Header Bar (Exact DSA Roadmap Pattern) -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-200 dark:border-slate-800 no-print">
+        <div class="flex items-center gap-3">
+          <button class="mobile-nav-toggle md:hidden p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg" id="mobile-menu-trigger" aria-label="Open Sidebar">
+            <span class="material-symbols-outlined">menu</span>
+          </button>
+          <div>
+            <h1 class="page-title text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">Interview Preparation</h1>
+            <p class="page-subtitle text-slate-500 dark:text-slate-400 text-sm mt-0.5">Prepare for aptitude tests, communication rounds, technical interviews, and placement assessments.</p>
+          </div>
         </div>
+
       </div>
-      <button id="theme-toggle" class="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all" aria-label="Toggle theme" title="Toggle theme">
-        <span class="material-symbols-outlined" id="theme-toggle-icon">light_mode</span>
-      </button>
-    </div>
-
-    <div class="rws-divider mb-8"></div>
-
-    <!-- Page Body Container -->
-    <div class="flex-1 ip-container">
-      <!-- 4 Top Metrics Cards -->
+      <!-- 4 Top Metrics Cards (Matching DevPilot Design System) -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="ip-metric-card">
-          <div class="ip-metric-icon bg-blue-500/10 text-blue-600 dark:text-blue-400">
-            <span class="material-symbols-outlined text-2xl">quiz</span>
+        <div class="dev-card p-4 flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-900/40">
+            <span class="material-symbols-outlined text-2xl" style='font-variation-settings: "FILL" 1;'>quiz</span>
           </div>
           <div>
             <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Attempted</div>
@@ -207,9 +197,9 @@
           </div>
         </div>
 
-        <div class="ip-metric-card">
-          <div class="ip-metric-icon bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-            <span class="material-symbols-outlined text-2xl">verified</span>
+        <div class="dev-card p-4 flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-900/40">
+            <span class="material-symbols-outlined text-2xl" style='font-variation-settings: "FILL" 1;'>verified</span>
           </div>
           <div>
             <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Overall Accuracy</div>
@@ -217,9 +207,9 @@
           </div>
         </div>
 
-        <div class="ip-metric-card">
-          <div class="ip-metric-icon bg-purple-500/10 text-purple-600 dark:text-purple-400">
-            <span class="material-symbols-outlined text-2xl">category</span>
+        <div class="dev-card p-4 flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 border border-purple-100 dark:border-purple-900/40">
+            <span class="material-symbols-outlined text-2xl" style='font-variation-settings: "FILL" 1;'>category</span>
           </div>
           <div>
             <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Categories</div>
@@ -227,9 +217,9 @@
           </div>
         </div>
 
-        <div class="ip-metric-card">
-          <div class="ip-metric-icon bg-amber-500/10 text-amber-600 dark:text-amber-400">
-            <span class="material-symbols-outlined text-2xl">checklist</span>
+        <div class="dev-card p-4 flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-100 dark:border-amber-900/40">
+            <span class="material-symbols-outlined text-2xl" style='font-variation-settings: "FILL" 1;'>checklist</span>
           </div>
           <div>
             <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Core Checklists</div>
@@ -239,32 +229,32 @@
       </div>
 
       <!-- Quick Resume Banner -->
-      <div id="ipResumeBanner" class="ip-resume-banner hidden"></div>
+      <div id="ipResumeBanner" class="hidden"></div>
 
-      <!-- Mode Navigation Tabs -->
-      <div class="ip-mode-tabs">
-        <button class="ip-mode-tab active" data-mode="categories">
-          <span class="material-symbols-outlined text-sm">grid_view</span>
+      <!-- Mode Navigation Tabs (Matching .filter-tabs) -->
+      <div class="filter-tabs mb-6" id="ipNavTabs">
+        <button class="filter-tab ip-mode-tab active" data-mode="categories">
+          <span class="material-symbols-outlined text-[18px]">grid_view</span>
           <span>18 Categories</span>
         </button>
-        <button class="ip-mode-tab" data-mode="mockTest">
-          <span class="material-symbols-outlined text-sm">timer</span>
+        <button class="filter-tab ip-mode-tab" data-mode="mockTest">
+          <span class="material-symbols-outlined text-[18px]">timer</span>
           <span>60-Min Mock Test</span>
         </button>
-        <button class="ip-mode-tab" data-mode="technical">
-          <span class="material-symbols-outlined text-sm">code</span>
+        <button class="filter-tab ip-mode-tab" data-mode="technical">
+          <span class="material-symbols-outlined text-[18px]">code</span>
           <span>Technical Tracks</span>
         </button>
-        <button class="ip-mode-tab" data-mode="weakTopics">
-          <span class="material-symbols-outlined text-sm">healing</span>
+        <button class="filter-tab ip-mode-tab" data-mode="weakTopics">
+          <span class="material-symbols-outlined text-[18px]">healing</span>
           <span>Weak Topics</span>
         </button>
-        <button class="ip-mode-tab" data-mode="checklists">
-          <span class="material-symbols-outlined text-sm">checklist_rtl</span>
+        <button class="filter-tab ip-mode-tab" data-mode="checklists">
+          <span class="material-symbols-outlined text-[18px]">checklist_rtl</span>
           <span>Core CS Checklists</span>
         </button>
-        <button class="ip-mode-tab" data-mode="gdHr">
-          <span class="material-symbols-outlined text-sm">forum</span>
+        <button class="filter-tab ip-mode-tab" data-mode="gdHr">
+          <span class="material-symbols-outlined text-[18px]">forum</span>
           <span>GD & HR Prep</span>
         </button>
       </div>

@@ -1,77 +1,74 @@
-/* css/pages/interviewPrep.css
- * DevPilot-AI — Interview Preparation Stylesheet
- * Responsive, modern dual-themed aesthetics (Image 2 Light Mode & Image 1 Dark Mode).
- */
+/* ==========================================================================
+   DevPilot-AI — Interview Preparation Stylesheet
+   100% harmonized with DevPilot AI Core Design System, Components & Tokens
+   ========================================================================== */
 
 :root {
-  --ip-primary: #4f46e5;
-  --ip-primary-hover: #4338ca;
-  --ip-primary-light: rgba(79, 70, 229, 0.1);
-  --ip-success: #10b981;
-  --ip-success-light: rgba(16, 185, 129, 0.1);
-  --ip-danger: #ef4444;
-  --ip-danger-light: rgba(239, 68, 68, 0.1);
-  --ip-warning: #f59e0b;
-  --ip-warning-light: rgba(245, 158, 11, 0.1);
+  --ip-primary: var(--color-primary);
+  --ip-primary-hover: var(--color-primary-hover);
+  --ip-primary-light: var(--color-primary-light);
+  --ip-success: var(--color-success);
+  --ip-success-light: var(--color-success-bg);
+  --ip-danger: var(--color-error);
+  --ip-danger-light: var(--color-error-bg);
+  --ip-warning: var(--color-warning);
+  --ip-warning-light: var(--color-warning-bg);
 
-  /* Light Theme Colors (Matching Dashboard Image 2) */
-  --ip-card-bg: #ffffff;
-  --ip-card-border: #e2e8f0;
-  --ip-card-hover: #f8fafc;
-  --ip-card-hover-border: #cbd5e1;
-  --ip-item-bg: #f8fafc;
-  --ip-item-border: #e2e8f0;
-  --ip-item-hover: #f1f5f9;
-  --ip-text-main: #0f172a;
-  --ip-text-muted: #64748b;
-  --ip-badge-bg: #e2e8f0;
-  --ip-badge-text: #475569;
-  --ip-tab-bg: transparent;
-  --ip-tab-text: #64748b;
-  --ip-tab-hover-bg: #f1f5f9;
-  --ip-tab-hover-text: #0f172a;
-  --ip-tab-active-bg: #4f46e5;
+  --ip-card-bg: var(--color-surface);
+  --ip-card-border: var(--color-outline-variant);
+  --ip-card-hover: var(--color-surface-container);
+  --ip-card-hover-border: rgba(79, 70, 229, 0.4);
+  --ip-item-bg: var(--color-surface);
+  --ip-item-border: var(--color-outline-variant);
+  --ip-item-hover: var(--color-surface-container);
+  --ip-text-main: var(--color-on-surface);
+  --ip-text-muted: var(--color-on-surface-variant);
+  --ip-badge-bg: var(--color-surface-container);
+  --ip-badge-text: var(--color-on-surface-variant);
+  --ip-tab-bg: var(--color-surface);
+  --ip-tab-text: var(--color-on-surface-variant);
+  --ip-tab-hover-bg: var(--color-surface-container);
+  --ip-tab-hover-text: var(--color-primary);
+  --ip-tab-active-bg: var(--color-primary);
   --ip-tab-active-text: #ffffff;
-  --ip-banner-bg: linear-gradient(135deg, #eef2ff 0%, #ffffff 100%);
-  --ip-banner-border: #c7d2fe;
+  --ip-banner-bg: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, var(--color-surface) 100%);
+  --ip-banner-border: var(--color-outline-variant);
 }
 
-html.dark {
-  --ip-primary: #3b82f6;
-  --ip-primary-hover: #2563eb;
-  --ip-primary-light: rgba(59, 130, 246, 0.15);
-  --ip-success: #10b981;
-  --ip-success-light: rgba(16, 185, 129, 0.15);
-  --ip-danger: #ef4444;
-  --ip-danger-light: rgba(239, 68, 68, 0.15);
-  --ip-warning: #f59e0b;
-  --ip-warning-light: rgba(245, 158, 11, 0.15);
 
-  /* Dark Theme Colors (Exact Image 1 Aesthetic) */
-  --ip-card-bg: #111827;
-  --ip-card-border: #1f2937;
-  --ip-card-hover: #161f30;
-  --ip-card-hover-border: #374151;
-  --ip-item-bg: #161f30;
-  --ip-item-border: #1f2937;
-  --ip-item-hover: #1a253c;
-  --ip-text-main: #f3f4f6;
-  --ip-text-muted: #9ca3af;
-  --ip-badge-bg: #1f2937;
-  --ip-badge-text: #9ca3af;
-  --ip-tab-bg: transparent;
-  --ip-tab-text: #9ca3af;
-  --ip-tab-hover-bg: #1f2937;
-  --ip-tab-hover-text: #f3f4f6;
-  --ip-tab-active-bg: #2563eb;
-  --ip-tab-active-text: #ffffff;
-  --ip-banner-bg: linear-gradient(135deg, rgba(30, 58, 138, 0.3) 0%, rgba(17, 24, 39, 0.8) 100%);
-  --ip-banner-border: rgba(59, 130, 246, 0.3);
+/* Typography Consistency with DevPilot AI Workspace */
+.page-title,
+.ip-section-title,
+.ip-cat-title,
+.ip-card-title,
+.ip-question-text,
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-on-surface);
+}
+
+body,
+p,
+span,
+div,
+button,
+input,
+.page-subtitle,
+.ip-section-desc,
+.ip-cat-desc,
+.badge,
+.filter-tab,
+.btn-primary,
+.btn-secondary {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Base Layout & Transitions */
 .ip-container {
-  max-width: 1440px;
+  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 0 4rem;
 }
@@ -84,26 +81,27 @@ html.dark {
 
 /* Metric Banner Cards */
 .ip-metric-card {
-  background: var(--ip-card-bg);
-  border: 1px solid var(--ip-card-border);
-  border-radius: 0.75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
   padding: 1.25rem 1.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-subtle);
 }
 
 .ip-metric-card:hover {
-  border-color: var(--ip-card-hover-border);
+  border-color: rgba(79, 70, 229, 0.3);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
 }
 
 .ip-metric-icon {
   width: 3rem;
   height: 3rem;
-  border-radius: 0.625rem;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -114,7 +112,7 @@ html.dark {
 .ip-resume-banner {
   background: var(--ip-banner-bg);
   border: 1px solid var(--ip-banner-border);
-  border-radius: 0.875rem;
+  border-radius: var(--radius-lg);
   padding: 1.25rem 1.75rem;
   display: flex;
   align-items: center;
@@ -122,46 +120,7 @@ html.dark {
   flex-wrap: wrap;
   gap: 1rem;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-/* Mode Navigation Pills */
-.ip-mode-tabs {
-  display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid var(--ip-card-border);
-  scrollbar-width: thin;
-}
-
-.ip-mode-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1.125rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--ip-tab-text);
-  background: var(--ip-tab-bg);
-  border: 1px solid transparent;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-}
-
-.ip-mode-tab:hover {
-  color: var(--ip-tab-hover-text);
-  background: var(--ip-tab-hover-bg);
-}
-
-.ip-mode-tab.active {
-  color: var(--ip-tab-active-text);
-  background: var(--ip-tab-active-bg);
-  border-color: var(--ip-tab-active-bg);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+  box-shadow: var(--shadow-subtle);
 }
 
 /* Categories Grid */
@@ -172,28 +131,25 @@ html.dark {
 }
 
 .ip-cat-card {
-  background: var(--ip-card-bg);
-  border: 1px solid var(--ip-card-border);
-  border-radius: 0.75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: all 0.25s ease;
+  transition: all var(--transition-normal);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-subtle);
 }
 
 .ip-cat-card:hover {
-  border-color: var(--ip-primary);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: rgba(79, 70, 229, 0.4);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
 }
 
-html.dark .ip-cat-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-}
 
 .ip-cat-header {
   display: flex;
@@ -205,40 +161,34 @@ html.dark .ip-cat-card:hover {
 .ip-cat-icon {
   width: 2.75rem;
   height: 2.75rem;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: rgba(79, 70, 229, 0.1);
-  color: #4f46e5;
-  border: 1px solid rgba(79, 70, 229, 0.2);
-}
-
-html.dark .ip-cat-icon {
-  background: rgba(59, 130, 246, 0.1);
-  color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border: 1px solid rgba(79, 70, 229, 0.15);
+  transition: all var(--transition-fast);
 }
 
 .ip-cat-card:hover .ip-cat-icon {
-  background: var(--ip-primary);
+  background: var(--color-primary);
   color: #ffffff;
-  border-color: var(--ip-primary);
-  transition: background-color 0.2s, color 0.2s;
+  border-color: var(--color-primary);
 }
 
 .ip-cat-title {
   font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--ip-text-main);
+  font-weight: 700;
+  color: var(--color-on-surface);
   margin-bottom: 0.25rem;
 }
 
 .ip-cat-desc {
   font-size: 0.8125rem;
-  color: var(--ip-text-muted);
-  line-height: 1.4;
+  color: var(--color-on-surface-variant);
+  line-height: 1.45;
   margin-bottom: 1.25rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -251,9 +201,9 @@ html.dark .ip-cat-icon {
   align-items: center;
   justify-content: space-between;
   padding-top: 1rem;
-  border-top: 1px solid var(--ip-card-border);
+  border-top: 1px solid var(--color-outline-variant);
   font-size: 0.75rem;
-  color: var(--ip-text-muted);
+  color: var(--color-on-surface-variant);
 }
 
 .ip-cat-actions {
@@ -262,52 +212,49 @@ html.dark .ip-cat-icon {
   margin-top: 1rem;
 }
 
-/* Category Topics Accordion / Drilldown */
+/* Category Topics Grid */
 .ip-topic-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 0.875rem;
   margin-top: 1rem;
 }
 
 .ip-topic-item {
-  background: var(--ip-item-bg);
-  border: 1px solid var(--ip-item-border);
-  border-radius: 0.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
   padding: 0.875rem 1.125rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .ip-topic-item:hover {
-  border-color: var(--ip-card-hover-border);
-  background: var(--ip-item-hover);
+  border-color: var(--color-primary);
+  background: var(--color-surface-container);
 }
 
 .ip-topic-name {
   font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--ip-text-main);
+  font-weight: 600;
+  color: var(--color-on-surface);
 }
 
 /* ======================================================
    QUESTION ENGINE (Interactive Quiz & Immediate Feedback)
 ====================================================== */
 .ip-quiz-card {
-  background: var(--ip-card-bg);
-  border: 1px solid var(--ip-card-border);
-  border-radius: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
   padding: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-card);
   margin-bottom: 2rem;
 }
 
-html.dark .ip-quiz-card {
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-}
 
 .ip-quiz-header {
   display: flex;
@@ -316,14 +263,14 @@ html.dark .ip-quiz-card {
   flex-wrap: wrap;
   gap: 1rem;
   padding-bottom: 1.25rem;
-  border-bottom: 1px solid var(--ip-card-border);
+  border-bottom: 1px solid var(--color-outline-variant);
   margin-bottom: 1.75rem;
 }
 
 .ip-quiz-progress-bar {
   width: 100%;
   height: 6px;
-  background: var(--ip-card-border);
+  background: var(--color-surface-container);
   border-radius: 3px;
   overflow: hidden;
   margin-bottom: 1.5rem;
@@ -335,15 +282,12 @@ html.dark .ip-quiz-card {
   transition: width 0.3s ease;
 }
 
-html.dark .ip-quiz-progress-fill {
-  background: linear-gradient(90deg, #3b82f6, #60a5fa);
-}
 
 .ip-question-text {
   font-size: 1.1875rem;
   font-weight: 600;
   line-height: 1.6;
-  color: var(--ip-text-main);
+  color: var(--color-on-surface);
   margin-bottom: 1.75rem;
 }
 
@@ -359,56 +303,53 @@ html.dark .ip-quiz-progress-fill {
   align-items: flex-start;
   gap: 1rem;
   padding: 1rem 1.25rem;
-  background: var(--ip-item-bg);
-  border: 1.5px solid var(--ip-item-border);
-  border-radius: 0.625rem;
-  color: var(--ip-text-main);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  color: var(--color-on-surface);
   text-align: left;
   font-size: 0.9375rem;
   line-height: 1.5;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-fast);
   position: relative;
   width: 100%;
 }
 
 .ip-option-btn:hover:not(:disabled) {
-  border-color: var(--ip-primary);
-  background: var(--ip-item-hover);
-  color: var(--ip-text-main);
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+  color: var(--color-on-surface);
 }
 
 .ip-option-badge {
   width: 1.75rem;
   height: 1.75rem;
-  border-radius: 0.375rem;
-  background: var(--ip-badge-bg);
-  color: var(--ip-badge-text);
-  font-weight: 600;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-container);
+  color: var(--color-primary);
+  font-weight: 700;
   font-size: 0.8125rem;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
 }
 
 /* Option States upon Answer Submission */
 .ip-option-btn.selected-option {
-  border-color: var(--ip-primary);
-  background: var(--ip-primary-light);
-  color: var(--ip-primary);
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
 }
 
 .ip-option-btn.correct-option {
   border-color: #10b981 !important;
-  background: rgba(16, 185, 129, 0.14) !important;
-  color: #059669 !important;
+  background: rgba(16, 185, 129, 0.12) !important;
+  color: #065f46 !important;
 }
 
-html.dark .ip-option-btn.correct-option {
-  color: #10b981 !important;
-}
 
 .ip-option-btn.correct-option .ip-option-badge {
   background: #10b981 !important;
@@ -417,13 +358,10 @@ html.dark .ip-option-btn.correct-option {
 
 .ip-option-btn.incorrect-option {
   border-color: #ef4444 !important;
-  background: rgba(239, 68, 68, 0.14) !important;
-  color: #dc2626 !important;
+  background: rgba(239, 68, 68, 0.12) !important;
+  color: #b91c1c !important;
 }
 
-html.dark .ip-option-btn.incorrect-option {
-  color: #f87171 !important;
-}
 
 .ip-option-btn.incorrect-option .ip-option-badge {
   background: #ef4444 !important;
@@ -432,12 +370,12 @@ html.dark .ip-option-btn.incorrect-option {
 
 /* Explanation Panel */
 .ip-explanation-panel {
-  background: var(--ip-item-bg);
-  border: 1px solid var(--ip-card-border);
-  border-radius: 0.625rem;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
   padding: 1.25rem 1.5rem;
   margin-top: 1.5rem;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.25s ease;
 }
 
 .ip-explanation-title {
@@ -445,26 +383,26 @@ html.dark .ip-option-btn.incorrect-option {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 0.5rem;
 }
 
 .ip-explanation-text {
   font-size: 0.875rem;
   line-height: 1.6;
-  color: var(--ip-text-main);
+  color: var(--color-on-surface);
 }
 
 /* Quiz Completion Screen */
 .ip-results-card {
-  background: var(--ip-card-bg);
-  border: 1px solid var(--ip-card-border);
-  border-radius: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
   padding: 2.5rem 2rem;
   text-align: center;
   max-width: 640px;
   margin: 0 auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-card);
 }
 
 .ip-score-circle {
@@ -477,14 +415,14 @@ html.dark .ip-option-btn.incorrect-option {
   align-items: center;
   justify-content: center;
   position: relative;
-  background: conic-gradient(var(--score-color, #10b981) calc(var(--score-percent, 80) * 1%), var(--ip-card-border) 0);
+  background: conic-gradient(var(--score-color, #10b981) calc(var(--score-percent, 80) * 1%), var(--color-outline-variant) 0);
 }
 
 .ip-score-inner {
   width: 116px;
   height: 116px;
   border-radius: 50%;
-  background: var(--ip-card-bg);
+  background: var(--color-surface);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -499,9 +437,9 @@ html.dark .ip-option-btn.incorrect-option {
 }
 
 .ip-results-stat {
-  background: var(--ip-item-bg);
-  border: 1px solid var(--ip-item-border);
-  border-radius: 0.5rem;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
   padding: 1rem;
 }
 
@@ -519,10 +457,10 @@ html.dark .ip-option-btn.incorrect-option {
 .ip-mock-banner {
   background: var(--ip-banner-bg);
   border: 1px solid var(--ip-banner-border);
-  border-radius: 1rem;
+  border-radius: var(--radius-lg);
   padding: 2rem;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-subtle);
 }
 
 .ip-timer-badge {
@@ -533,9 +471,9 @@ html.dark .ip-option-btn.incorrect-option {
   font-size: 1.125rem;
   font-weight: 700;
   padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  background: var(--ip-item-bg);
-  border: 1px solid var(--ip-card-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
   color: #10b981;
 }
 
@@ -550,9 +488,9 @@ html.dark .ip-option-btn.incorrect-option {
   grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
   gap: 0.5rem;
   padding: 1rem;
-  background: var(--ip-item-bg);
-  border: 1px solid var(--ip-card-border);
-  border-radius: 0.5rem;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
   max-height: 280px;
   overflow-y: auto;
 }
@@ -560,47 +498,47 @@ html.dark .ip-option-btn.incorrect-option {
 .ip-qnav-btn {
   width: 36px;
   height: 36px;
-  border-radius: 0.375rem;
-  background: var(--ip-card-bg);
-  color: var(--ip-text-muted);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-on-surface-variant);
   font-size: 0.8125rem;
   font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 1px solid var(--ip-card-border);
-  transition: all 0.15s;
+  border: 1px solid var(--color-outline-variant);
+  transition: all var(--transition-fast);
 }
 
 .ip-qnav-btn:hover {
-  background: var(--ip-item-hover);
-  color: var(--ip-text-main);
-  border-color: var(--ip-primary);
+  background: var(--color-surface-container);
+  color: var(--color-on-surface);
+  border-color: var(--color-primary);
 }
 
 .ip-qnav-btn.answered {
-  background: #065f46;
-  color: #34d399;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
   border-color: #10b981;
 }
 
 .ip-qnav-btn.current {
-  border-color: var(--ip-primary);
-  color: var(--ip-primary);
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.4);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3);
 }
 
 /* ======================================================
    CORE SUBJECT CHECKLISTS TAB
 ====================================================== */
 .ip-checklist-card {
-  background: var(--ip-card-bg);
-  border: 1px solid var(--ip-card-border);
-  border-radius: 0.75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
   overflow: hidden;
   margin-bottom: 1.25rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-subtle);
 }
 
 .ip-checklist-header {
@@ -609,13 +547,13 @@ html.dark .ip-option-btn.incorrect-option {
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  background: var(--ip-item-bg);
-  border-bottom: 1px solid var(--ip-card-border);
-  transition: background-color 0.2s;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-outline-variant);
+  transition: background-color var(--transition-fast);
 }
 
 .ip-checklist-header:hover {
-  background: var(--ip-item-hover);
+  background: var(--color-surface-container);
 }
 
 .ip-chk-item {
@@ -623,8 +561,8 @@ html.dark .ip-option-btn.incorrect-option {
   align-items: center;
   gap: 0.875rem;
   padding: 0.75rem 1.5rem;
-  border-bottom: 1px solid var(--ip-card-border);
-  transition: background-color 0.15s;
+  border-bottom: 1px solid var(--color-outline-variant);
+  transition: background-color var(--transition-fast);
 }
 
 .ip-chk-item:last-child {
@@ -632,21 +570,21 @@ html.dark .ip-option-btn.incorrect-option {
 }
 
 .ip-chk-item:hover {
-  background: var(--ip-item-hover);
+  background: var(--color-surface-container);
 }
 
 .ip-chk-box {
   width: 1.25rem;
   height: 1.25rem;
   border-radius: 0.25rem;
-  border: 1.5px solid var(--ip-card-border);
+  border: 1.5px solid var(--color-outline-variant);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  transition: all 0.2s;
-  background: var(--ip-card-bg);
+  transition: all var(--transition-fast);
+  background: var(--color-surface);
 }
 
 .ip-chk-box.checked {
@@ -656,12 +594,12 @@ html.dark .ip-option-btn.incorrect-option {
 }
 
 .ip-chk-label {
-  color: var(--ip-text-main);
+  color: var(--color-on-surface);
   font-size: 0.875rem;
 }
 
 .ip-chk-label.checked {
-  color: var(--ip-text-muted);
+  color: var(--color-on-surface-variant);
   text-decoration: line-through;
 }
 
@@ -669,12 +607,12 @@ html.dark .ip-option-btn.incorrect-option {
    GD & HR INTERVIEW PREPARATION
 ====================================================== */
 .ip-gd-card, .ip-hr-card {
-  background: var(--ip-card-bg);
-  border: 1px solid var(--ip-card-border);
-  border-radius: 0.75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
   margin-bottom: 1.25rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-subtle);
 }
 
 .ip-star-grid {
@@ -685,9 +623,9 @@ html.dark .ip-option-btn.incorrect-option {
 }
 
 .ip-star-box {
-  background: var(--ip-item-bg);
-  border: 1px solid var(--ip-card-border);
-  border-radius: 0.5rem;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
   padding: 1rem;
 }
 
@@ -695,7 +633,7 @@ html.dark .ip-option-btn.incorrect-option {
   display: inline-block;
   font-size: 1.25rem;
   font-weight: 800;
-  color: var(--ip-primary);
+  color: var(--color-primary);
   margin-bottom: 0.25rem;
 }
 

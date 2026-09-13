@@ -4,6 +4,13 @@
  * progressive project milestones, job-ready checklist, and skill detail modal.
  */
 
+/* Layout & Page Container (Exact DSA Pattern) */
+.roadmap-page-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
 /* ==========================================================================
    1. Catalog & Role Cards
    ========================================================================== */
