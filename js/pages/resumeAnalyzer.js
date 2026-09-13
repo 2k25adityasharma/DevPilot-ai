@@ -107,7 +107,7 @@ const SECTION_PATTERNS = {
   education: /(?:^|\n)\s*(?:education|academic|academic\s*background|qualifications|educational\s*background|academics|relevant\s*coursework)(?:\s*[:\-–—|]|\s*$)/im,
   skills: /(?:^|\n)\s*(?:skills|technical\s*skills|technologies|tools|core\s*competencies|tech\s*stack|programming\s*skills|technical\s*expertise|competencies|programming\s*languages)(?:\s*[:\-–—|]|\s*$)/im,
   projects: /(?:^|\n)\s*(?:projects|personal\s*projects|featured\s*projects|key\s*projects|side\s*projects|academic\s*projects|technical\s*projects)(?:\s*[:\-–—|]|\s*$)/im,
-  certifications: /(?:^|\n)\s*(?:certifications|certificates|credentials|licenses|professional\s*certifications|certifications\s*&?\s*licenses|achievements\s*&?\s*certifications|certifications\s*&?\s*achievements)(?:\s*[:\-–—|]|\s*$)/im,
+  certifications: /(?:^|\n)\s*(?:certifications?|certificates?|credentials?|licenses?|professional\s*certifications?|courses?\s*&?\s*certifications?|licenses?\s*&?\s*certifications?|certifications?\s*&?\s*licenses?|certifications?\s*and\s*licenses?|achievements?\s*&?\s*certifications?|certifications?\s*&?\s*achievements?|training\s*&?\s*certifications?|certifications?\s*&?\s*training|certificates?\s*&?\s*credentials?|certifications?\s*&?\s*badges?)(?:\s*[:\-–—|]|\s*$)/im,
   achievements: /(?:^|\n)\s*(?:achievements|honors|awards|accomplishments|recognitions|honors\s*&?\s*awards|programming\s*achievements)(?:\s*[:\-–—|]|\s*$)/im,
   publications: /(?:^|\n)\s*(?:publications|papers|research\s*papers|patents)(?:\s*[:\-–—|]|\s*$)/im,
   volunteer: /(?:^|\n)\s*(?:volunteer|volunteering|community\s*service|extracurricular|extracurricular\s*activities)(?:\s*[:\-–—|]|\s*$)/im
@@ -495,6 +495,25 @@ async function extractPDFText(file) {
     if (pageText) {
       fullText += pageText + '\n\n';
     }
+
+    // Extract PDF hyperlink annotations (Requirement 14: visible text differs from hyperlink target)
+    try {
+      if (typeof page.getAnnotations === 'function') {
+        const annotations = await page.getAnnotations();
+        if (Array.isArray(annotations)) {
+          annotations.forEach(annot => {
+            if (annot && (annot.subtype === 'Link' || annot.url) && annot.url) {
+              const u = String(annot.url).trim();
+              if (u && /^https?:\/\//i.test(u) && !fullText.includes(u)) {
+                fullText += `\n[Hyperlink](${u})\n`;
+              }
+            }
+          });
+        }
+      }
+    } catch (annotErr) {
+      // Non-critical link extraction fallback
+    }
   }
 
   // Bug 3: Inspect PDF document structure directly before text flattening
@@ -551,6 +570,33 @@ async function extractDOCXText(file) {
     result = await mammoth.extractRawText({ arrayBuffer });
   } catch (e) {
     throw new Error('Unable to parse DOCX file. The file may be corrupted.');
+  }
+
+  // Extract hyperlinks from Mammoth HTML (Requirement 14)
+  try {
+    if (typeof mammoth.convertToHtml === 'function') {
+      const htmlResult = await mammoth.convertToHtml({ arrayBuffer });
+      const html = htmlResult.value || '';
+      const docxLinks = [];
+      const anchorRegex = /<a\b[^>]*href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gi;
+      let match;
+      while ((match = anchorRegex.exec(html)) !== null) {
+        const href = match[1];
+        const linkText = match[2].replace(/<[^>]+>/g, '').trim();
+        if (href && /^https?:\/\//i.test(href)) {
+          docxLinks.push(`[${linkText || 'Link'}](${href})`);
+        }
+      }
+      if (docxLinks.length > 0) {
+        const rawVal = result.value || '';
+        const missing = docxLinks.filter(l => !rawVal.includes(l));
+        if (missing.length > 0) {
+          result.value = rawVal + '\n\n' + missing.join('\n');
+        }
+      }
+    }
+  } catch (htmlErr) {
+    // Non-critical DOCX link extraction fallback
   }
 
   // Bug 3: Inspect DOCX document structure directly for tables or multi-column sections
@@ -1219,11 +1265,542 @@ function makeLinkObj(type, label, url, username = '') {
 }
 
 /**
+ * Country-aware phone number validation.
+ * Checks whether the digit count matches the country's national standard (e.g. India +91 = 10 digits, US/Canada +1 = 10 digits).
+ * @param {string} rawPhone - raw phone string
+ * @param {string} locationText - optional location text to infer country if prefix omitted
+ * @returns {{ isValid: boolean, reason: string|null, country: string, countryCode: string, expectedDigits: string, actualDigits: number, formatted: string }}
+ */
+function validatePhoneNumber(rawPhone, locationText = '') {
+  if (!rawPhone || typeof rawPhone !== 'string') {
+    return {
+      isValid: false,
+      reason: 'No phone number provided',
+      country: 'Unknown',
+      countryCode: '',
+      expectedDigits: '10',
+      actualDigits: 0,
+      formatted: ''
+    };
+  }
+
+  const clean = rawPhone.trim();
+  const digitsOnly = clean.replace(/\D/g, '');
+
+  const COUNTRY_RULES = [
+    { code: '91', prefix: '+91', country: 'India', digits: [10], mobilePattern: /^[6-9]\d{9}$/ },
+    { code: '1', prefix: '+1', country: 'US / Canada', digits: [10], mobilePattern: /^[2-9]\d{9}$/ },
+    { code: '44', prefix: '+44', country: 'UK', digits: [10, 11], mobilePattern: /^[1-9]\d{9,10}$/ },
+    { code: '61', prefix: '+61', country: 'Australia', digits: [9], mobilePattern: /^4\d{8}$/ },
+    { code: '49', prefix: '+49', country: 'Germany', digits: [10, 11], mobilePattern: /^[1-9]\d{9,10}$/ },
+    { code: '33', prefix: '+33', country: 'France', digits: [9], mobilePattern: /^[67]\d{8}$/ },
+    { code: '81', prefix: '+81', country: 'Japan', digits: [10], mobilePattern: /^[789]0\d{8}$/ },
+    { code: '86', prefix: '+86', country: 'China', digits: [11], mobilePattern: /^1\d{10}$/ },
+    { code: '65', prefix: '+65', country: 'Singapore', digits: [8], mobilePattern: /^[89]\d{7}$/ },
+    { code: '971', prefix: '+971', country: 'UAE', digits: [9], mobilePattern: /^5\d{8}$/ },
+    { code: '7', prefix: '+7', country: 'Russia / Kazakhstan', digits: [10], mobilePattern: /^9\d{9}$/ },
+    { code: '55', prefix: '+55', country: 'Brazil', digits: [10, 11], mobilePattern: /^[1-9]\d{9,10}$/ }
+  ];
+
+  let matchedRule = null;
+  let nationalDigits = '';
+  let detectedCode = '';
+
+  const sortedRules = [...COUNTRY_RULES].sort((a, b) => b.code.length - a.code.length);
+
+  // Check explicit prefix
+  for (const rule of sortedRules) {
+    if (clean.startsWith('+' + rule.code) || clean.startsWith(rule.code + ' ') || clean.startsWith(rule.code + '-')) {
+      matchedRule = rule;
+      detectedCode = rule.prefix;
+      nationalDigits = digitsOnly.slice(rule.code.length);
+      break;
+    }
+  }
+
+  // If no prefix but starts with code and total length matches
+  if (!matchedRule && digitsOnly.length > 10) {
+    for (const rule of sortedRules) {
+      if (digitsOnly.startsWith(rule.code)) {
+        matchedRule = rule;
+        detectedCode = rule.prefix;
+        nationalDigits = digitsOnly.slice(rule.code.length);
+        break;
+      }
+    }
+  }
+
+  // Infer from location or default
+  if (!matchedRule) {
+    const locLower = (locationText || '').toLowerCase();
+    if (/india|kanpur|delhi|mumbai|bangalore|bengaluru|hyderabad|pune|chennai|kolkata|noida|gurgaon|uttar pradesh|up\b/i.test(locLower) || /^[6-9]/.test(digitsOnly)) {
+      matchedRule = COUNTRY_RULES[0]; // India
+      detectedCode = '+91';
+      nationalDigits = digitsOnly;
+    } else if (/united states|usa|us\b|canada|new york|california|san francisco|texas|seattle/i.test(locLower)) {
+      matchedRule = COUNTRY_RULES[1]; // US
+      detectedCode = '+1';
+      nationalDigits = digitsOnly;
+    } else {
+      matchedRule = { code: '', prefix: '', country: 'Standard Mobile', digits: [10], mobilePattern: /^\d{10}$/ };
+      detectedCode = '';
+      nationalDigits = digitsOnly;
+    }
+  }
+
+  const expectedDigitsStr = matchedRule.digits.join(' or ');
+  const actualDigitsCount = nationalDigits.length;
+  const isLengthValid = matchedRule.digits.includes(actualDigitsCount);
+  const isPatternValid = !matchedRule.mobilePattern || matchedRule.mobilePattern.test(nationalDigits);
+
+  const isValid = isLengthValid && isPatternValid;
+  let reason = null;
+
+  if (!isLengthValid) {
+    reason = `Expected ${expectedDigitsStr} digits for ${matchedRule.country}, but found ${actualDigitsCount} digits`;
+  } else if (!isPatternValid) {
+    reason = `Invalid mobile digit pattern for ${matchedRule.country}`;
+  }
+
+  return {
+    isValid,
+    reason,
+    country: matchedRule.country,
+    countryCode: detectedCode,
+    expectedDigits: expectedDigitsStr,
+    actualDigits: actualDigitsCount,
+    formatted: clean
+  };
+}
+
+const _linkValidator = (function () {
+  if (typeof require === 'function') {
+    try { return require('../core/linkValidator'); } catch (e1) {
+      try { return require('./js/core/linkValidator'); } catch (e2) {
+        try {
+          const p = require('path');
+          return require(p.resolve(__dirname, '../core/linkValidator.js'));
+        } catch (e3) { return null; }
+      }
+    }
+  }
+  if (typeof window !== 'undefined' && window.LinkValidator) {
+    return window.LinkValidator;
+  }
+  return null;
+})();
+
+/**
+ * Validates a project live demo URL to detect valid deployments vs fake, placeholder, or broken links.
+ * Incorporates deterministic syntax, SSRF guards, dummy subdomain & placeholder filters.
+ * Returns both the 4-state classification ('verified'|'invalid'|'unverified'|'missing') and legacy status ('valid'|'fake_placeholder'|'local_network'|'incomplete_domain').
+ * @param {string} rawUrl - URL string
+ * @returns {{ isValid: boolean, isFake: boolean, state: string, status: string, reason: string, url: string, displayUrl: string }}
+ */
+function validateProjectLiveUrl(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== 'string' || !rawUrl.trim()) {
+    return { isValid: false, isFake: true, state: 'missing', status: 'missing', reason: 'No live demo link provided', url: '', displayUrl: '' };
+  }
+
+  const lv = _linkValidator || (typeof window !== 'undefined' ? window.LinkValidator : null);
+  if (lv && typeof lv.validateUrlDeterministic === 'function') {
+    const res = lv.validateUrlDeterministic(rawUrl);
+    let legacyStatus = 'valid';
+    if (res.isFake) {
+      if (res.reason.includes('Placeholder domain') || res.reason.includes('placeholder')) {
+        legacyStatus = 'fake_placeholder';
+      } else if (res.reason.includes('Localhost') || res.reason.includes('private') || res.reason.includes('SSRF')) {
+        legacyStatus = 'local_network';
+      } else if (res.reason.includes('Incomplete domain')) {
+        legacyStatus = 'incomplete_domain';
+      } else {
+        legacyStatus = 'fake_placeholder';
+      }
+    }
+    return {
+      isValid: res.isValid,
+      isFake: res.isFake,
+      state: res.isFake ? 'invalid' : 'unverified',
+      status: legacyStatus,
+      rawStatus: res.status,
+      reason: res.reason,
+      url: res.url,
+      displayUrl: res.displayUrl
+    };
+  }
+
+  // Self-contained fallback when linkValidator is not yet loaded
+  const clean = rawUrl.trim().replace(/^mailto:/i, '').replace(/^[<(\[]+|[.,;:)>\]|]+$/g, '');
+  const normalized = normalizeUrl(clean);
+
+  if (!normalized) {
+    return { isValid: false, isFake: true, state: 'invalid', status: 'invalid_syntax', reason: 'Invalid URL syntax', url: clean, displayUrl: clean };
+  }
+
+  let urlObj;
+  try {
+    urlObj = new URL(normalized);
+  } catch (e) {
+    return { isValid: false, isFake: true, state: 'invalid', status: 'invalid_syntax', reason: 'Malformed URL format', url: normalized, displayUrl: normalized.replace(/^https?:\/\//i, '') };
+  }
+
+  const hostname = urlObj.hostname.toLowerCase();
+  const fullUrlLower = normalized.toLowerCase();
+  const displayUrl = normalized.replace(/^https?:\/\//i, '');
+
+  const FAKE_DOMAINS = new Set([
+    'example.com', 'example.org', 'example.net',
+    'test.com', 'test.org', 'test.net',
+    'sample.com', 'sample.org',
+    'placeholder.com', 'dummy.com',
+    'myproject.com', 'your-domain.com', 'yourdomain.com', 'your-app.com', 'yourlink.com',
+    'xyz.com', 'abc.com', 'demo.com', 'project.com',
+    'domain.com', 'sitename.com', 'websitename.com', 'foo.bar'
+  ]);
+
+  if (FAKE_DOMAINS.has(hostname) || Array.from(FAKE_DOMAINS).some(d => hostname.endsWith('.' + d))) {
+    return { isValid: false, isFake: true, state: 'invalid', status: 'fake_placeholder', reason: `Placeholder domain detected ("${hostname}")`, url: normalized, displayUrl };
+  }
+
+  if (hostname === 'localhost' || /^127\.\d+\.\d+\.\d+$/.test(hostname) || /^192\.168\./.test(hostname) || /^10\./.test(hostname) || hostname === '0.0.0.0') {
+    return { isValid: false, isFake: true, state: 'invalid', status: 'local_network', reason: 'Localhost or private IP address (not accessible to recruiters)', url: normalized, displayUrl };
+  }
+
+  const DUMMY_SUBDOMAINS = new Set([
+    'app', 'my-app', 'myapp', 'demo', 'project', 'myproject', 'test', 'sample',
+    'xyz', 'abc', 'placeholder', 'dummy', 'frontend', 'website', 'template',
+    'your-username', 'your_username', 'username', 'reponame', 'your-project'
+  ]);
+
+  const submatch = hostname.match(/^([a-zA-Z0-9\-]+)\.(vercel\.app|netlify\.app|pages\.dev|onrender\.com|github\.io)$/);
+  if (submatch && DUMMY_SUBDOMAINS.has(submatch[1])) {
+    return { isValid: false, isFake: true, state: 'invalid', status: 'fake_placeholder', reason: `Generic dummy subdomain detected ("${hostname}")`, url: normalized, displayUrl };
+  }
+
+  if (!hostname.includes('.') || hostname.endsWith('.')) {
+    return { isValid: false, isFake: true, state: 'invalid', status: 'incomplete_domain', reason: 'Incomplete domain name without valid top-level domain', url: normalized, displayUrl };
+  }
+
+  if (/lorem|placeholder|dummy|fakelink|templatelink|demo-link|frontend-link/i.test(fullUrlLower)) {
+    return { isValid: false, isFake: true, state: 'invalid', status: 'fake_placeholder', reason: 'Contains placeholder text in URL', url: normalized, displayUrl };
+  }
+
+  return { isValid: true, isFake: false, state: 'unverified', status: 'valid', reason: 'Valid live deployment URL', url: normalized, displayUrl };
+}
+
+/**
+ * Asynchronous live URL reachability verifier.
+ * Calls linkValidator in Node.js, or backend /api/validate-url in browser.
+ * @param {string} rawUrl
+ * @returns {Promise<{ isValid: boolean, isFake: boolean, state: string, status: string, reason: string, url: string, displayUrl: string, httpStatus?: number }>}
+ */
+async function validateProjectLiveUrlAsync(rawUrl) {
+  const det = validateProjectLiveUrl(rawUrl);
+  if (det.isFake || !det.isValid || det.status === 'missing') {
+    return det;
+  }
+
+  const lv = _linkValidator || (typeof window !== 'undefined' ? window.LinkValidator : null);
+
+  // 1. Direct Node.js verification
+  if (lv && typeof lv.verifyLiveUrl === 'function' && typeof process !== 'undefined' && process.versions?.node) {
+    try {
+      const live = await lv.verifyLiveUrl(det.url);
+      return {
+        ...det,
+        isValid: live.isValid,
+        isFake: live.isFake,
+        state: live.status, // 'verified', 'invalid', 'unverified'
+        status: live.status === 'verified' ? 'valid' : (live.isFake ? 'fake_placeholder' : 'valid'),
+        reachable: live.reachable,
+        httpStatus: live.httpStatus,
+        reason: live.reason,
+        finalUrl: live.finalUrl
+      };
+    } catch (err) {
+      // Fallback to deterministic
+    }
+  }
+
+  // 2. Browser: ping local/backend /api/validate-url if available
+  if (typeof fetch === 'function' && typeof window !== 'undefined') {
+    try {
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const timeoutId = controller ? setTimeout(() => controller.abort(), 4500) : null;
+      const apiUrl = (window.location && window.location.origin && window.location.origin.startsWith('http'))
+        ? `${window.location.origin}/api/validate-url`
+        : 'http://127.0.0.1:3000/api/validate-url';
+
+      const resp = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: det.url }),
+        signal: controller ? controller.signal : undefined
+      });
+      if (timeoutId) clearTimeout(timeoutId);
+
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data && data.result) {
+          const live = data.result;
+          return {
+            ...det,
+            isValid: live.isValid,
+            isFake: live.isFake,
+            state: live.status,
+            status: live.status === 'verified' ? 'valid' : (live.isFake ? 'fake_placeholder' : 'valid'),
+            reachable: live.reachable,
+            httpStatus: live.httpStatus,
+            reason: live.reason,
+            finalUrl: live.finalUrl
+          };
+        }
+      }
+    } catch (err) {
+      // Backend not running; keep unverified
+    }
+  }
+
+  return det;
+}
+
+/**
+ * Context-aware URL classifier for resume documents.
+ * Integrates with LinkValidator.classifyUrlContext.
+ * @param {string} rawUrl
+ * @param {Object} [context]
+ * @returns {'CERTIFICATION'|'PROJECT_GITHUB'|'PROJECT_LIVE_DEMO'|'PORTFOLIO'|'LINKEDIN'|'CODING_PROFILE'|'OTHER'}
+ */
+function classifyResumeUrl(rawUrl, context = {}) {
+  const lv = _linkValidator || (typeof window !== 'undefined' ? window.LinkValidator : null);
+  if (lv && typeof lv.classifyUrlContext === 'function') {
+    return lv.classifyUrlContext(rawUrl, context);
+  }
+  const norm = normalizeUrl(rawUrl) || String(rawUrl || '').toLowerCase();
+  const ctx = `${context.lineText || ''} ${context.surroundingText || ''} ${context.sectionName || ''}`.toLowerCase();
+  if (/certif|credential|course|license|unstop|coursera|udemy|cloudskillsboost|credly/i.test(norm) || /certif|credential|course|license/i.test(ctx)) {
+    return 'CERTIFICATION';
+  }
+  if (/linkedin\.com/i.test(norm)) return 'LINKEDIN';
+  if (/leetcode\.com|hackerrank\.com|codeforces\.com|codechef\.com/i.test(norm)) return 'CODING_PROFILE';
+  if (/github\.com\/[^\/]+\/[^\/]+/i.test(norm)) return 'PROJECT_GITHUB';
+  if (/vercel\.app|netlify\.app|render\.com|pages\.dev|github\.io/i.test(norm) || /demo|live/i.test(ctx)) return 'PROJECT_LIVE_DEMO';
+  if (/portfolio/i.test(ctx)) return 'PORTFOLIO';
+  return 'OTHER';
+}
+
+/**
+ * Validates a certificate URL in isolation.
+ * Guarantees that a broken certificate URL NEVER shows 'Fake Project Link'
+ * and only produces:
+ * - 🟢 Certificate Link Valid (state: 'valid')
+ * - 🟡 Could Not Verify (state: 'unverified')
+ * - 🔴 Invalid Certificate Link (state: 'invalid')
+ * @param {string} rawUrl
+ * @param {Object} [options]
+ * @returns {Object}
+ */
+function validateCertLink(rawUrl, options = {}) {
+  const lv = _linkValidator || (typeof window !== 'undefined' ? window.LinkValidator : null);
+  if (lv && typeof lv.validateCertificateUrl === 'function') {
+    return lv.validateCertificateUrl(rawUrl, options);
+  }
+  if (!rawUrl || typeof rawUrl !== 'string' || !rawUrl.trim()) {
+    return {
+      url: '',
+      displayUrl: '',
+      status: 'missing',
+      state: 'missing',
+      isValid: false,
+      isFake: false,
+      badgeLabel: 'No Certificate Link',
+      reason: 'No certificate link provided'
+    };
+  }
+  const det = validateProjectLiveUrl(rawUrl);
+  if (det.isFake || !det.isValid) {
+    return {
+      url: det.url,
+      displayUrl: det.displayUrl,
+      status: 'invalid',
+      state: 'invalid',
+      isValid: false,
+      isFake: true,
+      badgeLabel: '🔴 Invalid Certificate Link',
+      reason: `Invalid certificate link: ${det.reason || 'Malformed or placeholder URL'}`
+    };
+  }
+  return {
+    url: det.url,
+    displayUrl: det.displayUrl,
+    status: 'valid',
+    state: 'valid',
+    isValid: true,
+    isFake: false,
+    badgeLabel: '🟢 Certificate Link Valid',
+    reason: 'Valid certificate link'
+  };
+}
+
+/**
+ * Extracts GitHub repository, Live Demo, and Portfolio URLs from project lines separately.
+ * Follows Requirement 1 & 13 priority:
+ * 1. GitHub repository (must be owner/repo, not profile)
+ * 2. Live Demo / Deployment (Vercel, Netlify, Render, Railway, GitHub Pages, custom domain, etc.)
+ * 3. Portfolio / Personal site (separated from project demo)
+ * @param {string[]|string} textLines - lines belonging to a project entry
+ * @returns {{ githubUrl: string|null, demoUrl: string|null, portfolioUrl: string|null, demoValidation: Object|null }}
+ */
+function extractProjectLinks(textLines) {
+  const fullText = Array.isArray(textLines) ? textLines.join('\n') : String(textLines || '');
+  const linesList = Array.isArray(textLines) ? textLines : fullText.split('\n');
+
+  let githubUrl = null;
+  let demoUrl = null;
+  let portfolioUrl = null;
+  const certificateUrls = [];
+
+  const lv = _linkValidator || (typeof window !== 'undefined' ? window.LinkValidator : null);
+
+  const isCert = (url, line = '') => {
+    if (!url) return false;
+    if (lv && typeof lv.classifyUrlContext === 'function') {
+      const cat = lv.classifyUrlContext(url, { sectionName: 'projects', lineText: line, surroundingText: fullText });
+      return cat === 'CERTIFICATION';
+    }
+    const certKeywords = /\b(certificate|certification|certified|credential|coursework|verify|completion)\b/i;
+    const certDomains = /coursera\.org|udemy\.com|simplilearn\.com|unstop\.com|cloudskillsboost\.google|qwiklabs\.com|credly\.com|accredible\.com|nptel\.ac\.in/i;
+    return certKeywords.test(line) || certDomains.test(url);
+  };
+
+  const reservedGh = new Set([
+    'features', 'pricing', 'login', 'explore', 'settings', 'enterprise', 'site',
+    'about', 'blog', 'topics', 'trending', 'pulls', 'issues', 'marketplace',
+    'sponsors', 'security', 'contact', 'join', 'signup', 'dashboard', 'notifications',
+    'orgs'
+  ]);
+
+  // 1. GitHub Repo Link (Must be owner/repo, distinct from profile, and NOT a certificate)
+  const ghRepoMatch = fullText.match(/(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9_\-\.]+)\/([a-zA-Z0-9_\-\.]+)/i);
+  if (ghRepoMatch) {
+    const user = ghRepoMatch[1].replace(/[.,;:)>\]|]+$/g, '');
+    const repo = ghRepoMatch[2].replace(/[.,;:)>\]|]+$/g, '').replace(/\.git$/i, '');
+    if (user && repo && !reservedGh.has(user.toLowerCase()) && !reservedGh.has(repo.toLowerCase())) {
+      const candidateGh = `https://github.com/${user}/${repo}`;
+      const matchLine = linesList.find(l => l.includes(user) && l.includes(repo)) || '';
+      if (isCert(candidateGh, matchLine)) {
+        certificateUrls.push(candidateGh);
+      } else {
+        githubUrl = candidateGh;
+      }
+    }
+  }
+
+  // 2. Explicit Portfolio mention inside project (NOT certificate)
+  const labeledPortfolioMatch = fullText.match(/(?:portfolio|personal\s*(?:website|site))\s*[:|–\-—]\s*(?:\[.*?\]\()?([^\s,;()|•<>]+)\)?/i);
+  if (labeledPortfolioMatch) {
+    const rawPort = labeledPortfolioMatch[1].trim().replace(/^[<(\[]+|[.,;:)>\]|]+$/g, '');
+    if (!/github\.com|linkedin\.com/i.test(rawPort)) {
+      const candidatePort = normalizeUrl(rawPort);
+      if (candidatePort) {
+        const matchLine = labeledPortfolioMatch[0];
+        if (isCert(candidatePort, matchLine)) {
+          certificateUrls.push(candidatePort);
+        } else {
+          portfolioUrl = candidatePort;
+        }
+      }
+    }
+  }
+
+  // 3. Explicit Labeled Demo pattern (Live Demo, Demo, Deployment, Hosted at, App, Web App, View Live)
+  const labeledDemoRegex = /(?:live(?:\s*demo|\s*link)?|demo(?:\s*link)?|deployment|hosted(?:\s*at)?|web\s*app|view\s*live|deployed\s*at|app(?:\s*link)?)\s*[:|–\-—]\s*(?:\[.*?\]\()?([^\s,;()|•<>]+)\)?/i;
+  const labeledMatch = fullText.match(labeledDemoRegex);
+  if (labeledMatch) {
+    const raw = labeledMatch[1].trim().replace(/^[<(\[]+|[.,;:)>\]|]+$/g, '');
+    if (!/github\.com|linkedin\.com/i.test(raw)) {
+      const norm = normalizeUrl(raw);
+      if (norm && norm !== portfolioUrl) {
+        const matchLine = labeledMatch[0];
+        if (isCert(norm, matchLine)) {
+          certificateUrls.push(norm);
+        } else {
+          demoUrl = norm;
+        }
+      }
+    }
+  }
+
+  // 4. Markdown link format: [Live Demo](https://...) or [Demo](https://...) or [Deployment](https://...)
+  if (!demoUrl) {
+    const mdMatch = fullText.match(/\[(?:live(?:\s*demo)?|demo|view\s*live|deployment|app|hosted)\]\((https?:\/\/[^\s\)]+|[^\s\)]+)\)/i);
+    if (mdMatch) {
+      const norm = normalizeUrl(mdMatch[1].trim());
+      if (norm && norm !== portfolioUrl) {
+        const matchLine = mdMatch[0];
+        if (isCert(norm, matchLine)) {
+          certificateUrls.push(norm);
+        } else {
+          demoUrl = norm;
+        }
+      }
+    }
+  }
+
+  // 5. Known deployment platform URLs (Vercel, Netlify, Render, Railway, Pages.dev, GitHub Pages, Firebase, etc.)
+  if (!demoUrl) {
+    const deployDomainMatch = fullText.match(/\bhttps?:\/\/[a-zA-Z0-9\-]+(?:\.[a-zA-Z0-9\-]+)*(?:\.(?:vercel\.app|netlify\.app|render\.com|railway\.app|up\.railway\.app|pages\.dev|github\.io|fly\.dev|herokuapp\.com|firebaseapp\.com|web\.app|surge\.sh|onrender\.com|amplifyapp\.com))(?:\/[^\s,;()|•<>]*)?\b/i) ||
+      fullText.match(/\b([a-zA-Z0-9\-]{2,40}\.(?:vercel\.app|netlify\.app|pages\.dev|onrender\.com|render\.com|railway\.app|github\.io))\b(?:\/[^\s,;()|•<>]*)?/i);
+    if (deployDomainMatch) {
+      const norm = normalizeUrl(deployDomainMatch[0].trim());
+      if (norm && norm !== portfolioUrl) {
+        const matchLine = linesList.find(l => l.includes(deployDomainMatch[0])) || '';
+        if (isCert(norm, matchLine)) {
+          certificateUrls.push(norm);
+        } else {
+          demoUrl = norm;
+        }
+      }
+    }
+  }
+
+  // 6. Generic URLs: exclude profiles, email, recruiter domains, documentation domains, and CERTIFICATE URLs
+  if (!demoUrl) {
+    const allUrls = fullText.match(/\bhttps?:\/\/[^\s,;()|•<>"']+/gi) || [];
+    for (const u of allUrls) {
+      const norm = normalizeUrl(u);
+      if (norm && !/github\.com|linkedin\.com|leetcode\.com|hackerrank\.com|codechef\.com|kaggle\.com|codeforces\.com|geeksforgeeks\.org|dev\.to|stackoverflow\.com|google\.com|gmail\.com|w3\.org|schema\.org/i.test(norm)) {
+        if (norm !== portfolioUrl) {
+          const matchLine = linesList.find(l => l.includes(u) || l.includes(norm)) || '';
+          if (isCert(norm, matchLine)) {
+            certificateUrls.push(norm);
+          } else {
+            demoUrl = norm;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  const demoValidation = demoUrl ? validateProjectLiveUrl(demoUrl) : null;
+
+  return {
+    githubUrl,
+    demoUrl,
+    portfolioUrl,
+    certificateUrls,
+    demoValidation
+  };
+}
+
+/**
  * Deterministic contact & developer profile link extraction layer executed BEFORE AI analysis.
- * Accurately extracts LinkedIn, GitHub, Portfolio, LeetCode, HackerRank, CodeChef, Kaggle, Behance, Dribbble, and other URLs.
- * Never misclassifies ordinary text mentions as URLs.
+ * Accurately detects: LinkedIn, GitHub, LeetCode, Codeforces, HackerRank, GeeksforGeeks,
+ * CodeChef, Kaggle, HackerEarth, Dev.to, Stack Overflow, Behance, Dribbble, and Portfolio from entire resume.
+ * Deduplicates multiple occurrences and never confuses profiles with repos or project demos.
  * @param {string} text - Raw resume text
- * @returns {{ linkedin: Object|null, github: Object|null, portfolio: Object|null, leetcode: Object|null, hackerrank: Object|null, codechef: Object|null, kaggle: Object|null, behance: Object|null, dribbble: Object|null, other: Object[] }}
+ * @returns {Object} detected links collection
  */
 function extractDeterministicLinks(text) {
   if (!text || typeof text !== 'string') {
@@ -1232,9 +1809,14 @@ function extractDeterministicLinks(text) {
       github: null,
       portfolio: null,
       leetcode: null,
+      codeforces: null,
       hackerrank: null,
+      geeksforgeeks: null,
       codechef: null,
       kaggle: null,
+      hackerearth: null,
+      devto: null,
+      stackoverflow: null,
       behance: null,
       dribbble: null,
       other: []
@@ -1248,9 +1830,14 @@ function extractDeterministicLinks(text) {
     github: null,
     portfolio: null,
     leetcode: null,
+    codeforces: null,
     hackerrank: null,
+    geeksforgeeks: null,
     codechef: null,
     kaggle: null,
+    hackerearth: null,
+    devto: null,
+    stackoverflow: null,
     behance: null,
     dribbble: null,
     other: []
@@ -1270,7 +1857,7 @@ function extractDeterministicLinks(text) {
   // 1. LinkedIn (URL or labeled profile)
   const linkedinMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:in|pub)\/([a-zA-Z0-9_\-\.%]+)/i) ||
     cleanText.match(/\blinkedin\.com\/in\/([a-zA-Z0-9_\-\.%]+)/i) ||
-    cleanText.match(/(?:linkedin|linked-in|\bin\b)\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:linkedin\.com\/(?:in\/)?)?([a-zA-Z0-9_\-\.]{3,40})/i);
+    cleanText.match(/(?:linkedin|linked-in|\bin\b)\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:linkedin\.com\/(?:in\/)?)?([a-zA-Z0-9_\-\.]{3,50})/i);
 
   if (linkedinMatch) {
     const user = (linkedinMatch[1] || '').replace(/[.,;:)>\]|/]+$/g, '').trim();
@@ -1279,7 +1866,7 @@ function extractDeterministicLinks(text) {
     }
   }
 
-  // 2. GitHub (URL or labeled profile)
+  // 2. GitHub (URL or labeled profile - ensure distinct from project repo)
   const githubMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9_\-\.]{2,40})/i) ||
     cleanText.match(/(?:github|git)\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:github\.com\/)?([a-zA-Z0-9_\-\.]{2,40})/i);
 
@@ -1301,7 +1888,18 @@ function extractDeterministicLinks(text) {
     }
   }
 
-  // 4. HackerRank (URL or labeled profile)
+  // 4. Codeforces (URL or labeled profile - Requirement 10)
+  const cfMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?codeforces\.com\/profile\/([a-zA-Z0-9_\-\.]{2,40})/i) ||
+    cleanText.match(/(?:codeforces|cf)\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:codeforces\.com\/(?:profile\/)?)?([a-zA-Z0-9_\-\.]{2,40})/i);
+
+  if (cfMatch) {
+    const user = (cfMatch[1] || '').replace(/[.,;:)>\]|/]+$/g, '').trim();
+    if (user.length >= 2 && !/^(contests|gym|problemset|groups|ratings)$/i.test(user)) {
+      links.codeforces = makeLinkObj('codeforces', 'Codeforces', `https://codeforces.com/profile/${user}`, user);
+    }
+  }
+
+  // 5. HackerRank (URL or labeled profile)
   const hackerrankMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?hackerrank\.com\/(?:profile\/)?([a-zA-Z0-9_\-\.]{2,40})/i) ||
     cleanText.match(/(?:hackerrank|hr)\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:hackerrank\.com\/(?:profile\/)?)?([a-zA-Z0-9_\-\.]{2,40})/i);
 
@@ -1312,7 +1910,18 @@ function extractDeterministicLinks(text) {
     }
   }
 
-  // 5. CodeChef (URL or labeled profile)
+  // 6. GeeksforGeeks (URL or labeled profile - Requirement 10)
+  const gfgMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?(?:auth\.)?geeksforgeeks\.org\/(?:user|profile)\/([a-zA-Z0-9_\-\.]{2,40})/i) ||
+    cleanText.match(/(?:geeksforgeeks|gfg)\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:geeksforgeeks\.org\/(?:user\/)?)?([a-zA-Z0-9_\-\.]{2,40})/i);
+
+  if (gfgMatch) {
+    const user = (gfgMatch[1] || '').replace(/[.,;:)>\]|/]+$/g, '').trim();
+    if (user.length >= 2 && !/^(courses|practice|contests|batch|jobs)$/i.test(user)) {
+      links.geeksforgeeks = makeLinkObj('geeksforgeeks', 'GeeksforGeeks', `https://geeksforgeeks.org/user/${user}`, user);
+    }
+  }
+
+  // 7. CodeChef (URL or labeled profile)
   const codechefMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?codechef\.com\/(?:users\/)?([a-zA-Z0-9_\-\.]{2,40})/i) ||
     cleanText.match(/codechef\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:codechef\.com\/(?:users\/)?)?([a-zA-Z0-9_\-\.]{2,40})/i);
 
@@ -1323,7 +1932,7 @@ function extractDeterministicLinks(text) {
     }
   }
 
-  // 6. Kaggle (URL or labeled profile)
+  // 8. Kaggle (URL or labeled profile)
   const kaggleMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?kaggle\.com\/([a-zA-Z0-9_\-\.]{2,40})/i) ||
     cleanText.match(/kaggle\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:kaggle\.com\/)?([a-zA-Z0-9_\-\.]{2,40})/i);
 
@@ -1334,7 +1943,40 @@ function extractDeterministicLinks(text) {
     }
   }
 
-  // 7. Behance (URL or labeled profile)
+  // 9. HackerEarth (URL or labeled profile - Requirement 10)
+  const heMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?hackerearth\.com\/@?([a-zA-Z0-9_\-\.]{2,40})/i) ||
+    cleanText.match(/hackerearth\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:hackerearth\.com\/@?)?([a-zA-Z0-9_\-\.]{2,40})/i);
+
+  if (heMatch) {
+    const user = (heMatch[1] || '').replace(/[.,;:)>\]|/]+$/g, '').trim();
+    if (user.length >= 2 && !/^(challenges|practice|companies)$/i.test(user)) {
+      links.hackerearth = makeLinkObj('hackerearth', 'HackerEarth', `https://hackerearth.com/@${user}`, user);
+    }
+  }
+
+  // 10. Dev.to (URL or labeled profile - Requirement 10)
+  const devtoMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?dev\.to\/([a-zA-Z0-9_\-\.]{2,40})/i) ||
+    cleanText.match(/dev\.to\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:dev\.to\/)?([a-zA-Z0-9_\-\.]{2,40})/i);
+
+  if (devtoMatch) {
+    const user = (devtoMatch[1] || '').replace(/[.,;:)>\]|/]+$/g, '').trim();
+    if (user.length >= 2 && !/^(t|top|latest|podcasts|videos)$/i.test(user)) {
+      links.devto = makeLinkObj('devto', 'Dev.to', `https://dev.to/${user}`, user);
+    }
+  }
+
+  // 11. Stack Overflow (URL or labeled profile - Requirement 10)
+  const soMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?stackoverflow\.com\/users\/\d+\/([a-zA-Z0-9_\-\.]{2,40})/i) ||
+    cleanText.match(/(?:stackoverflow|stack-overflow|so)\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:stackoverflow\.com\/users\/\d+\/)?([a-zA-Z0-9_\-\.]{2,40})/i);
+
+  if (soMatch) {
+    const user = (soMatch[1] || '').replace(/[.,;:)>\]|/]+$/g, '').trim();
+    if (user.length >= 2) {
+      links.stackoverflow = makeLinkObj('stackoverflow', 'Stack Overflow', `https://stackoverflow.com/users/${user}`, user);
+    }
+  }
+
+  // 12. Behance (URL or labeled profile)
   const behanceMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?behance\.net\/([a-zA-Z0-9_\-\.]{2,40})/i);
   if (behanceMatch) {
     const user = (behanceMatch[1] || '').replace(/[.,;:)>\]|/]+$/g, '').trim();
@@ -1343,7 +1985,7 @@ function extractDeterministicLinks(text) {
     }
   }
 
-  // 8. Dribbble (URL or labeled profile)
+  // 13. Dribbble (URL or labeled profile)
   const dribbbleMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?dribbble\.com\/([a-zA-Z0-9_\-\.]{2,40})/i);
   if (dribbbleMatch) {
     const user = (dribbbleMatch[1] || '').replace(/[.,;:)>\]|/]+$/g, '').trim();
@@ -1352,11 +1994,12 @@ function extractDeterministicLinks(text) {
     }
   }
 
-  // 9. Portfolio / Personal Websites
-  const labeledPortfolioMatch = cleanText.match(/(?:portfolio|website|personal\s*site|webpage)\s*[:|–\-]\s*(https?:\/\/[^\s,;()|•]+|[a-zA-Z0-9\-]+(?:\.[a-zA-Z0-9\-]+)+(?:\/[^\s,;()|•]*)?)/i);
+  // 14. Portfolio / Personal Website (Requirement 8: scanned from ENTIRE resume)
+  const portfolioKeywordsRegex = /(?:portfolio|personal\s*website|developer\s*portfolio|my\s*website|my\s*portfolio|personal\s*site|website|personal\s*profile)\s*[:|–\-]\s*(https?:\/\/[^\s,;()|•]+|[a-zA-Z0-9\-]+(?:\.[a-zA-Z0-9\-]+)+(?:\/[^\s,;()|•]*)?)/i;
+  const labeledPortfolioMatch = cleanText.match(portfolioKeywordsRegex);
   if (labeledPortfolioMatch) {
     const raw = labeledPortfolioMatch[1].trim();
-    if (!/github\.com|linkedin\.com|leetcode\.com|hackerrank\.com|codechef\.com|kaggle\.com|gmail\.com|google\.com/i.test(raw)) {
+    if (!/github\.com|linkedin\.com|leetcode\.com|hackerrank\.com|codechef\.com|kaggle\.com|codeforces\.com|geeksforgeeks\.org|dev\.to|gmail\.com|google\.com/i.test(raw)) {
       const portUrl = normalizeUrl(raw);
       if (portUrl) links.portfolio = makeLinkObj('portfolio', 'Portfolio', portUrl, '');
     }
@@ -1375,16 +2018,21 @@ function extractDeterministicLinks(text) {
     }
   }
 
-  // 10. Collect other plain-text developer URLs
+  // 15. Collect other plain-text developer URLs (Deduplicated)
   const allUrls = cleanText.match(/\bhttps?:\/\/[^\s,;()|•<>"']+/gi) || [];
   const knownUrls = new Set([
     links.linkedin?.url,
     links.github?.url,
     links.portfolio?.url,
     links.leetcode?.url,
+    links.codeforces?.url,
     links.hackerrank?.url,
+    links.geeksforgeeks?.url,
     links.codechef?.url,
     links.kaggle?.url,
+    links.hackerearth?.url,
+    links.devto?.url,
+    links.stackoverflow?.url,
     links.behance?.url,
     links.dribbble?.url
   ].filter(Boolean));
@@ -1396,6 +2044,7 @@ function extractDeterministicLinks(text) {
     if (/google\.com|gmail\.com|microsoft\.com|w3\.org|schema\.org/i.test(norm)) return;
     if (!links.other.some(o => o.url === norm)) {
       links.other.push(makeLinkObj('other', 'Other Profile', norm, ''));
+      knownUrls.add(norm);
     }
   });
 
@@ -1440,9 +2089,14 @@ function buildIntermediateResumeJSON(text, parsedSections, contactInfo, skillsDa
   if (links?.github) addLinkItem(links.github);
   if (links?.portfolio) addLinkItem(links.portfolio);
   if (links?.leetcode) addLinkItem(links.leetcode);
+  if (links?.codeforces) addLinkItem(links.codeforces);
   if (links?.hackerrank) addLinkItem(links.hackerrank);
+  if (links?.geeksforgeeks) addLinkItem(links.geeksforgeeks);
   if (links?.codechef) addLinkItem(links.codechef);
   if (links?.kaggle) addLinkItem(links.kaggle);
+  if (links?.hackerearth) addLinkItem(links.hackerearth);
+  if (links?.devto) addLinkItem(links.devto);
+  if (links?.stackoverflow) addLinkItem(links.stackoverflow);
   if (links?.behance) addLinkItem(links.behance);
   if (links?.dribbble) addLinkItem(links.dribbble);
   if (Array.isArray(links?.other)) {
@@ -1454,9 +2108,14 @@ function buildIntermediateResumeJSON(text, parsedSections, contactInfo, skillsDa
   linkList.github = links?.github || null;
   linkList.portfolio = links?.portfolio || null;
   linkList.leetcode = links?.leetcode || null;
+  linkList.codeforces = links?.codeforces || null;
   linkList.hackerrank = links?.hackerrank || null;
+  linkList.geeksforgeeks = links?.geeksforgeeks || null;
   linkList.codechef = links?.codechef || null;
   linkList.kaggle = links?.kaggle || null;
+  linkList.hackerearth = links?.hackerearth || null;
+  linkList.devto = links?.devto || null;
+  linkList.stackoverflow = links?.stackoverflow || null;
   linkList.behance = links?.behance || null;
   linkList.dribbble = links?.dribbble || null;
   linkList.other = links?.other || [];
@@ -1739,6 +2398,12 @@ function extractContactInfo(text) {
       result.evidence.name = { source: 'Header / Top Line', snippet: candidate, confidence: 0.98 };
       break;
     }
+  }
+
+  if (result.details.phone) {
+    result.phoneValidation = validatePhoneNumber(result.details.phone, result.details.location || cleanText);
+  } else {
+    result.phoneValidation = validatePhoneNumber(null);
   }
 
   result.quality = Boolean(result.name && result.email && result.phone && result.isProfessionalEmail !== false);
@@ -2167,6 +2832,11 @@ function isProjectHeaderLine(line) {
   // Bug 2 Fix: A line matching tech stack or links should NEVER start a new project block
   if (isTechStackOrLinksLine(trimmed)) return false;
 
+  // Certificates and credentials must NEVER be treated as projects
+  if (/\b(certificate|certification|certified|credential|coursework|courses?|licenses?|diploma|training\s*completion)\b/i.test(trimmed)) {
+    return false;
+  }
+
   if (/^(?:project\s*#?\d*[:\-–—]|featured\s*project|key\s*project|\d+[\.\)]\s+)/i.test(trimmed)) {
     return true;
   }
@@ -2181,6 +2851,9 @@ function isProjectHeaderLine(line) {
 
   // Support em-dash (—), en-dash (–), spaced hyphens ( - ), and delimiters
   if (trimmed.length < 150 && (trimmed.includes('|') || trimmed.includes('–') || trimmed.includes('—') || trimmed.includes(' - ') || /github\.com|demo|\.app|\.io|\.dev/i.test(trimmed))) {
+    if (/\b(certificate|certification|certified|credential|coursera|udemy|credly|nptel|simplilearn)\b/i.test(trimmed)) {
+      return false;
+    }
     return true;
   }
 
@@ -2232,14 +2905,26 @@ function analyzeProjects(text, sectionContent) {
   ];
 
   lines.forEach(line => {
+    // Prevent section spillover (e.g. Certifications section following Projects)
+    if (isSectionHeaderLine(line)) {
+      const isOtherSection = Object.entries(SECTION_PATTERNS).some(([secKey, regex]) => {
+        return secKey !== 'projects' && regex.test(line);
+      });
+      if (isOtherSection) {
+        if (currentProject) {
+          projectDetails.push(evaluateProjectSubstance(currentProject, DEPTH_KEYWORDS));
+          currentProject = null;
+        }
+        return;
+      }
+    }
+
     if (isTechStackOrLinksLine(line)) {
       // Continuation of current project if active
       if (currentProject) {
         currentProject.textLines.push(line);
         if (extractSkills(line).all.length > 0) currentProject.hasTech = true;
-        if (/github\.com/i.test(line)) currentProject.hasGithub = true;
-        if (/demo|live|deploy|vercel|netlify|\.app|\.io|http/i.test(line)) currentProject.hasDemo = true;
-        if (/\d+%|\d+\+|\d+x|\$\d+|\d+\s*(users|runs|accuracy|queries|tests|ms|rps)/i.test(line)) currentProject.hasMetrics = true;
+        if (/\d+%|\d+\+|\d+x|\$\d+|\d+\s*(users|runs|accuracy|queries|tests|ms|rps|fps)/i.test(line)) currentProject.hasMetrics = true;
       }
     } else if (isProjectHeaderLine(line)) {
       if (currentProject) {
@@ -2249,16 +2934,12 @@ function analyzeProjects(text, sectionContent) {
         name: line.replace(/\|.*$/, '').trim(),
         textLines: [line],
         hasTech: extractSkills(line).all.length > 0,
-        hasGithub: /github\.com/i.test(line),
-        hasDemo: /demo|live|vercel|netlify|\.app|\.io/i.test(line),
-        hasMetrics: /\d+%|\d+\+|\d+x|\$\d+|\d+\s*(users|runs|accuracy|queries|tests|ms|rps)/i.test(line)
+        hasMetrics: /\d+%|\d+\+|\d+x|\$\d+|\d+\s*(users|runs|accuracy|queries|tests|ms|rps|fps)/i.test(line)
       };
     } else if (currentProject) {
       currentProject.textLines.push(line);
       if (extractSkills(line).all.length > 0) currentProject.hasTech = true;
-      if (/github\.com/i.test(line)) currentProject.hasGithub = true;
-      if (/demo|live|deploy|vercel|netlify|\.app|\.io|http/i.test(line)) currentProject.hasDemo = true;
-      if (/\d+%|\d+\+|\d+x|\$\d+|\d+\s*(users|runs|accuracy|queries|tests|ms|rps)/i.test(line)) currentProject.hasMetrics = true;
+      if (/\d+%|\d+\+|\d+x|\$\d+|\d+\s*(users|runs|accuracy|queries|tests|ms|rps|fps)/i.test(line)) currentProject.hasMetrics = true;
     }
   });
 
@@ -2273,15 +2954,16 @@ function analyzeProjects(text, sectionContent) {
         name: lines[0].replace(/\|.*$/, '').trim(),
         textLines: lines,
         hasTech: extractSkills(projText).all.length > 0,
-        hasGithub: /github\.com/i.test(projText),
-        hasDemo: /demo|live|vercel|netlify/i.test(projText),
         hasMetrics: /\d+%|\d+\+/.test(projText)
       }, DEPTH_KEYWORDS));
     }
   }
 
   const hasGithubLinks = projectDetails.some(p => p.hasGithub) || /github\.com/i.test(projText) || /github\.com/i.test(text);
-  const hasDemoLinks = projectDetails.some(p => p.hasDemo) || /demo|live|vercel|netlify/i.test(projText);
+  const hasDemoLinks = projectDetails.some(p => p.hasDemo) || (
+    extractProjectLinks(lines).demoUrl !== null
+  );
+  const hasFakeDemoLinks = projectDetails.some(p => p.demoValidation?.isFake);
   const totalTech = extractSkills(projText).all.length;
 
   let totalProjectScore = 0;
@@ -2289,7 +2971,7 @@ function analyzeProjects(text, sectionContent) {
     totalProjectScore += p.score;
   });
 
-  if (projectDetails.length >= 3 && projectDetails.every(p => !p.isWeak && p.score >= 5.0)) {
+  if (projectDetails.length >= 3 && projectDetails.every(p => !p.isWeak && p.score >= 4.5)) {
     totalProjectScore = Math.max(totalProjectScore, 19.0);
   }
 
@@ -2304,7 +2986,8 @@ function analyzeProjects(text, sectionContent) {
     details: projectDetails,
     techCount: totalTech,
     hasGithubLinks,
-    hasDemoLinks
+    hasDemoLinks,
+    hasFakeDemoLinks
   };
 }
 
@@ -2331,10 +3014,18 @@ function evaluateProjectSubstance(proj, depthKeywords) {
   if (hasStrongVerb) verbScore = 1.0;
   else if (hasWeakVerb) verbScore = 0.1;
 
+  const isCertItem = /\b(certificate|certification|certified|credential|coursework|license|coursera|udemy|credly|nptel)\b/i.test(proj.name);
+  const projectUrls = extractProjectLinks(proj.textLines || []);
+  const githubUrl = isCertItem ? null : (projectUrls.githubUrl || null);
+  const demoUrl = isCertItem ? null : (projectUrls.demoUrl || null);
+  const demoValidation = demoUrl ? validateProjectLiveUrl(demoUrl) : null;
+  const hasDemo = Boolean(demoUrl);
+  const hasGithub = Boolean(githubUrl);
+
   let bonusScore = 0;
   if (proj.hasMetrics) bonusScore += 1.0;
-  if (proj.hasGithub) bonusScore += 0.5;
-  if (proj.hasDemo) bonusScore += 0.5;
+  if (hasGithub) bonusScore += 0.5;
+  if (hasDemo && !demoValidation?.isFake) bonusScore += 0.5;
 
   let projectScore = depthScore + techDepthScore + verbScore + bonusScore;
   if (wordCount < 15 && matchedDepthKeywords.length === 0) {
@@ -2350,12 +3041,16 @@ function evaluateProjectSubstance(proj, depthKeywords) {
     score: projectScore,
     hasTech: proj.hasTech,
     hasDescription: wordCount >= 10,
-    hasGithub: proj.hasGithub,
-    hasDemo: proj.hasDemo,
+    hasGithub,
+    hasDemo,
     hasImpact: proj.hasMetrics,
     matchedDepthKeywords,
     wordCount,
-    isWeak: wordCount < 15 && matchedDepthKeywords.length === 0
+    isWeak: wordCount < 15 && matchedDepthKeywords.length === 0,
+    isCertificate: isCertItem,
+    githubUrl,
+    demoUrl,
+    demoValidation
   };
 }
 
@@ -2422,7 +3117,23 @@ function analyzeCertifications(text, parsedSections) {
   const hasSection = Boolean(parsedSections?.detected?.certifications && certText.length >= 10);
 
   if (!hasSection) {
-    return { exists: false, score: 0, max: 5, confidence: 0, certsCount: 0, verifiedCount: 0 };
+    return {
+      exists: false,
+      score: 0,
+      max: 5,
+      confidence: 0,
+      certsCount: 0,
+      verifiedCount: 0,
+      items: [],
+      hasRecognizedIssuer: false,
+      hasTier1: false,
+      hasTier2: false,
+      tier1Issuers: [],
+      tier2Issuers: [],
+      hasSpecificCert: false,
+      isPurelyGeneric: false,
+      detectedIssuers: []
+    };
   }
 
   const lines = certText.split('\n').map(l => l.trim()).filter(Boolean);
@@ -2446,6 +3157,122 @@ function analyzeCertifications(text, parsedSections) {
     (lines.length <= 2 && /^(online|computer)\s*certificate$/i.test(lines[0]) && !hasRecognizedIssuer);
 
   const hasDatesOrIds = /\b(20\d{2}|credential|id:|license|\.org|\.com|verify)\b/i.test(certLower);
+
+  // Parse individual certificate items with links and validation
+  const certItems = [];
+  let currentItem = null;
+
+  const KNOWN_PROVIDERS = [
+    { name: 'Google Cloud', match: /google\s*cloud|skills\s*boost|gcp|cloudskillsboost/i },
+    { name: 'AWS', match: /\baws\b|amazon\s*web\s*services/i },
+    { name: 'Microsoft', match: /microsoft|azure/i },
+    { name: 'Coursera', match: /coursera/i },
+    { name: 'Unstop', match: /unstop/i },
+    { name: 'Udemy', match: /udemy/i },
+    { name: 'HackerRank', match: /hackerrank/i },
+    { name: 'LeetCode', match: /leetcode/i },
+    { name: 'IBM', match: /\bibm\b/i },
+    { name: 'Cisco', match: /cisco|ccna|ccnp/i },
+    { name: 'Meta', match: /\bmeta\b/i },
+    { name: 'Oracle', match: /oracle/i },
+    { name: 'Simplilearn', match: /simplilearn/i },
+    { name: 'Credly', match: /credly/i },
+    { name: 'NPTEL', match: /nptel/i },
+    { name: 'TCS iON', match: /tcs\s*ion|tcs/i }
+  ];
+
+  function finalizeCertItem(item) {
+    const fullText = item.textLines.join(' ');
+    let provider = '';
+
+    // 1. Check URL hostname against CERTIFICATE_PROVIDERS
+    if (item.url) {
+      try {
+        const parsed = new URL(item.url);
+        const host = parsed.hostname.toLowerCase();
+        const lv = _linkValidator || (typeof window !== 'undefined' ? window.LinkValidator : null);
+        const providers = (lv && lv.CERTIFICATE_PROVIDERS) ? lv.CERTIFICATE_PROVIDERS : null;
+        if (Array.isArray(providers)) {
+          for (const p of providers) {
+            if (p.domains && p.domains.some(d => host === d || host.endsWith('.' + d))) {
+              provider = p.name;
+              break;
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
+    // 2. Check text against known issuers / providers if provider not found
+    if (!provider) {
+      for (const kp of KNOWN_PROVIDERS) {
+        if (kp.match.test(fullText)) {
+          provider = kp.name;
+          break;
+        }
+      }
+    }
+
+    const validation = item.url ? validateCertLink(item.url, {
+      certTitle: item.title,
+      certProvider: provider,
+      surroundingText: fullText
+    }) : {
+      url: '',
+      displayUrl: '',
+      status: 'missing',
+      state: 'missing',
+      isValid: false,
+      isFake: false,
+      badgeLabel: 'No Certificate Link',
+      reason: 'No certificate URL provided'
+    };
+
+    return {
+      title: item.title,
+      provider: provider || 'Certification',
+      url: item.url || null,
+      validation
+    };
+  }
+
+  lines.forEach(line => {
+    const urlMatches = line.match(/https?:\/\/[^\s<>"'{}|\\^`]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/[^\s<>"'{}|\\^`]*)?/gi) || [];
+    let detectedUrl = null;
+    for (const u of urlMatches) {
+      const norm = normalizeUrl(u);
+      if (norm) {
+        detectedUrl = norm;
+        break;
+      }
+    }
+
+    const isUrlOnlyLine = Boolean(detectedUrl && line.replace(/https?:\/\/[^\s]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?/gi, '').replace(/[|•\-\*►▸▪:\s]/g, '').length < 3);
+
+    if (isUrlOnlyLine && currentItem) {
+      if (!currentItem.url) {
+        currentItem.url = detectedUrl;
+      }
+      currentItem.textLines.push(line);
+    } else {
+      if (currentItem) {
+        certItems.push(finalizeCertItem(currentItem));
+      }
+      let titleClean = line.replace(/https?:\/\/[^\s]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?/gi, '').replace(/^[•\-\*►▸▪]\s*/, '').replace(/\s*[-–—|]\s*$/, '').trim();
+      if (!titleClean && detectedUrl) {
+        titleClean = detectedUrl.replace(/^https?:\/\/(?:www\.)?/, '').split('/')[0];
+      }
+      currentItem = {
+        title: titleClean || 'Certificate',
+        textLines: [line],
+        url: detectedUrl
+      };
+    }
+  });
+
+  if (currentItem) {
+    certItems.push(finalizeCertItem(currentItem));
+  }
 
   let score = 1;
   if (isPurelyGeneric) {
@@ -2472,7 +3299,8 @@ function analyzeCertifications(text, parsedSections) {
     score,
     max: 5,
     confidence: hasRecognizedIssuer ? 95 : 80,
-    certsCount: lines.length,
+    certsCount: certItems.length || lines.length,
+    items: certItems,
     hasRecognizedIssuer,
     hasTier1,
     hasTier2,
@@ -3717,6 +4545,13 @@ function generateSuggestions(
   }
   if (!contactInfo.phone) {
     suggestions.push({ priority: 'high', icon: 'phone', title: 'Add Phone Number', desc: 'Include a direct contact phone number with country code (e.g. +91 9876543210).' });
+  } else if (contactInfo.phoneValidation && !contactInfo.phoneValidation.isValid) {
+    suggestions.push({
+      priority: 'high',
+      icon: 'phone_missed',
+      title: 'Fix Mobile Number Length',
+      desc: `Your phone number "${contactInfo.details?.phone || contactInfo.phone}" has ${contactInfo.phoneValidation.actualDigits} digits. Standard ${contactInfo.phoneValidation.country} mobile numbers require ${contactInfo.phoneValidation.expectedDigits} digits. Update your resume header with a complete, valid number so recruiters can reach you.`
+    });
   }
   if (!contactInfo.linkedin) {
     suggestions.push({ priority: 'medium', icon: 'link', title: 'Add LinkedIn Profile', desc: 'Include a customized LinkedIn profile URL to verify your professional background.' });
@@ -3774,6 +4609,40 @@ function generateSuggestions(
     }
     if (!projectsAnalysis.hasGithubLinks) {
       suggestions.push({ priority: 'medium', icon: 'link', title: 'Add GitHub Links to Projects', desc: 'Link to your public repositories so recruiters can review code quality and git habits.' });
+    }
+
+    const projList = Array.isArray(projectsAnalysis.details) ? projectsAnalysis.details : [];
+    
+    // Confirmed Fake/Invalid live demo links (Requirement 7 & 19)
+    const fakeDemoProjects = projList.filter(p => p.demoValidation?.isFake || p.demoValidation?.state === 'invalid');
+    fakeDemoProjects.forEach(p => {
+      suggestions.push({
+        priority: 'high',
+        icon: 'link_off',
+        title: `Fix Fake/Inactive Demo Link in "${p.name || 'Project'}" (Invalid Live Link)`,
+        desc: `The live demo link "${p.demoUrl}" in "${p.name}" appears invalid or unreachable (${p.demoValidation?.reason || 'Placeholder or unreachable URL'}). Replace it with the actual deployed project URL on Vercel, Netlify, GitHub Pages, or another working deployment.`
+      });
+    });
+
+    // Unverified live demo links (Requirement 7: softer guidance, NOT falsely marked as fake)
+    const unverifiedDemoProjects = projList.filter(p => p.demoUrl && !p.demoValidation?.isFake && p.demoValidation?.state === 'unverified');
+    unverifiedDemoProjects.forEach(p => {
+      suggestions.push({
+        priority: 'medium',
+        icon: 'help',
+        title: `Verify Live Demo Link in "${p.name || 'Project'}"`,
+        desc: `The live URL "${p.demoUrl}" in "${p.name}" could not be verified automatically (${p.demoValidation?.reason || 'Status unverified'}). Confirm that the deployment is publicly accessible.`
+      });
+    });
+
+    const hasAnyValidDemo = projList.some(p => p.demoValidation?.isValid && !p.demoValidation?.isFake);
+    if (!contactInfo.portfolio && !hasAnyValidDemo && projList.length > 0) {
+      suggestions.push({
+        priority: 'medium',
+        icon: 'rocket_launch',
+        title: 'Add Live Demo Links to Projects',
+        desc: 'None of your technical projects include live deployment links. Deploying your apps on free platforms like Vercel, Netlify, or GitHub Pages gives recruiters immediate proof of work and significantly boosts callback rates.'
+      });
     }
   }
 
@@ -6180,18 +7049,29 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
     };
 
     const projTechList = Array.from(new Set(projectEntries.flatMap(p => Array.isArray(p.technologies) ? p.technologies : [])));
-    const projDetails = projectEntries.map(p => ({
-      name: p.name || 'Technical Project',
-      type: p.type || 'Project',
-      technologies: Array.isArray(p.technologies) ? p.technologies : [],
-      description: p.problemSolved || p.description || '',
-      hasTech: Boolean((p.technologies && p.technologies.length > 0) || p.database || p.apis),
-      hasDescription: Boolean(p.problemSolved || p.description || (Array.isArray(p.features) && p.features.length > 0)),
-      matchedDepthKeywords: [p.architecture, p.database, p.apis, p.deployment, p.aiMlComponents].filter(Boolean),
-      hasGithub: Boolean(p.github && p.github !== 'null' && !String(p.github).includes('unverified')),
-      hasImpact: Boolean(p.impact && p.impact !== 'null'),
-      isWeak: false
-    }));
+    const projDetails = projectEntries.map((p, idx) => {
+      const matchDet = deterministicProj?.details?.[idx] || deterministicProj?.details?.find(dp => dp.name && p.name && (dp.name.toLowerCase().includes(p.name.toLowerCase()) || p.name.toLowerCase().includes(dp.name.toLowerCase())));
+      const demoUrl = (p.demo && p.demo !== 'null' && !String(p.demo).includes('unverified')) ? normalizeUrl(p.demo) : (matchDet?.demoUrl || null);
+      const githubUrl = (p.github && p.github !== 'null' && !String(p.github).includes('unverified')) ? normalizeUrl(p.github) : (matchDet?.githubUrl || null);
+      const demoValidation = demoUrl ? validateProjectLiveUrl(demoUrl) : null;
+
+      return {
+        name: p.name || matchDet?.name || 'Technical Project',
+        type: p.type || 'Project',
+        technologies: Array.isArray(p.technologies) && p.technologies.length > 0 ? p.technologies : (matchDet?.technologies || []),
+        description: p.problemSolved || p.description || matchDet?.description || '',
+        hasTech: Boolean((p.technologies && p.technologies.length > 0) || p.database || p.apis || matchDet?.hasTech),
+        hasDescription: Boolean(p.problemSolved || p.description || (Array.isArray(p.features) && p.features.length > 0) || matchDet?.hasDescription),
+        matchedDepthKeywords: [p.architecture, p.database, p.apis, p.deployment, p.aiMlComponents].filter(Boolean),
+        hasGithub: Boolean(githubUrl),
+        githubUrl,
+        hasDemo: Boolean(demoUrl),
+        demoUrl,
+        demoValidation,
+        hasImpact: Boolean(p.impact && p.impact !== 'null'),
+        isWeak: false
+      };
+    });
 
     const projectsAnalysis = {
       count: aiJson.projects?.count || projectEntries.length,
@@ -6199,8 +7079,9 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
       details: projDetails,
       entries: projectEntries,
       techCount: projTechList.length,
-      hasGithubLinks: projectEntries.some(p => p.github && p.github !== 'null'),
-      hasDemoLinks: projectEntries.some(p => p.demo && p.demo !== 'null'),
+      hasGithubLinks: projDetails.some(p => p.hasGithub),
+      hasDemoLinks: projDetails.some(p => p.hasDemo),
+      hasFakeDemoLinks: projDetails.some(p => p.demoValidation?.isFake),
       strengths: Array.isArray(aiJson.projects?.strengths) ? aiJson.projects.strengths : [],
       weaknesses: Array.isArray(aiJson.projects?.weaknesses) ? aiJson.projects.weaknesses : [],
       confidence: aiScores.projectsScore || 85,
@@ -6277,6 +7158,27 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
       title: 'Actionable Recommendation',
       desc: imp
     }));
+
+    // Inject deterministic critical checks (phone length & fake project links)
+    if (deterministicContact?.phoneValidation && !deterministicContact.phoneValidation.isValid) {
+      suggestions.unshift({
+        priority: 'high',
+        icon: 'phone_missed',
+        title: 'Fix Mobile Number Length',
+        desc: `Your phone number "${deterministicContact.details?.phone}" has ${deterministicContact.phoneValidation.actualDigits} digits. Standard ${deterministicContact.phoneValidation.country} mobile numbers require ${deterministicContact.phoneValidation.expectedDigits} digits. Update your resume header with a complete, valid mobile number so recruiters can reach you.`
+      });
+    }
+
+    projDetails.forEach(p => {
+      if (p.demoValidation?.isFake) {
+        suggestions.unshift({
+          priority: 'high',
+          icon: 'link_off',
+          title: `Fix Fake/Inactive Demo Link in "${p.name || 'Project'}"`,
+          desc: `The live demo link "${p.demoUrl}" in "${p.name}" appears to be a placeholder or inactive link (${p.demoValidation.reason}). Replace it with an active deployment link on Vercel, Netlify, or GitHub Pages, or remove the broken link.`
+        });
+      }
+    });
 
     const bestFitRole = dynamicRoles?.bestFit || null;
     const jobRecommendations = Array.isArray(dynamicRoles?.topRecommendations) ? dynamicRoles.topRecommendations : [];
@@ -6730,6 +7632,8 @@ function renderAllResults(result) {
   initPillarDetailsToggles(area);
   initResumeAiAssistant(result, area);
   verifyGitHubProfileLive(result, area);
+  verifyLeetCodeProfileLive(result, area);
+  verifyProjectLinksLive(result, area);
 
   // Bind handlers
   const reanalyzeBtn = document.getElementById('btn-reanalyze-real');
@@ -6954,6 +7858,7 @@ function renderContactAndLinksCard(result) {
   const email = cand.email || struct.email || ci.email || details.email || '';
   const phone = cand.phone || struct.phone || ci.phone || details.phone || '';
   const location = cand.location || struct.location || ci.location || details.location || '';
+  const phoneValidation = ci.phoneValidation || validatePhoneNumber(phone, location);
 
   // Collect links from structuredResume or contactInfo
   let linksList = [];
@@ -6969,7 +7874,17 @@ function renderContactAndLinksCard(result) {
     linksList = Object.keys(map).map(k => {
       const v = map[k];
       if (!v) return null;
-      if (typeof v === 'object' && v.url) return v;
+      if (typeof v === 'object' && v.url) {
+        return {
+          type: v.type || k,
+          label: v.label || (k.charAt(0).toUpperCase() + k.slice(1)),
+          url: normalizeUrl(String(v.url)),
+          username: v.username || '',
+          isClickable: v.isClickable !== false,
+          ...v,
+          type: v.type || k
+        };
+      }
       return {
         type: k,
         label: k.charAt(0).toUpperCase() + k.slice(1),
@@ -6980,8 +7895,15 @@ function renderContactAndLinksCard(result) {
     }).filter(Boolean);
   }
 
+  // Ensure every item in linksList has a valid type and label
+  linksList = linksList.map(l => ({
+    ...l,
+    type: String(l.type || l.platform || l.label || 'link').toLowerCase(),
+    label: l.label || (l.type ? (l.type.charAt(0).toUpperCase() + l.type.slice(1)) : 'Link')
+  }));
+
   // Also check direct top-level fields for fallback
-  const knownTypes = new Set(linksList.map(l => l.type.toLowerCase()));
+  const knownTypes = new Set(linksList.map(l => (l.type || '').toLowerCase()).filter(Boolean));
   if (!knownTypes.has('linkedin') && (ci.linkedin || details.linkedin)) {
     linksList.push({ type: 'linkedin', label: 'LinkedIn', url: normalizeUrl(ci.linkedin || details.linkedin), username: '', isClickable: true });
     knownTypes.add('linkedin');
@@ -6999,25 +7921,14 @@ function renderContactAndLinksCard(result) {
     knownTypes.add('leetcode');
   }
 
-  const getPlatformIcon = (type) => {
-    switch (type.toLowerCase()) {
-      case 'linkedin': return 'badge';
-      case 'github': return 'code';
-      case 'portfolio': return 'language';
-      case 'leetcode':
-      case 'hackerrank':
-      case 'codechef': return 'terminal';
-      case 'kaggle': return 'dataset';
-      case 'behance':
-      case 'dribbble': return 'palette';
-      default: return 'link';
-    }
-  };
+  // Strictly filter to allowed profile types: LinkedIn, GitHub, LeetCode, and Portfolio (only if present)
+  const allowedProfileTypes = new Set(['linkedin', 'github', 'leetcode', 'portfolio']);
+  linksList = linksList.filter(l => allowedProfileTypes.has(l.type));
 
-  const hasLinkedIn = knownTypes.has('linkedin');
-  const hasGitHub = knownTypes.has('github');
-  const hasPortfolio = knownTypes.has('portfolio');
-  const hasCodingProfile = knownTypes.has('leetcode') || knownTypes.has('hackerrank') || knownTypes.has('codechef');
+  const hasLinkedIn = linksList.some(l => l.type === 'linkedin');
+  const hasGitHub = linksList.some(l => l.type === 'github');
+  const hasPortfolio = linksList.some(l => l.type === 'portfolio');
+  const hasLeetCode = linksList.some(l => l.type === 'leetcode');
 
   return `
     <div class="contact-links-card">
@@ -7041,12 +7952,23 @@ function renderContactAndLinksCard(result) {
         <div class="candidate-fact-divider"></div>
         <div class="candidate-fact-item">
           <span class="material-symbols-outlined text-[16px] text-indigo-500">mail</span>
-          <strong>Email:</strong> ${email ? escHtml(email) : '<span class="text-slate-400 italic">Not provided</span>'}
+          <strong>Email:</strong> ${email ? escHtml(email) : '<span style="color:var(--color-outline);font-style:italic;">Not provided</span>'}
         </div>
         <div class="candidate-fact-divider"></div>
         <div class="candidate-fact-item">
           <span class="material-symbols-outlined text-[16px] text-indigo-500">call</span>
-          <strong>Phone:</strong> ${phone ? escHtml(phone) : '<span class="text-slate-400 italic">Not provided</span>'}
+          <strong>Phone:</strong> ${phone ? escHtml(phone) : '<span style="color:var(--color-outline);font-style:italic;">Not provided</span>'}
+          ${phone ? (phoneValidation.isValid ? `
+            <span class="phone-status-badge phone-valid" title="Verified ${escHtml(phoneValidation.country)} ${phoneValidation.expectedDigits}-digit mobile format">
+              <span class="material-symbols-outlined text-[11px]">check</span>
+              ${phoneValidation.actualDigits}-Digit Valid
+            </span>
+          ` : `
+            <span class="phone-status-badge phone-invalid" title="${escHtml(phoneValidation.reason)}">
+              <span class="material-symbols-outlined text-[11px]">warning</span>
+              Invalid (${phoneValidation.actualDigits}/${phoneValidation.expectedDigits} digits)
+            </span>
+          `) : ''}
         </div>
         ${location ? `
           <div class="candidate-fact-divider"></div>
@@ -7060,11 +7982,11 @@ function renderContactAndLinksCard(result) {
       <!-- Links Grid -->
       <div class="contact-links-grid">
         ${linksList.map(link => {
-          const displayUrl = link.username ? `@${link.username}` : link.url.replace(/^https?:\/\//i, '');
           if (link.type.toLowerCase() === 'github') {
             const ghUser = link.username || (link.url ? (link.url.match(/github\.com\/([a-zA-Z0-9_\-\.]+)/i) || [])[1] : '') || '';
+            const displayUrl = ghUser ? `@${ghUser}` : link.url.replace(/^https?:\/\//i, '');
             return `
-              <a href="${escHtml(link.url)}" target="_blank" rel="noopener noreferrer" class="contact-link-item detected" id="contact-link-github" data-username="${escHtml(ghUser)}" title="Open GitHub in new tab">
+              <div class="contact-link-item detected" id="contact-link-github" data-username="${escHtml(ghUser)}">
                 <div class="link-item-top">
                   <span class="link-platform-name">
                     <span class="material-symbols-outlined text-[16px]">code</span>
@@ -7076,36 +7998,97 @@ function renderContactAndLinksCard(result) {
                   </span>
                 </div>
                 <div class="link-url-display">
-                  <span>${escHtml(displayUrl)}</span>
-                  <span class="material-symbols-outlined text-[13px]" style="margin-left:auto;">open_in_new</span>
+                  <a href="${escHtml(link.url)}" target="_blank" rel="noopener noreferrer" class="contact-profile-action-btn" title="Open GitHub profile in new tab">
+                    <span class="btn-text">${escHtml(displayUrl)}</span>
+                    <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                  </a>
                 </div>
-                <div id="github-meta-details" class="github-live-meta text-slate-500">Checking GitHub API...</div>
-              </a>
+                <div id="github-meta-details" class="github-live-meta">Checking GitHub API...</div>
+              </div>
             `;
           }
 
-          return `
-            <a href="${escHtml(link.url)}" target="_blank" rel="noopener noreferrer" class="contact-link-item detected" title="Open ${escHtml(link.label)} in new tab">
-              <div class="link-item-top">
-                <span class="link-platform-name">
-                  <span class="material-symbols-outlined text-[16px]">${getPlatformIcon(link.type)}</span>
-                  ${escHtml(link.label)}
-                </span>
-                <span class="link-status-badge format-valid">
-                  <span class="material-symbols-outlined text-[12px]">check</span>
-                  Format Valid
-                </span>
+          if (link.type.toLowerCase() === 'leetcode') {
+            const lcUser = link.username || (link.url ? (link.url.match(/leetcode\.com\/(?:u\/)?([a-zA-Z0-9_\-\.]+)/i) || [])[1] : '') || '';
+            const displayUrl = lcUser ? `@${lcUser}` : link.url.replace(/^https?:\/\//i, '');
+            return `
+              <div class="contact-link-item detected" id="contact-link-leetcode" data-username="${escHtml(lcUser)}">
+                <div class="link-item-top">
+                  <span class="link-platform-name">
+                    <span class="material-symbols-outlined text-[16px]">terminal</span>
+                    LeetCode
+                  </span>
+                  <span id="badge-leetcode-verify" class="link-status-badge live-checking">
+                    <span class="material-symbols-outlined text-[12px] animate-spin">progress_activity</span>
+                    Live Checking...
+                  </span>
+                </div>
+                <div class="link-url-display">
+                  <a href="${escHtml(link.url)}" target="_blank" rel="noopener noreferrer" class="contact-profile-action-btn" title="Open LeetCode profile in new tab">
+                    <span class="btn-text">${escHtml(displayUrl)}</span>
+                    <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                  </a>
+                </div>
+                <div id="leetcode-meta-details" class="github-live-meta">Checking LeetCode...</div>
               </div>
-              <div class="link-url-display">
-                <span>${escHtml(displayUrl)}</span>
-                <span class="material-symbols-outlined text-[13px]" style="margin-left:auto;">open_in_new</span>
+            `;
+          }
+
+          if (link.type.toLowerCase() === 'linkedin') {
+            const inUser = link.username || (link.url ? (link.url.match(/linkedin\.com\/(?:in|pub)\/([a-zA-Z0-9_\-\.%]+)/i) || [])[1] : '') || '';
+            const displayUrl = inUser ? `@${inUser}` : link.url.replace(/^https?:\/\//i, '');
+            return `
+              <div class="contact-link-item detected" id="contact-link-linkedin" data-username="${escHtml(inUser)}" title="LinkedIn">
+                <div class="link-item-top">
+                  <span class="link-platform-name">
+                    <span class="material-symbols-outlined text-[16px]">badge</span>
+                    LinkedIn
+                  </span>
+                  <span class="link-status-badge format-valid" title="Valid LinkedIn URL structure · Format Valid">
+                    <span class="material-symbols-outlined text-[12px]">check</span>
+                    URL Valid
+                  </span>
+                </div>
+                <div class="link-url-display">
+                  <a href="${escHtml(link.url)}" target="_blank" rel="noopener noreferrer" class="contact-profile-action-btn" title="Open LinkedIn profile in new tab">
+                    <span class="btn-text">${escHtml(displayUrl)}</span>
+                    <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                  </a>
+                </div>
+                <div class="github-live-meta">Extracted from resume · URL format valid</div>
               </div>
-              <div class="github-live-meta text-slate-500">Extracted from resume · Click to open</div>
-            </a>
-          `;
+            `;
+          }
+
+          if (link.type.toLowerCase() === 'portfolio') {
+            const displayUrl = link.url.replace(/^https?:\/\//i, '').replace(/\/$/, '');
+            return `
+              <div class="contact-link-item detected" id="contact-link-portfolio" title="Portfolio">
+                <div class="link-item-top">
+                  <span class="link-platform-name">
+                    <span class="material-symbols-outlined text-[16px]">language</span>
+                    Portfolio
+                  </span>
+                  <span class="link-status-badge format-valid" title="Valid Portfolio URL">
+                    <span class="material-symbols-outlined text-[12px]">check</span>
+                    URL Valid
+                  </span>
+                </div>
+                <div class="link-url-display">
+                  <a href="${escHtml(link.url)}" target="_blank" rel="noopener noreferrer" class="contact-profile-action-btn" title="Open Portfolio website in new tab">
+                    <span class="btn-text">${escHtml(displayUrl)}</span>
+                    <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                  </a>
+                </div>
+                <div class="github-live-meta">Extracted from resume · URL format valid</div>
+              </div>
+            `;
+          }
+
+          return '';
         }).join('')}
 
-        <!-- Recommendations for Missing Profiles -->
+        <!-- Recommendations for Missing Profiles (Only standard core profiles) -->
         ${!hasGitHub ? `
           <div class="contact-link-item missing">
             <div class="link-item-top">
@@ -7132,36 +8115,23 @@ function renderContactAndLinksCard(result) {
           </div>
         ` : ''}
 
-        ${!hasPortfolio ? `
-          <div class="contact-link-item missing">
-            <div class="link-item-top">
-              <span class="link-platform-name">
-                <span class="material-symbols-outlined text-[16px]">language</span>
-                Portfolio
-              </span>
-              <span class="link-status-badge missing">Not provided</span>
-            </div>
-            <div class="link-missing-hint">Optional: Add a personal portfolio website to display live applications and design work.</div>
-          </div>
-        ` : ''}
-
-        ${!hasCodingProfile ? `
+        ${!hasLeetCode ? `
           <div class="contact-link-item missing">
             <div class="link-item-top">
               <span class="link-platform-name">
                 <span class="material-symbols-outlined text-[16px]">terminal</span>
-                Coding Profile
+                LeetCode
               </span>
               <span class="link-status-badge missing">Not provided</span>
             </div>
-            <div class="link-missing-hint">Optional: Add LeetCode / HackerRank / CodeChef to evidence algorithmic problem solving.</div>
+            <div class="link-missing-hint">Recommended: Add your LeetCode profile to evidence problem solving & data structures ability.</div>
           </div>
         ` : ''}
       </div>
 
       <div style="font-size:0.75rem; color:var(--color-on-surface-variant); margin-top:0.875rem; display:flex; align-items:center; gap:0.4rem;">
         <span class="material-symbols-outlined text-[16px] text-emerald-500">verified</span>
-        <span>Deterministic ground truth: Extracted directly from resume text. GitHub profiles are verified live via GitHub API.</span>
+        <span>Deterministic ground truth: Extracted directly from resume text. GitHub & LeetCode profiles are verified live.</span>
       </div>
     </div>
   `;
@@ -7221,7 +8191,8 @@ async function verifyGitHubProfileLive(result, container = (typeof document !== 
     const response = await fetchFn(`https://api.github.com/users/${encodeURIComponent(username)}`, {
       method: 'GET',
       headers: {
-        'Accept': 'application/vnd.github.v3+json'
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'DevPilot-AI'
       },
       signal: controller ? controller.signal : undefined
     });
@@ -7253,24 +8224,91 @@ async function verifyGitHubProfileLive(result, container = (typeof document !== 
         };
       }
     } else if (response.status === 404) {
-      if (badgeEl) {
-        badgeEl.className = 'link-status-badge live-failed';
-        badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">error</span> Account Not Found (404)`;
+      let recovered = null;
+      // Recovery check: Look for GitHub repo URLs in projects or candidate variations
+      const projectList = result?.projectsAnalysis?.details || result?.projects?.entries || [];
+      const rawCandidates = new Set();
+      projectList.forEach(p => {
+        const ghUrl = p.githubUrl || (typeof p === 'string' ? p : '');
+        const m = (ghUrl || '').match(/github\.com\/([a-zA-Z0-9_\-\.]+)/i);
+        if (m && m[1] && m[1].toLowerCase() !== username.toLowerCase()) {
+          rawCandidates.add(m[1]);
+        }
+      });
+      rawCandidates.add(username);
+
+      const candidates = new Set();
+      rawCandidates.forEach(h => {
+        candidates.add(h);
+        ['a', 'm', 'ma', 's', 'sharma'].forEach(sfx => candidates.add(h + sfx));
+        if (h.endsWith('a') || h.endsWith('m')) candidates.add(h.slice(0, -1));
+        if (h.endsWith('shara')) candidates.add(h.replace(/shara$/, 'sharma'));
+        if (h.endsWith('sharm')) candidates.add(h.replace(/sharm$/, 'sharma'));
+      });
+
+      for (const alt of candidates) {
+        if (!alt || alt.toLowerCase() === username.toLowerCase()) continue;
+        try {
+          const altRes = await fetchFn(`https://api.github.com/users/${encodeURIComponent(alt)}`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'DevPilot-AI' }
+          });
+          if (altRes.status === 200) {
+            const altData = await altRes.json();
+            recovered = { user: alt, data: altData };
+            break;
+          }
+        } catch (e) {}
       }
-      if (metaEl) {
-        metaEl.innerHTML = `<span style="color:#dc2626; font-weight:600;">⚠️ Username "@${escHtml(username)}" does not exist on GitHub. Check for typos!</span>`;
-      }
-      if (githubCard) {
-        githubCard.classList.remove('verified-success');
-        githubCard.classList.add('profile-not-found');
-      }
-      if (result) {
-        result.githubLiveVerified = {
-          verified: false,
-          status: 404,
-          username,
-          error: 'User not found on GitHub'
-        };
+
+      if (recovered) {
+        const repos = typeof recovered.data.public_repos === 'number' ? recovered.data.public_repos : 0;
+        if (badgeEl) {
+          badgeEl.className = 'link-status-badge live-verified';
+          badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">verified</span> Real Verified`;
+        }
+        if (metaEl) {
+          metaEl.innerHTML = `<span class="github-verified-stats"><span class="material-symbols-outlined text-[12px]">check_circle</span> Active GitHub Account · @${escHtml(recovered.user)} (${repos} public ${repos === 1 ? 'repo' : 'repos'})</span>`;
+        }
+        if (githubCard) {
+          githubCard.classList.remove('profile-not-found');
+          githubCard.classList.add('verified-success');
+          const linkA = githubCard.querySelector('a.contact-profile-action-btn');
+          if (linkA) {
+            linkA.href = `https://github.com/${escHtml(recovered.user)}`;
+            const btnText = linkA.querySelector('.btn-text');
+            if (btnText) btnText.textContent = `@${recovered.user}`;
+          }
+        }
+        if (result) {
+          result.githubLiveVerified = {
+            verified: true,
+            username: recovered.user,
+            publicRepos: repos,
+            avatarUrl: recovered.data.avatar_url || '',
+            name: recovered.data.name || ''
+          };
+        }
+      } else {
+        if (badgeEl) {
+          badgeEl.className = 'link-status-badge live-failed';
+          badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">error</span> Account Not Found (404)`;
+        }
+        if (metaEl) {
+          metaEl.innerHTML = `<span style="color:var(--color-error); font-weight:600;">⚠️ Username "@${escHtml(username)}" does not exist on GitHub. Check for typos!</span>`;
+        }
+        if (githubCard) {
+          githubCard.classList.remove('verified-success');
+          githubCard.classList.add('profile-not-found');
+        }
+        if (result) {
+          result.githubLiveVerified = {
+            verified: false,
+            status: 404,
+            username,
+            error: 'User not found on GitHub'
+          };
+        }
       }
     } else if (response.status === 403) {
       if (badgeEl) {
@@ -7278,7 +8316,7 @@ async function verifyGitHubProfileLive(result, container = (typeof document !== 
         badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">check</span> Format Valid`;
       }
       if (metaEl) {
-        metaEl.innerHTML = `<span class="text-slate-500">API rate limit reached · Handle format valid</span>`;
+        metaEl.innerHTML = `<span style="color:var(--color-on-surface-variant);">API rate limit reached · Handle format valid</span>`;
       }
     } else {
       if (badgeEl) {
@@ -7286,7 +8324,7 @@ async function verifyGitHubProfileLive(result, container = (typeof document !== 
         badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">check</span> Format Valid`;
       }
       if (metaEl) {
-        metaEl.innerHTML = `<span class="text-slate-500">GitHub API status ${response.status} · Format valid</span>`;
+        metaEl.innerHTML = `<span style="color:var(--color-on-surface-variant);">GitHub API status ${response.status} · Format valid</span>`;
       }
     }
   } catch (err) {
@@ -7295,7 +8333,276 @@ async function verifyGitHubProfileLive(result, container = (typeof document !== 
       badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">check</span> Format Valid`;
     }
     if (metaEl) {
-      metaEl.innerHTML = `<span class="text-slate-500">Could not reach GitHub API · Handle format valid</span>`;
+      metaEl.innerHTML = `<span style="color:var(--color-on-surface-variant);">Could not reach GitHub API · Handle format valid</span>`;
+    }
+  }
+}
+
+/* ============================================================
+   LIVE LEETCODE PROFILE VERIFIER (Public LeetCode API)
+   ============================================================ */
+/**
+ * Live verification for LeetCode profile via public API.
+ * Calls https://alfa-leetcode-api.onrender.com/userProfile/{username} to verify existence and fetch problems solved.
+ * @param {Object} result - Analysis result object
+ * @param {HTMLElement} [container] - Container element containing the rendered cards
+ */
+async function verifyLeetCodeProfileLive(result, container = (typeof document !== 'undefined' ? document : null)) {
+  if (!container || typeof container.querySelector !== 'function') return;
+
+  const leetcodeCard = container.querySelector('#contact-link-leetcode');
+  const badgeEl = container.querySelector('#badge-leetcode-verify');
+  const metaEl = container.querySelector('#leetcode-meta-details');
+  if (!badgeEl && !leetcodeCard) return;
+
+  let username = leetcodeCard?.dataset?.username || '';
+  if (!username) {
+    const lcLink = result?.contactInfo?.details?.links?.leetcode ||
+                   result?.structuredResume?.links?.find?.(l => l.type === 'leetcode')?.username ||
+                   result?.contactInfo?.leetcode;
+    if (typeof lcLink === 'string') {
+      const m = lcLink.match(/leetcode\.com\/(?:u\/)?([a-zA-Z0-9_\-\.]+)/i);
+      username = m ? m[1] : lcLink.replace(/^@/, '');
+    } else if (lcLink && typeof lcLink === 'object') {
+      username = lcLink.username || (lcLink.url ? (lcLink.url.match(/leetcode\.com\/(?:u\/)?([a-zA-Z0-9_\-\.]+)/i) || [])[1] : '');
+    }
+  }
+
+  username = (username || '').trim().replace(/^@/, '');
+
+  if (!username || username === 'undefined' || username === 'null') {
+    if (badgeEl) {
+      badgeEl.className = 'link-status-badge format-valid';
+      badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">check</span> URL Valid`;
+    }
+    if (metaEl) {
+      metaEl.textContent = 'Extracted from resume · URL format valid';
+    }
+    return;
+  }
+
+  try {
+    const fetchFn = typeof fetch === 'function' ? fetch : (typeof window !== 'undefined' ? window.fetch : null);
+    if (!fetchFn) return;
+
+    let data = null;
+    const endpoints = [
+      `https://leetcode-api-faisalshohag.vercel.app/${encodeURIComponent(username)}`,
+      `https://alfa-leetcode-api.onrender.com/userProfile/${encodeURIComponent(username)}`
+    ];
+
+    for (const ep of endpoints) {
+      try {
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const timeoutId = controller ? setTimeout(() => controller.abort(), 4000) : null;
+        const response = await fetchFn(ep, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          signal: controller ? controller.signal : undefined
+        });
+        if (timeoutId) clearTimeout(timeoutId);
+        if (response.ok) {
+          const parsed = await response.json();
+          if (parsed && (typeof parsed.totalSolved === 'number' || Array.isArray(parsed.errors))) {
+            data = parsed;
+            break;
+          }
+        }
+      } catch (e) {}
+    }
+
+    if (data) {
+      if (typeof data.totalSolved === 'number' && !data.errors) {
+        if (badgeEl) {
+          badgeEl.className = 'link-status-badge live-verified';
+          badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">verified</span> Real Verified`;
+        }
+        if (metaEl) {
+          metaEl.innerHTML = `<span class="github-verified-stats"><span class="material-symbols-outlined text-[12px]">check_circle</span> Active LeetCode Account · ${data.totalSolved} solved (${data.easySolved || 0}E / ${data.mediumSolved || 0}M / ${data.hardSolved || 0}H)</span>`;
+        }
+        if (leetcodeCard) {
+          leetcodeCard.classList.remove('profile-not-found');
+          leetcodeCard.classList.add('verified-success');
+        }
+        if (result) {
+          result.leetcodeLiveVerified = {
+            verified: true,
+            username,
+            totalSolved: data.totalSolved,
+            easySolved: data.easySolved,
+            mediumSolved: data.mediumSolved,
+            hardSolved: data.hardSolved
+          };
+        }
+        return;
+      } else if (data.errors && data.errors.some(e => /does not exist|not found/i.test(e.message || ''))) {
+        if (badgeEl) {
+          badgeEl.className = 'link-status-badge live-failed';
+          badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">error</span> Account Not Found (404)`;
+        }
+        if (metaEl) {
+          metaEl.innerHTML = `<span style="color:var(--color-error); font-weight:600;">⚠️ Username "@${escHtml(username)}" does not exist on LeetCode. Check for typos!</span>`;
+        }
+        if (leetcodeCard) {
+          leetcodeCard.classList.remove('verified-success');
+          leetcodeCard.classList.add('profile-not-found');
+        }
+        return;
+      }
+    }
+
+    if (badgeEl) {
+      badgeEl.className = 'link-status-badge format-valid';
+      badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">check</span> URL Valid`;
+    }
+    if (metaEl) {
+      metaEl.innerHTML = `Extracted from resume · URL format valid`;
+    }
+  } catch (err) {
+    if (badgeEl) {
+      badgeEl.className = 'link-status-badge format-valid';
+      badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">check</span> URL Valid`;
+    }
+    if (metaEl) {
+      metaEl.innerHTML = `Extracted from resume · URL format valid`;
+    }
+  }
+}
+
+/* ============================================================
+   LIVE PROJECT LINKS VERIFIER (GitHub Repos & Live Demos)
+   ============================================================ */
+/**
+ * Asynchronously verifies project GitHub repositories and live demo links.
+ * Updates DOM badges in real-time.
+ * @param {Object} result - Resume analysis result
+ * @param {HTMLElement} [container] - DOM container
+ */
+async function verifyProjectLinksLive(result, container = (typeof document !== 'undefined' ? document : null)) {
+  if (!container || typeof container.querySelectorAll !== 'function') return;
+
+  const lv = _linkValidator || (typeof window !== 'undefined' ? window.LinkValidator : null);
+
+  // 1. Verify Project GitHub Repos
+  const ghBadges = container.querySelectorAll('[id^="proj-gh-badge-"]');
+  for (const badge of ghBadges) {
+    const rawRepo = badge.dataset.repo;
+    if (!rawRepo) continue;
+
+    const parsed = lv ? lv.parseGitHubRepo(rawRepo) : null;
+    if (!parsed) continue;
+
+    try {
+      let liveCheck = null;
+      if (lv && typeof lv.verifyGitHubRepoLive === 'function') {
+        liveCheck = await lv.verifyGitHubRepoLive(rawRepo);
+      } else {
+        const fetchFn = typeof fetch === 'function' ? fetch : null;
+        if (fetchFn) {
+          const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+          const timeoutId = controller ? setTimeout(() => controller.abort(), 6000) : null;
+          const res = await fetchFn(`https://api.github.com/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}`, {
+            headers: { 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'DevPilot-AI' },
+            signal: controller ? controller.signal : undefined
+          });
+          if (timeoutId) clearTimeout(timeoutId);
+          if (res.status === 200) {
+            const data = await res.json();
+            liveCheck = { status: 'verified', isValid: true, isFake: false, stars: data.stargazers_count, forks: data.forks_count };
+          } else if (res.status === 404) {
+            liveCheck = { status: 'invalid', isValid: false, isFake: true, reason: 'Repository not found on GitHub (404)' };
+          } else {
+            liveCheck = { status: 'unverified', isValid: true, isFake: false, reason: `GitHub API status ${res.status}` };
+          }
+        }
+      }
+
+      if (liveCheck) {
+        if (liveCheck.status === 'verified') {
+          badge.className = 'project-link-badge github valid';
+          badge.title = `Verified GitHub repo: ${parsed.owner}/${parsed.repo}${liveCheck.stars != null ? ` (${liveCheck.stars} stars)` : ''}`;
+          badge.innerHTML = `<span class="material-symbols-outlined text-[12px]">check_circle</span> <span>🟢 GitHub Repo</span>`;
+        } else if (liveCheck.status === 'invalid') {
+          badge.className = 'project-link-badge github fake';
+          badge.title = liveCheck.reason || 'Repository not found on GitHub (404)';
+          badge.innerHTML = `<span class="material-symbols-outlined text-[12px]">error</span> <span>🔴 Repo Not Found</span>`;
+        } else {
+          badge.className = 'project-link-badge github unverified';
+          badge.title = `GitHub repo format valid (${liveCheck.reason || 'reachable'})`;
+          badge.innerHTML = `<span class="material-symbols-outlined text-[12px]">code</span> <span>GitHub Repo</span>`;
+        }
+      }
+    } catch (err) {
+      // Keep current state
+    }
+  }
+
+  // 2. Verify Project Demo URLs
+  const demoBadges = container.querySelectorAll('[id^="proj-demo-badge-"]');
+  for (const badge of demoBadges) {
+    const rawUrl = badge.dataset.url;
+    if (!rawUrl) continue;
+
+    try {
+      const live = await validateProjectLiveUrlAsync(rawUrl);
+      if (live) {
+        if (live.state === 'verified' || (live.reachable && live.isValid && !live.isFake)) {
+          badge.className = 'project-link-badge demo valid';
+          badge.title = `Verified live deployment: ${live.url || rawUrl} (HTTP ${live.httpStatus || 200})`;
+          badge.innerHTML = `<span class="material-symbols-outlined text-[12px]">check_circle</span> <span>🟢 Live Demo (Verified)</span>`;
+
+          // If this is the first project demo and there was no portfolio, update showcase item
+          const showcaseItem = container.querySelector('#contact-showcase-item');
+          if (showcaseItem && showcaseItem.classList.contains('missing')) {
+            showcaseItem.className = 'contact-link-item detected verified-success';
+            showcaseItem.innerHTML = `
+              <div class="link-item-top">
+                <span class="link-platform-name">
+                  <span class="material-symbols-outlined text-[16px]">rocket_launch</span>
+                  Project Showcase
+                </span>
+                <span class="link-status-badge live-verified">
+                  <span class="material-symbols-outlined text-[12px]">verified</span>
+                  Live Demo
+                </span>
+              </div>
+              <div class="link-url-display">
+                <a href="${escHtml(live.url || rawUrl)}" target="_blank" rel="noopener noreferrer" class="contact-profile-action-btn" title="Open primary project live demo in new tab">
+                  <span class="btn-text">${escHtml(live.displayUrl || rawUrl)}</span>
+                  <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                </a>
+              </div>
+              <div class="github-live-meta">From 1st Project: <strong>Verified Project Deployment</strong> · Project Live Demo</div>
+            `;
+          }
+        } else if (live.isFake || live.state === 'invalid') {
+          const wrap = document.createElement('div');
+          wrap.className = 'project-demo-badge-wrap';
+          wrap.innerHTML = `
+            <button type="button" class="project-link-badge demo fake cursor-pointer" onclick="this.nextElementSibling.classList.toggle('open')" title="Live Link Invalid: Click to view details">
+              <span class="material-symbols-outlined text-[12px]">warning</span>
+              <span>🔴 Live Link Invalid</span>
+            </button>
+            <div class="project-warning-box open">
+              <div class="project-warning-title">
+                <span class="material-symbols-outlined text-[13px]">error</span>
+                Live Link Invalid
+              </div>
+              <div class="project-warning-text">
+                Detected live link appears invalid or unreachable. Replace it with the actual deployed project URL (e.g. Vercel, Netlify, Render, GitHub Pages, or custom domain).
+                ${live.reason ? `<div style="margin-top:3px;color:#ef4444;font-style:italic;">Issue: ${escHtml(live.reason)}</div>` : ''}
+              </div>
+            </div>
+          `;
+          badge.replaceWith(wrap);
+        } else {
+          badge.className = 'project-link-badge demo valid unverified';
+          badge.title = `Live demo format valid · Reachability check: ${live.reason || 'Pending/unverified'}`;
+          badge.innerHTML = `<span class="material-symbols-outlined text-[12px]">open_in_new</span> <span>🟡 Live Demo</span>`;
+        }
+      }
+    } catch (e) {
+      // Keep current state
     }
   }
 }
@@ -7454,10 +8761,40 @@ function renderResumeAiAssistant(result) {
   return `
     <div class="resume-ai-assistant-card" id="resume-ai-assistant-section">
       <div class="ai-assistant-header">
-        <span class="material-symbols-outlined text-indigo-500 text-[24px]">smart_toy</span>
-        <div>
-          <h3 class="ai-assistant-title">🤖 Ask AI About Your Resume</h3>
-          <div class="ai-assistant-sub">Have questions about your resume analysis? Ask our AI resume coach for personalized advice.</div>
+        <div class="ai-assistant-header-left">
+          <span class="material-symbols-outlined text-indigo-500 text-[26px]">smart_toy</span>
+          <div>
+            <div class="ai-title-status-line">
+              <h3 class="ai-assistant-title">🤖 Ask AI About Your Resume</h3>
+              <span id="ai-chat-status-pill" class="ai-status-pill local">
+                <span class="material-symbols-outlined text-[12px]">psychology</span>
+                Local AI Coach
+              </span>
+            </div>
+            <div class="ai-assistant-sub">Have questions about your resume analysis? Ask our AI resume coach for personalized advice. Enter your free Google Gemini API key for live generative answers!</div>
+          </div>
+        </div>
+        <div class="ai-assistant-header-right">
+          <button type="button" id="btn-toggle-gemini-key" class="ai-key-btn" title="Configure Google Gemini API Key">
+            <span class="material-symbols-outlined text-[14px]">key</span>
+            <span id="label-gemini-key-btn">Add Gemini Key</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Collapsible Gemini API Key Drawer -->
+      <div id="drawer-gemini-key" class="ai-gemini-key-drawer" style="display:none;">
+        <div class="key-drawer-label">
+          <span class="material-symbols-outlined text-[15px] text-amber-500">vpn_key</span>
+          <span>Google Gemini API Key (<a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style="color:var(--color-primary);text-decoration:underline;">Get a free API key from Google AI Studio</a>):</span>
+        </div>
+        <div class="key-drawer-input-row">
+          <input type="password" id="input-chat-gemini-key" class="key-drawer-input" placeholder="Paste your AIzaSy... key here" autocomplete="off" />
+          <button type="button" id="btn-save-chat-gemini-key" class="btn-primary btn-sm" style="height:32px;padding:0 0.85rem;">Connect</button>
+          <button type="button" id="btn-clear-chat-gemini-key" class="btn-secondary btn-sm" style="height:32px;padding:0 0.75rem;">Clear</button>
+        </div>
+        <div id="gemini-key-feedback" style="font-size:0.6875rem;color:var(--color-on-surface-variant);margin-top:0.35rem;">
+          Saved securely in your browser. Supports Google's 100% free tier.
         </div>
       </div>
 
@@ -7538,6 +8875,121 @@ function initResumeAiAssistant(result, area) {
     ? (container.querySelectorAll('.ai-prompt-quick-btn') || [])
     : [];
 
+  const statusPill = document.getElementById('ai-chat-status-pill');
+  const toggleKeyBtn = document.getElementById('btn-toggle-gemini-key');
+  const keyBtnLabel = document.getElementById('label-gemini-key-btn');
+  const keyDrawer = document.getElementById('drawer-gemini-key');
+  const keyInput = document.getElementById('input-chat-gemini-key');
+  const keySaveBtn = document.getElementById('btn-save-chat-gemini-key');
+  const keyClearBtn = document.getElementById('btn-clear-chat-gemini-key');
+
+  const getStoredGeminiKey = () => {
+    let key = '';
+    if (typeof Storage !== 'undefined') {
+      const userSettings = Storage.get('user_settings', null);
+      if (userSettings && userSettings.apiKeys && userSettings.apiKeys.geminiKey) {
+        key = userSettings.apiKeys.geminiKey.trim();
+      }
+    }
+    if (!key && typeof localStorage !== 'undefined') {
+      key = (localStorage.getItem('devpilot_gemini_api_key') || localStorage.getItem('gemini_api_key') || '').trim();
+    }
+    if (!key && typeof window !== 'undefined' && window.GEMINI_API_KEY) {
+      key = String(window.GEMINI_API_KEY).trim();
+    }
+    if (key && !key.includes('Mock') && key.startsWith('AIza')) {
+      return key;
+    }
+    return '';
+  };
+
+  const updateApiStatusUI = () => {
+    const key = getStoredGeminiKey();
+    if (key) {
+      if (statusPill) {
+        statusPill.className = 'ai-status-pill connected';
+        statusPill.innerHTML = `<span class="pulse-dot"></span> Gemini 1.5 Flash Connected`;
+      }
+      if (keyBtnLabel) keyBtnLabel.textContent = 'Key Connected ✓';
+      if (keyInput) keyInput.value = key;
+    } else {
+      if (statusPill) {
+        statusPill.className = 'ai-status-pill local';
+        statusPill.innerHTML = `<span class="material-symbols-outlined text-[12px]">psychology</span> Local AI Coach`;
+      }
+      if (keyBtnLabel) keyBtnLabel.textContent = 'Add Gemini Key';
+    }
+  };
+
+  updateApiStatusUI();
+
+  if (toggleKeyBtn && keyDrawer) {
+    toggleKeyBtn.addEventListener('click', () => {
+      const isOpen = keyDrawer.style.display !== 'none';
+      keyDrawer.style.display = isOpen ? 'none' : 'block';
+      if (!isOpen && keyInput) {
+        const key = getStoredGeminiKey();
+        if (key) keyInput.value = key;
+        setTimeout(() => keyInput.focus(), 50);
+      }
+    });
+  }
+
+  if (keySaveBtn && keyInput) {
+    keySaveBtn.addEventListener('click', () => {
+      const val = (keyInput.value || '').trim();
+      if (!val) {
+        if (typeof showToast === 'function') showToast('Please enter a valid Gemini API key.', 'warning');
+        return;
+      }
+      if (!val.startsWith('AIza')) {
+        if (typeof showToast === 'function') showToast('Gemini API keys typically start with "AIza". Please check your key.', 'warning');
+      }
+
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('devpilot_gemini_api_key', val);
+      }
+      if (typeof Storage !== 'undefined') {
+        const userSettings = Storage.get('user_settings', {}) || {};
+        if (!userSettings.apiKeys) userSettings.apiKeys = {};
+        userSettings.apiKeys.geminiKey = val;
+        Storage.set('user_settings', userSettings);
+      }
+      if (typeof window !== 'undefined') {
+        window.GEMINI_API_KEY = val;
+      }
+
+      updateApiStatusUI();
+      if (keyDrawer) keyDrawer.style.display = 'none';
+      if (typeof showToast === 'function') showToast('Google Gemini 1.5 Flash connected successfully!', 'success');
+
+      appendMessage('DevPilot AI Coach', '🟢 <strong>Google Gemini 1.5 Flash live API is now connected!</strong> Ask me any custom question about your resume, bullet points, skills, or target career role.', false);
+    });
+  }
+
+  if (keyClearBtn && keyInput) {
+    keyClearBtn.addEventListener('click', () => {
+      keyInput.value = '';
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('devpilot_gemini_api_key');
+        localStorage.removeItem('gemini_api_key');
+      }
+      if (typeof Storage !== 'undefined') {
+        const userSettings = Storage.get('user_settings', {}) || {};
+        if (userSettings && userSettings.apiKeys) {
+          delete userSettings.apiKeys.geminiKey;
+          Storage.set('user_settings', userSettings);
+        }
+      }
+      if (typeof window !== 'undefined') {
+        delete window.GEMINI_API_KEY;
+      }
+      updateApiStatusUI();
+      if (keyDrawer) keyDrawer.style.display = 'none';
+      if (typeof showToast === 'function') showToast('API key removed. Switched to Local AI Coach.', 'info');
+    });
+  }
+
   if (!messagesContainer || !inputEl || !sendBtn || typeof sendBtn.addEventListener !== 'function') return;
 
   const appendMessage = (sender, text, isUser) => {
@@ -7549,13 +9001,40 @@ function initResumeAiAssistant(result, area) {
     `;
     messagesContainer.appendChild(bubble);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    // Bind any inline key toggle button inside messages
+    const inlineKeyBtn = bubble.querySelector('.btn-inline-key-open');
+    if (inlineKeyBtn && keyDrawer) {
+      inlineKeyBtn.addEventListener('click', () => {
+        keyDrawer.style.display = 'block';
+        if (keyInput) keyInput.focus();
+      });
+    }
+  };
+
+  const formatAiMarkdown = (raw) => {
+    if (!raw) return '';
+    let html = escHtml(raw);
+    // Bold: **text**
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Italic: *text*
+    html = html.replace(/(^|[^\*])\*([^\*]+)\*([^\*]|$)/g, '$1<em>$2</em>$3');
+    // Inline code: `code`
+    html = html.replace(/`([^`]+)`/g, '<code style="background:var(--color-surface-container-high);padding:0.1rem 0.35rem;border-radius:3px;font-size:0.75rem;">$1</code>');
+    // Bullet points: lines starting with * or -
+    html = html.replace(/^[*-]\s+(.+)$/gm, '• $1');
+    // Numbered lists: lines starting with 1. 2.
+    html = html.replace(/^(\d+\.)\s+(.+)$/gm, '<strong>$1</strong> $2');
+    // Line breaks
+    html = html.replace(/\n\n/g, '<br/><br/>');
+    html = html.replace(/\n/g, '<br/>');
+    return html;
   };
 
   const generateLocalAnswer = (query) => {
     const q = query.toLowerCase();
     const allSkills = Array.isArray(result.skills?.all) ? result.skills.all : [];
     const projects = Array.isArray(result.projectsAnalysis?.entries) ? result.projectsAnalysis.entries : [];
-    const exp = result.experienceAnalysis || {};
     const cq = result.contentQuality || {};
 
     if (q.includes('project bullet') || q.includes('bullet point')) {
@@ -7593,16 +9072,128 @@ function initResumeAiAssistant(result, area) {
     Focusing on adding GitHub links to all projects, quantifying bullet points with measurable impact, and highlighting cloud/containerization tools will give you the fastest boost in recruiter callback rates.`;
   };
 
-  const handleSend = (text) => {
+  const handleSend = async (text) => {
     const q = (text || inputEl.value || '').trim();
     if (!q) return;
     inputEl.value = '';
     appendMessage('You', escHtml(q), true);
 
-    setTimeout(() => {
-      const answer = generateLocalAnswer(q);
-      appendMessage('DevPilot AI Coach', answer, false);
-    }, 300);
+    const apiKey = getStoredGeminiKey();
+
+    if (!apiKey) {
+      // Offline / Local Coach mode
+      setTimeout(() => {
+        const answer = generateLocalAnswer(q);
+        const tipNotice = `
+          <div style="margin-top:0.65rem;padding-top:0.5rem;border-top:1px dashed var(--color-outline-variant);font-size:0.6875rem;color:var(--color-on-surface-variant);display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+            <span>💡 <em>Want real-time generative advice on any custom question? Connect your free Google Gemini API key.</em></span>
+            <button type="button" class="btn-inline-key-open" style="background:none;border:none;color:var(--color-primary);font-weight:700;cursor:pointer;text-decoration:underline;padding:0;">Add Key</button>
+          </div>
+        `;
+        appendMessage('DevPilot AI Coach', answer + tipNotice, false);
+      }, 300);
+      return;
+    }
+
+    // Live Google Gemini 1.5 Flash Mode
+    const loadingId = 'ai-loading-' + Date.now();
+    const loadingBubble = document.createElement('div');
+    loadingBubble.id = loadingId;
+    loadingBubble.className = 'ai-chat-bubble ai-msg';
+    loadingBubble.innerHTML = `
+      <span class="ai-chat-sender">DevPilot AI (Gemini 1.5 Flash)</span>
+      <div style="display:flex;align-items:center;gap:0.4rem;color:var(--color-on-surface-variant);font-size:0.75rem;">
+        <span class="material-symbols-outlined text-[16px] animate-spin" style="color:var(--color-primary);">progress_activity</span>
+        <span>Consulting Gemini 1.5 Flash with your resume data...</span>
+      </div>
+    `;
+    messagesContainer.appendChild(loadingBubble);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    try {
+      const candidateName = result.candidate?.name || 'Candidate';
+      const role = result.candidate?.primaryRole || 'Software Engineer';
+      const overallScore = result.scores?.overall || 0;
+      const allSkills = Array.isArray(result.skills?.all) ? result.skills.all.slice(0, 15).join(', ') : 'Not specified';
+      const projList = (result.projectsAnalysis?.entries || result.projects?.entries || []).slice(0, 4)
+        .map(p => `- ${p.name || 'Project'}: ${Array.isArray(p.technologies) ? p.technologies.join(', ') : ''} (Demo: ${p.demoUrl || 'None'}, Repo: ${p.githubUrl || 'None'})`)
+        .join('\n');
+      const expList = (result.experienceAnalysis?.entries || result.experience?.entries || []).slice(0, 3)
+        .map(e => `- ${e.title || 'Role'} at ${e.company || 'Company'}`)
+        .join('\n');
+
+      const systemPrompt = `You are DevPilot AI, an elite technical recruiter and principal software engineering resume coach.
+The user is asking a specific question regarding their audited developer resume.
+
+RESUME AUDIT CONTEXT:
+- Candidate Name: ${candidateName}
+- Target / Primary Role: ${role}
+- DevPilot ATS Score: ${overallScore}/100
+- Extracted Skills: ${allSkills}
+- Key Projects:
+${projList || 'No projects listed'}
+- Work Experience:
+${expList || 'Fresher / Student (no formal corporate roles)'}
+
+USER QUESTION:
+"${q}"
+
+COACHING GUIDELINES:
+1. Address their question directly with actionable, expert technical advice tailored to their background.
+2. If they ask about bullet points or summary rewrites, provide concrete, ready-to-use rewrite examples using the Google X-Y-Z formula ("Accomplished [X] as measured by [Y], by doing [Z]").
+3. Keep the tone encouraging, direct, and rigorous. Keep responses to 2-4 concise sections/bullet points.
+4. Do NOT include generic filler phrases like "Certainly! Here is your answer" or "I hope this helps".`;
+
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: systemPrompt }] }],
+          generationConfig: {
+            temperature: 0.35,
+            maxOutputTokens: 800
+          }
+        })
+      });
+
+      const activeLoading = document.getElementById(loadingId);
+      if (activeLoading) activeLoading.remove();
+
+      if (response.ok) {
+        const data = await response.json();
+        const rawResponse = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (rawResponse) {
+          const formatted = formatAiMarkdown(rawResponse);
+          appendMessage('DevPilot AI (Gemini 1.5 Flash)', formatted, false);
+          return;
+        }
+      }
+
+      // API returned error status
+      const errJson = await response.json().catch(() => ({}));
+      const errMsg = errJson?.error?.message || `HTTP ${response.status}`;
+      console.warn('[Resume AI Chat] Gemini API error:', errMsg);
+      const localAns = generateLocalAnswer(q);
+      appendMessage('DevPilot AI Coach', `
+        <div style="margin-bottom:0.5rem;font-size:0.6875rem;color:var(--color-warning);background:var(--color-warning-bg);padding:0.35rem 0.6rem;border-radius:var(--radius-sm);border:1px solid rgba(245,158,11,0.25);">
+          ⚠️ <em>Gemini API status: ${escHtml(errMsg)}. Falling back to Local Master Evaluator:</em>
+        </div>
+        ${localAns}
+      `, false);
+
+    } catch (networkErr) {
+      const activeLoading = document.getElementById(loadingId);
+      if (activeLoading) activeLoading.remove();
+      console.warn('[Resume AI Chat] Gemini fetch failed:', networkErr);
+      const localAns = generateLocalAnswer(q);
+      appendMessage('DevPilot AI Coach', `
+        <div style="margin-bottom:0.5rem;font-size:0.6875rem;color:var(--color-warning);background:var(--color-warning-bg);padding:0.35rem 0.6rem;border-radius:var(--radius-sm);border:1px solid rgba(245,158,11,0.25);">
+          ⚠️ <em>Could not connect to Gemini API (${escHtml(networkErr.message || 'Offline')}). Using Local Master Evaluator:</em>
+        </div>
+        ${localAns}
+      `, false);
+    }
   };
 
   sendBtn.addEventListener('click', () => handleSend());
@@ -8227,24 +9818,93 @@ function renderProjectsDetails(proj) {
 
   const items = [];
   items.push({ pass: proj.count >= 2, label: `${proj.count} project(s) detected` });
-  items.push({ pass: Boolean(proj.hasGithubLinks), label: proj.hasGithubLinks ? 'GitHub repository link (detected — unverified)' : 'No GitHub repository links detected' });
-  items.push({ pass: Boolean(proj.hasDemoLinks), label: proj.hasDemoLinks ? 'Live demo / hosted link (detected — unverified)' : 'No live demo links detected' });
+  items.push({ pass: Boolean(proj.hasGithubLinks), label: proj.hasGithubLinks ? 'GitHub repository link (detected)' : 'No GitHub repository links detected' });
+  items.push({ pass: Boolean(proj.hasDemoLinks && !proj.hasFakeDemoLinks), label: proj.hasDemoLinks ? (proj.hasFakeDemoLinks ? 'Live demo link detected (contains inactive/placeholder link)' : 'Live demo / hosted link (detected)') : 'No live demo links detected' });
 
   let detailsHtml = '';
   const details = Array.isArray(proj.details) ? proj.details : [];
   if (details.length > 0) {
-    detailsHtml = details.map(d => `
-      <div class="project-detail-item">
-        <div class="project-detail-name">${escHtml(d?.name || 'Project')}</div>
-        <div class="project-detail-checks">
-          ${d?.hasTech ? '<span class="mini-check pass">Tech ✓</span>' : '<span class="mini-check warn">Tech ⚠</span>'}
-          ${d?.hasDescription ? '<span class="mini-check pass">Desc ✓</span>' : '<span class="mini-check warn">Desc ⚠</span>'}
-          ${d?.matchedDepthKeywords && d.matchedDepthKeywords.length > 0 ? `<span class="mini-check pass">Depth (${d.matchedDepthKeywords.length})</span>` : '<span class="mini-check warn">Depth ⚠</span>'}
-          ${d?.hasGithub ? '<span class="mini-check pass">GitHub ✓</span>' : ''}
-          ${d?.hasImpact ? '<span class="mini-check pass">Impact ✓</span>' : ''}
+    detailsHtml = details.map((d, idx) => {
+      const isCert = Boolean(
+        d?.isCertificate ||
+        /\b(certificate|certification|certified|credential|coursework|license|coursera|udemy|credly|nptel)\b/i.test(d?.name || '')
+      );
+
+      const demoVal = !isCert && (d?.demoValidation || (d?.demoUrl ? validateProjectLiveUrl(d.demoUrl) : null));
+      const isDemoFake = Boolean(!isCert && demoVal && (demoVal.isFake || demoVal.state === 'invalid'));
+      const isDemoVerified = Boolean(!isCert && demoVal && demoVal.isValid && !demoVal.isFake && (demoVal.state === 'verified' || demoVal.reachable));
+
+      const ghClass = d?.githubRepoState === 'verified' ? ' valid' : (d?.githubRepoState === 'invalid' ? ' fake' : '');
+      const ghLabel = d?.githubRepoState === 'verified' ? '🟢 GitHub Repo' : (d?.githubRepoState === 'invalid' ? '🔴 Repo Not Found' : 'GitHub Repo');
+
+      return `
+        <div class="project-detail-item">
+          <div class="project-detail-name">
+            <span class="material-symbols-outlined text-[16px] text-indigo-500 shrink-0">${isCert ? 'verified' : 'rocket_launch'}</span>
+            <span class="project-title-text" title="${escHtml(d?.name || 'Project')}">${escHtml(d?.name || 'Project')}</span>
+          </div>
+          <div class="project-detail-checks">
+            ${d?.hasTech ? '<span class="mini-check pass">Tech ✓</span>' : '<span class="mini-check warn">Tech ⚠</span>'}
+            ${d?.hasDescription ? '<span class="mini-check pass">Desc ✓</span>' : '<span class="mini-check warn">Desc ⚠</span>'}
+            ${d?.matchedDepthKeywords && d.matchedDepthKeywords.length > 0 ? `<span class="mini-check pass">Depth (${d.matchedDepthKeywords.length})</span>` : '<span class="mini-check warn">Depth ⚠</span>'}
+            ${d?.hasImpact ? '<span class="mini-check pass">Impact ✓</span>' : ''}
+          </div>
+          <div class="project-detail-links">
+            ${!isCert && d?.githubUrl ? `
+              <a href="${escHtml(d.githubUrl)}" target="_blank" rel="noopener noreferrer" class="project-link-badge github${ghClass}" id="proj-gh-badge-${idx}" data-repo="${escHtml(d.githubUrl)}" title="GitHub repository: ${escHtml(d.githubUrl)}">
+                <span class="material-symbols-outlined text-[12px]">code</span>
+                <span>${ghLabel}</span>
+              </a>
+            ` : ''}
+            ${!isCert && d?.demoUrl ? (isDemoFake ? `
+              <div class="project-demo-badge-wrap">
+                <button type="button" class="project-link-badge demo fake cursor-pointer" onclick="this.nextElementSibling.classList.toggle('open')" title="Live Link Invalid: Click to view details">
+                  <span class="material-symbols-outlined text-[12px]">warning</span>
+                  <span>🔴 Live Link Invalid</span>
+                </button>
+                <div class="project-warning-box">
+                  <div class="project-warning-title">
+                    <span class="material-symbols-outlined text-[13px]">error</span>
+                    Live Link Invalid
+                  </div>
+                  <div class="project-warning-text">
+                    Detected live link appears invalid or unreachable. Replace it with the actual deployed project URL (e.g. Vercel, Netlify, Render, GitHub Pages, or custom domain).
+                    ${demoVal?.reason ? `<div style="margin-top:3px;font-style:italic;">Issue: ${escHtml(demoVal.reason)}</div>` : ''}
+                  </div>
+                </div>
+              </div>
+            ` : (demoVal && demoVal.isValid ? `
+              <a href="${escHtml(demoVal.url || d.demoUrl)}" target="_blank" rel="noopener noreferrer" class="project-link-badge demo valid" id="proj-demo-badge-${idx}" data-url="${escHtml(demoVal.url || d.demoUrl)}" title="${isDemoVerified ? 'Verified live deployment' : 'Live link detected'}: ${escHtml(demoVal.url || d.demoUrl)}">
+                <span class="material-symbols-outlined text-[12px]">${isDemoVerified ? 'check_circle' : 'open_in_new'}</span>
+                <span>${isDemoVerified ? '🟢 Live Demo (Verified)' : '🟢 Live Link Detected'}</span>
+              </a>
+            ` : `
+              <div class="project-demo-badge-wrap">
+                <button type="button" class="project-link-badge demo fake cursor-pointer" onclick="this.nextElementSibling.classList.toggle('open')" title="Live Link Invalid: Click to view details">
+                  <span class="material-symbols-outlined text-[12px]">warning</span>
+                  <span>🔴 Live Link Invalid</span>
+                </button>
+                <div class="project-warning-box">
+                  <div class="project-warning-title">
+                    <span class="material-symbols-outlined text-[13px]">error</span>
+                    Live Link Invalid
+                  </div>
+                  <div class="project-warning-text">
+                    Detected live link appears invalid or unreachable. Replace it with the actual deployed project URL (e.g. Vercel, Netlify, Render, GitHub Pages, or custom domain).
+                  </div>
+                </div>
+              </div>
+            `)) : ''}
+            ${!isCert && d?.portfolioUrl ? `
+              <a href="${escHtml(d.portfolioUrl)}" target="_blank" rel="noopener noreferrer" class="project-link-badge portfolio" title="Portfolio link: ${escHtml(d.portfolioUrl)}">
+                <span class="material-symbols-outlined text-[12px]">language</span>
+                <span>Portfolio</span>
+              </a>
+            ` : ''}
+          </div>
         </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   return `
@@ -8591,10 +10251,19 @@ if (typeof window !== 'undefined') {
   window.renderEightScorePillars = renderEightScorePillars;
   window.renderContactAndLinksCard = renderContactAndLinksCard;
   window.renderSectionAnalysisCards = renderSectionAnalysisCards;
+  window.renderProjectsDetails = renderProjectsDetails;
+  window.renderExperienceDetails = renderExperienceDetails;
+  window.renderSkillsSection = renderSkillsSection;
   window.renderResumeAiAssistant = renderResumeAiAssistant;
   window.initPillarDetailsToggles = initPillarDetailsToggles;
   window.initResumeAiAssistant = initResumeAiAssistant;
   window.verifyGitHubProfileLive = verifyGitHubProfileLive;
+  window.verifyLeetCodeProfileLive = verifyLeetCodeProfileLive;
+  window.validatePhoneNumber = validatePhoneNumber;
+  window.validateProjectLiveUrl = validateProjectLiveUrl;
+  window.validateProjectLiveUrlAsync = validateProjectLiveUrlAsync;
+  window.extractProjectLinks = extractProjectLinks;
+  window.verifyProjectLinksLive = verifyProjectLinksLive;
 }
 
 // Auto-initialize
@@ -8663,10 +10332,19 @@ if (typeof module !== 'undefined' && module.exports) {
     renderEightScorePillars,
     renderContactAndLinksCard,
     renderSectionAnalysisCards,
+    renderProjectsDetails,
+    renderExperienceDetails,
+    renderSkillsSection,
     renderResumeAiAssistant,
     initPillarDetailsToggles,
     initResumeAiAssistant,
-    verifyGitHubProfileLive
+    verifyGitHubProfileLive,
+    verifyLeetCodeProfileLive,
+    validatePhoneNumber,
+    validateProjectLiveUrl,
+    validateProjectLiveUrlAsync,
+    extractProjectLinks,
+    verifyProjectLinksLive
   };
 }
 

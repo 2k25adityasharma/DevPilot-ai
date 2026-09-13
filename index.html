@@ -27,6 +27,7 @@
 <link rel="stylesheet" href="css/base/components.css"/>
 <link rel="stylesheet" href="css/pages/dashboard.css"/>
 <link rel="stylesheet" href="css/base/responsive.css"/>
+<script src="js/core/theme.js"></script>
 <script id="tailwind-config">
   tailwind.config = {
     darkMode: "class",
@@ -409,8 +410,8 @@
 <button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all sm:hidden">
 <span class="material-symbols-outlined">search</span>
 </button>
-<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all">
-<span class="material-symbols-outlined">light_mode</span>
+<button id="theme-toggle" class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all" aria-label="Toggle Dark/Light Mode" title="Toggle theme">
+<span class="material-symbols-outlined" id="theme-toggle-icon">light_mode</span>
 </button>
 <button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all relative">
 <span class="material-symbols-outlined">notifications</span>

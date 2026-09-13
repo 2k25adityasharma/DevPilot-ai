@@ -1,0 +1,712 @@
+/* css/pages/interviewPrep.css
+ * DevPilot-AI — Interview Preparation Stylesheet
+ * Responsive, modern dual-themed aesthetics (Image 2 Light Mode & Image 1 Dark Mode).
+ */
+
+:root {
+  --ip-primary: #4f46e5;
+  --ip-primary-hover: #4338ca;
+  --ip-primary-light: rgba(79, 70, 229, 0.1);
+  --ip-success: #10b981;
+  --ip-success-light: rgba(16, 185, 129, 0.1);
+  --ip-danger: #ef4444;
+  --ip-danger-light: rgba(239, 68, 68, 0.1);
+  --ip-warning: #f59e0b;
+  --ip-warning-light: rgba(245, 158, 11, 0.1);
+
+  /* Light Theme Colors (Matching Dashboard Image 2) */
+  --ip-card-bg: #ffffff;
+  --ip-card-border: #e2e8f0;
+  --ip-card-hover: #f8fafc;
+  --ip-card-hover-border: #cbd5e1;
+  --ip-item-bg: #f8fafc;
+  --ip-item-border: #e2e8f0;
+  --ip-item-hover: #f1f5f9;
+  --ip-text-main: #0f172a;
+  --ip-text-muted: #64748b;
+  --ip-badge-bg: #e2e8f0;
+  --ip-badge-text: #475569;
+  --ip-tab-bg: transparent;
+  --ip-tab-text: #64748b;
+  --ip-tab-hover-bg: #f1f5f9;
+  --ip-tab-hover-text: #0f172a;
+  --ip-tab-active-bg: #4f46e5;
+  --ip-tab-active-text: #ffffff;
+  --ip-banner-bg: linear-gradient(135deg, #eef2ff 0%, #ffffff 100%);
+  --ip-banner-border: #c7d2fe;
+}
+
+html.dark {
+  --ip-primary: #3b82f6;
+  --ip-primary-hover: #2563eb;
+  --ip-primary-light: rgba(59, 130, 246, 0.15);
+  --ip-success: #10b981;
+  --ip-success-light: rgba(16, 185, 129, 0.15);
+  --ip-danger: #ef4444;
+  --ip-danger-light: rgba(239, 68, 68, 0.15);
+  --ip-warning: #f59e0b;
+  --ip-warning-light: rgba(245, 158, 11, 0.15);
+
+  /* Dark Theme Colors (Exact Image 1 Aesthetic) */
+  --ip-card-bg: #111827;
+  --ip-card-border: #1f2937;
+  --ip-card-hover: #161f30;
+  --ip-card-hover-border: #374151;
+  --ip-item-bg: #161f30;
+  --ip-item-border: #1f2937;
+  --ip-item-hover: #1a253c;
+  --ip-text-main: #f3f4f6;
+  --ip-text-muted: #9ca3af;
+  --ip-badge-bg: #1f2937;
+  --ip-badge-text: #9ca3af;
+  --ip-tab-bg: transparent;
+  --ip-tab-text: #9ca3af;
+  --ip-tab-hover-bg: #1f2937;
+  --ip-tab-hover-text: #f3f4f6;
+  --ip-tab-active-bg: #2563eb;
+  --ip-tab-active-text: #ffffff;
+  --ip-banner-bg: linear-gradient(135deg, rgba(30, 58, 138, 0.3) 0%, rgba(17, 24, 39, 0.8) 100%);
+  --ip-banner-border: rgba(59, 130, 246, 0.3);
+}
+
+/* Base Layout & Transitions */
+.ip-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 0 4rem;
+}
+
+@media (max-width: 768px) {
+  .ip-container {
+    padding: 0 0 3rem;
+  }
+}
+
+/* Metric Banner Cards */
+.ip-metric-card {
+  background: var(--ip-card-bg);
+  border: 1px solid var(--ip-card-border);
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.ip-metric-card:hover {
+  border-color: var(--ip-card-hover-border);
+  transform: translateY(-2px);
+}
+
+.ip-metric-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Quick Resume Widget */
+.ip-resume-banner {
+  background: var(--ip-banner-bg);
+  border: 1px solid var(--ip-banner-border);
+  border-radius: 0.875rem;
+  padding: 1.25rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Mode Navigation Pills */
+.ip-mode-tabs {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--ip-card-border);
+  scrollbar-width: thin;
+}
+
+.ip-mode-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.125rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ip-tab-text);
+  background: var(--ip-tab-bg);
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.ip-mode-tab:hover {
+  color: var(--ip-tab-hover-text);
+  background: var(--ip-tab-hover-bg);
+}
+
+.ip-mode-tab.active {
+  color: var(--ip-tab-active-text);
+  background: var(--ip-tab-active-bg);
+  border-color: var(--ip-tab-active-bg);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+/* Categories Grid */
+.ip-categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.ip-cat-card {
+  background: var(--ip-card-bg);
+  border: 1px solid var(--ip-card-border);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.ip-cat-card:hover {
+  border-color: var(--ip-primary);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+html.dark .ip-cat-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.ip-cat-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ip-cat-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(79, 70, 229, 0.1);
+  color: #4f46e5;
+  border: 1px solid rgba(79, 70, 229, 0.2);
+}
+
+html.dark .ip-cat-icon {
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.ip-cat-card:hover .ip-cat-icon {
+  background: var(--ip-primary);
+  color: #ffffff;
+  border-color: var(--ip-primary);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.ip-cat-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--ip-text-main);
+  margin-bottom: 0.25rem;
+}
+
+.ip-cat-desc {
+  font-size: 0.8125rem;
+  color: var(--ip-text-muted);
+  line-height: 1.4;
+  margin-bottom: 1.25rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ip-cat-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ip-card-border);
+  font-size: 0.75rem;
+  color: var(--ip-text-muted);
+}
+
+.ip-cat-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* Category Topics Accordion / Drilldown */
+.ip-topic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin-top: 1rem;
+}
+
+.ip-topic-item {
+  background: var(--ip-item-bg);
+  border: 1px solid var(--ip-item-border);
+  border-radius: 0.5rem;
+  padding: 0.875rem 1.125rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.ip-topic-item:hover {
+  border-color: var(--ip-card-hover-border);
+  background: var(--ip-item-hover);
+}
+
+.ip-topic-name {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--ip-text-main);
+}
+
+/* ======================================================
+   QUESTION ENGINE (Interactive Quiz & Immediate Feedback)
+====================================================== */
+.ip-quiz-card {
+  background: var(--ip-card-bg);
+  border: 1px solid var(--ip-card-border);
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  margin-bottom: 2rem;
+}
+
+html.dark .ip-quiz-card {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.ip-quiz-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--ip-card-border);
+  margin-bottom: 1.75rem;
+}
+
+.ip-quiz-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--ip-card-border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.ip-quiz-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4f46e5, #6366f1);
+  transition: width 0.3s ease;
+}
+
+html.dark .ip-quiz-progress-fill {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.ip-question-text {
+  font-size: 1.1875rem;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--ip-text-main);
+  margin-bottom: 1.75rem;
+}
+
+.ip-options-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.ip-option-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--ip-item-bg);
+  border: 1.5px solid var(--ip-item-border);
+  border-radius: 0.625rem;
+  color: var(--ip-text-main);
+  text-align: left;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  width: 100%;
+}
+
+.ip-option-btn:hover:not(:disabled) {
+  border-color: var(--ip-primary);
+  background: var(--ip-item-hover);
+  color: var(--ip-text-main);
+}
+
+.ip-option-badge {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.375rem;
+  background: var(--ip-badge-bg);
+  color: var(--ip-badge-text);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+/* Option States upon Answer Submission */
+.ip-option-btn.selected-option {
+  border-color: var(--ip-primary);
+  background: var(--ip-primary-light);
+  color: var(--ip-primary);
+}
+
+.ip-option-btn.correct-option {
+  border-color: #10b981 !important;
+  background: rgba(16, 185, 129, 0.14) !important;
+  color: #059669 !important;
+}
+
+html.dark .ip-option-btn.correct-option {
+  color: #10b981 !important;
+}
+
+.ip-option-btn.correct-option .ip-option-badge {
+  background: #10b981 !important;
+  color: #ffffff !important;
+}
+
+.ip-option-btn.incorrect-option {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.14) !important;
+  color: #dc2626 !important;
+}
+
+html.dark .ip-option-btn.incorrect-option {
+  color: #f87171 !important;
+}
+
+.ip-option-btn.incorrect-option .ip-option-badge {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+/* Explanation Panel */
+.ip-explanation-panel {
+  background: var(--ip-item-bg);
+  border: 1px solid var(--ip-card-border);
+  border-radius: 0.625rem;
+  padding: 1.25rem 1.5rem;
+  margin-top: 1.5rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.ip-explanation-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.ip-explanation-text {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--ip-text-main);
+}
+
+/* Quiz Completion Screen */
+.ip-results-card {
+  background: var(--ip-card-bg);
+  border: 1px solid var(--ip-card-border);
+  border-radius: 1rem;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.ip-score-circle {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: conic-gradient(var(--score-color, #10b981) calc(var(--score-percent, 80) * 1%), var(--ip-card-border) 0);
+}
+
+.ip-score-inner {
+  width: 116px;
+  height: 116px;
+  border-radius: 50%;
+  background: var(--ip-card-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ip-results-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.ip-results-stat {
+  background: var(--ip-item-bg);
+  border: 1px solid var(--ip-item-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+/* More Practice Action Menu */
+.ip-more-practice-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+/* ======================================================
+   60-MINUTE MOCK PLACEMENT TEST
+====================================================== */
+.ip-mock-banner {
+  background: var(--ip-banner-bg);
+  border: 1px solid var(--ip-banner-border);
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.ip-timer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.125rem;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--ip-item-bg);
+  border: 1px solid var(--ip-card-border);
+  color: #10b981;
+}
+
+.ip-timer-badge.warning {
+  color: #ef4444;
+  border-color: #ef4444;
+  animation: pulseWarning 1s infinite;
+}
+
+.ip-qnav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--ip-item-bg);
+  border: 1px solid var(--ip-card-border);
+  border-radius: 0.5rem;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.ip-qnav-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 0.375rem;
+  background: var(--ip-card-bg);
+  color: var(--ip-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid var(--ip-card-border);
+  transition: all 0.15s;
+}
+
+.ip-qnav-btn:hover {
+  background: var(--ip-item-hover);
+  color: var(--ip-text-main);
+  border-color: var(--ip-primary);
+}
+
+.ip-qnav-btn.answered {
+  background: #065f46;
+  color: #34d399;
+  border-color: #10b981;
+}
+
+.ip-qnav-btn.current {
+  border-color: var(--ip-primary);
+  color: var(--ip-primary);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.4);
+}
+
+/* ======================================================
+   CORE SUBJECT CHECKLISTS TAB
+====================================================== */
+.ip-checklist-card {
+  background: var(--ip-card-bg);
+  border: 1px solid var(--ip-card-border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.ip-checklist-header {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  background: var(--ip-item-bg);
+  border-bottom: 1px solid var(--ip-card-border);
+  transition: background-color 0.2s;
+}
+
+.ip-checklist-header:hover {
+  background: var(--ip-item-hover);
+}
+
+.ip-chk-item {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--ip-card-border);
+  transition: background-color 0.15s;
+}
+
+.ip-chk-item:last-child {
+  border-bottom: none;
+}
+
+.ip-chk-item:hover {
+  background: var(--ip-item-hover);
+}
+
+.ip-chk-box {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.25rem;
+  border: 1.5px solid var(--ip-card-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  background: var(--ip-card-bg);
+}
+
+.ip-chk-box.checked {
+  background: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+.ip-chk-label {
+  color: var(--ip-text-main);
+  font-size: 0.875rem;
+}
+
+.ip-chk-label.checked {
+  color: var(--ip-text-muted);
+  text-decoration: line-through;
+}
+
+/* ======================================================
+   GD & HR INTERVIEW PREPARATION
+====================================================== */
+.ip-gd-card, .ip-hr-card {
+  background: var(--ip-card-bg);
+  border: 1px solid var(--ip-card-border);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.ip-star-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.ip-star-box {
+  background: var(--ip-item-bg);
+  border: 1px solid var(--ip-card-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.ip-star-letter {
+  display: inline-block;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--ip-primary);
+  margin-bottom: 0.25rem;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseWarning {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}

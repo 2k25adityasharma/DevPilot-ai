@@ -33,6 +33,7 @@
   <link rel="stylesheet" href="../css/base/components.css"/>
   <link rel="stylesheet" href="../css/pages/roadmaps.css"/>
   <link rel="stylesheet" href="../css/base/responsive.css"/>
+  <script src="../js/core/theme.js"></script>
 
   <script>
     (function () {
@@ -104,6 +105,11 @@
           <span class="text-sm font-semibold sidebar-text">Career Roadmaps</span>
           <span class="tooltip-text">Career Roadmaps</span>
         </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="interviewPrep.html">
+          <span class="material-symbols-outlined shrink-0">work</span>
+          <span class="text-sm font-medium sidebar-text">Interview Prep</span>
+          <span class="tooltip-text">Interview Prep</span>
+        </a>
 
         <div class="pt-4 pb-2 px-3 sidebar-text">
           <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Resources</p>
@@ -170,6 +176,9 @@
       </div>
 
       <div class="flex items-center gap-3">
+        <button id="theme-toggle" class="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all" aria-label="Toggle theme" title="Toggle theme">
+          <span class="material-symbols-outlined" id="theme-toggle-icon">light_mode</span>
+        </button>
         <a href="dsa.html" class="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-indigo-600 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 transition-colors shadow-sm">
           <span class="material-symbols-outlined text-sm text-indigo-500">alt_route</span>
           <span>DSA Roadmap</span>

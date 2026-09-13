@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html class="js preload" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Interview Preparation - DevPilot-AI</title>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" id="tailwind-cdn"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
+
+  <link rel="stylesheet" href="../css/base/global.css"/>
+  <link rel="stylesheet" href="../css/base/components.css"/>
+  <link rel="stylesheet" href="../css/pages/interviewPrep.css"/>
+  <link rel="stylesheet" href="../css/base/responsive.css"/>
+
+  <script src="../js/core/theme.js"></script>
+  <script>
+    (function () {
+      const htmlDoc = document.documentElement;
+      htmlDoc.classList.add('js', 'preload');
+      const isCollapsed = localStorage.getItem('devpilot-sidebar-collapsed') === 'true';
+      if (isCollapsed && window.innerWidth >= 768) {
+        htmlDoc.classList.add('sidebar-collapsed');
+      }
+      function reveal() {
+        htmlDoc.classList.remove('preload');
+        htmlDoc.classList.add('app-ready');
+      }
+      window.addEventListener('load', () => setTimeout(reveal, 100));
+      setTimeout(reveal, 1200);
+    })();
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-[#0b0f19] dark:text-slate-100 antialiased min-h-screen">
+
+  <!-- Mobile Overlay -->
+  <div class="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm hidden md:hidden" id="mobile-overlay"></div>
+
+  <!-- SideNavBar -->
+  <aside class="fixed left-0 top-0 h-full w-[260px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col py-6 z-50 transform md:translate-x-0" id="sidebar">
+    <!-- Sidebar Collapse Slider Button -->
+    <button aria-label="Toggle Sidebar" class="absolute -right-3.5 top-6 w-7 h-7 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-indigo-600 hover:border-indigo-600 transition-colors z-50 hidden md:flex shadow-sm" id="sidebar-toggle">
+      <span class="material-symbols-outlined text-[18px]" id="sidebar-toggle-icon">chevron_left</span>
+    </button>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- Brand Logo -->
+      <div class="px-6 mb-8 flex items-center gap-3 overflow-hidden cursor-pointer" onclick="window.location.href='../index.html'">
+        <div class="min-w-[32px] w-8 h-8 rounded bg-brand-gradient flex items-center justify-center text-white shrink-0 shadow-sm">
+          <span class="material-symbols-outlined text-xl" style='font-variation-settings: "FILL" 1;'>terminal</span>
+        </div>
+        <div class="sidebar-text">
+          <h1 class="text-xl font-bold text-indigo-600 dark:text-indigo-400 tracking-tight leading-none">DevPilot AI</h1>
+          <p class="text-xs font-semibold text-slate-400 uppercase mt-0.5">Workspace</p>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar px-3 space-y-1">
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="../index.html">
+          <span class="material-symbols-outlined shrink-0">dashboard</span>
+          <span class="text-sm font-medium sidebar-text">Dashboard</span>
+          <span class="tooltip-text">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="github.html">
+          <span class="material-symbols-outlined shrink-0">analytics</span>
+          <span class="text-sm font-medium sidebar-text">GitHub Analyzer</span>
+          <span class="tooltip-text">GitHub Analyzer</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="chat.html">
+          <span class="material-symbols-outlined shrink-0">smart_toy</span>
+          <span class="text-sm font-medium sidebar-text">AI Chat</span>
+          <span class="tooltip-text">AI Chat</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="resume.html">
+          <span class="material-symbols-outlined shrink-0">description</span>
+          <span class="text-sm font-medium sidebar-text">Resume</span>
+          <span class="tooltip-text">Resume</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="dsa.html">
+          <span class="material-symbols-outlined shrink-0">alt_route</span>
+          <span class="text-sm font-medium sidebar-text">DSA Roadmap</span>
+          <span class="tooltip-text">DSA Roadmap</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="roadmaps.html">
+          <span class="material-symbols-outlined shrink-0">map</span>
+          <span class="text-sm font-medium sidebar-text">Career Roadmaps</span>
+          <span class="tooltip-text">Career Roadmaps</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 border-l-[3px] border-indigo-600 tooltip relative group" href="interviewPrep.html">
+          <span class="material-symbols-outlined text-indigo-600 dark:text-indigo-400 shrink-0" style='font-variation-settings: "FILL" 1;'>work</span>
+          <span class="text-sm font-semibold sidebar-text">Interview Prep</span>
+          <span class="tooltip-text">Interview Prep</span>
+        </a>
+
+        <div class="pt-4 pb-2 px-3 sidebar-text">
+          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Resources</p>
+        </div>
+        <div class="hidden pt-4 pb-2 px-3 justify-center items-center sidebar-collapsed-only">
+          <div class="w-4 h-[1px] bg-slate-200 dark:bg-slate-800"></div>
+        </div>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="notes.html">
+          <span class="material-symbols-outlined shrink-0">edit_note</span>
+          <span class="text-sm font-medium sidebar-text">Notes</span>
+          <span class="tooltip-text">Notes</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="snippets.html">
+          <span class="material-symbols-outlined shrink-0">terminal</span>
+          <span class="text-sm font-medium sidebar-text">Snippets</span>
+          <span class="tooltip-text">Snippets</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="prompts.html">
+          <span class="material-symbols-outlined shrink-0">bolt</span>
+          <span class="text-sm font-medium sidebar-text">Prompts</span>
+          <span class="tooltip-text">Prompts</span>
+        </a>
+
+        <div class="pt-4 pb-2 px-3 sidebar-text">
+          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tracking</p>
+        </div>
+        <div class="hidden pt-4 pb-2 px-3 justify-center items-center sidebar-collapsed-only">
+          <div class="w-4 h-[1px] bg-slate-200 dark:bg-slate-800"></div>
+        </div>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="habits.html">
+          <span class="material-symbols-outlined shrink-0">check_circle</span>
+          <span class="text-sm font-medium sidebar-text">Habits</span>
+          <span class="tooltip-text">Habits</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="timer.html">
+          <span class="material-symbols-outlined shrink-0">timer</span>
+          <span class="text-sm font-medium sidebar-text">Timer</span>
+          <span class="tooltip-text">Timer</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="settings.html">
+          <span class="material-symbols-outlined shrink-0">settings</span>
+          <span class="text-sm font-medium sidebar-text">Settings</span>
+          <span class="tooltip-text">Settings</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Sidebar Bottom Card -->
+    <div class="mt-auto px-4 pt-4 sidebar-text">
+      <div class="bg-brand-gradient rounded-xl p-4 text-white relative overflow-hidden shadow-sm">
+        <p class="font-bold text-sm leading-tight mb-1">Placement Prep.</p>
+        <p class="text-xs opacity-80">18 Categories & Mock Tests.</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Workspace Area -->
+  <main class="md:ml-[260px] min-h-screen p-6 sm:p-8 flex flex-col transition-all duration-300" id="main-content">
+    
+    <!-- Page Header (Exact Image 2 / resume.html Pattern) -->
+    <div class="flex items-center justify-between gap-3 mb-2 no-print">
+      <div class="flex items-center gap-3">
+        <button class="mobile-nav-toggle md:hidden" id="mobile-menu-trigger" aria-label="Open Sidebar">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+        <div>
+          <h1 class="page-title">
+            <span class="material-symbols-outlined text-indigo-600 dark:text-indigo-400" style='font-variation-settings: "FILL" 1; font-size:28px;'>work</span>
+            Interview Preparation
+          </h1>
+          <p class="page-subtitle">Prepare for aptitude tests, communication rounds, technical interviews, and placement assessments.</p>
+        </div>
+      </div>
+      <button id="theme-toggle" class="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all" aria-label="Toggle theme" title="Toggle theme">
+        <span class="material-symbols-outlined" id="theme-toggle-icon">light_mode</span>
+      </button>
+    </div>
+
+    <div class="rws-divider mb-8"></div>
+
+    <!-- Page Body Container -->
+    <div class="flex-1 ip-container">
+      <!-- 4 Top Metrics Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="ip-metric-card">
+          <div class="ip-metric-icon bg-blue-500/10 text-blue-600 dark:text-blue-400">
+            <span class="material-symbols-outlined text-2xl">quiz</span>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Attempted</div>
+            <div class="text-2xl font-bold text-slate-900 dark:text-white mt-0.5" id="ipStatAttempted">0</div>
+          </div>
+        </div>
+
+        <div class="ip-metric-card">
+          <div class="ip-metric-icon bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            <span class="material-symbols-outlined text-2xl">verified</span>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Overall Accuracy</div>
+            <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5" id="ipStatAccuracy">0%</div>
+          </div>
+        </div>
+
+        <div class="ip-metric-card">
+          <div class="ip-metric-icon bg-purple-500/10 text-purple-600 dark:text-purple-400">
+            <span class="material-symbols-outlined text-2xl">category</span>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Categories</div>
+            <div class="text-2xl font-bold text-slate-900 dark:text-white mt-0.5" id="ipStatCategories">18 Available</div>
+          </div>
+        </div>
+
+        <div class="ip-metric-card">
+          <div class="ip-metric-icon bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            <span class="material-symbols-outlined text-2xl">checklist</span>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Core Checklists</div>
+            <div class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-0.5" id="ipStatChecklists">0 Checked</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Resume Banner -->
+      <div id="ipResumeBanner" class="ip-resume-banner hidden"></div>
+
+      <!-- Mode Navigation Tabs -->
+      <div class="ip-mode-tabs">
+        <button class="ip-mode-tab active" data-mode="categories">
+          <span class="material-symbols-outlined text-sm">grid_view</span>
+          <span>18 Categories</span>
+        </button>
+        <button class="ip-mode-tab" data-mode="mockTest">
+          <span class="material-symbols-outlined text-sm">timer</span>
+          <span>60-Min Mock Test</span>
+        </button>
+        <button class="ip-mode-tab" data-mode="technical">
+          <span class="material-symbols-outlined text-sm">code</span>
+          <span>Technical Tracks</span>
+        </button>
+        <button class="ip-mode-tab" data-mode="weakTopics">
+          <span class="material-symbols-outlined text-sm">healing</span>
+          <span>Weak Topics</span>
+        </button>
+        <button class="ip-mode-tab" data-mode="checklists">
+          <span class="material-symbols-outlined text-sm">checklist_rtl</span>
+          <span>Core CS Checklists</span>
+        </button>
+        <button class="ip-mode-tab" data-mode="gdHr">
+          <span class="material-symbols-outlined text-sm">forum</span>
+          <span>GD & HR Prep</span>
+        </button>
+      </div>
+
+      <!-- Dynamic Content Area (Injected via interviewPrep.js) -->
+      <div id="ipMainContent"></div>
+    </div>
+  </main>
+
+  <!-- Load all 18 Question Bank modules -->
+  <script src="../js/data/interviewPrep/aptitude.js"></script>
+  <script src="../js/data/interviewPrep/english.js"></script>
+  <script src="../js/data/interviewPrep/logicalReasoning.js"></script>
+  <script src="../js/data/interviewPrep/communication.js"></script>
+  <script src="../js/data/interviewPrep/hrBehavioral.js"></script>
+  <script src="../js/data/interviewPrep/programming.js"></script>
+  <script src="../js/data/interviewPrep/oop.js"></script>
+  <script src="../js/data/interviewPrep/dbms.js"></script>
+  <script src="../js/data/interviewPrep/sql.js"></script>
+  <script src="../js/data/interviewPrep/operatingSystems.js"></script>
+  <script src="../js/data/interviewPrep/computerNetworks.js"></script>
+  <script src="../js/data/interviewPrep/computerOrganization.js"></script>
+  <script src="../js/data/interviewPrep/softwareEngineering.js"></script>
+  <script src="../js/data/interviewPrep/systemDesign.js"></script>
+  <script src="../js/data/interviewPrep/webDevelopment.js"></script>
+  <script src="../js/data/interviewPrep/git.js"></script>
+  <script src="../js/data/interviewPrep/cloudDevOps.js"></script>
+  <script src="../js/data/interviewPrep/aiMl.js"></script>
+
+  <!-- Load Checklists & Central Registry -->
+  <script src="../js/data/interviewPrep/checklists.js"></script>
+  <script src="../js/data/interviewPrep/index.js"></script>
+
+  <!-- Load Page Controller -->
+  <script src="../js/pages/interviewPrep.js"></script>
+
+  <!-- Core Application Controller -->
+  <script src="../js/core/app.js"></script>
+</body>
+</html>

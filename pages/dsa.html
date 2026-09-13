@@ -34,6 +34,7 @@
   <link rel="stylesheet" href="../css/pages/dsa.css"/>
   <link rel="stylesheet" href="../css/pages/dsaProblem.css"/>
   <link rel="stylesheet" href="../css/base/responsive.css"/>
+  <script src="../js/core/theme.js"></script>
 
   <script>
     (function () {
@@ -176,17 +177,22 @@
           </div>
         </div>
 
-        <!-- View Switcher Pills: Roadmap vs Pattern Learning -->
-        <div class="dsa-view-switcher" role="tablist" aria-label="DSA Views">
-          <button class="dsa-tab-pill active" id="tab-btn-roadmap" role="tab" aria-selected="true">
-            <span class="material-symbols-outlined text-[18px]">alt_route</span>
-            <span>Roadmap</span>
+        <!-- View Switcher Pills & Theme Toggle -->
+        <div class="flex items-center gap-3">
+          <button id="theme-toggle" class="p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all" aria-label="Toggle theme" title="Toggle theme">
+            <span class="material-symbols-outlined" id="theme-toggle-icon">light_mode</span>
           </button>
-          <button class="dsa-tab-pill" id="tab-btn-patterns" role="tab" aria-selected="false">
-            <span class="material-symbols-outlined text-[18px]">psychology</span>
-            <span>Pattern Learning</span>
-            <span class="pl-tab-glow-badge">New</span>
-          </button>
+          <div class="dsa-view-switcher" role="tablist" aria-label="DSA Views">
+            <button class="dsa-tab-pill active" id="tab-btn-roadmap" role="tab" aria-selected="true">
+              <span class="material-symbols-outlined text-[18px]">alt_route</span>
+              <span>Roadmap</span>
+            </button>
+            <button class="dsa-tab-pill" id="tab-btn-patterns" role="tab" aria-selected="false">
+              <span class="material-symbols-outlined text-[18px]">psychology</span>
+              <span>Pattern Learning</span>
+              <span class="pl-tab-glow-badge">New</span>
+            </button>
+          </div>
         </div>
       </div>
 
