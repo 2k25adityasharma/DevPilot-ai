@@ -1,0 +1,549 @@
+/**
+ * DevPilot-AI — Career Roadmaps Stylesheet
+ * Responsive catalog cards, interactive roadmap timeline, status indicators,
+ * progressive project milestones, job-ready checklist, and skill detail modal.
+ */
+
+/* ==========================================================================
+   1. Catalog & Role Cards
+   ========================================================================== */
+
+.roadmap-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .roadmap-catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .roadmap-catalog-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .roadmap-catalog-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.role-card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.875rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+}
+
+.role-card:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.08), 0 4px 10px -3px rgba(0, 0, 0, 0.04);
+}
+
+.dark .role-card {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
+}
+
+.dark .role-card:hover {
+  border-color: #6366f1;
+  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.2);
+}
+
+/* Category Filter Chips */
+.category-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.category-tab-btn:hover {
+  color: #1e293b;
+  background: #e2e8f0;
+}
+
+.category-tab-btn.active {
+  color: #4f46e5;
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  font-weight: 600;
+}
+
+.dark .category-tab-btn {
+  color: #94a3b8;
+  background: #1e293b;
+}
+
+.dark .category-tab-btn:hover {
+  color: #f8fafc;
+  background: #334155;
+}
+
+.dark .category-tab-btn.active {
+  color: #818cf8;
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+/* Progress bar in role cards */
+.role-progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.dark .role-progress-bar-bg {
+  background-color: #334155;
+}
+
+.role-progress-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #6366f1 0%, #4f46e5 100%);
+  transition: width 0.4s ease;
+}
+
+/* Difficulty Badges */
+.badge-diff-beginner {
+  background-color: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.badge-diff-intermediate {
+  background-color: #eef2ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+}
+
+.badge-diff-advanced {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.dark .badge-diff-beginner {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.dark .badge-diff-intermediate {
+  background-color: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.dark .badge-diff-advanced {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* ==========================================================================
+   2. Roadmap Detail & Timeline View
+   ========================================================================== */
+
+.roadmap-timeline {
+  position: relative;
+}
+
+.roadmap-timeline::before {
+  content: '';
+  position: absolute;
+  top: 2rem;
+  bottom: 2rem;
+  left: 1.5rem;
+  width: 2px;
+  background: #cbd5e1;
+  z-index: 0;
+}
+
+.dark .roadmap-timeline::before {
+  background: #334155;
+}
+
+@media (max-width: 640px) {
+  .roadmap-timeline::before {
+    left: 1rem;
+  }
+}
+
+/* Level Section Container */
+.roadmap-level-section {
+  position: relative;
+  margin-bottom: 2.5rem;
+  z-index: 1;
+}
+
+.roadmap-level-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.level-badge-pill {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+  background: #ffffff;
+  border: 2px solid #6366f1;
+  color: #4f46e5;
+  box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.15);
+}
+
+.dark .level-badge-pill {
+  background: #1e293b;
+  border-color: #818cf8;
+  color: #a5b4fc;
+}
+
+/* Skill Node Grid */
+.skills-node-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+  padding-left: 3.5rem;
+}
+
+@media (max-width: 640px) {
+  .skills-node-grid {
+    padding-left: 2.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .skills-node-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Skill Node Card */
+.skill-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.125rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.skill-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px -3px rgba(0, 0, 0, 0.06);
+}
+
+.dark .skill-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.dark .skill-card:hover {
+  box-shadow: 0 6px 20px -3px rgba(0, 0, 0, 0.35);
+}
+
+/* Status: Completed */
+.skill-card.status-completed {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.dark .skill-card.status-completed {
+  border-color: rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+/* Status: In Progress */
+.skill-card.status-in-progress {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.dark .skill-card.status-in-progress {
+  border-color: rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+/* Status: Locked */
+.skill-card.status-locked {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+  opacity: 0.75;
+}
+
+.dark .skill-card.status-locked {
+  border-color: #334155;
+  background: #0f172a;
+  opacity: 0.65;
+}
+
+/* Status: Available */
+.skill-card.status-available {
+  border-color: #e2e8f0;
+  background: #ffffff;
+}
+
+.dark .skill-card.status-available {
+  border-color: #334155;
+  background: #1e293b;
+}
+
+.skill-card.status-available:hover {
+  border-color: #6366f1;
+}
+
+/* Status Indicator Icon Badges */
+.status-icon-badge {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.status-icon-badge.completed {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-icon-badge.in-progress {
+  background: #dbeafe;
+  color: #1d4ed8;
+  animation: pulse-ring 2s infinite;
+}
+
+.status-icon-badge.available {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+}
+
+.status-icon-badge.locked {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+.dark .status-icon-badge.completed {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.dark .status-icon-badge.in-progress {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.dark .status-icon-badge.available {
+  background: #334155;
+  color: #94a3b8;
+  border-color: #475569;
+}
+
+.dark .status-icon-badge.locked {
+  background: #1e293b;
+  color: #64748b;
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+/* AI Relevance Pill */
+.ai-relevance-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: #fdf4ff;
+  color: #a21caf;
+  border: 1px solid #f0abfc;
+}
+
+.dark .ai-relevance-pill {
+  background: rgba(217, 70, 239, 0.15);
+  color: #f0abfc;
+  border-color: rgba(217, 70, 239, 0.3);
+}
+
+/* Importance Badges */
+.importance-essential {
+  color: #4f46e5;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+}
+
+.importance-recommended {
+  color: #0284c7;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+}
+
+.importance-optional {
+  color: #64748b;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.dark .importance-essential {
+  color: #a5b4fc;
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.dark .importance-recommended {
+  color: #7dd3fc;
+  background: rgba(2, 132, 199, 0.15);
+  border-color: rgba(2, 132, 199, 0.3);
+}
+
+.dark .importance-optional {
+  color: #94a3b8;
+  background: #1e293b;
+  border-color: #334155;
+}
+
+/* ==========================================================================
+   3. Next Recommended Skill Card
+   ========================================================================== */
+.next-skill-banner {
+  background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+  color: #ffffff;
+  border-radius: 0.875rem;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.25);
+}
+
+/* ==========================================================================
+   4. Projects & Job-Ready Checklist
+   ========================================================================== */
+.project-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.875rem;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.project-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.05);
+}
+
+.dark .project-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+
+.checklist-item:hover {
+  background-color: #f1f5f9;
+}
+
+.dark .checklist-item:hover {
+  background-color: #334155;
+}
+
+/* ==========================================================================
+   5. Skill Detail Modal / Drawer
+   ========================================================================== */
+.skill-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 60;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.skill-modal-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.skill-modal-card {
+  background: #ffffff;
+  border-radius: 1rem;
+  max-width: 44rem;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  transform: scale(0.96);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 1.75rem;
+}
+
+.skill-modal-backdrop.active .skill-modal-card {
+  transform: scale(1);
+}
+
+.dark .skill-modal-card {
+  background: #1e293b;
+  color: #f8fafc;
+}

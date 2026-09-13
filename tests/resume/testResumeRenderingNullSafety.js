@@ -387,8 +387,60 @@ if (runTest('TEST 4: Job Match rendering with partial fields does not throw', ()
   });
 })) passed++;
 
+// Test 5: Re-analyze button listener binding
+total++;
+if (runTest('TEST 5: Re-analyze button is rendered and click handler binds cleanly', () => {
+  let boundListener = null;
+  let elementFound = null;
+
+  const mockArea = {
+    style: {},
+    innerHTML: '',
+    querySelectorAll: () => []
+  };
+
+  global.document = {
+    getElementById: (id) => {
+      if (id === 'analyzer-results-area') return mockArea;
+      if (id === 'btn-reanalyze-real') {
+        elementFound = {
+          id: 'btn-reanalyze-real',
+          style: {},
+          disabled: false,
+          innerHTML: '',
+          addEventListener: (event, handler) => {
+            if (event === 'click') boundListener = handler;
+          }
+        };
+        return elementFound;
+      }
+      return {
+        id,
+        style: {},
+        innerHTML: '',
+        textContent: '',
+        dataset: {},
+        querySelectorAll: () => [],
+        addEventListener: () => {}
+      };
+    }
+  };
+
+  analyzer.renderAllResults({
+    fileName: 'test.docx',
+    fileSize: '39 KB',
+    timestamp: new Date().toISOString(),
+    scores: { overall: 90, breakdown: {} }
+  });
+
+  assert.ok(mockArea.innerHTML.includes('id="btn-reanalyze-real"'), 'HTML must include Re-analyze button');
+  assert.ok(elementFound, 'btn-reanalyze-real was queried');
+  assert.strictEqual(typeof boundListener, 'function', 'A click listener must be bound to Re-analyze button');
+})) passed++;
+
 console.log(`\n====================================================`);
 console.log(` Results: ${passed} / ${total} Passed`);
 console.log(`====================================================`);
 
 process.exit(passed === total ? 0 : 1);
+

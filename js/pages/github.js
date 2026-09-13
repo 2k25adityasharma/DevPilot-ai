@@ -265,7 +265,7 @@ async function analyzeGitHubUser(rawInput) {
     };
     currentRepos = [...repos];
 
-    // Persist to Storage for cross-analyzer correlation (e.g. LinkedIn Analyzer)
+    // Persist to Storage for cross-module correlation
     if (typeof Storage !== 'undefined' && Storage.set) {
       Storage.set('github_analysis_data', currentAnalysisData);
     }

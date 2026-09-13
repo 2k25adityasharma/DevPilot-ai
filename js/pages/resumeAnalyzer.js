@@ -103,7 +103,7 @@ const KNOWN_ACHIEVEMENT_KEYWORDS = [
 
 const SECTION_PATTERNS = {
   summary: /(?:^|\n)\s*(?:summary|professional\s*summary|profile|about\s*me|career\s*objective|objective|career\s*summary|executive\s*summary)(?:\s*[:\-–—|]|\s*$)/im,
-  experience: /(?:^|\n)\s*(?:experience|work\s*experience|professional\s*experience|employment|work\s*history|internship|internships|industry\s*experience|positions\s*of\s*responsibility)(?:\s*[:\-–—|]|\s*$)/im,
+  experience: /(?:^|\n)\s*(?:experience(?:\s*[/&]\s*internships?)?|work\s*experience(?:\s*[/&]\s*internships?)?|professional\s*experience|employment(?:\s*history)?|work\s*history|internship|internships|industry\s*experience|positions\s*of\s*responsibility)(?:\s*[:\-–—|]|\s*$)/im,
   education: /(?:^|\n)\s*(?:education|academic|academic\s*background|qualifications|educational\s*background|academics|relevant\s*coursework)(?:\s*[:\-–—|]|\s*$)/im,
   skills: /(?:^|\n)\s*(?:skills|technical\s*skills|technologies|tools|core\s*competencies|tech\s*stack|programming\s*skills|technical\s*expertise|competencies|programming\s*languages)(?:\s*[:\-–—|]|\s*$)/im,
   projects: /(?:^|\n)\s*(?:projects|personal\s*projects|featured\s*projects|key\s*projects|side\s*projects|academic\s*projects|technical\s*projects)(?:\s*[:\-–—|]|\s*$)/im,
@@ -1613,13 +1613,14 @@ function analyzeProfessionalSummary(text, parsedSections, skills) {
    6. EVIDENCE-BASED EXPERIENCE & INTERNSHIP ANALYSIS
    ============================================================ */
 function analyzeExperience(text, sectionContent) {
-  const expText = (sectionContent.experience || '').trim();
+  const secContent = sectionContent?.sectionContent || sectionContent || {};
+  const expText = (secContent.experience || '').trim();
   const lines = expText.split('\n').map(l => l.trim()).filter(Boolean);
 
   const isFresherOrNone = !expText ||
     /^(fresher|none|no\s*experience|n\/a|student|seeking\s*entry\s*level)$/i.test(expText) ||
     (lines.length === 1 && /^(fresher|none|n\/a)$/i.test(lines[0])) ||
-    (!sectionContent.experience && !/(intern|internship|software\s*engineer|developer|analyst)\s*(at|@|\||-)/i.test(text));
+    (!secContent.experience && !/(intern|internship|software\s*engineer|developer|analyst)\s*(at|@|\||-)/i.test(text));
 
   if (isFresherOrNone && !/(intern|internship|developer|engineer)\s*(at|@|\||-|–)/i.test(expText)) {
     return {
@@ -1628,7 +1629,11 @@ function analyzeExperience(text, sectionContent) {
       score: 0,
       max: 15,
       confidence: 90,
+      count: 0,
+      details: [],
+      entries: [],
       totalBullets: 0,
+      bulletPointsCount: 0,
       actionVerbCount: 0,
       weakVerbCount: 0,
       quantifiedCount: 0,
@@ -1665,7 +1670,7 @@ function analyzeExperience(text, sectionContent) {
     /\b(sub-?\d+ms|\d+\/\d+|\d+(\.\d+)?%|\d+\+|\d+x|\$\d+)\b/i.test(b)
   );
 
-  const titlePatterns = /\b(software\s*engineer|full\s*stack\s*developer|frontend\s*developer|backend\s*developer|software\s*developer|web\s*developer|intern|internship|software\s*development\s*intern|sde\s*intern|devops\s*engineer|data\s*scientist|data\s*analyst|qa\s*engineer|sre|research\s*assistant|team\s*lead|technical\s*lead|engineering\s*lead|associate\s*engineer)\b/gi;
+  const titlePatterns = /\b(?:senior|lead|principal|staff|director|architect|associate|junior|chief)?\s*(?:(?:software|full\s*stack|frontend|backend|cloud|devops|data|systems|qa|sre|security|mobile|ios|android)\s*(?:engineer|developer|architect|analyst)|intern(?:ship)?|team\s*lead|tech\s*lead|solutions\s*architect)\b/gi;
   const jobTitles = [...new Set((expText.match(titlePatterns) || []).map(t => t.trim()))];
 
   const isOnlyInternship = jobTitles.length > 0 && jobTitles.every(t => /intern/i.test(t));
@@ -1700,14 +1705,35 @@ function analyzeExperience(text, sectionContent) {
     }
   }
 
+  const hasRealExp = (jobTitles.length > 0 || allBullets.length > 0);
+  const details = [];
+  if (hasRealExp) {
+    const primaryTitle = jobTitles[0] || (isOnlyInternship ? 'Intern' : 'Software Professional');
+    const primaryCompany = companies[0] || 'Organization';
+    details.push({
+      title: primaryTitle,
+      company: primaryCompany,
+      isInternship: isOnlyInternship || /intern/i.test(primaryTitle),
+      bullets: allBullets,
+      actionVerbs: actionVerbBullets,
+      quantifiedBullets: quantifiedBullets,
+      technologies: techInExp,
+      hasDates: hasDates
+    });
+  }
+
   return {
-    hasExperience: true,
-    isFresher: isOnlyInternship || jobTitles.length === 0,
+    hasExperience: hasRealExp,
+    isFresher: !hasRealExp || isOnlyInternship || jobTitles.length === 0,
     isOnlyInternship,
-    score,
+    score: hasRealExp ? score : 0,
     max: 15,
     confidence: (jobTitles.length > 0 && hasDates) ? 95 : 80,
+    count: details.length,
+    details,
+    entries: details,
     totalBullets: allBullets.length,
+    bulletPointsCount: allBullets.length,
     actionVerbCount: actionVerbBullets.length,
     weakVerbCount: weakVerbBullets.length,
     quantifiedCount: quantifiedBullets.length,
@@ -1809,8 +1835,11 @@ function isProjectHeaderLine(line) {
 
 function analyzeProjects(text, sectionContent) {
   let projText = (sectionContent.projects || '').trim();
-  if (!projText && sectionContent.experience && /project/i.test(sectionContent.experience)) {
-    projText = sectionContent.experience;
+  if (!projText && sectionContent.experience) {
+    const subProjMatch = sectionContent.experience.match(/(?:key\s*projects|academic\s*projects|personal\s*projects|featured\s*projects)[\s\S]+/i);
+    if (subProjMatch) {
+      projText = subProjMatch[0].trim();
+    }
   }
 
   if (!projText) {
@@ -1818,7 +1847,7 @@ function analyzeProjects(text, sectionContent) {
       found: false,
       score: 0,
       max: 20,
-      confidence: 0,
+      confidence: 90,
       count: 0,
       details: [],
       hasGithubLinks: false,
@@ -1838,7 +1867,7 @@ function analyzeProjects(text, sectionContent) {
     'security', 'encryption', 'components', 'websocket', 'redis', 'pagination',
     'filtering', 'microservices', 'graphql', 'rest api', 'dom updates', 'indexeddb',
     'sub-100ms', 'sub-200ms', 'sub-250ms', 'latency', 'unit tests', 'dockerized', 'ci/cd', 'ast parsing',
-    'pure-tone', 'audiometry', 'canvas', 'diagnostic', 'calibration', 'streaming', 'gemini'
+    'streaming', 'machine learning', 'data pipeline', 'automation', 'analytics', 'architecture'
   ];
 
   lines.forEach(line => {
@@ -1877,14 +1906,17 @@ function analyzeProjects(text, sectionContent) {
   }
 
   if (projectDetails.length === 0 && lines.length > 0) {
-    projectDetails.push(evaluateProjectSubstance({
-      name: 'Featured Project',
-      textLines: lines,
-      hasTech: extractSkills(projText).all.length > 0,
-      hasGithub: /github\.com/i.test(projText),
-      hasDemo: /demo|live|vercel|netlify/i.test(projText),
-      hasMetrics: /\d+%|\d+\+/.test(projText)
-    }, DEPTH_KEYWORDS));
+    const hasProjectEvidence = lines.some(l => /\b(app|application|platform|system|tool|website|service|engine|bot|clone|dashboard|tracker|portal|pipeline|model)\b/i.test(l));
+    if (hasProjectEvidence) {
+      projectDetails.push(evaluateProjectSubstance({
+        name: lines[0].replace(/\|.*$/, '').trim(),
+        textLines: lines,
+        hasTech: extractSkills(projText).all.length > 0,
+        hasGithub: /github\.com/i.test(projText),
+        hasDemo: /demo|live|vercel|netlify/i.test(projText),
+        hasMetrics: /\d+%|\d+\+/.test(projText)
+      }, DEPTH_KEYWORDS));
+    }
   }
 
   const hasGithubLinks = projectDetails.some(p => p.hasGithub) || /github\.com/i.test(projText) || /github\.com/i.test(text);
@@ -4641,7 +4673,7 @@ function detectDynamicRoles(skillsData, projectsDetails, experienceDetails, care
       description: 'Designs interactive, accessible, and high-performance user interfaces and responsive web apps.',
       required: ['html5', 'css3', 'javascript'],
       preferred: ['react', 'next.js', 'typescript', 'tailwind css', 'redux', 'responsive design'],
-      domainMatches: ['frontend', 'ui', 'ux', 'audiometer', 'responsive', 'canvas', 'tailwind']
+      domainMatches: ['frontend', 'ui', 'ux', 'responsive', 'canvas', 'tailwind', 'web design']
     },
     {
       title: (careerStage === 'Student' || careerStage === 'Fresher') ? 'Junior Backend Developer' : 'Backend Developer',
@@ -4669,9 +4701,19 @@ function detectDynamicRoles(skillsData, projectsDetails, experienceDetails, care
       category: 'Data Analytics',
       icon: 'analytics',
       description: 'Transforms raw data into actionable dashboards, statistical insights, and business intelligence.',
-      required: ['sql', 'python'],
-      preferred: ['pandas', 'numpy', 'tableau', 'power bi', 'excel', 'data analysis', 'statistics'],
-      domainMatches: ['pandas', 'analytics', 'visualization', 'data analysis', 'dashboard', 'statistics']
+      required: ['sql'],
+      preferred: ['python', 'pandas', 'numpy', 'tableau', 'power bi', 'excel', 'data analysis', 'statistics'],
+      domainMatches: ['pandas', 'analytics', 'visualization', 'data analysis', 'dashboard', 'statistics', 'bi']
+    },
+    {
+      title: (careerStage === 'Student' || careerStage === 'Fresher') ? 'Junior Data Scientist' : 'Data Scientist',
+      canonicalTitle: 'Data Scientist',
+      category: 'Data Science',
+      icon: 'query_stats',
+      description: 'Builds predictive statistical models, machine learning pipelines, and experimental analytics.',
+      required: ['python', 'sql'],
+      preferred: ['scikit-learn', 'tensorflow', 'pytorch', 'statistics', 'data science', 'machine learning', 'r'],
+      domainMatches: ['predictive', 'modeling', 'data science', 'regression', 'clustering', 'scikit', 'neural']
     },
     {
       title: (careerStage === 'Student' || careerStage === 'Fresher') ? 'Junior Mobile App Developer' : 'Mobile Developer',
@@ -4682,6 +4724,66 @@ function detectDynamicRoles(skillsData, projectsDetails, experienceDetails, care
       required: ['javascript', 'git'],
       preferred: ['react native', 'flutter', 'swift', 'kotlin', 'mobile', 'ios', 'android'],
       domainMatches: ['react native', 'flutter', 'swift', 'mobile', 'android', 'ios']
+    },
+    {
+      title: (careerStage === 'Student' || careerStage === 'Fresher') ? 'Associate QA / Automation Engineer' : 'QA / Test Automation Engineer',
+      canonicalTitle: 'QA / Test Automation Engineer',
+      category: 'Quality Engineering',
+      icon: 'flaky',
+      description: 'Designs end-to-end automated test suites, regression pipelines, and quality verification frameworks.',
+      required: ['git'],
+      preferred: ['jest', 'cypress', 'selenium', 'playwright', 'postman', 'automation', 'unit test'],
+      domainMatches: ['testing', 'qa', 'automation', 'test cases', 'selenium', 'cypress', 'jest', 'regression']
+    },
+    {
+      title: (careerStage === 'Student' || careerStage === 'Fresher') ? 'Associate Cybersecurity Analyst' : 'Cybersecurity Analyst',
+      canonicalTitle: 'Cybersecurity Analyst',
+      category: 'Information Security',
+      icon: 'security',
+      description: 'Protects information systems, audits vulnerabilities, implements encryption, and investigates security incidents.',
+      required: ['linux'],
+      preferred: ['network security', 'penetration testing', 'firewall', 'siem', 'cryptography', 'wireshark', 'vulnerability'],
+      domainMatches: ['security', 'vulnerability', 'penetration', 'firewall', 'encryption', 'threat', 'cybersecurity']
+    },
+    {
+      title: (careerStage === 'Student' || careerStage === 'Fresher') ? 'Associate Product Manager' : 'Product Manager',
+      canonicalTitle: 'Product Manager',
+      category: 'Product & Strategy',
+      icon: 'inventory_2',
+      description: 'Leads cross-functional discovery, defines product requirements, roadmap execution, and measurable user metrics.',
+      required: [],
+      preferred: ['agile', 'scrum', 'user stories', 'roadmap', 'kpi', 'jira', 'market research', 'analytics'],
+      domainMatches: ['product management', 'roadmap', 'user stories', 'stakeholder', 'agile', 'scrum', 'kpi', 'features']
+    },
+    {
+      title: (careerStage === 'Student' || careerStage === 'Fresher') ? 'Junior UI / UX Designer' : 'UI / UX Designer',
+      canonicalTitle: 'UI / UX Designer',
+      category: 'Design & Experience',
+      icon: 'palette',
+      description: 'Conducts user research, builds design systems, wireframes, and prototypes for intuitive product experiences.',
+      required: [],
+      preferred: ['figma', 'wireframing', 'prototyping', 'user research', 'design systems', 'ui/ux', 'adobe xd'],
+      domainMatches: ['figma', 'prototype', 'wireframe', 'user experience', 'ui/ux', 'usability', 'design system']
+    },
+    {
+      title: (careerStage === 'Student' || careerStage === 'Fresher') ? 'Junior Systems / Embedded Engineer' : 'Embedded Systems Engineer',
+      canonicalTitle: 'Embedded Systems Engineer',
+      category: 'Hardware & Systems',
+      icon: 'memory',
+      description: 'Engineers firmware, real-time operating system components, microcontrollers, and low-level drivers.',
+      required: ['c'],
+      preferred: ['c++', 'embedded', 'rtos', 'microcontroller', 'firmware', 'arm', 'iot', 'hardware'],
+      domainMatches: ['embedded', 'microcontroller', 'firmware', 'rtos', 'circuit', 'sensor', 'iot', 'arduino']
+    },
+    {
+      title: (careerStage === 'Student' || careerStage === 'Fresher') ? 'Junior Financial / Business Analyst' : 'Financial / Business Analyst',
+      canonicalTitle: 'Financial / Business Analyst',
+      category: 'Finance & Strategy',
+      icon: 'account_balance',
+      description: 'Analyzes financial statements, evaluates business performance models, budgeting, and valuation forecasts.',
+      required: ['excel'],
+      preferred: ['financial modeling', 'valuation', 'accounting', 'budgeting', 'forecasting', 'sql', 'power bi'],
+      domainMatches: ['finance', 'accounting', 'financial modeling', 'valuation', 'balance sheet', 'budget', 'forecast']
     }
   ];
 
@@ -4748,10 +4850,32 @@ function detectDynamicRoles(skillsData, projectsDetails, experienceDetails, care
     });
   });
 
+  if (evaluatedRoles.length === 0) {
+    const candidateTitle = (experienceDetails && experienceDetails[0]?.title) || (projectsDetails && projectsDetails[0]?.name) || 'Domain Professional';
+    evaluatedRoles.push({
+      id: 'domain_professional',
+      title: candidateTitle,
+      canonicalTitle: candidateTitle,
+      category: 'Professional Domain',
+      icon: 'work',
+      description: `Domain-aligned position reflecting your professional focus in ${candidateTitle}.`,
+      roleFitScore: 80,
+      matchScore: 80,
+      matchColor: '#6366f1',
+      eligibility: 'ELIGIBLE TO APPLY',
+      eligibilityClass: 'eligibility-eligible',
+      applyRecommendation: 'APPLY WITH CONFIDENCE',
+      whyYouMatch: [`Identified demonstrable background aligned with ${candidateTitle}.`],
+      allMatched: (skillsData.all || []).slice(0, 5),
+      missingRequirementsDisplay: { required: [], preferred: [] },
+      actionPlan: []
+    });
+  }
+
   evaluatedRoles.sort((a, b) => b.roleFitScore - a.roleFitScore);
 
   const bestFit = evaluatedRoles[0] || null;
-  const primaryRole = bestFit ? bestFit.canonicalTitle : 'Software Developer';
+  const primaryRole = bestFit ? bestFit.canonicalTitle : ((experienceDetails && experienceDetails[0]?.title) || 'Professional');
   const alternativeRoles = evaluatedRoles.slice(1, 6).map(r => r.canonicalTitle);
 
   return {
@@ -4918,34 +5042,35 @@ function executeMasterAiEvaluation(resumeText, jdText = null) {
   // Projects Score
   const projCount = projectsAnalysis.count || 0;
   let projectsScore = 0;
-  if (projCount >= 3) projectsScore = 80;
-  else if (projCount === 2) projectsScore = 70;
-  else if (projCount === 1) projectsScore = 50;
-  else projectsScore = 20;
+  if (projCount === 0) {
+    projectsScore = 0;
+  } else {
+    if (projCount >= 3) projectsScore = 80;
+    else if (projCount === 2) projectsScore = 70;
+    else if (projCount === 1) projectsScore = 50;
 
-  if (projectsAnalysis.hasGithubLinks) projectsScore += 5;
-  if (cleanText.match(/(?:vercel|netlify|aws|heroku|live demo|deployed)/i)) projectsScore += 5;
-  if (cleanText.match(/\d+%\s*(?:reduction|increase|improvement|faster|accuracy)|sub-\d+ms|\d+\+\s*users/i)) projectsScore += 6;
-  if (cleanText.match(/(?:api|database|full.?stack|client|server)/i)) projectsScore += 4;
+    if (projectsAnalysis.hasGithubLinks) projectsScore += 5;
+    if (cleanText.match(/(?:vercel|netlify|aws|heroku|live demo|deployed)/i)) projectsScore += 5;
+    if (cleanText.match(/\d+%\s*(?:reduction|increase|improvement|faster|accuracy)|sub-\d+ms|\d+\+\s*users/i)) projectsScore += 6;
+    if (cleanText.match(/(?:api|database|full.?stack|client|server)/i)) projectsScore += 4;
+  }
   projectsScore = Math.min(Math.max(projectsScore, 0), 100);
 
   // Experience Score
   let experienceScore = 0;
-  if (careerStage === 'Student' || careerStage === 'Fresher') {
-    if (experienceAnalysis.hasExperience) {
-      experienceScore = 82;
-      if (experienceAnalysis.quantifiedCount > 0) experienceScore += 8;
-    } else {
-      experienceScore = projectsScore >= 80 ? 72 : 55;
-    }
+  const expBullets = experienceAnalysis.bulletPointsCount || 0;
+  const hasExpEvidence = Boolean(experienceAnalysis.hasExperience && expBullets > 0);
+
+  if (!hasExpEvidence) {
+    // Zero work experience evidence or zero bullets: experience score is strictly 0
+    experienceScore = 0;
+  } else if (careerStage === 'Student' || careerStage === 'Fresher' || careerStage === 'Intern') {
+    experienceScore = 82;
+    if (experienceAnalysis.quantifiedCount > 0) experienceScore += 8;
   } else {
-    if (experienceAnalysis.hasExperience) {
-      experienceScore = 75;
-      if (declaredYears >= 3) experienceScore += 10;
-      if (experienceAnalysis.quantifiedCount >= 2) experienceScore += 10;
-    } else {
-      experienceScore = 30;
-    }
+    experienceScore = 75;
+    if (declaredYears >= 3) experienceScore += 10;
+    if (experienceAnalysis.quantifiedCount >= 2) experienceScore += 10;
   }
   experienceScore = Math.min(Math.max(experienceScore, 0), 100);
 
@@ -4988,7 +5113,19 @@ function executeMasterAiEvaluation(resumeText, jdText = null) {
 
   // Overall Resume Score (Stage-Aware Calibration)
   let overallResumeScore = 0;
-  if (careerStage === 'Student' || careerStage === 'Fresher' || careerStage === 'Intern') {
+  if (!hasExpEvidence) {
+    // Fresher / Student or candidate with no prior experience:
+    // Do NOT penalize for lack of experience! Experience weight is 0%.
+    // Redistribute weight across Projects (30%), Skills (25%), ATS (20%), Education (15%), Achievements (5%), Content Quality (5%)
+    overallResumeScore = Math.round(
+      projectsScore * 0.30 +
+      technicalSkillsScore * 0.25 +
+      atsScore * 0.20 +
+      educationScore * 0.15 +
+      achievementsScore * 0.05 +
+      contentQualityScore * 0.05
+    );
+  } else if (careerStage === 'Student' || careerStage === 'Fresher' || careerStage === 'Intern') {
     overallResumeScore = Math.round(
       projectsScore * 0.28 +
       technicalSkillsScore * 0.22 +
@@ -5118,11 +5255,18 @@ function executeMasterAiEvaluation(resumeText, jdText = null) {
     },
     skills: skillsOutput,
     experience: {
-      count: experienceAnalysis.count || 0,
-      hasExperience: experienceAnalysis.hasExperience,
+      count: hasExpEvidence ? (experienceAnalysis.count || 0) : 0,
+      hasExperience: hasExpEvidence,
       isFresher: careerStage === 'Student' || careerStage === 'Fresher',
       isOnlyInternship: experienceAnalysis.isOnlyInternship,
-      entries: (experienceAnalysis.details || []).map(e => ({
+      metrics: {
+        totalBullets: expBullets,
+        actionVerbsCount: experienceAnalysis.actionVerbCount || 0,
+        quantifiedCount: experienceAnalysis.quantifiedCount || 0,
+        impactBullets: experienceAnalysis.impactBullets || 0,
+        impactRatio: expBullets > 0 ? Math.round(((experienceAnalysis.quantifiedCount || 0) / expBullets) * 100) : 0
+      },
+      entries: hasExpEvidence ? (experienceAnalysis.details || []).map(e => ({
         company: e.company || 'Organization',
         title: e.title || 'Role',
         employmentType: e.isInternship ? 'Internship' : 'Full-time',
@@ -5135,8 +5279,8 @@ function executeMasterAiEvaluation(resumeText, jdText = null) {
         metrics: e.quantifiedBullets?.length > 0 ? e.quantifiedBullets[0] : null,
         ownership: 'Component and feature development',
         impact: 'Delivered software features according to technical specifications'
-      })),
-      strengths: experienceAnalysis.strengths || ['Practical engineering experience demonstrated.'],
+      })) : [],
+      strengths: hasExpEvidence ? (experienceAnalysis.strengths || ['Practical engineering experience demonstrated.']) : [],
       weaknesses: experienceAnalysis.weakBullets || []
     },
     projects: {
@@ -5348,19 +5492,23 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
     } else {
       const activeFile = fileOverride || analyzerState.file;
       if (!activeFile) {
-        throw new Error('Please upload a resume file first.');
-      }
-
-      const ext = activeFile.name.split('.').pop().toLowerCase();
-      if (ext === 'pdf') {
-        resumeText = await extractPDFText(activeFile);
-      } else if (ext === 'docx') {
-        resumeText = await extractDOCXText(activeFile);
-      } else if (ext === 'txt') {
-        resumeText = await extractTXTText(activeFile);
-        analyzerState.documentStructure = { isMultiColumn: false, hasTables: false, columnCount: 1, details: 'Standard plain text layout' };
+        if (analyzerState.resumeText && analyzerState.resumeText.length >= 20) {
+          resumeText = analyzerState.resumeText;
+        } else {
+          throw new Error('Please upload a resume file first.');
+        }
       } else {
-        throw new Error(`Unsupported file type: .${ext}`);
+        const ext = activeFile.name.split('.').pop().toLowerCase();
+        if (ext === 'pdf') {
+          resumeText = await extractPDFText(activeFile);
+        } else if (ext === 'docx') {
+          resumeText = await extractDOCXText(activeFile);
+        } else if (ext === 'txt') {
+          resumeText = await extractTXTText(activeFile);
+          analyzerState.documentStructure = { isMultiColumn: false, hasTables: false, columnCount: 1, details: 'Standard plain text layout' };
+        } else {
+          throw new Error(`Unsupported file type: .${ext}`);
+        }
       }
     }
 
@@ -5386,22 +5534,6 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
     const { aiJson, prompt, apiConfirmation } = await requestAiResumeAnalysis(resumeText, existingJD);
     analyzerState.aiPrompt = prompt;
 
-    // Step 1.7: DEBUG LOG — proves the uploaded resume is actually reaching the analyzer
-    console.log('===== RESUME ANALYSIS DEBUG =====');
-    console.log(`Uploaded file: ${analyzerState.fileName}`);
-    console.log(`Extracted text length: ${inputValidation.length}`);
-    console.log(`Extracted resume preview: "${resumeText.replace(/\s+/g, ' ').trim().substring(0, 300)}"`);
-    console.log(`AI request sent: YES`);
-    console.log(`AI response received: ${aiJson && !aiJson.error ? 'YES' : 'NO — used built-in fallback'}`);
-    console.log(`Parsed JSON: ${aiJson && !aiJson.error ? 'YES' : 'NO'}`);
-    console.log(`Candidate name: ${aiJson?.candidate?.name || 'N/A'}`);
-    console.log(`Overall score: ${aiJson?.scores?.overallResumeScore ?? 'N/A'}`);
-    console.log(`ATS score: ${aiJson?.scores?.atsScore ?? 'N/A'}`);
-    console.log(`Projects: ${aiJson?.projects?.count ?? (aiJson?.projects?.entries?.length ?? 'N/A')}`);
-    console.log(`Experience: ${aiJson?.experience?.count ?? (aiJson?.experience?.entries?.length ?? 'N/A')}`);
-    console.log(`Skills: ${(aiJson?.skills?.verifiedSkills?.length ?? 0) + (aiJson?.skills?.listedOnlySkills?.length ?? 0)}`);
-    console.log(`API confirmation: ${apiConfirmation}`);
-    console.log('=================================');
 
     // Step 2: Document Classification
     const classification = classifyDocument(resumeText);
@@ -5461,13 +5593,19 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
       careerStage
     );
 
+    const expBulletsCount = (aiJson.experience?.metrics?.totalBullets !== undefined)
+      ? aiJson.experience.metrics.totalBullets
+      : expEntries.reduce((acc, e) => acc + (Array.isArray(e.features) ? e.features.length : (e.responsibilities ? 1 : 0)) + (Array.isArray(e.achievements) ? e.achievements.length : 0), 0);
+    const hasExp = Boolean(aiJson.experience?.hasExperience && expBulletsCount > 0);
+    const calculatedExpScore = hasExp ? Math.round(((aiScores.experienceScore) || 0) / 100 * 15) : 0;
+
     const scores = {
       overall: aiScores.overallResumeScore ?? 0,
       overallResumeScore: aiScores.overallResumeScore ?? 0,
       atsScore: aiScores.atsScore ?? 0,
       contentQualityScore: aiScores.contentQualityScore ?? 0,
       technicalSkillsScore: aiScores.technicalSkillsScore ?? 0,
-      experienceScore: aiScores.experienceScore ?? 0,
+      experienceScore: hasExp ? (aiScores.experienceScore ?? 0) : 0,
       projectsScore: aiScores.projectsScore ?? 0,
       educationScore: aiScores.educationScore ?? 0,
       certificationsScore: aiScores.certificationsScore ?? 0,
@@ -5478,7 +5616,7 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
         summary: { score: Math.round(((aiJson.summaryAnalysis?.score) || 0) / 100 * 8), max: 8, label: 'Professional Summary' },
         keywords: { score: Math.round(((aiScores.technicalSkillsScore) || 0) / 100 * 15), max: 15, label: 'Technical Skills' },
         projects: { score: Math.round(((aiScores.projectsScore) || 0) / 100 * 20), max: 20, label: 'Technical Projects' },
-        experience: { score: Math.round(((aiScores.experienceScore) || 0) / 100 * 15), max: 15, label: 'Work / Internship Experience' },
+        experience: { score: calculatedExpScore, max: 15, label: 'Work / Internship Experience' },
         education: { score: Math.round(((aiScores.educationScore) || 0) / 100 * 10), max: 10, label: 'Education' },
         achievements: { score: Math.round(((aiScores.achievementsScore) || 0) / 100 * 10), max: 10, label: 'Achievements / DSA' },
         certifications: { score: Math.round(((aiScores.certificationsScore) || 0) / 100 * 5), max: 5, label: 'Certifications' },
@@ -5500,7 +5638,7 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
     // Rich analysis objects mapping for robust UI rendering
     const detectedSections = { ...(parsedSections?.detected || {}) };
     if (allSkills.length > 0) detectedSections.skills = true;
-    if (expEntries.length > 0 || aiJson.experience?.hasExperience) detectedSections.experience = true;
+    if (expEntries.length > 0 || hasExp) detectedSections.experience = true;
     if (projectEntries.length > 0 || (aiJson.projects?.count || 0) > 0) detectedSections.projects = true;
     if ((aiJson.education?.entries || []).length > 0) detectedSections.education = true;
     if ((aiJson.certifications?.entries || []).length > 0 || (aiJson.certifications?.count || 0) > 0) detectedSections.certifications = true;
@@ -5542,35 +5680,36 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
       softSkills: Array.isArray(aiJson.skills?.softSkills) ? aiJson.skills.softSkills : []
     };
 
-    const hasExp = Boolean(aiJson.experience?.hasExperience || expEntries.length > 0);
     const isFresher = aiJson.experience?.isFresher !== undefined
       ? Boolean(aiJson.experience.isFresher)
       : (careerStage === 'Student' || careerStage === 'Fresher');
     const isOnlyInternship = Boolean(aiJson.experience?.isOnlyInternship);
-    const expJobTitles = expEntries.map(e => e.title).filter(Boolean);
-    const expBulletsCount = expEntries.reduce((acc, e) => acc + (e.responsibilities ? 1 : 0) + (Array.isArray(e.achievements) ? e.achievements.length : 0), 0);
-    const expQuantifiedBullets = expEntries.filter(e => e.metrics || (Array.isArray(e.achievements) && e.achievements.length > 0));
-    const expTechInContext = Array.from(new Set(expEntries.flatMap(e => Array.isArray(e.technologies) ? e.technologies : [])));
+    const expJobTitles = hasExp ? expEntries.map(e => e.title).filter(Boolean) : [];
+    const expQuantifiedBullets = hasExp ? expEntries.filter(e => e.metrics || (Array.isArray(e.achievements) && e.achievements.length > 0)) : [];
+    const expTechInContext = hasExp ? Array.from(new Set(expEntries.flatMap(e => Array.isArray(e.technologies) ? e.technologies : []))) : [];
+    const expActionVerbCount = hasExp ? (aiJson.experience?.metrics?.actionVerbsCount ?? expQuantifiedBullets.length) : 0;
+    const expQuantifiedCount = hasExp ? (aiJson.experience?.metrics?.quantifiedCount ?? expQuantifiedBullets.length) : 0;
+    const expTotalBullets = hasExp ? expBulletsCount : 0;
 
     const experienceAnalysis = {
-      count: aiJson.experience?.count || expEntries.length,
+      count: hasExp ? (aiJson.experience?.count || expEntries.length) : 0,
       hasExperience: hasExp,
       isFresher: isFresher,
       isOnlyInternship: isOnlyInternship,
-      details: expEntries,
-      entries: expEntries,
-      strengths: Array.isArray(aiJson.experience?.strengths) ? aiJson.experience.strengths : [],
+      details: hasExp ? expEntries : [],
+      entries: hasExp ? expEntries : [],
+      strengths: hasExp ? (Array.isArray(aiJson.experience?.strengths) ? aiJson.experience.strengths : []) : [],
       weaknesses: Array.isArray(aiJson.experience?.weaknesses) ? aiJson.experience.weaknesses : [],
       confidence: aiScores.experienceScore || 85,
       jobTitles: expJobTitles,
-      totalBullets: expBulletsCount || expEntries.length,
-      actionVerbCount: expQuantifiedBullets.length,
+      totalBullets: expTotalBullets,
+      actionVerbCount: expActionVerbCount,
       weakVerbCount: 0,
-      quantifiedCount: expQuantifiedBullets.length,
-      quantifiedRatio: expEntries.length > 0 ? (expQuantifiedBullets.length / expEntries.length) : 0,
+      quantifiedCount: expQuantifiedCount,
+      quantifiedRatio: expTotalBullets > 0 ? (expQuantifiedCount / expTotalBullets) : 0,
       techInExperience: expTechInContext,
       weakBullets: Array.isArray(aiJson.experience?.weaknesses) ? aiJson.experience.weaknesses : [],
-      score: Math.round(((aiScores.experienceScore) || 0) / 100 * 15)
+      score: calculatedExpScore
     };
 
     const projTechList = Array.from(new Set(projectEntries.flatMap(p => Array.isArray(p.technologies) ? p.technologies : [])));
@@ -5675,6 +5814,57 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
     const bestFitRole = dynamicRoles?.bestFit || null;
     const jobRecommendations = Array.isArray(dynamicRoles?.topRecommendations) ? dynamicRoles.topRecommendations : [];
 
+    const resumeAnalysis = {
+      candidate: {
+        name: candidateObj.name || 'Candidate',
+        careerStage: careerStage,
+        primaryRole: dynamicRoles?.primaryRole || dynamicRoles?.bestFit?.title || 'Software Engineer',
+        alternativeRoles: dynamicRoles?.alternativeRoles || []
+      },
+      scores: {
+        overallResumeScore: scores.overall,
+        atsScore: scores.atsScore,
+        contentQualityScore: scores.contentQualityScore,
+        technicalSkillsScore: scores.technicalSkillsScore,
+        experienceScore: scores.experienceScore,
+        projectsScore: scores.projectsScore,
+        educationScore: scores.educationScore,
+        certificationsScore: scores.certificationsScore,
+        achievementsScore: scores.achievementsScore,
+        contactScore: scores.contactScore,
+        jobMatchScore: scores.jobMatchScore
+      },
+      contact: aiJson.contact || {},
+      skills: aiJson.skills || {},
+      experience: {
+        count: experienceAnalysis.count,
+        hasExperience: hasExp,
+        isFresher: isFresher,
+        entries: experienceAnalysis.entries,
+        metrics: {
+          totalBullets: expTotalBullets,
+          actionVerbsCount: expActionVerbCount,
+          quantifiedCount: expQuantifiedCount,
+          impactBullets: hasExp ? (aiJson.experience?.metrics?.impactBullets || 0) : 0,
+          impactRatio: expTotalBullets > 0 ? Math.round((expQuantifiedCount / expTotalBullets) * 100) : 0
+        }
+      },
+      projects: {
+        count: projectEntries.length,
+        entries: projectEntries
+      },
+      education: aiJson.education || { entries: [] },
+      certifications: aiJson.certifications || { entries: [] },
+      achievements: aiJson.achievements || { entries: [] },
+      atsAnalysis: aiJson.atsAnalysis || {},
+      jobMatch: aiJson.jobMatch || null,
+      strengths: aiJson.strengths || [],
+      improvements: aiJson.improvements || [],
+      missingInformation: aiJson.missingInformation || [],
+      redFlags: aiJson.redFlags || []
+    };
+    analyzerState.resumeAnalysis = resumeAnalysis;
+
     const analysisResult = {
       timestamp: new Date().toISOString(),
       fileName: analyzerState.fileName,
@@ -5710,8 +5900,57 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
       jobRecommendations,
       jdMatchResult: aiJson.jobMatch?.jobDescriptionProvided ? aiJson.jobMatch : null,
       careerStageEvidence: Array.isArray(aiJson.careerStageEvidence) ? aiJson.careerStageEvidence : [],
-      finalAssessment: aiJson.finalAssessment || null
+      finalAssessment: aiJson.finalAssessment || null,
+      resumeAnalysis
     };
+
+    // Section 21: Required Debug Output
+    console.log('==============================================');
+    console.log('DEVPLOT RESUME ANALYZER DEBUG');
+    console.log('==============================================');
+    console.log(`1. Uploaded File: ${analyzerState.fileName || 'N/A'}`);
+    console.log(`2. Extracted Text Length: ${inputValidation.length} characters`);
+    console.log(`3. Extracted Text Preview: "${resumeText.replace(/\s+/g, ' ').trim().substring(0, 300)}"`);
+    console.log(`4. AI Request Sent: YES`);
+    console.log(`5. AI Response Received: ${aiJson && !aiJson.error ? 'YES' : 'NO — used built-in fallback'}`);
+    console.log(`6. Parsed JSON: ${aiJson && !aiJson.error ? 'YES' : 'NO'}`);
+    console.log(`7. Candidate Name: ${candidateObj.name || 'N/A'}`);
+    console.log(`8. Career Stage: ${careerStage}`);
+    console.log(`9. Scores:`);
+    console.log(`   - Overall: ${scores.overall}`);
+    console.log(`   - ATS: ${scores.atsScore}`);
+    console.log(`   - Content: ${scores.contentQualityScore}`);
+    console.log(`   - Skills: ${scores.technicalSkillsScore}`);
+    console.log(`   - Experience: ${scores.experienceScore} (${calculatedExpScore}/15)`);
+    console.log(`   - Projects: ${scores.projectsScore} (${scores.breakdown.projects.score}/20)`);
+    console.log(`   - Education: ${scores.educationScore}`);
+    console.log(`   - Certifications: ${scores.certificationsScore}`);
+    console.log(`   - Achievements: ${scores.achievementsScore}`);
+    console.log(`10. Projects Detected: ${projectEntries.length}`);
+    if (projectEntries.length > 0) {
+      console.log(`    [${projectEntries.map(p => p.name || 'Unnamed Project').join(', ')}]`);
+    } else {
+      console.log(`    [None]`);
+    }
+    console.log(`11. Experience Detected: ${experienceAnalysis.count} jobs, ${expTotalBullets} bullets`);
+    if (experienceAnalysis.entries.length > 0) {
+      console.log(`    [${experienceAnalysis.entries.map(e => `${e.company || 'Org'} - ${e.title || 'Role'}`).join(', ')}]`);
+    } else {
+      console.log(`    [None]`);
+    }
+    console.log(`12. Skills Detected: ${allSkills.length} total (${verified.length} verified)`);
+    console.log(`13. Best Fit Role: ${dynamicRoles?.bestFit?.title || dynamicRoles?.primaryRole || 'N/A'}`);
+    console.log(`14. Alternate Roles: ${(dynamicRoles?.alternativeRoles || []).join(', ') || 'N/A'}`);
+    console.log(`15. Job Match Score: ${existingJD ? (aiScores.jobMatchScore ?? 'Calculated') : 'No JD provided'}`);
+    console.log(`16. UI Data Source Mappings:`);
+    console.log(`    - Overall Score Card <- resumeAnalysis.scores.overallResumeScore (${scores.overall})`);
+    console.log(`    - Candidate Header <- resumeAnalysis.candidate.name (${candidateObj.name || 'Candidate'})`);
+    console.log(`    - Career Stage Pill <- resumeAnalysis.candidate.careerStage (${careerStage})`);
+    console.log(`    - Projects Section <- resumeAnalysis.projects.entries (${projectEntries.length} items)`);
+    console.log(`    - Experience Section <- resumeAnalysis.experience.entries (${experienceAnalysis.entries.length} items, ${expTotalBullets} bullets, score: ${calculatedExpScore}/15)`);
+    console.log(`    - Skills Cloud <- resumeAnalysis.skills (${allSkills.length} skills)`);
+    console.log(`    - Job Matches <- dynamicRoles (${dynamicRoles?.bestFit?.title || 'N/A'})`);
+    console.log('==============================================');
 
     analyzerState.scores = scores;
     analyzerState.analysisComplete = true;
@@ -5814,6 +6053,8 @@ function renderRejectionState(classification, fileName, fileSize) {
       area.style.display = 'none';
       area.innerHTML = '';
       analyzerState.analysisComplete = false;
+      const fileInput = document.getElementById('file-upload-input');
+      if (fileInput) fileInput.click();
     });
   }
 }
@@ -6147,10 +6388,27 @@ function renderAllResults(result) {
   // Bind handlers
   const reanalyzeBtn = document.getElementById('btn-reanalyze-real');
   if (reanalyzeBtn) {
-    reanalyzeBtn.addEventListener('click', () => {
-      area.style.display = 'none';
-      area.innerHTML = '';
-      analyzerState.analysisComplete = false;
+    reanalyzeBtn.addEventListener('click', async () => {
+      try {
+        reanalyzeBtn.disabled = true;
+        reanalyzeBtn.innerHTML = `<span class="material-symbols-outlined text-[14px] animate-spin">progress_activity</span> Re-analyzing...`;
+        
+        if (analyzerState.fromBuilder) {
+          await runRealAnalysis(true);
+        } else if (analyzerState.file) {
+          await runRealAnalysis(false, analyzerState.file);
+        } else if (analyzerState.resumeText) {
+          await runRealAnalysis(false);
+        } else {
+          const fileInput = document.getElementById('file-upload-input');
+          if (fileInput) fileInput.click();
+        }
+      } catch (err) {
+        console.error('Re-analysis error:', err);
+        showToast('Re-analysis failed: ' + (err.message || 'Unknown error'), 'error');
+        reanalyzeBtn.disabled = false;
+        reanalyzeBtn.innerHTML = `<span class="material-symbols-outlined text-[14px]">refresh</span> Re-analyze`;
+      }
     });
   }
 
@@ -6464,7 +6722,7 @@ function executeEnhancedJDMatch(analysisResult) {
   analyzerState.jdText = jdText;
 
   const resumeData = {
-    resumeText: analyzerState.resumeText,
+    resumeText: analysisResult.resumeText || analyzerState.resumeText,
     contactInfo: analysisResult.contactInfo,
     skills: analysisResult.skills,
     summaryAnalysis: analysisResult.summaryAnalysis,
@@ -6520,13 +6778,13 @@ function renderHealthChecks(result) {
   }
 
   if (ci.linkedin || ciDetails.linkedin) {
-    checks.push({ pass: true, label: `LinkedIn profile detected (${ci.linkedin || ciDetails.linkedin})` });
+    checks.push({ pass: true, label: `LinkedIn profile link (detected — unverified: ${ci.linkedin || ciDetails.linkedin})` });
   } else {
     checks.push({ pass: false, label: 'LinkedIn profile link not detected' });
   }
 
   if (ci.github || ciDetails.github) {
-    checks.push({ pass: true, label: `GitHub profile link detected (${ci.github || ciDetails.github})` });
+    checks.push({ pass: true, label: `GitHub profile link (detected — unverified: ${ci.github || ciDetails.github})` });
   } else {
     checks.push({ pass: false, label: 'GitHub profile link missing' });
   }
@@ -6586,14 +6844,21 @@ function renderHealthChecks(result) {
 function renderContactChecks(ci) {
   ci = ci || {};
   const details = ci.details || {};
+  const formatDetectedLink = (val) => {
+    if (!val) return null;
+    const str = String(val).trim();
+    if (str.toLowerCase().includes('unverified') || str.toLowerCase().includes('detected')) return str;
+    return `${str} (detected — unverified)`;
+  };
+
   const items = [
     { key: 'Name', found: Boolean(ci.name || details.name), detail: ci.name || details.name },
     { key: 'Email', found: Boolean(ci.email || details.email), detail: ci.email || details.email },
     { key: 'Phone', found: Boolean(ci.phone || details.phone), detail: ci.phone || details.phone },
     { key: 'Location', found: Boolean(ci.location || details.location), detail: ci.location || details.location },
-    { key: 'LinkedIn', found: Boolean(ci.linkedin || details.linkedin), detail: ci.linkedin || details.linkedin },
-    { key: 'GitHub', found: Boolean(ci.github || details.github), detail: ci.github || details.github },
-    { key: 'Portfolio / Coding Profile', found: Boolean(ci.portfolio || details.portfolio), detail: ci.portfolio || details.portfolio }
+    { key: 'LinkedIn', found: Boolean(ci.linkedin || details.linkedin), detail: formatDetectedLink(ci.linkedin || details.linkedin) },
+    { key: 'GitHub', found: Boolean(ci.github || details.github), detail: formatDetectedLink(ci.github || details.github) },
+    { key: 'Portfolio / Coding Profile', found: Boolean(ci.portfolio || details.portfolio), detail: formatDetectedLink(ci.portfolio || details.portfolio) }
   ];
 
   return items.map(item => `
@@ -6650,17 +6915,38 @@ function renderSectionChecks(ps, sa) {
 
 function renderExperienceDetails(exp) {
   if (!exp) return '';
-  if (exp.isFresher) {
-    return `
-      <div class="exp-detail-note" style="margin-top:0.5rem;">
-        <span class="material-symbols-outlined text-amber-500 text-[18px]">info</span>
-        <span>Student / Fresher candidate profile active. Practical technical projects, hackathons, and certifications are evaluated with higher weight.</span>
-      </div>
-    `;
-  }
 
   const jobTitles = Array.isArray(exp.jobTitles) ? exp.jobTitles : [];
   const techInExp = Array.isArray(exp.techInExperience) ? exp.techInExperience : [];
+  const totalBullets = exp.totalBullets || 0;
+  const isFresher = Boolean(exp.isFresher);
+
+  if (!exp.hasExperience || totalBullets === 0) {
+    return `
+      <div class="exp-stats-grid">
+        <div class="exp-stat">
+          <div class="exp-stat-value">0</div>
+          <div class="exp-stat-label">Bullets</div>
+        </div>
+        <div class="exp-stat">
+          <div class="exp-stat-value">0</div>
+          <div class="exp-stat-label">Action Verbs</div>
+        </div>
+        <div class="exp-stat">
+          <div class="exp-stat-value">0</div>
+          <div class="exp-stat-label">Quantified</div>
+        </div>
+        <div class="exp-stat">
+          <div class="exp-stat-value">0%</div>
+          <div class="exp-stat-label">Impact Ratio</div>
+        </div>
+      </div>
+      <div class="exp-detail-note" style="margin-top:0.75rem;">
+        <span class="material-symbols-outlined text-indigo-500 text-[18px]">school</span>
+        <span>${isFresher ? 'Student / Fresher profile: No corporate work experience detected (0 bullets). Experience is weighted at 0% and does not penalize overall score.' : 'No work experience entries detected (0 bullets). Score is 0/15.'}</span>
+      </div>
+    `;
+  }
 
   return `
     <div class="exp-stats-grid">
@@ -6741,9 +7027,8 @@ function renderProjectsDetails(proj) {
 
   const items = [];
   items.push({ pass: proj.count >= 2, label: `${proj.count} project(s) detected` });
-  items.push({ pass: (proj.techCount || 0) >= 3, label: (proj.techCount || 0) > 0 ? `${proj.techCount} technologies mentioned` : 'Technologies not explicitly mentioned' });
-  items.push({ pass: Boolean(proj.hasGithubLinks), label: proj.hasGithubLinks ? 'GitHub repository link detected' : 'No GitHub repository links detected' });
-  items.push({ pass: Boolean(proj.hasDemoLinks), label: proj.hasDemoLinks ? 'Live demo / hosted link detected' : 'No live demo links detected' });
+  items.push({ pass: Boolean(proj.hasGithubLinks), label: proj.hasGithubLinks ? 'GitHub repository link (detected — unverified)' : 'No GitHub repository links detected' });
+  items.push({ pass: Boolean(proj.hasDemoLinks), label: proj.hasDemoLinks ? 'Live demo / hosted link (detected — unverified)' : 'No live demo links detected' });
 
   let detailsHtml = '';
   const details = Array.isArray(proj.details) ? proj.details : [];
@@ -6886,6 +7171,7 @@ function restoreSavedAnalysis() {
   analyzerState.fileType = saved.fileType;
   analyzerState.fileSize = saved.fileSize;
   analyzerState.fromBuilder = saved.fromBuilder;
+  analyzerState.resumeText = saved.resumeText || '';
   analyzerState.jobRecommendations = saved.jobRecommendations || [];
   analyzerState.bestFitRole = saved.bestFitRole || null;
 
@@ -6924,6 +7210,9 @@ function initRealAnalyzerControls() {
   }
 
   if (fileInput) {
+    fileInput.addEventListener('click', () => {
+      fileInput.value = '';
+    });
     fileInput.addEventListener('change', () => {
       if (fileInput.files[0]) handleRealFileSelected(fileInput.files[0]);
     });
@@ -6945,7 +7234,11 @@ function initRealAnalyzerControls() {
   if (runBtn) {
     runBtn.addEventListener('click', () => {
       if (analyzerState.file) {
+        runRealAnalysis(false, analyzerState.file);
+      } else if (analyzerState.resumeText && !analyzerState.fromBuilder) {
         runRealAnalysis(false);
+      } else if (analyzerState.fromBuilder) {
+        runRealAnalysis(true);
       } else {
         runRealAnalysis(true);
       }
@@ -7152,6 +7445,7 @@ if (typeof module !== 'undefined' && module.exports) {
     MASTER_RESUME_ANALYZER_SYSTEM_PROMPT,
     runRealAnalysis,
     renderAllResults,
+    clearAnalysisResult,
     validateFile
   };
 }
