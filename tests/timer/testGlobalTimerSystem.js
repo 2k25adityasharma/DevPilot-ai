@@ -112,8 +112,8 @@ runTest('TEST 3: Navigation persistence preserves remaining time across routes w
   global.localStorage.clear();
 
   // User starts 25:00 focus timer on Timer page
-  const startTime = Date.now();
   const state = GlobalTimer.start('Implement Redux store');
+  const startTime = state.startTimestamp;
   const initialEndTimestamp = state.endTimestamp;
 
   // Simulate 3 minutes (180 seconds) passing as user navigates to "Resume" page
