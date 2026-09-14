@@ -309,7 +309,7 @@
         </div>
 
         <!-- 6-Month Activity Heatmap Card -->
-        <div class="dev-card relative">
+        <div class="dev-card relative heatmap-card">
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
               <span class="material-symbols-outlined text-indigo-600">calendar_month</span>
@@ -328,15 +328,26 @@
           <!-- Heatmap Interactive Popover Tooltip -->
           <div class="heatmap-tooltip" id="heatmap-tooltip"></div>
 
-          <!-- Legend -->
-          <div class="flex items-center justify-end gap-1.5 mt-3 text-[11px] text-slate-400">
-            <span>Less</span>
-            <span class="w-2.5 h-2.5 rounded-sm heatmap-l0 border border-slate-200"></span>
-            <span class="w-2.5 h-2.5 rounded-sm heatmap-l1"></span>
-            <span class="w-2.5 h-2.5 rounded-sm heatmap-l2"></span>
-            <span class="w-2.5 h-2.5 rounded-sm heatmap-l3"></span>
-            <span class="w-2.5 h-2.5 rounded-sm heatmap-l4"></span>
-            <span>More</span>
+          <!-- Legend & Hint -->
+          <div class="flex items-center justify-between mt-3 text-[11px] text-slate-400 flex-wrap gap-2">
+            <span class="text-[11px] text-slate-500 flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px] text-indigo-500">touch_app</span>
+              <span>Click any day cell to view history</span>
+            </span>
+            <div class="flex items-center gap-1.5">
+              <span>Less</span>
+              <span class="w-2.5 h-2.5 rounded-sm heatmap-l0 border border-slate-200"></span>
+              <span class="w-2.5 h-2.5 rounded-sm heatmap-l1"></span>
+              <span class="w-2.5 h-2.5 rounded-sm heatmap-l2"></span>
+              <span class="w-2.5 h-2.5 rounded-sm heatmap-l3"></span>
+              <span class="w-2.5 h-2.5 rounded-sm heatmap-l4"></span>
+              <span>More</span>
+            </div>
+          </div>
+
+          <!-- Interactive Day History / Activity Breakdown -->
+          <div id="heatmap-day-history" class="heatmap-day-history mt-4 pt-3.5 border-t border-slate-100">
+            <!-- Rendered dynamically by js/pages/habit.js -->
           </div>
         </div>
 

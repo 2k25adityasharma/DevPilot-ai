@@ -22,6 +22,7 @@
   let selectedAddCustomDays = [1, 2, 3, 4, 5];
   let selectedEditFrequency = 'daily';
   let selectedEditCustomDays = [1, 2, 3, 4, 5];
+  let selectedHeatmapDate = null;
 
   // DOM Elements cache
   let dom = {};
@@ -83,6 +84,7 @@
       // Heatmap
       habitHeatmapGrid: document.getElementById('habit-heatmap-grid'),
       heatmapTooltip: document.getElementById('heatmap-tooltip'),
+      heatmapDayHistory: document.getElementById('heatmap-day-history'),
 
       // Insights
       habitInsightsContainer: document.getElementById('habit-insights-container'),
@@ -598,52 +600,86 @@
   /**
    * 6-Month Heatmap Matrix
    */
+  /**
+   * 6-Month Heatmap Matrix
+   */
   function renderHeatmap() {
     if (!dom.habitHeatmapGrid) return;
 
     const weeks = HabitsData.calculateHeatmapMatrix(habits, completions, 26, HabitsData.getTodayStr(), dailyGoals);
     if (!weeks || weeks.length === 0) return;
 
-    let lastMonth = -1;
+    // Default selected date to today if not yet chosen
+    const todayStr = HabitsData.getTodayStr();
+    if (!selectedHeatmapDate) {
+      selectedHeatmapDate = todayStr;
+    }
+
+    // Mathematically anchor month labels to the exact week columns where each month starts
     const monthSpans = [];
+    let currentMonth = -1;
+
     weeks.forEach((week, wIdx) => {
-      const firstDay = HabitsData.parseDate(week[0].date);
-      const m = firstDay.getMonth();
-      if (m !== lastMonth && wIdx < 25) {
-        monthSpans.push({
-          name: firstDay.toLocaleDateString('en-US', { month: 'short' }),
-          colIndex: wIdx
-        });
-        lastMonth = m;
+      for (let d = 0; d < week.length; d++) {
+        const dObj = HabitsData.parseDate(week[d].date);
+        const m = dObj.getMonth();
+        if (m !== currentMonth) {
+          currentMonth = m;
+          const prev = monthSpans[monthSpans.length - 1];
+          if (!prev || (wIdx - prev.colIndex >= 2)) {
+            monthSpans.push({
+              name: dObj.toLocaleDateString('en-US', { month: 'short' }),
+              colIndex: wIdx
+            });
+          }
+          break;
+        }
       }
     });
 
+    for (let i = 0; i < monthSpans.length; i++) {
+      const startCol = monthSpans[i].colIndex;
+      const endCol = (i + 1 < monthSpans.length) ? monthSpans[i + 1].colIndex : weeks.length;
+      monthSpans[i].span = Math.max(1, endCol - startCol);
+    }
+
     const monthHeadersHtml = `
       <div class="heatmap-months-row">
-        ${monthSpans.map(m => `<span class="heatmap-month-label">${m.name}</span>`).join('')}
+        ${monthSpans.map(m => `
+          <span 
+            class="heatmap-month-label" 
+            style="grid-column: ${m.colIndex + 1} / span ${m.span};"
+          >${m.name}</span>
+        `).join('')}
       </div>
     `;
 
     const dayLabelsHtml = `
       <div class="heatmap-days-col">
-        <span>Sun</span>
-        <span>Tue</span>
-        <span>Thu</span>
-        <span>Sat</span>
+        <span style="grid-row: 1;">Sun</span>
+        <span style="grid-row: 3;">Tue</span>
+        <span style="grid-row: 5;">Thu</span>
+        <span style="grid-row: 7;">Sat</span>
       </div>
     `;
 
     const columnsHtml = weeks.map(week => {
-      const cellsHtml = week.map(day => `
-        <div 
-          class="heatmap-cell ${day.levelClass} ${day.isToday ? 'is-today' : ''} ${day.isFuture ? 'is-future' : ''}" 
-          data-date="${day.date}"
-          data-formatted="${day.formattedDate}"
-          data-count="${day.count}"
-          data-goals="${day.goalsCompletedCount || 0}"
-          data-habits="${encodeURIComponent(JSON.stringify(day.completedHabits || []))}"
-        ></div>
-      `).join('');
+      const cellsHtml = week.map(day => {
+        const isSelected = (day.date === selectedHeatmapDate);
+        return `
+          <div 
+            class="heatmap-cell ${day.levelClass} ${day.isToday ? 'is-today' : ''} ${isSelected ? 'is-selected' : ''} ${day.isFuture ? 'is-future' : ''}" 
+            data-date="${day.date}"
+            data-formatted="${day.formattedDate}"
+            data-count="${day.count}"
+            data-goals="${day.goalsCompletedCount || 0}"
+            data-habits="${encodeURIComponent(JSON.stringify(day.completedHabits || []))}"
+            role="button"
+            tabindex="0"
+            aria-label="${day.formattedDate}: ${day.count} habits completed"
+          ></div>
+        `;
+      }).join('');
 
       return `<div class="heatmap-col">${cellsHtml}</div>`;
     }).join('');
@@ -659,6 +695,7 @@
     `;
 
     attachHeatmapTooltips();
+    renderDayHistory(selectedHeatmapDate);
   }
 
   function attachHeatmapTooltips() {
@@ -667,6 +704,19 @@
 
     const cells = dom.habitHeatmapGrid.querySelectorAll('.heatmap-cell');
     cells.forEach(cell => {
+      // Cell Click: Select this day and show history in bullets
+      cell.addEventListener('click', () => {
+        const cellDate = cell.getAttribute('data-date');
+        if (!cellDate) return;
+        selectedHeatmapDate = cellDate;
+
+        cells.forEach(c => c.classList.remove('is-selected'));
+        cell.classList.add('is-selected');
+
+        renderDayHistory(selectedHeatmapDate);
+      });
+
+      // Cell Hover: Smart floating tooltip with boundary clamping
       cell.addEventListener('mouseenter', () => {
         const dateStr = cell.getAttribute('data-formatted');
         const count = parseInt(cell.getAttribute('data-count'), 10) || 0;
@@ -676,13 +726,17 @@
           habitsList = JSON.parse(decodeURIComponent(cell.getAttribute('data-habits') || '[]'));
         } catch (err) {}
 
-        let content = `<strong>${dateStr}</strong><br/>${count} habit${count === 1 ? '' : 's'} completed`;
+        let content = `<div class="font-semibold text-slate-100">${dateStr}</div><div class="text-[11px] text-slate-300 mt-0.5">${count} habit${count === 1 ? '' : 's'} completed</div>`;
         if (goalsCount > 0) {
-          content += `<br/>${goalsCount} daily goal${goalsCount === 1 ? '' : 's'} completed`;
+          content += `<div class="text-[11px] text-indigo-300">${goalsCount} daily goal${goalsCount === 1 ? '' : 's'} completed</div>`;
         }
         if (habitsList.length > 0) {
-          content += `<br/><span style="opacity:0.8; font-size:10px;">${habitsList.slice(0, 3).map(h => '• ' + escapeHtml(h)).join('<br/>')}</span>`;
+          content += `<div class="mt-1.5 pt-1 border-t border-slate-700/80 text-[10px] text-slate-300 space-y-0.5">
+            ${habitsList.slice(0, 3).map(h => '<div>✓ ' + escapeHtml(h) + '</div>').join('')}
+            ${habitsList.length > 3 ? `<div class="text-slate-400 italic">+${habitsList.length - 3} more</div>` : ''}
+          </div>`;
         }
+        content += `<div class="mt-1 text-[9px] text-indigo-300/80 font-medium">Click to inspect day history</div>`;
 
         tooltip.innerHTML = content;
         tooltip.classList.add('visible');
@@ -690,14 +744,183 @@
         const rect = cell.getBoundingClientRect();
         const parentRect = dom.habitHeatmapGrid.getBoundingClientRect();
 
-        tooltip.style.left = `${rect.left + (rect.width / 2) - parentRect.left + dom.habitHeatmapGrid.parentElement.scrollLeft}px`;
-        tooltip.style.top = `${rect.top - parentRect.top - 6}px`;
+        let left = rect.left + (rect.width / 2) - parentRect.left + dom.habitHeatmapGrid.parentElement.scrollLeft;
+        let top = rect.top - parentRect.top - 8;
+
+        // Smart edge collision avoidance: flip below if close to the card top
+        if (top < 40) {
+          top = rect.bottom - parentRect.top + 8;
+          tooltip.classList.add('flip-below');
+          tooltip.style.transform = 'translate(-50%, 0)';
+        } else {
+          tooltip.classList.remove('flip-below');
+          tooltip.style.transform = 'translate(-50%, -100%)';
+        }
+
+        // Horizontal boundary clamping
+        const tooltipWidth = tooltip.offsetWidth || 150;
+        const minLeft = (tooltipWidth / 2) + 6;
+        const maxLeft = parentRect.width - (tooltipWidth / 2) - 6;
+        if (left < minLeft) left = minLeft;
+        else if (left > maxLeft && maxLeft > minLeft) left = maxLeft;
+
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
       });
 
       cell.addEventListener('mouseleave', () => {
         tooltip.classList.remove('visible');
       });
     });
+  }
+
+  /**
+   * Interactive Day Activity History Breakdown (underneath heatmap)
+   */
+  function renderDayHistory(dateStr) {
+    if (!dom.heatmapDayHistory) return;
+
+    const targetDate = dateStr || HabitsData.getTodayStr();
+    const todayStr = HabitsData.getTodayStr();
+    const isToday = (targetDate === todayStr);
+    const isFuture = HabitsData.diffDays(targetDate, todayStr) > 0;
+
+    const targetDateObj = HabitsData.parseDate(targetDate);
+    const formattedDate = targetDateObj.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+
+    const isYesterday = (HabitsData.diffDays(todayStr, targetDate) === 1);
+    const dayTag = isToday ? 'Today' : (isYesterday ? 'Yesterday' : '');
+
+    // 1. Determine habit completions for this day
+    const { byDate } = HabitsData.buildCompletionMaps(habits, completions);
+    const completedHabitIds = byDate[targetDate] || new Set();
+
+    // Completed habits
+    const completedList = habits.filter(h => completedHabitIds.has(h.id));
+
+    // Missed/Pending habits (active habits scheduled for this day but not completed)
+    const missedList = isFuture ? [] : habits.filter(h => {
+      if (h.active === false) return false;
+      if (completedHabitIds.has(h.id)) return false;
+      return HabitsData.isHabitScheduledOn(h, targetDate);
+    });
+
+    // Daily goals for this date
+    const goalsForDate = (dailyGoals || []).filter(g => g.date === targetDate);
+
+    // Stats
+    const totalScheduled = completedList.length + missedList.length;
+    const completedCount = completedList.length;
+    const pct = totalScheduled > 0 ? Math.round((completedCount / totalScheduled) * 100) : 0;
+
+    let badgeClass = 'bg-slate-100 text-slate-600 border border-slate-200';
+    let badgeText = `${completedCount} of ${totalScheduled} completed (${pct}%)`;
+
+    if (totalScheduled > 0 && completedCount === totalScheduled) {
+      badgeClass = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+      badgeText = `All completed! 🎉 (100%)`;
+    } else if (completedCount > 0) {
+      badgeClass = 'bg-indigo-50 text-indigo-700 border border-indigo-200';
+    } else if (isFuture) {
+      badgeClass = 'bg-slate-50 text-slate-400 border border-slate-200';
+      badgeText = 'Upcoming';
+    }
+
+    let listContent = '';
+
+    if (isFuture) {
+      listContent = `
+        <div class="py-2.5 px-3 rounded-lg bg-slate-50/70 border border-dashed border-slate-200 text-center">
+          <p class="text-xs text-slate-400 italic">Future date — habit tracking has not occurred yet.</p>
+        </div>
+      `;
+    } else if (completedList.length === 0 && missedList.length === 0 && goalsForDate.length === 0) {
+      listContent = `
+        <div class="py-3 px-3 rounded-lg bg-slate-50/70 border border-dashed border-slate-200 text-center">
+          <p class="text-xs text-slate-500 font-medium">No habits were scheduled or completed on this date.</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">Click any other square in the heatmap above to inspect consistency history.</p>
+        </div>
+      `;
+    } else {
+      const itemsHtml = [];
+
+      // Completed habits (Green checkmark bullet)
+      completedList.forEach(h => {
+        itemsHtml.push(`
+          <div class="heatmap-history-item flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-emerald-50/60 border border-emerald-100 text-xs">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+              <span class="font-medium text-slate-800 truncate">${escapeHtml(h.title)}</span>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="text-[10px] text-slate-500 bg-white/90 px-1.5 py-0.5 rounded border border-slate-100 font-medium">${escapeHtml(h.category || 'General')}</span>
+              <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-100/90 px-1.5 py-0.5 rounded">Completed</span>
+            </div>
+          </div>
+        `);
+      });
+
+      // Missed or pending habits (Neutral/amber bullet)
+      missedList.forEach(h => {
+        const isPending = isToday;
+        itemsHtml.push(`
+          <div class="heatmap-history-item flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-slate-50/80 border border-slate-200/70 text-xs">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-[11px] shrink-0">○</span>
+              <span class="${isPending ? 'font-medium text-slate-700' : 'text-slate-500'} truncate">${escapeHtml(h.title)}</span>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="text-[10px] text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-100 font-medium">${escapeHtml(h.category || 'General')}</span>
+              <span class="text-[10px] font-medium ${isPending ? 'text-amber-700 bg-amber-50 border border-amber-200' : 'text-slate-500 bg-slate-100'} px-1.5 py-0.5 rounded">
+                ${isPending ? 'Pending' : 'Missed'}
+              </span>
+            </div>
+          </div>
+        `);
+      });
+
+      // Daily goals for this day
+      goalsForDate.forEach(g => {
+        itemsHtml.push(`
+          <div class="heatmap-history-item flex items-center justify-between py-1.5 px-2.5 rounded-lg ${g.completed ? 'bg-indigo-50/60 border border-indigo-100' : 'bg-slate-50/80 border border-slate-200/70'} text-xs">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-4 h-4 rounded-full ${g.completed ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-500'} flex items-center justify-center text-[10px] font-bold shrink-0">🎯</span>
+              <span class="font-medium ${g.completed ? 'text-indigo-950' : 'text-slate-700'} truncate">${escapeHtml(g.title)}</span>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="text-[10px] font-semibold ${g.completed ? 'text-indigo-700 bg-indigo-100' : 'text-slate-500 bg-slate-100'} px-1.5 py-0.5 rounded">
+                ${g.completed ? 'Goal Achieved' : 'In Progress'}
+              </span>
+            </div>
+          </div>
+        `);
+      });
+
+      listContent = `
+        <div class="space-y-1.5 max-h-52 overflow-y-auto pr-0.5 custom-scrollbar">
+          ${itemsHtml.join('')}
+        </div>
+      `;
+    }
+
+    dom.heatmapDayHistory.innerHTML = `
+      <div class="flex items-center justify-between mb-2.5 flex-wrap gap-2">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-indigo-600 text-base">event_available</span>
+          <span class="text-xs font-bold text-slate-800">${formattedDate}</span>
+          ${dayTag ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">${dayTag}</span>` : ''}
+        </div>
+        <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ${badgeClass}">
+          ${badgeText}
+        </span>
+      </div>
+      ${listContent}
+    `;
   }
 
   /**
