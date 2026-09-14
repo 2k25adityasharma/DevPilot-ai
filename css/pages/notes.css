@@ -8,11 +8,17 @@
   gap: 1.5rem;
 }
 
+@media (max-width: 640px) {
+  .notes-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .note-card {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 220px;
+  min-height: 240px;
   background: var(--color-surface);
   border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-lg);
@@ -37,10 +43,174 @@
   gap: 0.25rem;
 }
 
+/* Category Specific Badges */
 .tag-dsa { background-color: #fee2e2; color: #dc2626; }
+.tag-cpp { background-color: #e0f2fe; color: #0284c7; }
+.tag-javascript { background-color: #fef3c7; color: #b45309; }
 .tag-webdev { background-color: #e0e7ff; color: #4338ca; }
+.tag-react { background-color: #cffafe; color: #0891b2; }
+.tag-nodejs { background-color: #d1fae5; color: #059669; }
+.tag-backend { background-color: #ccfbf1; color: #0d9488; }
+.tag-sql { background-color: #ede9fe; color: #7c3aed; }
+.tag-dbms { background-color: #ffedd5; color: #ea580c; }
+.tag-postgresql { background-color: #e0f2fe; color: #0369a1; }
+.tag-os { background-color: #f1f5f9; color: #475569; }
+.tag-cn { background-color: #f3e8ff; color: #9333ea; }
+.tag-oop { background-color: #fdf4ff; color: #c026d3; }
+.tag-system-design { background-color: #fef3c7; color: #b45309; }
+.tag-cs-fundamentals { background-color: #e2e8f0; color: #334155; }
+.tag-aptitude { background-color: #ecfccb; color: #4d7c0f; }
+.tag-english { background-color: #ffe4e6; color: #e11d48; }
+.tag-aiml { background-color: #ede9fe; color: #6d28d9; }
+.tag-python { background-color: #e0f2fe; color: #0284c7; }
+.tag-git { background-color: #ffedd5; color: #c2410c; }
+.tag-linux { background-color: #f4f4f5; color: #3f3f46; }
+.tag-docker { background-color: #cffafe; color: #0e7490; }
+.tag-cloud { background-color: #fef3c7; color: #d97706; }
+.tag-interview-prep { background-color: #fef9c3; color: #a16207; }
+.tag-resume { background-color: #dbeafe; color: #1d4ed8; }
+.tag-projects { background-color: #d1fae5; color: #047857; }
 .tag-concepts { background-color: #fef3c7; color: #d97706; }
 .tag-general { background-color: #f1f5f9; color: #475569; }
+
+/* Interview Important Badge */
+.badge-interview {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #fef9c3;
+  color: #854d0e;
+  border: 1px solid #fde047;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-full);
+}
+
+/* Category Filter Bar & Controls */
+.category-filter-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.category-filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.category-scroll-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+  scroll-behavior: smooth;
+}
+
+.category-scroll-container::-webkit-scrollbar {
+  height: 4px;
+}
+
+.category-scroll-container::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
+}
+
+.filter-tab.interview-filter-btn {
+  border-color: #fde047;
+  background: #fefce8;
+  color: #a16207;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.filter-tab.interview-filter-btn:hover {
+  background: #fef08a;
+  color: #854d0e;
+}
+
+.filter-tab.interview-filter-btn.active {
+  background: #ca8a04;
+  color: #ffffff;
+  border-color: #a16207;
+}
+
+.category-select-dropdown {
+  background: #ffffff;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-md);
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-on-surface);
+  outline: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.category-select-dropdown:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
+
+/* Note Metadata Line */
+.note-meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.difficulty-badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.difficulty-easy { background-color: #ecfdf5; color: #059669; }
+.difficulty-medium { background-color: #fffbeb; color: #d97706; }
+.difficulty-hard { background-color: #fef2f2; color: #dc2626; }
+
+/* Note Tags Pill List */
+.note-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+}
+
+.note-tag-pill {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #4f46e5;
+  background: #eef2ff;
+  border: 1px solid #e0e7ff;
+  border-radius: 9999px;
+  padding: 0.15rem 0.55rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.note-tag-pill:hover {
+  background: #4f46e5;
+  color: #ffffff;
+  border-color: #4f46e5;
+}
 
 /* Note Modal */
 .modal-backdrop {
@@ -67,7 +237,10 @@
   background: #ffffff;
   border-radius: var(--radius-lg);
   width: 100%;
-  max-width: 580px;
+  max-width: 640px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   box-shadow: var(--shadow-dropdown);
   border: 1px solid var(--color-outline-variant);
   overflow: hidden;
@@ -77,4 +250,9 @@
 
 .modal-backdrop.open .modal-card {
   transform: scale(1);
+}
+
+.modal-body {
+  overflow-y: auto;
+  max-height: calc(90vh - 130px);
 }

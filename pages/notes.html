@@ -173,12 +173,32 @@
       </div>
     </div>
 
-    <!-- Category Filters -->
-    <div class="filter-tabs mb-8">
-      <button class="filter-tab note-filter-tab active" data-tag="All">All Notes</button>
-      <button class="filter-tab note-filter-tab" data-tag="DSA">Data Structures & Algo</button>
-      <button class="filter-tab note-filter-tab" data-tag="WebDev">Web Development</button>
-      <button class="filter-tab note-filter-tab" data-tag="Concepts">System Design & Concepts</button>
+    <!-- Category Filters & Controls -->
+    <div class="category-filter-wrapper mb-8">
+      <div class="category-filter-header">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">tune</span> Filter Roadmap:
+          </span>
+          <button class="filter-tab interview-filter-btn text-xs py-1 px-3" id="btn-interview-filter">
+            <span class="material-symbols-outlined text-[15px] text-amber-500">star</span>
+            <span>Interview Important</span>
+          </button>
+        </div>
+        <div class="flex items-center gap-2">
+          <label for="category-dropdown-select" class="text-xs text-slate-400 font-medium hidden sm:inline-block">Jump to:</label>
+          <select id="category-dropdown-select" class="category-select-dropdown">
+            <option value="All">All Categories (27)</option>
+            <!-- Populated dynamically by notes.js from NOTE_CATEGORIES -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Horizontal Scrollable Category Chips -->
+      <div class="category-scroll-container filter-tabs custom-scrollbar" id="category-scroll-tabs">
+        <button class="filter-tab note-filter-tab active" data-category="All">All Notes</button>
+        <!-- Category chips rendered dynamically from NOTE_CATEGORIES -->
+      </div>
     </div>
 
     <!-- Section 1: Responsive Note Cards Grid -->
@@ -192,32 +212,78 @@
   <div class="modal-backdrop" id="note-modal">
     <div class="modal-card">
       <div class="p-5 border-b border-slate-200 flex items-center justify-between">
-        <h3 class="font-bold text-lg text-slate-900" id="modal-title-text">Create New Note</h3>
-        <button class="text-slate-400 hover:text-slate-600 p-1" id="btn-close-note-modal">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-indigo-600 text-xl">edit_note</span>
+          <h3 class="font-bold text-lg text-slate-900" id="modal-title-text">Create New Note</h3>
+        </div>
+        <button class="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-100 transition-colors" id="btn-close-note-modal">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
-      <div class="p-5 space-y-4">
+
+      <div class="p-5 space-y-4 modal-body custom-scrollbar">
         <div class="form-group">
-          <label class="form-label" for="modal-note-title">Title</label>
-          <input type="text" id="modal-note-title" class="form-input" placeholder="E.g., Monotonic Stack Patterns"/>
+          <label class="form-label font-semibold text-xs text-slate-700 uppercase" for="modal-note-title">Note Title <span class="text-red-500">*</span></label>
+          <input type="text" id="modal-note-title" class="form-input text-sm" placeholder="E.g., Sliding Window Pattern"/>
         </div>
-        <div class="form-group">
-          <label class="form-label" for="modal-note-tag">Category Tag</label>
-          <select id="modal-note-tag" class="form-select">
-            <option value="DSA">DSA</option>
-            <option value="WebDev">WebDev</option>
-            <option value="Concepts">Concepts</option>
-            <option value="General">General</option>
-          </select>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="form-group">
+            <label class="form-label font-semibold text-xs text-slate-700 uppercase" for="modal-note-category">Category <span class="text-red-500">*</span></label>
+            <select id="modal-note-category" class="form-select text-sm">
+              <!-- Populated dynamically from NOTE_CATEGORIES -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label font-semibold text-xs text-slate-700 uppercase" for="modal-note-subcategory">Subcategory / Topic</label>
+            <input list="modal-subcategory-datalist" id="modal-note-subcategory" class="form-input text-sm" placeholder="Select or type topic..."/>
+            <datalist id="modal-subcategory-datalist">
+              <!-- Dynamically populated based on category -->
+            </datalist>
+          </div>
         </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="form-group">
+            <label class="form-label font-semibold text-xs text-slate-700 uppercase" for="modal-note-difficulty">Difficulty (optional)</label>
+            <select id="modal-note-difficulty" class="form-select text-sm">
+              <option value="">None</option>
+              <option value="Easy">Easy</option>
+              <option value="Medium">Medium</option>
+              <option value="Hard">Hard</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label font-semibold text-xs text-slate-700 uppercase" for="modal-note-date">Date</label>
+            <input type="date" id="modal-note-date" class="form-input text-sm"/>
+          </div>
+          <div class="form-group flex flex-col justify-center">
+            <label class="form-label font-semibold text-xs text-slate-700 uppercase mb-2">Priority</label>
+            <label class="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-800">
+              <input type="checkbox" id="modal-note-interview" class="rounded border-slate-300 text-amber-500 focus:ring-amber-400 h-4 w-4"/>
+              <span class="flex items-center gap-1 text-amber-700 font-semibold text-xs">
+                <span class="material-symbols-outlined text-[15px] text-amber-500">star</span> Interview Important
+              </span>
+            </label>
+          </div>
+        </div>
+
         <div class="form-group">
-          <label class="form-label" for="modal-note-content">Note Content</label>
-          <textarea id="modal-note-content" class="form-textarea" rows="5" placeholder="Key takeaways, formulas, edge cases..."></textarea>
+          <label class="form-label font-semibold text-xs text-slate-700 uppercase" for="modal-note-tags">Tags (comma-separated)</label>
+          <input type="text" id="modal-note-tags" class="form-input text-sm" placeholder="E.g., dsa, arrays, sliding-window, leetcode"/>
+        </div>
+
+        <div class="form-group">
+          <div class="flex items-center justify-between mb-1">
+            <label class="form-label font-semibold text-xs text-slate-700 uppercase" for="modal-note-content">Note Content (Technical / Markdown)</label>
+            <span class="text-[11px] text-slate-400">Include: Concept, Example, Traps, Quick Revision</span>
+          </div>
+          <textarea id="modal-note-content" class="form-textarea text-sm font-mono" rows="8" placeholder="### Concept&#10;What it is and how it works...&#10;&#10;### Example / Syntax&#10;Code and edge cases...&#10;&#10;### QUICK REVISION&#10;- Key takeaway 1&#10;- Key takeaway 2"></textarea>
         </div>
       </div>
+
       <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
-        <button class="btn-secondary text-sm py-2 px-4" onclick="document.getElementById('note-modal').classList.remove('open')">Cancel</button>
+        <button class="btn-secondary text-sm py-2 px-4" id="btn-cancel-note-modal">Cancel</button>
         <button class="btn-primary text-sm py-2 px-4" id="btn-save-note">Save Note</button>
       </div>
     </div>
@@ -225,6 +291,7 @@
 
   <script src="../js/core/utils.js"></script>
   <script src="../js/core/app.js"></script>
+  <script src="../js/data/notesData.js"></script>
   <script src="../js/pages/notes.js"></script>
 </body>
 </html>
