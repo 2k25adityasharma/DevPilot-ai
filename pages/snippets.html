@@ -9,10 +9,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet"/>
 
   <link rel="stylesheet" href="../css/base/global.css"/>
   <link rel="stylesheet" href="../css/base/components.css"/>
+  <link rel="stylesheet" href="../css/pages/snippets.css"/>
   <link rel="stylesheet" href="../css/base/responsive.css"/>
 
   <script>
@@ -140,7 +141,7 @@
     <div class="mt-auto px-4 pt-4 sidebar-text">
       <div class="bg-brand-gradient rounded-xl p-4 text-white relative overflow-hidden shadow-sm">
         <p class="font-bold text-sm leading-tight mb-1">Snippet Vault.</p>
-        <p class="text-xs opacity-80">Copy code in 1-click.</p>
+        <p class="text-xs opacity-80">Battle-tested developer library.</p>
       </div>
     </div>
   </aside>
@@ -149,32 +150,83 @@
   <main class="md:ml-[260px] min-h-screen p-6 sm:p-8" id="main-content">
     
     <!-- Page Header Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-200">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-200">
       <div class="flex items-center gap-3">
         <button class="mobile-nav-toggle md:hidden" id="mobile-menu-trigger" aria-label="Open Sidebar">
           <span class="material-symbols-outlined">menu</span>
         </button>
         <div>
           <h1 class="page-title text-2xl sm:text-3xl font-extrabold text-slate-900">Code Snippet Vault</h1>
-          <p class="page-subtitle text-slate-500 text-sm mt-0.5">Reusable, battle-tested algorithms, templates, and utilities.</p>
+          <p class="page-subtitle text-slate-500 text-sm mt-0.5">Battle-tested algorithms, DSA templates, backend handlers & frontend utilities.</p>
         </div>
       </div>
 
       <div class="flex items-center gap-3">
         <div class="relative">
           <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-          <input type="text" id="snippets-search-input" placeholder="Search snippet title or code..." class="pl-9 pr-4 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all w-52 sm:w-72"/>
+          <input type="text" id="snippets-search-input" placeholder="Search title, code, syntax, tags..." class="pl-9 pr-4 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all w-60 sm:w-80 shadow-sm"/>
         </div>
       </div>
     </div>
 
-    <!-- Language Filter Tabs -->
-    <div class="filter-tabs mb-8">
-      <button class="filter-tab snippet-lang-tab active" data-lang="All">All Languages</button>
-      <button class="filter-tab snippet-lang-tab" data-lang="JavaScript">JavaScript</button>
-      <button class="filter-tab snippet-lang-tab" data-lang="C++">C++</button>
-      <button class="filter-tab snippet-lang-tab" data-lang="HTML/CSS">HTML / CSS</button>
-      <button class="filter-tab snippet-lang-tab" data-lang="Python">Python</button>
+    <!-- Toolbar: Quick Filters, Categories & Language Tabs -->
+    <div class="snippet-toolbar-wrapper">
+      <div class="snippet-toolbar-header">
+        <!-- Quick State Filters -->
+        <div class="snippet-quick-filters">
+          <button class="quick-filter-btn" id="btn-filter-saved">
+            <span class="material-symbols-outlined text-[16px] text-amber-500">star</span>
+            <span>Saved (<span id="saved-count">0</span>)</span>
+          </button>
+          <button class="quick-filter-btn" id="btn-filter-recent">
+            <span class="material-symbols-outlined text-[16px] text-indigo-500">history</span>
+            <span>Recently Viewed</span>
+          </button>
+          <button class="quick-filter-btn text-xs text-slate-400 hover:text-red-600 hidden" id="btn-clear-history" title="Clear Recently Viewed History">
+            <span>Clear History</span>
+          </button>
+        </div>
+
+        <!-- Jump to Category Dropdown -->
+        <div class="flex items-center gap-2">
+          <label for="snippet-category-dropdown" class="text-xs text-slate-400 font-medium hidden sm:inline-block">Category:</label>
+          <select id="snippet-category-dropdown" class="category-select-dropdown">
+            <option value="All">All Domains (8 Categories)</option>
+            <!-- Populated dynamically from SNIPPET_CATEGORIES -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Domain Category Horizontal Scroll Tabs -->
+      <div class="category-scroll-container filter-tabs custom-scrollbar" id="snippet-category-tabs">
+        <button class="filter-tab snippet-cat-tab active" data-category="All">All Categories</button>
+        <!-- Populated dynamically from SNIPPET_CATEGORIES -->
+      </div>
+
+      <!-- Language Filter Tabs -->
+      <div class="filter-tabs flex-wrap gap-2" id="snippet-language-tabs">
+        <button class="filter-tab snippet-lang-tab active" data-lang="All">All Languages</button>
+        <button class="filter-tab snippet-lang-tab" data-lang="C++">C++</button>
+        <button class="filter-tab snippet-lang-tab" data-lang="JavaScript">JavaScript</button>
+        <button class="filter-tab snippet-lang-tab" data-lang="Python">Python</button>
+        <button class="filter-tab snippet-lang-tab" data-lang="HTML/CSS">HTML / CSS</button>
+        <button class="filter-tab snippet-lang-tab" data-lang="SQL">SQL</button>
+        <button class="filter-tab snippet-lang-tab" data-lang="Docker">Docker / DevOps</button>
+        <button class="filter-tab snippet-lang-tab" data-lang="Bash">Bash / Linux</button>
+      </div>
+
+      <!-- Results info & Clear Filters bar -->
+      <div class="snippet-results-bar">
+        <div>
+          <span id="snippet-results-count" class="font-semibold text-slate-700">Loading snippets...</span>
+        </div>
+        <div>
+          <button class="clear-filters-btn hidden" id="btn-clear-filters">
+            <span class="material-symbols-outlined text-[14px]">filter_alt_off</span>
+            <span>Clear All Filters</span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Section 1: Snippets Card Grid -->
@@ -184,8 +236,102 @@
 
   </main>
 
+  <!-- Deep Learning Details Modal -->
+  <div class="snippet-modal-backdrop" id="snippet-details-modal">
+    <div class="snippet-modal-card">
+      <div class="snippet-modal-header">
+        <div class="flex-1">
+          <div class="flex items-center gap-2 flex-wrap mb-1.5">
+            <span class="snippet-badge" id="modal-category-badge">DSA</span>
+            <span class="badge badge-primary text-xs flex items-center gap-1">
+              <span class="repo-lang-dot" id="modal-lang-dot"></span>
+              <span id="modal-lang-name">C++</span>
+            </span>
+            <span class="difficulty-badge" id="modal-difficulty-badge">Medium</span>
+          </div>
+          <h3 class="font-bold text-xl text-slate-900 leading-snug" id="modal-title">Snippet Title</h3>
+          <p class="text-xs text-slate-500 mt-0.5" id="modal-description">Snippet short description goes here.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn-favorite-star p-2 text-xl" id="modal-btn-favorite" title="Save / Bookmark">
+            <span class="material-symbols-outlined text-[22px]">star</span>
+          </button>
+          <button class="text-slate-400 hover:text-slate-600 p-1.5 rounded-md hover:bg-slate-100 transition-colors" id="modal-btn-close">
+            <span class="material-symbols-outlined text-[22px]">close</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="snippet-modal-body custom-scrollbar">
+        <!-- Full Code Box -->
+        <div class="snippet-modal-code">
+          <div class="snippet-code-header">
+            <div class="code-block-dots">
+              <span class="code-dot code-dot-red"></span>
+              <span class="code-dot code-dot-yellow"></span>
+              <span class="code-dot code-dot-green"></span>
+            </div>
+            <button class="btn-copy-code" id="modal-btn-copy">
+              <span class="material-symbols-outlined text-[14px]">content_copy</span>
+              <span class="copy-text">Copy Code</span>
+            </button>
+          </div>
+          <pre><code id="modal-code-block"></code></pre>
+        </div>
+
+        <!-- Complexity & Subcategory Stats -->
+        <div class="flex items-center justify-between flex-wrap gap-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Complexity:</span>
+            <span class="complexity-pill" id="modal-time-complexity">Time: O(N)</span>
+            <span class="complexity-pill" id="modal-space-complexity">Space: O(1)</span>
+          </div>
+          <div class="text-xs text-slate-500">
+            Topic: <span class="font-semibold text-slate-700" id="modal-subcategory">Arrays</span>
+          </div>
+        </div>
+
+        <!-- Explanation -->
+        <div class="snippet-info-box">
+          <div class="snippet-info-title">
+            <span class="material-symbols-outlined text-[16px] text-indigo-600">psychology</span>
+            <span>How it Works & Mechanics</span>
+          </div>
+          <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line" id="modal-explanation"></p>
+        </div>
+
+        <!-- When to Use (Use Cases) -->
+        <div class="snippet-info-box">
+          <div class="snippet-info-title">
+            <span class="material-symbols-outlined text-[16px] text-emerald-600">verified</span>
+            <span>When to Use & Practical Scenarios</span>
+          </div>
+          <p class="text-xs text-slate-700 leading-relaxed" id="modal-use-cases"></p>
+        </div>
+
+        <!-- Common Mistakes to Avoid -->
+        <div class="snippet-mistake-box">
+          <div class="snippet-mistake-title">
+            <span class="material-symbols-outlined text-[16px] text-red-600">warning</span>
+            <span>Common Pitfalls & Traps to Avoid</span>
+          </div>
+          <p class="text-xs text-red-800 leading-relaxed" id="modal-common-mistakes"></p>
+        </div>
+
+        <!-- Related Snippets -->
+        <div>
+          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Recommended Related Snippets</h4>
+          <div class="related-snippets-grid" id="modal-related-snippets">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="../js/core/utils.js"></script>
   <script src="../js/core/app.js"></script>
+  <script src="../js/data/snippetsData.js"></script>
   <script src="../js/pages/snippets.js"></script>
 </body>
 </html>
