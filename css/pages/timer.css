@@ -1,0 +1,454 @@
+/**
+ * DevPilot-AI - Pomodoro Focus Timer Stylesheet
+ * 
+ * Clean, modern aesthetics following the DevPilot AI design system:
+ * - Slate/Indigo/Emerald/Amber brand accents
+ * - Glowing SVG circular progress ring
+ * - Interactive cycle step pills
+ * - Task labeling with quick suggestion chips
+ * - Today's Focus stats grid & Sessions History
+ * - Distraction-free Fullscreen / Focus Mode
+ * - Accessible settings & completion dialogs
+ */
+
+/* ==========================================================================
+   1. Mode Selector Tabs
+   ========================================================================== */
+
+.timer-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: 1px solid transparent;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.timer-mode-btn:hover {
+  background-color: #e2e8f0;
+  color: #334155;
+}
+
+.timer-mode-btn.active[data-mode="work"] {
+  background-color: #e0e7ff;
+  color: #4338ca;
+  border-color: #a5b4fc;
+}
+
+.timer-mode-btn.active[data-mode="shortBreak"] {
+  background-color: #d1fae5;
+  color: #065f46;
+  border-color: #6ee7b7;
+}
+
+.timer-mode-btn.active[data-mode="longBreak"] {
+  background-color: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+/* ==========================================================================
+   2. Circular Timer & Progress Ring
+   ========================================================================== */
+
+.timer-circle-container {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timer-svg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+
+.timer-circle-bg {
+  fill: none;
+  stroke: #f1f5f9;
+  stroke-width: 10;
+}
+
+.timer-circle-progress {
+  fill: none;
+  stroke: #4f46e5;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.4s ease, stroke 0.3s ease;
+}
+
+.timer-circle-container.is-running .timer-circle-progress {
+  filter: drop-shadow(0 0 8px rgba(79, 70, 229, 0.35));
+}
+
+.timer-center-content {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.timer-time-text {
+  font-size: 3.75rem;
+  font-weight: 800;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: #0f172a;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-mode-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin-top: 0.5rem;
+}
+
+/* ==========================================
+   3. Task Label Input
+   ========================================== */
+
+.task-suggestion-chip {
+  padding: 0.25rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.task-suggestion-chip:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
+
+/* ==========================================
+   4. Cycle Steps Progress Bar
+   ========================================== */
+
+.cycle-step-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.cycle-step-pill.completed {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+
+.cycle-step-pill.current {
+  background-color: #e0e7ff;
+  color: #3730a3;
+  border-color: #818cf8;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+/* ==========================================
+   5. Today's Focus Stats Cards
+   ========================================== */
+
+.stat-metric-card {
+  padding: 1rem;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.875rem;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.stat-metric-card:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1;
+}
+
+/* ==========================================
+   6. Today's Sessions History List
+   ========================================== */
+
+.session-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background-color: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 0.75rem;
+  transition: background-color 0.15s ease;
+}
+
+.session-history-item:hover {
+  background-color: #f8fafc;
+}
+
+/* ==========================================
+   7. Distraction-Free Fullscreen Focus Mode
+   ========================================== */
+
+body.focus-mode-active {
+  overflow: hidden !important;
+  background-color: #f8fafc !important;
+}
+
+body.focus-mode-active #sidebar,
+body.focus-mode-active #mobile-overlay,
+body.focus-mode-active #page-header-bar,
+body.focus-mode-active #task-card,
+body.focus-mode-active #focus-stats-section,
+body.focus-mode-active #focus-history-section,
+body.focus-mode-active #focus-tips-card,
+body.focus-mode-active #task-suggestions-row,
+body.focus-mode-active .page-title,
+body.focus-mode-active .page-subtitle {
+  display: none !important;
+}
+
+body.focus-mode-active #main-content {
+  margin-left: 0 !important;
+  background: #f8fafc !important;
+  color: #0f172a;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+}
+
+body.focus-mode-active .max-w-2xl {
+  max-width: 660px;
+  width: 100%;
+}
+
+body.focus-mode-active #timer-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04) !important;
+  border-radius: 1rem !important;
+  padding: 2.25rem 2rem !important;
+  width: 100%;
+  animation: focusFadeIn 0.25s ease-out;
+}
+
+@keyframes focusFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Ensure filter tabs are visible and cleanly styled without scrollbars */
+#timer-mode-tabs {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overflow-x: auto;
+}
+
+#timer-mode-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+body.focus-mode-active #timer-mode-tabs {
+  display: flex !important;
+  justify-content: center;
+  margin-bottom: 2rem;
+  overflow: visible !important;
+}
+
+/* Top bar with subtle Exit Focus Mode button */
+.focus-mode-top-bar {
+  display: none;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+  width: 100%;
+}
+
+body.focus-mode-active .focus-mode-top-bar {
+  display: flex !important;
+}
+
+.focus-exit-top-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.focus-exit-top-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+  transform: translateY(-1px);
+}
+
+/* Active Task Label */
+.focus-mode-task-pill {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding: 0.4rem 1.15rem;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  max-width: max-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body.focus-mode-active .focus-mode-task-pill {
+  display: flex !important;
+}
+
+body.focus-mode-active #focus-mode-task-text {
+  color: #334155 !important;
+}
+
+body.focus-mode-active .focus-mode-only {
+  display: inline-flex !important;
+}
+
+/* Keep the exact clock styling from the light card */
+body.focus-mode-active .timer-time-text {
+  color: #0f172a !important;
+  font-size: 4.5rem !important;
+  font-weight: 800;
+  line-height: 1;
+}
+
+body.focus-mode-active .timer-circle-bg {
+  stroke: #e2e8f0 !important;
+}
+
+body.focus-mode-active .timer-mode-badge {
+  color: #4f46e5 !important;
+  background: #e0e7ff !important;
+  border: none !important;
+}
+
+body.focus-mode-active #timer-cycle-section {
+  border-top-color: #f1f5f9 !important;
+}
+
+body.focus-mode-active #timer-cycle-section span:first-child {
+  color: #64748b !important;
+}
+
+/* Exit button inside controls row matching Reset and Skip */
+#btn-exit-focus-center {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+#btn-exit-focus-center:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+  transform: translateY(-1px);
+}
+
+/* ==========================================
+   8. Modals
+   ========================================== */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.modal-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-container {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  transform: scale(0.95);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-backdrop.active .modal-container {
+  transform: scale(1);
+}
+
+/* ==========================================
+   9. Mobile Responsiveness
+   ========================================== */
+
+@media (max-width: 640px) {
+  .timer-circle-container {
+    width: 240px;
+    height: 240px;
+  }
+  
+  .timer-time-text {
+    font-size: 3rem;
+  }
+  
+  .filter-tabs {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .timer-mode-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

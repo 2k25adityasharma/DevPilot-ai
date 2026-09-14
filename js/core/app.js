@@ -13,6 +13,9 @@
 document.addEventListener('DOMContentLoaded', () => {
   initSidebar();
   highlightActiveRoute();
+  if (typeof window !== 'undefined' && window.GlobalTimer) {
+    window.GlobalTimer.init();
+  }
 });
 
 // Sidebar Collapsing and Mobile Drawer
