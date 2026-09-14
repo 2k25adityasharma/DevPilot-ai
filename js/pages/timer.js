@@ -296,7 +296,7 @@
 
   function renderCycleSteps() {
     const maxCycles = settings.sessionsBeforeLongBreak || 4;
-    const current = Math.min(maxCycles, activeState.cyclePosition || 1);
+    const current = Math.min(maxCycles, Math.max(1, activeState.cyclePosition || 1));
 
     if (dom.cycleFractionText) {
       dom.cycleFractionText.textContent = `Session ${current} of ${maxCycles}`;
@@ -317,20 +317,20 @@
         }
 
         html += `
-          <div class="cycle-step-pill ${statusClass}" title="Pomodoro Session ${i}">
+          <button type="button" class="cycle-step-pill ${statusClass}" data-cycle-step="${i}" title="Pomodoro Focus Session ${i} of ${maxCycles}">
             <span class="material-symbols-outlined text-[14px]">${icon}</span>
             <span>Focus ${i}</span>
-          </div>
+          </button>
         `;
       }
 
       // Long break step
       const isLongBreak = activeState.mode === 'longBreak';
       html += `
-        <div class="cycle-step-pill ${isLongBreak ? 'current' : ''}" title="Long Break Recovery">
+        <button type="button" class="cycle-step-pill ${isLongBreak ? 'current' : ''}" data-cycle-mode="longBreak" title="Long Break Recovery">
           <span class="material-symbols-outlined text-[14px]">local_cafe</span>
           <span>Long Break</span>
-        </div>
+        </button>
       `;
 
       dom.roundsIndicators.innerHTML = html;
@@ -344,7 +344,7 @@
     if (dom.statTodaySessions) dom.statTodaySessions.textContent = stats.todayFocusCount;
     if (dom.statTodayMinutes) dom.statTodayMinutes.textContent = stats.todayFocusMinutes;
     if (dom.statCyclePosition) {
-      dom.statCyclePosition.textContent = `${activeState.cyclePosition} / ${settings.sessionsBeforeLongBreak || 4}`;
+      dom.statCyclePosition.textContent = `${activeState.cyclePosition || 1} / ${settings.sessionsBeforeLongBreak || 4}`;
     }
     if (dom.statWeekSessions) dom.statWeekSessions.textContent = stats.weekFocusCount;
   }
@@ -353,7 +353,8 @@
     if (!dom.sessionsHistoryList) return;
 
     const stats = TimerData.calculateTodayStats(sessions);
-    const todaySessions = stats.todaySessionsList;
+    // STRICTLY FILTER: Only work sessions, never break or long break!
+    const todaySessions = stats.todaySessionsList.filter(s => s && s.mode === 'work');
 
     if (todaySessions.length === 0) {
       dom.sessionsHistoryList.innerHTML = `
@@ -368,7 +369,18 @@
 
     dom.sessionsHistoryList.innerHTML = todaySessions.map(session => {
       const timeStr = TimerData.formatTimestamp(session.completedAt);
-      const mins = Math.round((session.durationSeconds || 1500) / 60);
+      const secs = session.durationSeconds || 1500;
+      let durationBadge = '';
+      let durSubtitle = '';
+
+      if (secs < 60) {
+        durationBadge = `+${secs}s Focus`;
+        durSubtitle = `${secs} sec`;
+      } else {
+        const mins = Math.round(secs / 60);
+        durationBadge = `+${mins}m Focus`;
+        durSubtitle = `${mins} min`;
+      }
 
       return `
         <div class="session-history-item group" data-id="${session.id}">
@@ -376,12 +388,12 @@
             <span class="material-symbols-outlined text-emerald-600 text-lg shrink-0">check_circle</span>
             <div class="truncate">
               <p class="text-xs font-bold text-slate-800 truncate">${escapeHtml(session.task || 'Deep Work Focus')}</p>
-              <p class="text-[11px] text-slate-400 mt-0.5">${mins} min • ${timeStr}</p>
+              <p class="text-[11px] text-slate-400 mt-0.5">${durSubtitle} • ${timeStr}</p>
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <span class="text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
-              +${mins}m Focus
+              ${durationBadge}
             </span>
             <button type="button" class="btn-delete-single-session text-slate-300 hover:text-rose-500 p-0.5 rounded transition-colors" data-id="${session.id}" title="Delete this session">
               <span class="material-symbols-outlined text-[16px]">close</span>
@@ -482,21 +494,21 @@
   }
 
   function skipTimer() {
-    if (typeof window.GlobalTimer !== 'undefined') {
-      activeState = window.GlobalTimer.skip();
-    } else {
-      if (activeState.isRunning) pauseTimer();
-      const transition = TimerData.getNextSessionTransition(
-        activeState.mode,
-        activeState.cyclePosition,
-        settings.sessionsBeforeLongBreak
-      );
-      activeState.cyclePosition = transition.nextCycle;
-      setTimerMode(transition.nextMode, false);
-    }
+    if (activeState.isRunning) pauseTimer();
 
+    const maxCycles = settings.sessionsBeforeLongBreak || 4;
+    const current = activeState.cyclePosition || 1;
+    activeState.cyclePosition = current < maxCycles ? current + 1 : 1;
+    activeState.mode = 'work';
+    activeState.durationSeconds = (settings.focusDuration || 25) * 60;
+    activeState.remainingSeconds = activeState.durationSeconds;
+    activeState.isRunning = false;
+    activeState.isPaused = false;
+    activeState.endTimestamp = null;
+
+    saveActiveState();
     renderAll();
-    showToast(`Skipped to ${activeState.mode}`, 'info');
+    showToast(`Skipped to Focus ${activeState.cyclePosition} of ${maxCycles}`, 'info');
   }
 
   function setTimerMode(newMode, notify = true) {
@@ -635,41 +647,84 @@
   }
 
   function completeSessionManually() {
+    // 1. Guard against break logging: Breaks must NEVER be logged to Today's Sessions!
+    if (activeState.mode !== 'work') {
+      showToast('Break finished! Switched to Deep Work focus mode.', 'info');
+      setTimerMode('work', false);
+      resetTimer();
+      return;
+    }
+
     const typedTask = (dom.taskInput && dom.taskInput.value.trim()) || 
                       activeState.currentTask || 
                       'Deep Work Focus';
 
     activeState.currentTask = typedTask;
 
+    // 2. Real-time Elapsed Duration:
+    // Determine the exact number of seconds the user actually spent focusing!
+    let elapsedSeconds = 0;
+    if (activeState.isRunning && activeState.endTimestamp) {
+      const remaining = TimerData.calculateRemaining(activeState.endTimestamp);
+      const diff = activeState.durationSeconds - remaining;
+      elapsedSeconds = diff > 0 ? diff : activeState.durationSeconds;
+    } else if (activeState.isPaused && activeState.remainingSeconds < activeState.durationSeconds) {
+      const diff = activeState.durationSeconds - activeState.remainingSeconds;
+      elapsedSeconds = diff > 0 ? diff : activeState.durationSeconds;
+    } else if (activeState.remainingSeconds === 0) {
+      elapsedSeconds = activeState.durationSeconds;
+    } else {
+      // User clicked Complete & Log without running (manual full session logging)
+      elapsedSeconds = activeState.durationSeconds || ((settings.focusDuration || 25) * 60);
+    }
+
     if (activeState.isRunning) {
       pauseTimer();
     }
 
+    // 3. Save to sessions with EXACT elapsed time (strictly 'work' mode, never breaks)
     const completedSession = {
       id: `ts_${Date.now()}`,
       task: typedTask,
       mode: 'work',
-      durationSeconds: activeState.durationSeconds,
+      durationSeconds: elapsedSeconds,
       completedAt: new Date().toISOString()
     };
 
     sessions.unshift(completedSession);
     saveSessions();
 
-    const transition = TimerData.getNextSessionTransition(
-      activeState.mode,
-      activeState.cyclePosition,
-      settings.sessionsBeforeLongBreak
-    );
+    // 4. Advance Cycle!
+    const maxCycles = settings.sessionsBeforeLongBreak || 4;
+    const currentCompleted = activeState.cyclePosition || 1;
+    let nextCycle = currentCompleted + 1;
+    let isFullCycleFinished = false;
 
-    activeState.cyclePosition = transition.nextCycle;
-    setTimerMode(transition.nextMode, false);
-    resetTimer();
+    if (currentCompleted >= maxCycles) {
+      isFullCycleFinished = true;
+      nextCycle = 1; // Cycle complete, wrap back to 1
+    }
 
+    activeState.cyclePosition = nextCycle;
+
+    // 5. Reset timer back to full focus duration ready for the next round (do NOT jump into breaks)
+    activeState.mode = 'work';
+    activeState.durationSeconds = (settings.focusDuration || 25) * 60;
+    activeState.remainingSeconds = activeState.durationSeconds;
+    activeState.isRunning = false;
+    activeState.isPaused = false;
+    activeState.endTimestamp = null;
+
+    saveActiveState();
     playChime();
     renderAll();
 
-    showToast(`🎉 Session saved: "${typedTask}" added to Today's Sessions!`, 'success');
+    const formattedDur = elapsedSeconds < 60 ? `${elapsedSeconds}s` : `${Math.round(elapsedSeconds / 60)}m`;
+    if (isFullCycleFinished) {
+      showToast(`🎉 Full ${maxCycles}-session cycle complete! Saved "${typedTask}" (+${formattedDur} Focus).`, 'success');
+    } else {
+      showToast(`🎉 Session ${currentCompleted} logged (+${formattedDur} Focus)! Cycle advanced to Focus ${nextCycle} of ${maxCycles}.`, 'success');
+    }
   }
 
   function showCompletionModal(transition, wasWork) {
@@ -879,6 +934,24 @@
     // Complete & Log Session Button
     if (dom.btnTimerComplete) {
       dom.btnTimerComplete.addEventListener('click', completeSessionManually);
+    }
+
+    // Cycle Step Pills Interactive Switching
+    if (dom.roundsIndicators) {
+      dom.roundsIndicators.addEventListener('click', (e) => {
+        const pill = e.target.closest('.cycle-step-pill');
+        if (!pill) return;
+        const step = pill.getAttribute('data-cycle-step');
+        if (step) {
+          const stepNum = parseInt(step, 10);
+          activeState.cyclePosition = stepNum;
+          setTimerMode('work', false);
+          resetTimer();
+          showToast(`Switched to Focus ${stepNum} of ${settings.sessionsBeforeLongBreak || 4}`, 'info');
+        } else if (pill.getAttribute('data-cycle-mode') === 'longBreak') {
+          setTimerMode('longBreak', false);
+        }
+      });
     }
 
     // Task Input & Suggestions

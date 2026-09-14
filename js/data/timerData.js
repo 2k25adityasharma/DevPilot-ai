@@ -212,8 +212,8 @@
     // Sort today's sessions newest first
     todaySessionsList.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
 
-    const todayFocusMinutes = Math.round(todayFocusSeconds / 60);
-    const totalFocusMinutes = Math.round(totalFocusSeconds / 60);
+    const todayFocusMinutes = todayFocusSeconds > 0 ? Math.max(1, Math.round(todayFocusSeconds / 60)) : 0;
+    const totalFocusMinutes = totalFocusSeconds > 0 ? Math.max(1, Math.round(totalFocusSeconds / 60)) : 0;
 
     return {
       todayFocusCount,

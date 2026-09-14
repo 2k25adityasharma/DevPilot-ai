@@ -348,29 +348,34 @@
    * Atomic completion handling: guarantees exactly ONE completion event
    * even across multiple tabs or simultaneous UI components.
    */
-  function completeSession(state) {
+  function completeSession(state, elapsedSeconds = null) {
     // Atomic check
-    if (!state.isRunning && !state.endTimestamp) return;
+    if (!state.isRunning && !state.endTimestamp && !elapsedSeconds) return;
 
     state.isRunning = false;
     state.isPaused = false;
     state.remainingSeconds = 0;
     state.endTimestamp = null;
 
-    // 1. Log session if work mode
+    // 1. Log session if work mode (strictly NEVER log breaks)
     const wasWork = state.mode === 'work';
     if (wasWork) {
       try {
         const storage = getStorage();
         const rawSessions = storage.get(STORAGE_KEY_SESSIONS, []) || [];
         const sessions = Array.isArray(rawSessions)
-          ? rawSessions.filter(s => s && s.id !== 'ts_1' && s.id !== 'ts_2' && s.id !== 'ts_3')
+          ? rawSessions.filter(s => s && s.id !== 'ts_1' && s.id !== 'ts_2' && s.id !== 'ts_3' && s.mode === 'work')
           : [];
+
+        const dur = (typeof elapsedSeconds === 'number' && elapsedSeconds > 0)
+          ? elapsedSeconds
+          : state.durationSeconds;
+
         sessions.unshift({
           id: `ts_${Date.now()}`,
           task: state.currentTask || 'Deep Work Focus',
           mode: 'work',
-          durationSeconds: state.durationSeconds,
+          durationSeconds: dur,
           completedAt: new Date().toISOString()
         });
         storage.set(STORAGE_KEY_SESSIONS, sessions);
@@ -417,17 +422,45 @@
     }
   }
 
-  function manualComplete(taskName = null) {
+  function manualComplete(taskName = null, customDuration = null) {
     const state = getState();
     const settings = getSettings();
     if (taskName && typeof taskName === 'string') {
       state.currentTask = taskName.trim();
     }
     state.mode = 'work';
-    state.durationSeconds = (settings.focusDuration || 25) * 60;
+
+    let elapsed = customDuration;
+    if (typeof elapsed !== 'number' || elapsed <= 0) {
+      if (state.isRunning && state.endTimestamp) {
+        const remaining = getTimerData().calculateRemaining(state.endTimestamp);
+        const diff = state.durationSeconds - remaining;
+        elapsed = diff > 0 ? diff : state.durationSeconds;
+      } else if (state.isPaused && state.remainingSeconds < state.durationSeconds) {
+        const diff = state.durationSeconds - state.remainingSeconds;
+        elapsed = diff > 0 ? diff : state.durationSeconds;
+      } else {
+        elapsed = state.durationSeconds || ((settings.focusDuration || 25) * 60);
+      }
+    }
+
+    const currentStep = state.cyclePosition || 1;
+    const maxCycles = settings.sessionsBeforeLongBreak || 4;
+    const nextStep = currentStep < maxCycles ? currentStep + 1 : 1;
+
+    state.durationSeconds = elapsed;
     state.isRunning = true;
     state.endTimestamp = Date.now();
-    completeSession(state);
+    completeSession(state, elapsed);
+
+    // Keep on work mode and advance cycle for the next focus round
+    state.cyclePosition = nextStep;
+    const nextMinutes = settings.focusDuration || 25;
+    state.mode = 'work';
+    state.durationSeconds = nextMinutes * 60;
+    state.remainingSeconds = state.durationSeconds;
+    saveState(state);
+
     return state;
   }
 

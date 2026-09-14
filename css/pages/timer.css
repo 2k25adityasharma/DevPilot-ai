@@ -157,6 +157,14 @@
   color: #64748b;
   border: 1px solid #e2e8f0;
   transition: all 0.2s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cycle-step-pill:hover {
+  background-color: #e2e8f0;
+  color: #1e293b;
+  transform: translateY(-1px);
 }
 
 .cycle-step-pill.completed {
@@ -231,29 +239,47 @@ body.focus-mode-active .page-subtitle {
 }
 
 body.focus-mode-active #main-content {
-  margin-left: 0 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  padding: 1.5rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
   background: #f8fafc !important;
-  color: #0f172a;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 1.5rem;
+  color: #0f172a !important;
+  z-index: 99999 !important;
+  box-sizing: border-box !important;
+  overflow-y: auto !important;
 }
 
 body.focus-mode-active .max-w-2xl {
-  max-width: 660px;
-  width: 100%;
+  max-width: 620px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 body.focus-mode-active #timer-card {
   background: #ffffff !important;
   border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04) !important;
-  border-radius: 1rem !important;
-  padding: 2.25rem 2rem !important;
-  width: 100%;
+  box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.03) !important;
+  border-radius: 1.25rem !important;
+  padding: 2rem 2.25rem !important;
+  width: 100% !important;
+  max-width: 620px !important;
+  margin: 0 auto !important;
   animation: focusFadeIn 0.25s ease-out;
 }
 
@@ -282,16 +308,17 @@ body.focus-mode-active #timer-card {
 body.focus-mode-active #timer-mode-tabs {
   display: flex !important;
   justify-content: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
   overflow: visible !important;
+  gap: 0.5rem;
 }
 
-/* Top bar with subtle Exit Focus Mode button */
+/* Top bar with balanced space-between alignment */
 .focus-mode-top-bar {
   display: none;
   align-items: center;
-  justify-content: flex-end;
-  margin-bottom: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
   width: 100%;
 }
 
@@ -299,11 +326,28 @@ body.focus-mode-active .focus-mode-top-bar {
   display: flex !important;
 }
 
+.focus-mode-title-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4f46e5;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+}
+
 .focus-exit-top-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   padding: 0.35rem 0.85rem;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
   color: #64748b;
@@ -321,40 +365,44 @@ body.focus-mode-active .focus-mode-top-bar {
   transform: translateY(-1px);
 }
 
-/* Active Task Label */
+/* Active Task Label matching DevPilot theme */
 .focus-mode-task-pill {
   display: none;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  margin: 1.25rem auto 1.5rem auto;
   padding: 0.4rem 1.15rem;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
   border-radius: 9999px;
   max-width: max-content;
-  margin-left: auto;
-  margin-right: auto;
+  transition: all 0.2s ease;
 }
 
 body.focus-mode-active .focus-mode-task-pill {
-  display: flex !important;
-}
-
-body.focus-mode-active #focus-mode-task-text {
-  color: #334155 !important;
-}
-
-body.focus-mode-active .focus-mode-only {
   display: inline-flex !important;
 }
 
-/* Keep the exact clock styling from the light card */
+body.focus-mode-active #focus-mode-task-text {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  color: #3730a3 !important;
+}
+
+body.focus-mode-active .focus-mode-only {
+  display: none !important; /* Hide extra row exit button */
+}
+
+/* Keep the exact clock styling from the DevPilot light card */
 body.focus-mode-active .timer-time-text {
   color: #0f172a !important;
-  font-size: 4.5rem !important;
-  font-weight: 800;
-  line-height: 1;
+  font-size: 4.25rem !important;
+  font-weight: 800 !important;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  line-height: 1 !important;
+  letter-spacing: -0.03em !important;
 }
 
 body.focus-mode-active .timer-circle-bg {
@@ -362,31 +410,58 @@ body.focus-mode-active .timer-circle-bg {
 }
 
 body.focus-mode-active .timer-mode-badge {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
   color: #4f46e5 !important;
-  background: #e0e7ff !important;
-  border: none !important;
+  background: #eef2ff !important;
+  border: 1px solid #e0e7ff !important;
+  border-radius: 9999px !important;
+  padding: 0.25rem 0.85rem !important;
+  margin-top: 0.625rem !important;
 }
 
+body.focus-mode-active #timer-controls-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.75rem !important;
+  flex-wrap: nowrap !important;
+}
+
+body.focus-mode-active #btn-exit-focus-center {
+  display: none !important;
+}
+
+/* Cycle Section Typography & Layout */
 body.focus-mode-active #timer-cycle-section {
-  border-top-color: #f1f5f9 !important;
+  border-top: 1px solid #f1f5f9 !important;
+  margin-top: 1.75rem !important;
+  padding-top: 1.25rem !important;
 }
 
-body.focus-mode-active #timer-cycle-section span:first-child {
+body.focus-mode-active .cycle-header-label {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
   color: #64748b !important;
 }
 
-/* Exit button inside controls row matching Reset and Skip */
-#btn-exit-focus-center {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  color: #334155;
+body.focus-mode-active #cycle-fraction-text {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+  font-size: 0.8125rem !important;
+  font-weight: 700 !important;
+  color: #4f46e5 !important;
 }
 
-#btn-exit-focus-center:hover {
-  background: #fee2e2;
-  border-color: #fca5a5;
-  color: #dc2626;
-  transform: translateY(-1px);
+body.focus-mode-active .cycle-step-pill {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
 }
 
 /* ==========================================

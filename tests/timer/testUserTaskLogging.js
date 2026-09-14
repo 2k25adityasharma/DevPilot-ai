@@ -150,10 +150,81 @@ runTest('TEST 6: Clear sessions leaves 0 sessions without re-seeding dummy recor
   assert.strictEqual(stats.todaySessionsList.length, 0);
 });
 
+// TEST 7: Stop/complete timer with real elapsed time logs exact elapsed seconds and updates Focus Today
+runTest('TEST 7: Stopped timer with actual elapsed time (e.g. 180s = 3m) logs 180s and updates Focus Today', () => {
+  global.localStorage.clear();
+
+  const userTask = 'Build Redux Store & Action Creators';
+  GlobalTimer.start(userTask);
+
+  // User ran timer for 180 seconds (3 minutes), then completed/stopped
+  const elapsedSecs = 180;
+  GlobalTimer.manualComplete(userTask, elapsedSecs);
+
+  const stored = global.Storage.get('timer_sessions', []) || [];
+  assert.strictEqual(stored.length, 1);
+  assert.strictEqual(stored[0].task, userTask);
+  assert.strictEqual(stored[0].durationSeconds, 180, 'Logged session must have 180 seconds');
+
+  const stats = TimerData.calculateTodayStats(stored);
+  assert.strictEqual(stats.todayFocusCount, 1);
+  assert.strictEqual(stats.todayFocusMinutes, 3, 'Focus Today should display 3 minutes');
+});
+
+// TEST 8: Short break and long break are NEVER logged to Today's Sessions
+runTest('TEST 8: Breaks (short break & long break) are strictly excluded from Today\'s Sessions', () => {
+  global.localStorage.clear();
+
+  // Simulate existing sessions including a work session
+  global.Storage.set('timer_sessions', [
+    { id: 'ts_work1', task: 'Implement Auth Guards', mode: 'work', durationSeconds: 1500, completedAt: new Date().toISOString() },
+    { id: 'ts_break1', task: 'Coffee Break', mode: 'shortBreak', durationSeconds: 300, completedAt: new Date().toISOString() },
+    { id: 'ts_break2', task: 'Lunch Recovery', mode: 'longBreak', durationSeconds: 900, completedAt: new Date().toISOString() }
+  ]);
+
+  const rawSessions = global.Storage.get('timer_sessions', []);
+  const stats = TimerData.calculateTodayStats(rawSessions);
+
+  // Only work session counted
+  assert.strictEqual(stats.todayFocusCount, 1);
+  assert.strictEqual(stats.todayFocusMinutes, 25);
+  assert.strictEqual(stats.todaySessionsList.length, 1);
+  assert.strictEqual(stats.todaySessionsList[0].task, 'Implement Auth Guards');
+  assert.strictEqual(stats.todaySessionsList[0].mode, 'work');
+});
+
+// TEST 9: Cycle progression advances step-by-step
+runTest('TEST 9: Cycle progression advances Focus 1 -> Focus 2 -> Focus 3 -> Focus 4 -> Focus 1', () => {
+  global.localStorage.clear();
+
+  // Cycle starts at 1
+  let state = GlobalTimer.getState();
+  assert.strictEqual(state.cyclePosition, 1, 'Initial cycle position must be 1');
+
+  // Complete session 1 -> cycle becomes 2
+  state = GlobalTimer.manualComplete('Focus Session 1', 1500);
+  assert.strictEqual(state.cyclePosition, 2, 'After Focus 1, cycle advances to 2');
+  assert.strictEqual(state.mode, 'work', 'Remains on work mode for Focus 2');
+
+  // Complete session 2 -> cycle becomes 3
+  state = GlobalTimer.manualComplete('Focus Session 2', 1500);
+  assert.strictEqual(state.cyclePosition, 3, 'After Focus 2, cycle advances to 3');
+
+  // Complete session 3 -> cycle becomes 4
+  state = GlobalTimer.manualComplete('Focus Session 3', 1500);
+  assert.strictEqual(state.cyclePosition, 4, 'After Focus 3, cycle advances to 4');
+
+  // Complete session 4 -> cycle wraps to 1
+  state = GlobalTimer.manualComplete('Focus Session 4', 1500);
+  assert.strictEqual(state.cyclePosition, 1, 'After Focus 4, 4-step cycle wraps back to 1');
+});
+
 console.log(`\n=====================================================================`);
 console.log(` Results: ${passCount} / ${passCount + failCount} tests passed.`);
 console.log(`=====================================================================\n`);
 
 if (failCount > 0) {
   process.exit(1);
+} else {
+  process.exit(0);
 }
