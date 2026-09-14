@@ -6,6 +6,7 @@
   <title>Consistency & Habit Tracker - DevPilot-AI</title>
 
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" id="tailwind-cdn"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -162,10 +163,17 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-3">
+        <!-- User Session Indicator & Account Switcher Button -->
+        <button class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition-colors shadow-sm" id="btn-account-switch" title="Manage Account & Sync">
+          <span class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] font-bold uppercase" id="user-avatar-badge">A</span>
+          <span id="user-name-badge" class="truncate max-w-[120px]">Aditya</span>
+          <span class="material-symbols-outlined text-[16px] text-slate-400">expand_more</span>
+        </button>
+
         <!-- Live Streak Milestone Badge -->
         <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-900 px-3.5 py-1.5 rounded-xl shadow-sm">
           <span class="material-symbols-outlined text-amber-600 text-[20px]" style='font-variation-settings: "FILL" 1;'>local_fire_department</span>
-          <span class="font-bold text-sm" id="habit-streak-display">12 Day Streak</span>
+          <span class="font-bold text-sm" id="habit-streak-display">Start a streak today!</span>
         </div>
 
         <!-- Inactive / Archived Habits Toggle -->
@@ -185,10 +193,10 @@
     <!-- Section 1: Main Grid Layout -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
       
-      <!-- Left Column: Today's Checklist & Weekly Goals (7 cols) -->
+      <!-- Left Column: Habits, Daily Goals, Weekly Goals (7 cols) -->
       <div class="lg:col-span-7 space-y-8">
         
-        <!-- Daily Habit Checklist Card -->
+        <!-- 1. Daily Habit Checklist Card -->
         <div class="dev-card">
           <div class="flex items-center justify-between mb-4">
             <div>
@@ -212,7 +220,38 @@
           </div>
         </div>
 
-        <!-- Weekly Goals Card -->
+        <!-- 2. Daily Goals Card (Separate Feature from Habits) -->
+        <div class="dev-card">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-500 text-xl">track_changes</span>
+                <span>Daily Goals</span>
+                <span class="text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md" id="daily-goals-date-badge">Today</span>
+              </h2>
+              <p class="text-xs text-slate-500 mt-0.5" id="daily-goals-completed-text">0 of 0 Completed</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-sm font-bold text-amber-600" id="daily-goals-pct-text">0%</span>
+              <button class="px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors flex items-center gap-1" id="btn-add-daily-goal">
+                <span class="material-symbols-outlined text-[16px]">add</span>
+                <span>Add Goal</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="progress-bar-container mb-6">
+            <div class="progress-bar-fill bg-amber-500" id="daily-goals-progress-bar" style="width: 0%;"></div>
+          </div>
+
+          <!-- Daily Goals List Container -->
+          <div class="space-y-3" id="daily-goals-container">
+            <!-- Rendered dynamically by js/pages/habit.js -->
+          </div>
+        </div>
+
+        <!-- 3. Weekly Goals Card -->
         <div class="dev-card">
           <div class="flex items-center justify-between mb-4">
             <div>
@@ -247,10 +286,10 @@
               <span class="material-symbols-outlined text-indigo-600">military_tech</span>
               Weekly Momentum
             </h3>
-            <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200" id="momentum-comparison-chip">+0% vs prev week</span>
+            <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-50 text-slate-700 border border-slate-200" id="momentum-comparison-chip">Baseline week</span>
           </div>
           <p class="text-xs text-slate-600 leading-relaxed mb-4" id="momentum-message-text">
-            Calculating momentum from your actual logged habit consistency...
+            Track your habits to build weekly momentum.
           </p>
 
           <div class="grid grid-cols-3 gap-2 text-center pt-2 border-t border-slate-100">
@@ -350,6 +389,12 @@
           <p class="text-[11px] text-slate-400 mt-1">Keep it concise and actionable.</p>
         </div>
 
+        <!-- Description Input -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="habit-desc-input">Description (Optional)</label>
+          <input type="text" id="habit-desc-input" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors" placeholder="e.g. Focus on sliding window or graph patterns" maxlength="120"/>
+        </div>
+
         <!-- Category Input & Quick Chips -->
         <div>
           <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="habit-category-input">Category</label>
@@ -373,7 +418,7 @@
             <button type="button" class="freq-chip" data-freq="custom">Custom Days</button>
           </div>
 
-          <!-- Custom Days Selector (hidden unless Custom selected) -->
+          <!-- Custom Days Selector -->
           <div class="hidden p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between" id="habit-custom-days-row">
             <button type="button" class="day-selector-btn" data-day="0">S</button>
             <button type="button" class="day-selector-btn active" data-day="1">M</button>
@@ -401,7 +446,116 @@
   </div>
 
   <!-- ==========================================
-       MODAL 2: ADD WEEKLY GOAL
+       MODAL 2: EDIT HABIT
+       ========================================== -->
+  <div class="modal-backdrop" id="modal-edit-habit">
+    <div class="modal-container p-6">
+      <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">edit</span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Edit Developer Habit</h3>
+            <p class="text-xs text-slate-500">Update schedule, category, or reminder</p>
+          </div>
+        </div>
+        <button class="text-slate-400 hover:text-slate-600 p-1 rounded-lg" id="btn-close-edit-habit">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <form id="form-edit-habit" class="space-y-4">
+        <input type="hidden" id="edit-habit-id"/>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="edit-habit-title-input">Habit Title *</label>
+          <input type="text" id="edit-habit-title-input" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors" required maxlength="80"/>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="edit-habit-category-input">Category</label>
+          <input type="text" id="edit-habit-category-input" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors"/>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Target Frequency</label>
+          <div class="flex items-center gap-2 mb-3">
+            <button type="button" class="freq-chip edit-freq-chip" data-freq="daily">Daily</button>
+            <button type="button" class="freq-chip edit-freq-chip" data-freq="weekdays">Weekdays (Mon-Fri)</button>
+            <button type="button" class="freq-chip edit-freq-chip" data-freq="custom">Custom Days</button>
+          </div>
+
+          <div class="hidden p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between" id="edit-habit-custom-days-row">
+            <button type="button" class="day-selector-btn edit-day-btn" data-day="0">S</button>
+            <button type="button" class="day-selector-btn edit-day-btn" data-day="1">M</button>
+            <button type="button" class="day-selector-btn edit-day-btn" data-day="2">T</button>
+            <button type="button" class="day-selector-btn edit-day-btn" data-day="3">W</button>
+            <button type="button" class="day-selector-btn edit-day-btn" data-day="4">T</button>
+            <button type="button" class="day-selector-btn edit-day-btn" data-day="5">F</button>
+            <button type="button" class="day-selector-btn edit-day-btn" data-day="6">S</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="edit-habit-reminder-input">Optional Reminder Time</label>
+          <input type="time" id="edit-habit-reminder-input" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors"/>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          <button type="button" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" id="btn-cancel-edit-habit">Cancel</button>
+          <button type="submit" class="btn-primary text-xs py-2 px-4 shadow-sm">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 3: ADD DAILY GOAL (NEW)
+       ========================================== -->
+  <div class="modal-backdrop" id="modal-add-daily-goal">
+    <div class="modal-container p-6">
+      <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">track_changes</span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Set Today's Daily Goal</h3>
+            <p class="text-xs text-slate-500">Numeric target for today (e.g. 3 LeetCode problems)</p>
+          </div>
+        </div>
+        <button class="text-slate-400 hover:text-slate-600 p-1 rounded-lg" id="btn-close-add-daily-goal">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <form id="form-add-daily-goal" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="daily-goal-title-input">Goal Title *</label>
+          <input type="text" id="daily-goal-title-input" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-amber-600 focus:bg-white transition-colors" placeholder="e.g. Solve 3 DSA Questions" required maxlength="70"/>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="daily-goal-target-input">Target Count</label>
+            <input type="number" id="daily-goal-target-input" min="1" max="50" value="3" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-amber-600 focus:bg-white transition-colors" required/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="daily-goal-category-input">Category</label>
+            <input type="text" id="daily-goal-category-input" value="DSA" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-amber-600 focus:bg-white transition-colors"/>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+          <button type="button" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" id="btn-cancel-add-daily-goal">Cancel</button>
+          <button type="submit" class="btn-primary bg-amber-600 hover:bg-amber-700 text-xs py-2 px-4 shadow-sm border-transparent">Set Goal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 4: ADD WEEKLY GOAL
        ========================================== -->
   <div class="modal-backdrop" id="modal-add-goal">
     <div class="modal-container p-6">
@@ -423,14 +577,13 @@
       <form id="form-add-goal" class="space-y-4">
         <div>
           <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="goal-title-input">Goal Title *</label>
-          <input type="text" id="goal-title-input" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors" placeholder="e.g. Solve DSA 5 times" required maxlength="60"/>
+          <input type="text" id="goal-title-input" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors" placeholder="e.g. Solve DSA 5 times this week" required maxlength="60"/>
         </div>
 
         <div>
           <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="goal-habit-select">Link to Habit (Auto-Progress)</label>
           <select id="goal-habit-select" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors">
             <option value="">General (Count all completed habits)</option>
-            <!-- Dynamically populated -->
           </select>
           <p class="text-[11px] text-slate-400 mt-1">When the linked habit is completed, this goal updates automatically.</p>
         </div>
@@ -449,40 +602,53 @@
   </div>
 
   <!-- ==========================================
-       MODAL 3: DEACTIVATE VS DELETE CONFIRMATION
+       MODAL 5: HABIT OPTIONS / DEACTIVATE / DELETE
        ========================================== -->
   <div class="modal-backdrop" id="modal-confirm-delete">
     <div class="modal-container p-6 max-w-md">
       <div class="flex items-start gap-3 mb-4">
-        <div class="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-          <span class="material-symbols-outlined text-2xl">warning</span>
+        <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-2xl">settings</span>
         </div>
         <div>
-          <h3 class="text-base font-bold text-slate-900" id="delete-habit-title">Deactivate or Delete Habit</h3>
+          <h3 class="text-base font-bold text-slate-900" id="delete-habit-title">Manage Habit</h3>
           <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-            Choose whether to pause this habit or erase it completely.
+            Edit details, pause habit tracking, or remove permanently.
           </p>
         </div>
       </div>
 
       <div class="space-y-3 mb-5">
-        <div class="p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl cursor-pointer hover:bg-indigo-50 transition-colors" id="btn-confirm-deactivate">
+        <!-- Edit Habit Option -->
+        <div class="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl cursor-pointer transition-colors" id="btn-action-edit-habit">
           <div class="flex items-center gap-2 mb-1">
-            <span class="material-symbols-outlined text-indigo-600 text-lg">pause_circle</span>
-            <span class="text-xs font-bold text-indigo-900">Deactivate Habit (Recommended)</span>
+            <span class="material-symbols-outlined text-indigo-600 text-lg">edit</span>
+            <span class="text-xs font-bold text-slate-900">Edit Habit Details</span>
           </div>
-          <p class="text-[11px] text-indigo-700 leading-normal">
-            Hides from today's checklist and stops upcoming streak alerts, but <strong class="font-semibold">preserves all past heatmap history, total active days, and analytics</strong>. Can be reactivated anytime.
+          <p class="text-[11px] text-slate-500 leading-normal">
+            Modify title, category, schedule, or reminder time.
           </p>
         </div>
 
+        <!-- Deactivate Option -->
+        <div class="p-3 bg-amber-50/70 border border-amber-200 rounded-xl cursor-pointer hover:bg-amber-50 transition-colors" id="btn-confirm-deactivate">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="material-symbols-outlined text-amber-600 text-lg">pause_circle</span>
+            <span class="text-xs font-bold text-amber-900">Archive / Deactivate (Recommended)</span>
+          </div>
+          <p class="text-[11px] text-amber-700 leading-normal">
+            Hides from today's checklist but <strong class="font-semibold">preserves all past heatmap history, total active days, and analytics</strong>. Can be restored anytime.
+          </p>
+        </div>
+
+        <!-- Delete Option -->
         <div class="p-3 bg-rose-50/70 border border-rose-200 rounded-xl cursor-pointer hover:bg-rose-50 transition-colors" id="btn-confirm-delete-permanent">
           <div class="flex items-center gap-2 mb-1">
             <span class="material-symbols-outlined text-rose-600 text-lg">delete_forever</span>
             <span class="text-xs font-bold text-rose-900">Permanently Delete</span>
           </div>
           <p class="text-[11px] text-rose-700 leading-normal">
-            Erases the habit and all its historical completions permanently. Cannot be undone.
+            Erases the habit and all its historical completions permanently from the database.
           </p>
         </div>
       </div>
@@ -494,7 +660,7 @@
   </div>
 
   <!-- ==========================================
-       MODAL 4: INACTIVE / ARCHIVED HABITS
+       MODAL 6: INACTIVE / ARCHIVED HABITS
        ========================================== -->
   <div class="modal-backdrop" id="modal-inactive-habits">
     <div class="modal-container p-6 max-w-lg">
@@ -523,11 +689,68 @@
     </div>
   </div>
 
+  <!-- ==========================================
+       MODAL 7: AUTH & USER ACCOUNT SWITCHER
+       ========================================== -->
+  <div class="modal-backdrop" id="modal-auth-account">
+    <div class="modal-container p-6 max-w-md">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-xl">manage_accounts</span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Developer Account & Sync</h3>
+            <p class="text-xs text-slate-500">Manage user isolation and cloud database</p>
+          </div>
+        </div>
+        <button class="text-slate-400 hover:text-slate-600 p-1 rounded-lg" id="btn-close-auth-modal">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Current Session Info -->
+      <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl mb-4">
+        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Active Session</p>
+        <p class="text-sm font-bold text-slate-800 mt-0.5" id="active-user-fullname">Aditya Sharma</p>
+        <p class="text-xs text-slate-500 font-mono mt-0.5" id="active-user-email">aditya@devpilot.ai</p>
+      </div>
+
+      <!-- Quick Switch Between Accounts -->
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Switch User Account (Test User Isolation)</label>
+        <div class="space-y-1.5" id="known-accounts-list">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- New Account Sign Up / Login Form -->
+      <form id="form-auth-login" class="space-y-3 pt-3 border-t border-slate-100">
+        <p class="text-xs font-semibold text-slate-700">Or Log In with Custom Account:</p>
+        <div>
+          <input type="email" id="auth-email-input" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white" placeholder="email@developer.dev" required/>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="text" id="auth-fullname-input" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white" placeholder="Full Name (optional)"/>
+          <button type="submit" class="btn-primary text-xs py-2 px-3 whitespace-nowrap">Switch / Login</button>
+        </div>
+      </form>
+
+      <div class="flex justify-between items-center pt-4 mt-4 border-t border-slate-100">
+        <button type="button" class="text-xs text-rose-600 font-semibold hover:underline" id="btn-auth-signout">Sign Out</button>
+        <button type="button" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" id="btn-dismiss-auth">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts in dependency order -->
   <script src="../js/core/utils.js"></script>
   <script src="../js/data/timerData.js"></script>
   <script src="../js/core/globalTimer.js"></script>
   <script src="../js/core/app.js"></script>
+  <script src="../js/core/authService.js"></script>
   <script src="../js/data/habitsData.js"></script>
+  <script src="../js/core/habitService.js"></script>
   <script src="../js/pages/habit.js"></script>
 </body>
 </html>

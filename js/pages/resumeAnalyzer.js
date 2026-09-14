@@ -1867,8 +1867,16 @@ function extractDeterministicLinks(text) {
   }
 
   // 2. GitHub (URL or labeled profile - ensure distinct from project repo)
-  const githubMatch = cleanText.match(/\b(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9_\-\.]{2,40})/i) ||
-    cleanText.match(/(?:github|git)\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:github\.com\/)?([a-zA-Z0-9_\-\.]{2,40})/i);
+  const headerEndIndex = cleanText.search(/\n\s*(?:WORK\s+EXPERIENCE|EXPERIENCE|EMPLOYMENT|PROJECTS|TECHNICAL\s+SKILLS|SKILLS|EDUCATION)\b/i);
+  const headerSection = headerEndIndex !== -1 ? cleanText.slice(0, headerEndIndex) : cleanText.split('\n').slice(0, 15).join('\n');
+
+  const profileRegex = /\b(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9_\-\.]{2,40})(?:\/?)(?:\s|\||,|\?|#|$)/i;
+  const labeledRegex = /(?:github(?:\s+profile|\s+account)?|git(?:\s+profile|\s+account)?)\s*[:|–\-\/]\s*(?:https?:\/\/)?(?:www\.)?(?:github\.com\/)?([a-zA-Z0-9_\-\.]{2,40})/i;
+
+  const githubMatch = headerSection.match(profileRegex) ||
+    headerSection.match(labeledRegex) ||
+    cleanText.match(labeledRegex) ||
+    cleanText.match(profileRegex);
 
   if (githubMatch) {
     const user = (githubMatch[1] || '').replace(/[.,;:)>\]|/]+$/g, '').trim();
@@ -6809,6 +6817,61 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
 
     const deterministicContact = extractContactInfo(resumeText);
     const deterministicLinks = deterministicContact.links || extractDeterministicLinks(resumeText);
+
+    // If analyzing from builder, currentResume.personal is the authoritative ground truth for contact profiles
+    if (fromBuilder && typeof currentResume !== 'undefined' && currentResume?.personal) {
+      const p = currentResume.personal;
+      if (p.github && p.github.trim()) {
+        const rawGh = p.github.trim();
+        let ghUser = rawGh;
+        const m = rawGh.match(/(?:https?:\/\/)?(?:www\.)?github\.com\/([a-zA-Z0-9_\-\.]+)/i);
+        if (m) {
+          ghUser = m[1];
+        } else {
+          ghUser = rawGh.replace(/^@/, '').replace(/^github\.com\/?/i, '');
+        }
+        ghUser = ghUser.replace(/[.,;:)>\]|/]+$/g, '').trim();
+
+        deterministicContact.github = true;
+        deterministicContact.details.github = rawGh.startsWith('http') ? rawGh : `https://github.com/${ghUser}`;
+        deterministicLinks.github = makeLinkObj('github', 'GitHub', deterministicContact.details.github, ghUser);
+        if (deterministicContact.details.links) {
+          deterministicContact.details.links.github = deterministicLinks.github;
+        }
+      } else {
+        // User explicitly left GitHub blank in builder
+        deterministicContact.github = false;
+        deterministicContact.details.github = null;
+        if (deterministicContact.links) deterministicContact.links.github = null;
+        if (deterministicContact.details.links) deterministicContact.details.links.github = null;
+        deterministicLinks.github = null;
+      }
+
+      if (p.linkedin && p.linkedin.trim()) {
+        const rawLi = p.linkedin.trim();
+        let inUser = rawLi;
+        const m = rawLi.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:in|pub)\/([a-zA-Z0-9_\-\.%]+)/i);
+        if (m) {
+          inUser = m[1];
+        } else {
+          inUser = rawLi.replace(/^@/, '').replace(/^(?:in\/|linkedin\.com\/(?:in\/)?)/i, '');
+        }
+        inUser = inUser.replace(/[.,;:)>\]|/]+$/g, '').trim();
+
+        deterministicContact.linkedin = true;
+        deterministicContact.details.linkedin = rawLi.startsWith('http') ? rawLi : `https://linkedin.com/in/${inUser}`;
+        deterministicLinks.linkedin = makeLinkObj('linkedin', 'LinkedIn', deterministicContact.details.linkedin, inUser);
+        if (deterministicContact.details.links) {
+          deterministicContact.details.links.linkedin = deterministicLinks.linkedin;
+        }
+      } else {
+        deterministicContact.linkedin = false;
+        deterministicContact.details.linkedin = null;
+        if (deterministicContact.links) deterministicContact.links.linkedin = null;
+        if (deterministicContact.details.links) deterministicContact.details.links.linkedin = null;
+        deterministicLinks.linkedin = null;
+      }
+    }
     const deterministicExp = analyzeExperience(resumeText, parsedSections.sectionContent);
     const deterministicProj = analyzeProjects(resumeText, parsedSections.sectionContent);
     const deterministicEdu = analyzeEducation(resumeText, parsedSections);
@@ -8224,91 +8287,24 @@ async function verifyGitHubProfileLive(result, container = (typeof document !== 
         };
       }
     } else if (response.status === 404) {
-      let recovered = null;
-      // Recovery check: Look for GitHub repo URLs in projects or candidate variations
-      const projectList = result?.projectsAnalysis?.details || result?.projects?.entries || [];
-      const rawCandidates = new Set();
-      projectList.forEach(p => {
-        const ghUrl = p.githubUrl || (typeof p === 'string' ? p : '');
-        const m = (ghUrl || '').match(/github\.com\/([a-zA-Z0-9_\-\.]+)/i);
-        if (m && m[1] && m[1].toLowerCase() !== username.toLowerCase()) {
-          rawCandidates.add(m[1]);
-        }
-      });
-      rawCandidates.add(username);
-
-      const candidates = new Set();
-      rawCandidates.forEach(h => {
-        candidates.add(h);
-        ['a', 'm', 'ma', 's', 'sharma'].forEach(sfx => candidates.add(h + sfx));
-        if (h.endsWith('a') || h.endsWith('m')) candidates.add(h.slice(0, -1));
-        if (h.endsWith('shara')) candidates.add(h.replace(/shara$/, 'sharma'));
-        if (h.endsWith('sharm')) candidates.add(h.replace(/sharm$/, 'sharma'));
-      });
-
-      for (const alt of candidates) {
-        if (!alt || alt.toLowerCase() === username.toLowerCase()) continue;
-        try {
-          const altRes = await fetchFn(`https://api.github.com/users/${encodeURIComponent(alt)}`, {
-            method: 'GET',
-            headers: { 'Accept': 'application/vnd.github.v3+json', 'User-Agent': 'DevPilot-AI' }
-          });
-          if (altRes.status === 200) {
-            const altData = await altRes.json();
-            recovered = { user: alt, data: altData };
-            break;
-          }
-        } catch (e) {}
+      if (badgeEl) {
+        badgeEl.className = 'link-status-badge live-failed';
+        badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">error</span> Account Not Found (404)`;
       }
-
-      if (recovered) {
-        const repos = typeof recovered.data.public_repos === 'number' ? recovered.data.public_repos : 0;
-        if (badgeEl) {
-          badgeEl.className = 'link-status-badge live-verified';
-          badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">verified</span> Real Verified`;
-        }
-        if (metaEl) {
-          metaEl.innerHTML = `<span class="github-verified-stats"><span class="material-symbols-outlined text-[12px]">check_circle</span> Active GitHub Account · @${escHtml(recovered.user)} (${repos} public ${repos === 1 ? 'repo' : 'repos'})</span>`;
-        }
-        if (githubCard) {
-          githubCard.classList.remove('profile-not-found');
-          githubCard.classList.add('verified-success');
-          const linkA = githubCard.querySelector('a.contact-profile-action-btn');
-          if (linkA) {
-            linkA.href = `https://github.com/${escHtml(recovered.user)}`;
-            const btnText = linkA.querySelector('.btn-text');
-            if (btnText) btnText.textContent = `@${recovered.user}`;
-          }
-        }
-        if (result) {
-          result.githubLiveVerified = {
-            verified: true,
-            username: recovered.user,
-            publicRepos: repos,
-            avatarUrl: recovered.data.avatar_url || '',
-            name: recovered.data.name || ''
-          };
-        }
-      } else {
-        if (badgeEl) {
-          badgeEl.className = 'link-status-badge live-failed';
-          badgeEl.innerHTML = `<span class="material-symbols-outlined text-[12px]">error</span> Account Not Found (404)`;
-        }
-        if (metaEl) {
-          metaEl.innerHTML = `<span style="color:var(--color-error); font-weight:600;">⚠️ Username "@${escHtml(username)}" does not exist on GitHub. Check for typos!</span>`;
-        }
-        if (githubCard) {
-          githubCard.classList.remove('verified-success');
-          githubCard.classList.add('profile-not-found');
-        }
-        if (result) {
-          result.githubLiveVerified = {
-            verified: false,
-            status: 404,
-            username,
-            error: 'User not found on GitHub'
-          };
-        }
+      if (metaEl) {
+        metaEl.innerHTML = `<span style="color:var(--color-error); font-weight:600;">⚠️ Username "@${escHtml(username)}" does not exist on GitHub. Check for typos!</span>`;
+      }
+      if (githubCard) {
+        githubCard.classList.remove('verified-success');
+        githubCard.classList.add('profile-not-found');
+      }
+      if (result) {
+        result.githubLiveVerified = {
+          verified: false,
+          status: 404,
+          username,
+          error: 'User not found on GitHub'
+        };
       }
     } else if (response.status === 403) {
       if (badgeEl) {

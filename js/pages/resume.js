@@ -284,8 +284,27 @@ function initAccordions() {
   document.querySelectorAll('.form-accordion').forEach((acc, idx) => {
     const header = acc.querySelector('.accordion-header');
     if (!header) return;
-    header.addEventListener('click', () => {
+    header.addEventListener('click', (e) => {
+      if (e.target.closest('button, input, select, textarea, a')) return;
+      const willBeActive = !acc.classList.contains('active');
       acc.classList.toggle('active');
+
+      if (willBeActive) {
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            const panel = acc.closest('.builder-editor-panel');
+            if (panel) {
+              const panelRect = panel.getBoundingClientRect();
+              const accRect = acc.getBoundingClientRect();
+              if (accRect.bottom > panelRect.bottom || accRect.top < panelRect.top) {
+                acc.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              }
+            } else {
+              acc.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+          }, 80);
+        });
+      }
     });
   });
 }
@@ -1148,6 +1167,21 @@ function addEntry(section) {
   rerenderSection(section);
   updateLivePreview();
   updateHubStats();
+
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      const container = document.getElementById(`${section}-list`);
+      if (container) {
+        const entries = container.querySelectorAll('.dynamic-entry');
+        const lastEntry = entries[entries.length - 1];
+        if (lastEntry) {
+          lastEntry.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          const firstInput = lastEntry.querySelector('input, textarea, select');
+          if (firstInput) firstInput.focus({ preventScroll: true });
+        }
+      }
+    }, 60);
+  });
 }
 
 function rerenderSection(section) {

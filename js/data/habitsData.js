@@ -2,15 +2,17 @@
  * DevPilot-AI - Consistency & Habit Tracker Data & Statistics Engine
  * 
  * Provides pure, centralized calculation functions for:
- * - Normalized date manipulation without timezone discrepancies
- * - Consecutive current streaks with "at risk" detection
+ * - Local-timezone date manipulation (preventing UTC boundary errors)
+ * - Normalized completion integration (idempotent, user-scoped records)
+ * - Consecutive individual habit streak with "at risk" detection
  * - All-time best streaks across arbitrary historical gaps
+ * - Overall consistency streak across all user habits
  * - Real-time today completion percentages
- * - Weekly momentum calculation with truthful comparative copy
+ * - Daily goals progress and summary statistics
+ * - Weekly momentum calculation with zero-division safety and truthful copy
  * - 26-week (6-month) consistency heatmap matrix
  * - Data-driven habit insights (most consistent, needs attention, best/weakest days)
  * - Weekly goal auto-synchronization
- * - Safe legacy data migration & realistic starter habits
  */
 
 (function (root, factory) {
@@ -20,6 +22,7 @@
     root.HabitsData = factory();
   }
 })(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
 
   // ==========================================
   // 1. DATE NORMALIZATION & UTILITIES
@@ -27,8 +30,10 @@
 
   /**
    * Returns 'YYYY-MM-DD' formatted string for a given Date or ISO string in local time.
+   * Avoids UTC slicing bugs (e.g. toISOString().slice(0, 10)).
    */
   function formatDate(d) {
+    if (!d) return '';
     const date = d instanceof Date ? d : new Date(d);
     if (isNaN(date.getTime())) return '';
     const year = date.getFullYear();
@@ -38,7 +43,7 @@
   }
 
   /**
-   * Parses 'YYYY-MM-DD' safely into a local Date object.
+   * Parses 'YYYY-MM-DD' safely into a local Date object set to midday to avoid DST drift.
    */
   function parseDate(dateStr) {
     if (!dateStr || typeof dateStr !== 'string') return new Date();
@@ -47,7 +52,7 @@
     const year = parseInt(parts[0], 10);
     const month = parseInt(parts[1], 10) - 1;
     const day = parseInt(parts[2], 10);
-    return new Date(year, month, day, 12, 0, 0); // midday to avoid daylight savings edge cases
+    return new Date(year, month, day, 12, 0, 0);
   }
 
   /**
@@ -60,7 +65,7 @@
   }
 
   /**
-   * Returns today's normalized date string 'YYYY-MM-DD'.
+   * Returns today's normalized local calendar date string 'YYYY-MM-DD'.
    */
   function getTodayStr() {
     return formatDate(new Date());
@@ -77,7 +82,7 @@
   }
 
   /**
-   * Returns ISO week identifier, e.g. '2026-W37'.
+   * Returns ISO calendar week identifier, e.g. '2026-W38'.
    */
   function getWeekId(dateInput) {
     const d = dateInput instanceof Date ? new Date(dateInput.getTime()) : parseDate(dateInput);
@@ -108,19 +113,68 @@
   }
 
   /**
-   * Checks if a habit is scheduled on a given date.
+   * Checks if a habit is scheduled on a given calendar date.
    */
   function isHabitScheduledOn(habit, dateStr) {
     if (!habit || habit.active === false) return false;
-    const freq = habit.targetFrequency || 'daily';
+    const freq = habit.target_frequency || habit.targetFrequency || 'daily';
     const dayOfWeek = parseDate(dateStr).getDay(); // 0 is Sun, 6 is Sat
 
     if (freq === 'daily') return true;
     if (freq === 'weekdays') return dayOfWeek >= 1 && dayOfWeek <= 5;
-    if (freq === 'custom' && Array.isArray(habit.customDays)) {
-      return habit.customDays.includes(dayOfWeek);
+    if (freq === 'custom') {
+      const customDays = habit.custom_days || habit.customDays;
+      if (Array.isArray(customDays)) {
+        return customDays.includes(dayOfWeek);
+      }
     }
     return true;
+  }
+
+  // ==========================================
+  // COMPLETION DATA NORMALIZER HELPER
+  // ==========================================
+
+  /**
+   * Converts various completion inputs (array of rows or object map) into a quick-lookup map:
+   * Returns `{ [habitId]: { [dateStr]: true } }` and `{ [dateStr]: Set<habitId> }`.
+   */
+  function buildCompletionMaps(habits = [], completions = null) {
+    const byHabit = {};
+    const byDate = {};
+
+    // If completions array was passed directly (from database table habit_completions)
+    if (Array.isArray(completions)) {
+      completions.forEach(c => {
+        const hId = c.habit_id;
+        const d = c.completion_date;
+        if (!hId || !d) return;
+
+        if (!byHabit[hId]) byHabit[hId] = {};
+        byHabit[hId][d] = true;
+
+        if (!byDate[d]) byDate[d] = new Set();
+        byDate[d].add(hId);
+      });
+      return { byHabit, byDate };
+    }
+
+    // Otherwise extract from each habit's completionHistory (for backward compatibility)
+    habits.forEach(h => {
+      const hId = h.id;
+      if (!byHabit[hId]) byHabit[hId] = {};
+
+      const history = h.completionHistory || {};
+      Object.entries(history).forEach(([d, done]) => {
+        if (done) {
+          byHabit[hId][d] = true;
+          if (!byDate[d]) byDate[d] = new Set();
+          byDate[d].add(hId);
+        }
+      });
+    });
+
+    return { byHabit, byDate };
   }
 
   // ==========================================
@@ -128,25 +182,34 @@
   // ==========================================
 
   /**
-   * Calculates current streak and 'at risk' status for an individual habit.
+   * Calculates current streak, best streak, and 'at risk' status for an individual habit.
    * 
    * Current streak:
-   * Number of consecutive required days completed ending today.
+   * Number of consecutive scheduled days completed ending today.
    * If today is incomplete:
-   * Streak represents the consecutive completed run ending at the most recent eligible day,
-   * but flagged as isAtRisk = true.
+   * Alive from yesterday (or most recent eligible day), but flagged as isAtRisk = true.
    * If yesterday (or most recent eligible day) was missed: streak = 0.
    */
-  function calculateHabitStreak(habit, refDate = getTodayStr()) {
-    if (!habit) return { currentStreak: 0, bestStreak: 0, isAtRisk: false };
+  function calculateHabitStreak(habit, refDate = getTodayStr(), completions = null) {
+    if (!habit) {
+      return { currentStreak: 0, bestStreak: 0, isAtRisk: false, isCompletedToday: false, isScheduledToday: false };
+    }
 
-    const history = habit.completionHistory || {};
+    let history = {};
+    if (Array.isArray(completions)) {
+      completions.forEach(c => {
+        if (c.habit_id === habit.id) {
+          history[c.completion_date] = true;
+        }
+      });
+    } else if (habit.completionHistory) {
+      history = habit.completionHistory;
+    }
+
     const today = formatDate(refDate);
-
     let currentStreak = 0;
     let isAtRisk = false;
 
-    // Determine if today is an eligible scheduled day
     const isTodayScheduled = isHabitScheduledOn(habit, today);
     const isTodayCompleted = Boolean(history[today]);
 
@@ -159,19 +222,17 @@
             currentStreak++;
             checkDate = addDays(checkDate, -1);
           } else {
-            break; // streak ended
+            break;
           }
         } else {
-          // Non-scheduled rest day: skip without breaking
+          // Scheduled rest day: skip without breaking
           checkDate = addDays(checkDate, -1);
-          // Safety cap to prevent infinite loop
           if (diffDays(today, checkDate) > 730) break;
         }
       }
       isAtRisk = false;
     } else {
-      // Today is incomplete or not scheduled yet.
-      // Look back to the most recent scheduled day.
+      // Today is incomplete or not scheduled yet. Check backwards.
       let checkDate = addDays(today, -1);
       let foundScheduled = false;
 
@@ -179,7 +240,6 @@
         if (isHabitScheduledOn(habit, checkDate)) {
           foundScheduled = true;
           if (history[checkDate]) {
-            // Streak is alive from past, but at risk today if today is scheduled!
             currentStreak = 1;
             isAtRisk = isTodayScheduled;
             let prevDate = addDays(checkDate, -1);
@@ -197,7 +257,7 @@
               }
             }
           } else {
-            // Most recent scheduled day was missed! Streak is broken.
+            // Most recent scheduled day was missed!
             currentStreak = 0;
             isAtRisk = false;
           }
@@ -212,7 +272,7 @@
       }
     }
 
-    const bestStreak = calculateBestStreak(habit, currentStreak);
+    const bestStreak = calculateBestStreak(habit, currentStreak, history);
 
     return {
       currentStreak,
@@ -226,19 +286,17 @@
   /**
    * Calculates the longest consecutive sequence of scheduled days completed across all history.
    */
-  function calculateBestStreak(habit, knownCurrentStreak = 0) {
-    if (!habit || !habit.completionHistory) return knownCurrentStreak;
-    const history = habit.completionHistory;
+  function calculateBestStreak(habit, knownCurrentStreak = 0, historyObj = null) {
+    const history = historyObj || habit.completionHistory || {};
     const completedDates = Object.keys(history)
       .filter(d => history[d])
       .sort();
 
-    if (completedDates.length === 0) return 0;
+    if (completedDates.length === 0) return knownCurrentStreak;
 
     let maxStreak = 0;
     let runningStreak = 0;
 
-    // Scan all dates from the earliest completed date to the latest
     const startDate = completedDates[0];
     const endDate = completedDates[completedDates.length - 1];
     let curDate = startDate;
@@ -262,41 +320,32 @@
 
   /**
    * Calculates overall daily consistency streak across all habits.
-   * A day counts if at least one habit was completed on that date.
+   * A day counts if at least one eligible habit was completed on that date.
    */
-  function calculateOverallStreak(habits = [], refDate = getTodayStr()) {
+  function calculateOverallStreak(habits = [], completions = null, refDate = getTodayStr()) {
     const activeHabits = habits.filter(h => h.active !== false);
     const today = formatDate(refDate);
 
-    // Build unified day -> count map
-    const dailyCounts = {};
-    activeHabits.forEach(h => {
-      if (!h.completionHistory) return;
-      Object.entries(h.completionHistory).forEach(([dateStr, done]) => {
-        if (done) {
-          dailyCounts[dateStr] = (dailyCounts[dateStr] || 0) + 1;
-        }
-      });
-    });
+    const { byDate } = buildCompletionMaps(activeHabits, completions);
 
-    const isTodayDone = (dailyCounts[today] || 0) > 0;
+    const isTodayDone = byDate[today] && byDate[today].size > 0;
     let currentStreak = 0;
     let isAtRisk = false;
 
     if (isTodayDone) {
       currentStreak = 1;
       let checkDate = addDays(today, -1);
-      while ((dailyCounts[checkDate] || 0) > 0) {
+      while (byDate[checkDate] && byDate[checkDate].size > 0) {
         currentStreak++;
         checkDate = addDays(checkDate, -1);
       }
     } else {
       const yesterday = addDays(today, -1);
-      if ((dailyCounts[yesterday] || 0) > 0) {
+      if (byDate[yesterday] && byDate[yesterday].size > 0) {
         currentStreak = 1;
         isAtRisk = true;
         let checkDate = addDays(yesterday, -1);
-        while ((dailyCounts[checkDate] || 0) > 0) {
+        while (byDate[checkDate] && byDate[checkDate].size > 0) {
           currentStreak++;
           checkDate = addDays(checkDate, -1);
         }
@@ -307,8 +356,8 @@
     }
 
     // Best overall streak in history
-    const allDatesWithActivity = Object.keys(dailyCounts)
-      .filter(d => dailyCounts[d] > 0)
+    const allDatesWithActivity = Object.keys(byDate)
+      .filter(d => byDate[d] && byDate[d].size > 0)
       .sort();
 
     let bestOverallStreak = 0;
@@ -318,7 +367,7 @@
       const last = allDatesWithActivity[allDatesWithActivity.length - 1];
 
       while (diffDays(last, cur) >= 0) {
-        if ((dailyCounts[cur] || 0) > 0) {
+        if (byDate[cur] && byDate[cur].size > 0) {
           run++;
           if (run > bestOverallStreak) bestOverallStreak = run;
         } else {
@@ -329,12 +378,12 @@
     }
     bestOverallStreak = Math.max(bestOverallStreak, currentStreak);
 
-    // Dynamic milestone message
+    // Dynamic milestone copy
     let milestoneText = '';
-    if (currentStreak >= 100) milestoneText = '100 day milestone 🏆';
-    else if (currentStreak >= 30) milestoneText = '30 day milestone 🏆';
-    else if (currentStreak >= 14) milestoneText = '2 week streak 🔥';
-    else if (currentStreak >= 7) milestoneText = '1 week streak 🔥';
+    if (currentStreak >= 100) milestoneText = '100 Day Milestone 🏆';
+    else if (currentStreak >= 30) milestoneText = '30 Day Milestone 🏆';
+    else if (currentStreak >= 14) milestoneText = '2 Week Streak 🔥';
+    else if (currentStreak >= 7) milestoneText = '1 Week Streak 🔥';
     else if (currentStreak > 0) milestoneText = `${currentStreak} Day Streak 🔥`;
     else milestoneText = 'Start a streak today!';
 
@@ -358,7 +407,7 @@
   /**
    * Calculates today's progress for active scheduled habits.
    */
-  function calculateTodayProgress(habits = [], refDate = getTodayStr()) {
+  function calculateTodayProgress(habits = [], completions = null, refDate = getTodayStr()) {
     const today = formatDate(refDate);
     const activeHabits = habits.filter(h => h.active !== false && isHabitScheduledOn(h, today));
 
@@ -367,7 +416,15 @@
       return { total: 0, completed: 0, pct: 0, text: '0 of 0 Completed' };
     }
 
-    const completed = activeHabits.filter(h => h.completionHistory && h.completionHistory[today]).length;
+    const { byHabit } = buildCompletionMaps(activeHabits, completions);
+
+    let completed = 0;
+    activeHabits.forEach(h => {
+      if (byHabit[h.id] && byHabit[h.id][today]) {
+        completed++;
+      }
+    });
+
     const pct = Math.round((completed / total) * 100);
 
     return {
@@ -379,17 +436,44 @@
   }
 
   // ==========================================
-  // 4. WEEKLY MOMENTUM & SUMMARY
+  // 4. DAILY GOALS SUMMARY
+  // ==========================================
+
+  /**
+   * Calculates summary statistics for today's daily goals.
+   */
+  function calculateDailyGoalsSummary(dailyGoals = []) {
+    const total = dailyGoals.length;
+    if (total === 0) {
+      return { total: 0, completed: 0, pct: 0, text: '0 of 0 Completed' };
+    }
+
+    const completed = dailyGoals.filter(g => g.completed).length;
+    const pct = Math.round((completed / total) * 100);
+
+    return {
+      total,
+      completed,
+      pct,
+      text: `${completed} of ${total} Completed`
+    };
+  }
+
+  // ==========================================
+  // 5. WEEKLY MOMENTUM & SUMMARY
   // ==========================================
 
   /**
    * Calculates weekly momentum from the last 7 calendar days vs previous 7 calendar days.
+   * Completely handles zero-division cleanly (no NaN or Infinity).
    */
-  function calculateWeeklyMomentum(habits = [], refDate = getTodayStr()) {
+  function calculateWeeklyMomentum(habits = [], completions = null, refDate = getTodayStr()) {
     const today = formatDate(refDate);
     const activeHabits = habits.filter(h => h.active !== false);
 
-    // Current 7-day period: today and previous 6 days
+    const { byHabit } = buildCompletionMaps(activeHabits, completions);
+
+    // Current 7-day period: days 0 to -6
     let curCompleted = 0;
     let curPossible = 0;
     for (let i = 0; i < 7; i++) {
@@ -397,7 +481,7 @@
       activeHabits.forEach(h => {
         if (isHabitScheduledOn(h, dateStr)) {
           curPossible++;
-          if (h.completionHistory && h.completionHistory[dateStr]) {
+          if (byHabit[h.id] && byHabit[h.id][dateStr]) {
             curCompleted++;
           }
         }
@@ -412,7 +496,7 @@
       activeHabits.forEach(h => {
         if (isHabitScheduledOn(h, dateStr)) {
           prevPossible++;
-          if (h.completionHistory && h.completionHistory[dateStr]) {
+          if (byHabit[h.id] && byHabit[h.id][dateStr]) {
             prevCompleted++;
           }
         }
@@ -421,12 +505,29 @@
 
     const curPct = curPossible > 0 ? Math.round((curCompleted / curPossible) * 100) : 0;
     const prevPct = prevPossible > 0 ? Math.round((prevCompleted / prevPossible) * 100) : 0;
-    const diffPct = curPct - prevPct;
 
-    // Truthful message based only on actual user data
+    let diffPct = 0;
+    let diffText = 'Baseline week';
+
+    if (prevPossible === 0 || prevPct === 0) {
+      if (curPct > 0) {
+        diffPct = curPct;
+        diffText = 'New activity this week';
+      } else {
+        diffPct = 0;
+        diffText = 'Baseline week';
+      }
+    } else {
+      diffPct = curPct - prevPct;
+      diffText = diffPct >= 0 ? `+${diffPct}% vs previous week` : `${diffPct}% vs previous week`;
+    }
+
+    // Truthful message based strictly on real user data
     let message = '';
     if (curPossible === 0) {
-      message = 'Add developer habits to start tracking weekly consistency.';
+      message = 'Add your first developer habit above to start tracking consistency.';
+    } else if (curCompleted === 0) {
+      message = 'No habits completed yet this week. Check off your first habit today!';
     } else if (curPct === 100) {
       message = 'Flawless consistency this week — 100% of scheduled habits completed!';
     } else if (diffPct > 15) {
@@ -440,15 +541,12 @@
     } else if (diffPct < 0) {
       message = `Momentum dropped this week (${diffPct}% vs last week). Complete today's checklist to recover!`;
     } else {
-      message = 'Building momentum. Consistency compounds over time.';
+      message = 'Building momentum. Daily consistency compounds over time.';
     }
 
-    const diffText = diffPct >= 0 ? `+${diffPct}% vs previous week` : `${diffPct}% vs previous week`;
+    const overallStats = calculateOverallStreak(habits, completions, refDate);
 
-    // Overall stats across all history for the bottom row
-    const overallStats = calculateOverallStreak(habits, refDate);
-
-    // Total possible and completed instances over the active history window (last 30 days)
+    // Active window completion % (last 30 days)
     let windowPossible = 0;
     let windowCompleted = 0;
     for (let i = 0; i < 30; i++) {
@@ -456,7 +554,7 @@
       activeHabits.forEach(h => {
         if (isHabitScheduledOn(h, dateStr)) {
           windowPossible++;
-          if (h.completionHistory && h.completionHistory[dateStr]) {
+          if (byHabit[h.id] && byHabit[h.id][dateStr]) {
             windowCompleted++;
           }
         }
@@ -479,40 +577,40 @@
   }
 
   // ==========================================
-  // 5. 6-MONTH HEATMAP MATRIX
+  // 6. 6-MONTH HEATMAP MATRIX
   // ==========================================
 
   /**
-   * Generates a 26-week calendar matrix (182 days ending on current week's Saturday or today).
-   * Returns array of columns (weeks), each containing 7 day objects.
+   * Generates a 26-week calendar matrix (182 days ending on current week's Saturday).
+   * Dynamically groups actual completions and intensities.
    */
-  function calculateHeatmapMatrix(habits = [], numWeeks = 26, refDate = getTodayStr()) {
+  function calculateHeatmapMatrix(habits = [], completions = null, numWeeks = 26, refDate = getTodayStr(), dailyGoals = []) {
     const today = formatDate(refDate);
     const todayDate = parseDate(today);
 
     // Align to the end of the current week (Saturday)
-    const dayOfWeek = todayDate.getDay(); // 0 is Sun, 6 is Sat
+    const dayOfWeek = todayDate.getDay();
     const daysUntilSaturday = 6 - dayOfWeek;
     const endCalendarDate = addDays(today, daysUntilSaturday);
 
     const totalDays = numWeeks * 7;
     const startCalendarDate = addDays(endCalendarDate, -(totalDays - 1));
 
-    // Aggregate completion counts and active habit titles by date
-    const dayMap = {};
+    const { byDate } = buildCompletionMaps(habits, completions);
 
-    habits.forEach(h => {
-      if (!h.completionHistory) return;
-      Object.entries(h.completionHistory).forEach(([dateStr, done]) => {
-        if (done) {
-          if (!dayMap[dateStr]) {
-            dayMap[dateStr] = { count: 0, completedHabits: [] };
-          }
-          dayMap[dateStr].count++;
-          dayMap[dateStr].completedHabits.push(h.title);
+    // Map habit ID to title for tooltip display
+    const titleMap = {};
+    habits.forEach(h => { titleMap[h.id] = h.title; });
+
+    // Also map daily goals completions by date
+    const dailyGoalsByDate = {};
+    if (Array.isArray(dailyGoals)) {
+      dailyGoals.forEach(g => {
+        if (g.completed && g.date) {
+          dailyGoalsByDate[g.date] = (dailyGoalsByDate[g.date] || 0) + 1;
         }
       });
-    });
+    }
 
     const weeks = [];
     let curDate = startCalendarDate;
@@ -522,10 +620,16 @@
       for (let d = 0; d < 7; d++) {
         const dateStr = curDate;
         const isFuture = diffDays(dateStr, today) > 0;
-        const info = dayMap[dateStr] || { count: 0, completedHabits: [] };
-        const count = isFuture ? 0 : info.count;
+        const habitIds = byDate[dateStr] || new Set();
+        const count = isFuture ? 0 : habitIds.size;
+        const goalsCompletedCount = isFuture ? 0 : (dailyGoalsByDate[dateStr] || 0);
 
-        // Intensity level:
+        const completedHabits = [];
+        habitIds.forEach(id => {
+          completedHabits.push(titleMap[id] || 'Habit');
+        });
+
+        // Intensity:
         // 0 -> l0
         // 1 -> l1
         // 2 -> l2
@@ -551,7 +655,9 @@
           date: dateStr,
           formattedDate,
           count,
-          completedHabits: info.completedHabits,
+          completedHabits,
+          goalsCompletedCount,
+          totalActivity: count + goalsCompletedCount,
           levelClass,
           isToday: dateStr === today,
           isFuture
@@ -566,19 +672,14 @@
   }
 
   // ==========================================
-  // 6. HABIT INSIGHTS
+  // 7. HABIT INSIGHTS
   // ==========================================
 
   /**
-   * Generates actionable insights from historical completion history:
-   * - Most Consistent Habit
-   * - Needs Attention / Most Missed
-   * - Best Day of Week
-   * - Weakest Day of Week
-   * - Average Daily Completion Rate
-   * - Total Completed Habit Instances
+   * Generates actionable insights from actual historical completion records.
+   * Handles empty accounts gracefully without mock data.
    */
-  function calculateHabitInsights(habits = [], refDate = getTodayStr()) {
+  function calculateHabitInsights(habits = [], completions = null, refDate = getTodayStr()) {
     const activeHabits = habits.filter(h => h.active !== false);
     const today = formatDate(refDate);
 
@@ -586,15 +687,16 @@
       return {
         mostConsistent: null,
         needsAttention: null,
-        bestDay: { name: 'N/A', rate: 0 },
-        weakestDay: { name: 'N/A', rate: 0 },
+        bestDay: { name: 'None', rate: 0 },
+        weakestDay: { name: 'None', rate: 0 },
         averageCompletionPct: 0,
         totalCheckmarks: 0,
         activeCount: 0
       };
     }
 
-    // 1. Per-habit stats over the last 60 days
+    const { byHabit } = buildCompletionMaps(activeHabits, completions);
+
     let totalCheckmarks = 0;
     const habitPerformances = activeHabits.map(h => {
       let eligibleDays = 0;
@@ -604,17 +706,14 @@
         const dateStr = addDays(today, -i);
         if (isHabitScheduledOn(h, dateStr)) {
           eligibleDays++;
-          if (h.completionHistory && h.completionHistory[dateStr]) {
+          if (byHabit[h.id] && byHabit[h.id][dateStr]) {
             completedDays++;
           }
         }
       }
 
-      // Lifetime checkmarks
-      if (h.completionHistory) {
-        Object.values(h.completionHistory).forEach(done => {
-          if (done) totalCheckmarks++;
-        });
+      if (byHabit[h.id]) {
+        totalCheckmarks += Object.keys(byHabit[h.id]).length;
       }
 
       const rate = eligibleDays > 0 ? Math.round((completedDays / eligibleDays) * 100) : 0;
@@ -628,11 +727,23 @@
       };
     });
 
+    if (totalCheckmarks === 0) {
+      return {
+        mostConsistent: null,
+        needsAttention: null,
+        bestDay: { name: 'None', rate: 0 },
+        weakestDay: { name: 'None', rate: 0 },
+        averageCompletionPct: 0,
+        totalCheckmarks: 0,
+        activeCount: activeHabits.length
+      };
+    }
+
     habitPerformances.sort((a, b) => b.rate - a.rate);
     const mostConsistent = habitPerformances[0];
     const needsAttention = habitPerformances.length > 1 ? habitPerformances[habitPerformances.length - 1] : null;
 
-    // 2. Day of Week analysis (Sunday 0 to Saturday 6)
+    // Day of week analysis (0 = Sun, 6 = Sat)
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const dayStats = dayNames.map((name, idx) => ({ name, dayIndex: idx, possible: 0, completed: 0 }));
 
@@ -644,7 +755,7 @@
       activeHabits.forEach(h => {
         if (isHabitScheduledOn(h, dateStr)) {
           dayStats[dayIdx].possible++;
-          if (h.completionHistory && h.completionHistory[dateStr]) {
+          if (byHabit[h.id] && byHabit[h.id][dateStr]) {
             dayStats[dayIdx].completed++;
           }
         }
@@ -661,7 +772,6 @@
     const bestDay = dayRates.length > 0 ? dayRates[0] : { name: 'Weekday', rate: 0 };
     const weakestDay = dayRates.length > 1 ? dayRates[dayRates.length - 1] : dayRates[0] || { name: 'Weekend', rate: 0 };
 
-    // 3. Average completion across all evaluated days
     let totalEligibleAll = 0;
     let totalCompletedAll = 0;
     habitPerformances.forEach(hp => {
@@ -682,40 +792,48 @@
   }
 
   // ==========================================
-  // 7. WEEKLY GOALS ENGINE
+  // 8. WEEKLY GOALS ENGINE
   // ==========================================
 
   /**
    * Calculates progress for a weekly goal for the current calendar week.
    */
-  function calculateWeeklyGoalProgress(goal, habits = [], refDate = getTodayStr()) {
+  function calculateWeeklyGoalProgress(goal, habits = [], completions = null, refDate = getTodayStr()) {
     if (!goal) return { current: 0, target: 5, pct: 0, isCompleted: false };
 
+    const target = goal.target || 5;
+
+    // If goal progress is manually tracked or already has a progress number
+    if (typeof goal.progress === 'number' && goal.progress > 0 && !goal.habit_id && !goal.habitId) {
+      const current = goal.progress;
+      const pct = Math.min(100, Math.round((current / target) * 100));
+      return { current, target, pct, isCompleted: current >= target };
+    }
+
     const weekDates = getWeekDates(refDate);
+    const { byHabit, byDate } = buildCompletionMaps(habits, completions);
     let current = 0;
 
-    if (goal.habitId) {
-      // Linked to a specific habit
-      const habit = habits.find(h => h.id === goal.habitId);
-      if (habit && habit.completionHistory) {
+    const linkedHabitId = goal.habit_id || goal.habitId;
+    if (linkedHabitId) {
+      if (byHabit[linkedHabitId]) {
         weekDates.forEach(dateStr => {
-          if (habit.completionHistory[dateStr]) {
+          if (byHabit[linkedHabitId][dateStr]) {
             current++;
           }
         });
       }
     } else {
-      // General habit completion count across all habits
+      // General habit count in this week
       weekDates.forEach(dateStr => {
-        habits.forEach(h => {
-          if (h.completionHistory && h.completionHistory[dateStr]) {
-            current++;
-          }
-        });
+        if (byDate[dateStr]) {
+          current += byDate[dateStr].size;
+        }
       });
     }
 
-    const target = goal.target || 5;
+    // Use max of calculated completions and any explicit numeric progress
+    current = Math.max(current, goal.progress || 0);
     const pct = Math.min(100, Math.round((current / target) * 100));
 
     return {
@@ -727,119 +845,32 @@
   }
 
   // ==========================================
-  // 8. DATA SEEDING & MIGRATION
+  // 9. LEGACY MIGRATION & SEEDING (Dev/Demo Only)
   // ==========================================
 
   /**
-   * Generates authentic, realistic 90-day completion histories for the starter developer habits.
-   * Gives a natural active streak, high weekly momentum, and an authentic heatmap.
-   */
-  function generateStarterHabits(refDate = getTodayStr()) {
-    const today = formatDate(refDate);
-
-    // Helper to generate consistent daily history
-    function buildHistory(activeStreakDays, missRateWeekday, missRateWeekend) {
-      const history = {};
-      // 1. Fill current active streak ending today
-      for (let i = 0; i < activeStreakDays; i++) {
-        const d = addDays(today, -i);
-        history[d] = true;
-      }
-      // 2. Add an intentional gap right before the current streak
-      const gapDate = addDays(today, -activeStreakDays);
-      history[gapDate] = false;
-
-      // 3. Fill the previous 75 days with realistic developer consistency
-      for (let i = activeStreakDays + 1; i <= 90; i++) {
-        const d = addDays(today, -i);
-        const dayOfWeek = parseDate(d).getDay();
-        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-        // Pseudo-random deterministic hash based on date string
-        const hash = (d.split('-').reduce((acc, part) => acc * 31 + parseInt(part, 10), 7) % 100) / 100;
-        const threshold = isWeekend ? missRateWeekend : missRateWeekday;
-        history[d] = hash > threshold;
-      }
-      return history;
-    }
-
-    return [
-      {
-        id: 'h1',
-        title: 'Solve 2 LeetCode Problems',
-        category: 'DSA',
-        createdAt: addDays(today, -90),
-        active: true,
-        targetFrequency: 'daily',
-        reminderTime: '08:00',
-        completionHistory: buildHistory(12, 0.15, 0.30)
-      },
-      {
-        id: 'h2',
-        title: 'Revise JS Event Loop & Promises',
-        category: 'WebDev',
-        createdAt: addDays(today, -90),
-        active: true,
-        targetFrequency: 'daily',
-        reminderTime: '10:00',
-        completionHistory: buildHistory(8, 0.18, 0.35)
-      },
-      {
-        id: 'h3',
-        title: 'Push 1 Production Commit to GitHub',
-        category: 'DevOps',
-        createdAt: addDays(today, -90),
-        active: true,
-        targetFrequency: 'daily',
-        reminderTime: '18:00',
-        completionHistory: buildHistory(14, 0.10, 0.25)
-      },
-      {
-        id: 'h4',
-        title: 'Complete 2 Pomodoro Focus Sessions',
-        category: 'Focus',
-        createdAt: addDays(today, -90),
-        active: true,
-        targetFrequency: 'weekdays',
-        reminderTime: '14:00',
-        completionHistory: buildHistory(5, 0.20, 0.80)
-      },
-      {
-        id: 'h5',
-        title: 'Read 1 High Scalability Architecture Article',
-        category: 'System Design',
-        createdAt: addDays(today, -90),
-        active: true,
-        targetFrequency: 'daily',
-        reminderTime: '21:00',
-        completionHistory: buildHistory(7, 0.22, 0.40)
-      }
-    ];
-  }
-
-  /**
-   * Safely migrates existing habits stored in localStorage into the new schema.
-   * If a habit only has `{ id, title, category, completed, streak }`,
-   * it builds an authentic completionHistory preserving its streak and today's status.
+   * Safely migrates existing legacy habits stored in localStorage without injecting mock data.
+   * If storedHabits is empty, returns empty array [].
    */
   function migrateLegacyHabits(storedHabits, refDate = getTodayStr()) {
     if (!Array.isArray(storedHabits) || storedHabits.length === 0) {
-      return generateStarterHabits(refDate);
+      return [];
     }
 
     const today = formatDate(refDate);
 
     return storedHabits.map((h, idx) => {
-      // Already has valid completionHistory
       if (h && typeof h.completionHistory === 'object' && Object.keys(h.completionHistory).length > 0) {
         return {
           id: h.id || `h_${Date.now()}_${idx}`,
           title: h.title || 'Untitled Habit',
           category: h.category || 'General',
+          description: h.description || '',
           createdAt: h.createdAt || addDays(today, -30),
           active: h.active !== false,
-          targetFrequency: h.targetFrequency || 'daily',
-          customDays: h.customDays || [1, 2, 3, 4, 5],
-          reminderTime: h.reminderTime || '',
+          targetFrequency: h.targetFrequency || h.target_frequency || 'daily',
+          customDays: h.customDays || h.custom_days || [1, 2, 3, 4, 5],
+          reminderTime: h.reminderTime || h.reminder_time || '',
           completionHistory: h.completionHistory
         };
       }
@@ -854,7 +885,6 @@
           history[addDays(today, -i)] = true;
         }
       } else {
-        // Uncompleted today, but streak was alive up to yesterday
         for (let i = 1; i <= legacyStreak; i++) {
           history[addDays(today, -i)] = true;
         }
@@ -864,51 +894,15 @@
         id: h.id || `h_${Date.now()}_${idx}`,
         title: h.title || 'Untitled Habit',
         category: h.category || 'General',
+        description: h.description || '',
         createdAt: h.createdAt || addDays(today, Math.max(30, legacyStreak + 10)),
         active: h.active !== false,
-        targetFrequency: h.targetFrequency || 'daily',
-        customDays: h.customDays || [1, 2, 3, 4, 5],
-        reminderTime: h.reminderTime || '',
+        targetFrequency: h.targetFrequency || h.target_frequency || 'daily',
+        customDays: h.customDays || h.custom_days || [1, 2, 3, 4, 5],
+        reminderTime: h.reminderTime || h.reminder_time || '',
         completionHistory: history
       };
     });
-  }
-
-  /**
-   * Default starter weekly goals.
-   */
-  function generateStarterWeeklyGoals(habits = [], refDate = getTodayStr()) {
-    const weekId = getWeekId(refDate);
-    const dsaHabit = habits.find(h => h.category === 'DSA') || habits[0];
-    const devopsHabit = habits.find(h => h.category === 'DevOps') || habits[2];
-    const systemDesignHabit = habits.find(h => h.category === 'System Design') || habits[4];
-
-    return [
-      {
-        id: 'wg_1',
-        title: 'Solve DSA 5 times this week',
-        habitId: dsaHabit ? dsaHabit.id : null,
-        target: 5,
-        weekId,
-        createdAt: formatDate(refDate)
-      },
-      {
-        id: 'wg_2',
-        title: 'Push 5 GitHub Production Commits',
-        habitId: devopsHabit ? devopsHabit.id : null,
-        target: 5,
-        weekId,
-        createdAt: formatDate(refDate)
-      },
-      {
-        id: 'wg_3',
-        title: 'Study System Design 4 times',
-        habitId: systemDesignHabit ? systemDesignHabit.id : null,
-        target: 4,
-        weekId,
-        createdAt: formatDate(refDate)
-      }
-    ];
   }
 
   return {
@@ -920,16 +914,16 @@
     getWeekId,
     getWeekDates,
     isHabitScheduledOn,
+    buildCompletionMaps,
     calculateHabitStreak,
     calculateBestStreak,
     calculateOverallStreak,
     calculateTodayProgress,
+    calculateDailyGoalsSummary,
     calculateWeeklyMomentum,
     calculateHeatmapMatrix,
     calculateHabitInsights,
     calculateWeeklyGoalProgress,
-    generateStarterHabits,
-    migrateLegacyHabits,
-    generateStarterWeeklyGoals
+    migrateLegacyHabits
   };
 });
