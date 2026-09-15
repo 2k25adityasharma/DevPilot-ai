@@ -141,8 +141,8 @@
   function loadSessions() {
     const stored = Storage.get('timer_sessions');
     if (Array.isArray(stored)) {
-      // Clean out any legacy starter fake sessions (ts_1, ts_2, ts_3)
-      sessions = stored.filter(s => s && s.id !== 'ts_1' && s.id !== 'ts_2' && s.id !== 'ts_3');
+      // Clean out legacy starter fake sessions and premature sub-minute test clicks (< 60s)
+      sessions = stored.filter(s => s && s.id !== 'ts_1' && s.id !== 'ts_2' && s.id !== 'ts_3' && (s.mode !== 'work' || !s.durationSeconds || s.durationSeconds >= 60));
     } else {
       sessions = [];
     }
@@ -655,76 +655,47 @@
       return;
     }
 
+    const targetMinutes = settings.focusDuration || 25;
+    const targetSeconds = targetMinutes * 60;
+
+    // 2. Real-time Remaining Check:
+    let currentRemaining = activeState.remainingSeconds;
+    if (activeState.isRunning && activeState.endTimestamp) {
+      currentRemaining = TimerData.calculateRemaining(activeState.endTimestamp);
+    }
+
+    // 3. PREVENT PREMATURE COMPLETION:
+    // If the 25 minutes (or configured focus duration) have not finished, do not allow completion!
+    if (currentRemaining > 0) {
+      if (!activeState.isRunning && currentRemaining >= targetSeconds) {
+        showToast(`Focus session has not started yet. Complete the full ${targetMinutes}-minute session before completing!`, 'warning');
+      } else {
+        const remainingStr = TimerData.formatTime(currentRemaining);
+        showToast(`Focus session is not complete yet (${remainingStr} remaining)! Complete the full ${targetMinutes} minutes to mark it complete.`, 'warning');
+      }
+      return;
+    }
+
+    // 4. Timer has completed (remaining is 0):
     const typedTask = (dom.taskInput && dom.taskInput.value.trim()) || 
                       activeState.currentTask || 
                       'Deep Work Focus';
 
     activeState.currentTask = typedTask;
 
-    // 2. Real-time Elapsed Duration:
-    // Determine the exact number of seconds the user actually spent focusing!
-    let elapsedSeconds = 0;
-    if (activeState.isRunning && activeState.endTimestamp) {
-      const remaining = TimerData.calculateRemaining(activeState.endTimestamp);
-      const diff = activeState.durationSeconds - remaining;
-      elapsedSeconds = diff > 0 ? diff : activeState.durationSeconds;
-    } else if (activeState.isPaused && activeState.remainingSeconds < activeState.durationSeconds) {
-      const diff = activeState.durationSeconds - activeState.remainingSeconds;
-      elapsedSeconds = diff > 0 ? diff : activeState.durationSeconds;
-    } else if (activeState.remainingSeconds === 0) {
-      elapsedSeconds = activeState.durationSeconds;
-    } else {
-      // User clicked Complete & Log without running (manual full session logging)
-      elapsedSeconds = activeState.durationSeconds || ((settings.focusDuration || 25) * 60);
-    }
-
     if (activeState.isRunning) {
-      pauseTimer();
+      clearInterval(timerInterval);
+      timerInterval = null;
+      activeState.isRunning = false;
+      activeState.isPaused = false;
+      activeState.endTimestamp = null;
     }
 
-    // 3. Save to sessions with EXACT elapsed time (strictly 'work' mode, never breaks)
-    const completedSession = {
-      id: `ts_${Date.now()}`,
-      task: typedTask,
-      mode: 'work',
-      durationSeconds: elapsedSeconds,
-      completedAt: new Date().toISOString()
-    };
-
-    sessions.unshift(completedSession);
-    saveSessions();
-
-    // 4. Advance Cycle!
-    const maxCycles = settings.sessionsBeforeLongBreak || 4;
-    const currentCompleted = activeState.cyclePosition || 1;
-    let nextCycle = currentCompleted + 1;
-    let isFullCycleFinished = false;
-
-    if (currentCompleted >= maxCycles) {
-      isFullCycleFinished = true;
-      nextCycle = 1; // Cycle complete, wrap back to 1
-    }
-
-    activeState.cyclePosition = nextCycle;
-
-    // 5. Reset timer back to full focus duration ready for the next round (do NOT jump into breaks)
-    activeState.mode = 'work';
-    activeState.durationSeconds = (settings.focusDuration || 25) * 60;
-    activeState.remainingSeconds = activeState.durationSeconds;
-    activeState.isRunning = false;
-    activeState.isPaused = false;
-    activeState.endTimestamp = null;
-
+    activeState.remainingSeconds = 0;
     saveActiveState();
-    playChime();
-    renderAll();
 
-    const formattedDur = elapsedSeconds < 60 ? `${elapsedSeconds}s` : `${Math.round(elapsedSeconds / 60)}m`;
-    if (isFullCycleFinished) {
-      showToast(`🎉 Full ${maxCycles}-session cycle complete! Saved "${typedTask}" (+${formattedDur} Focus).`, 'success');
-    } else {
-      showToast(`🎉 Session ${currentCompleted} logged (+${formattedDur} Focus)! Cycle advanced to Focus ${nextCycle} of ${maxCycles}.`, 'success');
-    }
+    // Call standard completion handler to log completed session, advance cycle, chime & notify
+    handleTimerCompletion(typedTask);
   }
 
   function showCompletionModal(transition, wasWork) {

@@ -21,12 +21,12 @@
    */
   function getCareerState() {
     if (typeof Storage !== 'undefined' && Storage.get) {
-      return Storage.get(STORAGE_KEY, {
-        activeCareer: null,
-        activeCareerStatus: 'available', // 'available' | 'active' | 'paused' | 'completed'
-        commitmentData: {},
-        previousCareers: []
-      });
+      const res = Storage.get(STORAGE_KEY, null);
+      if (res && typeof res === 'object') {
+        if (!res.commitmentData) res.commitmentData = {};
+        if (!Array.isArray(res.previousCareers)) res.previousCareers = [];
+        return res;
+      }
     }
     try {
       if (typeof localStorage !== 'undefined') {

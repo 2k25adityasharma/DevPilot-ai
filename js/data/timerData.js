@@ -186,6 +186,9 @@
       const durationSec = s.durationSeconds || 0;
 
       if (isWork) {
+        // Only count genuine focus sessions (minimum 60 seconds)
+        if (durationSec < 60) return;
+
         totalFocusSeconds += durationSec;
         if (durationSec > longestSessionSeconds) {
           longestSessionSeconds = durationSec;

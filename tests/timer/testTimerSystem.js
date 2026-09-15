@@ -277,6 +277,24 @@ runTest('TEST 10: Timer reload simulation recovers exact elapsed background time
   assert.strictEqual(TimerData.formatTime(remainingAtReload), '18:20');
 });
 
+// ----------------------------------------------------
+// TEST 11: Sub-Minute Premature Intervals are Excluded
+// ----------------------------------------------------
+runTest('TEST 11: Sub-minute intervals (< 60s) from premature clicks are excluded from completed sessions', () => {
+  const today = new Date();
+  const sessions = [
+    { id: '1', mode: 'work', durationSeconds: 11, completedAt: today.toISOString(), task: '11s accidental click' },
+    { id: '2', mode: 'work', durationSeconds: 1, completedAt: today.toISOString(), task: '1s accidental click' },
+    { id: '3', mode: 'work', durationSeconds: 1500, completedAt: today.toISOString(), task: 'Real 25m Focus' }
+  ];
+
+  const stats = TimerData.calculateTodayStats(sessions, today);
+  assert.strictEqual(stats.todayFocusCount, 1, 'Only genuine >= 60s session should count towards focus session count');
+  assert.strictEqual(stats.todayFocusMinutes, 25, 'Focus minutes should only reflect genuine session');
+  assert.strictEqual(stats.todaySessionsList.length, 1, 'Premature clicks (< 60s) must be excluded from today sessions list');
+  assert.strictEqual(stats.todaySessionsList[0].task, 'Real 25m Focus');
+});
+
 console.log(`\nResults: ${passCount} / ${passCount + failCount} tests passed.`);
 if (failCount > 0) {
   process.exit(1);

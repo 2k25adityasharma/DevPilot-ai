@@ -80,6 +80,9 @@ function checkUrlParameters() {
   const urlParams = new URLSearchParams(window.location.search);
   const rawParam = urlParams.get('user') || urlParams.get('username') || urlParams.get('url') || urlParams.get('profile');
   const input = document.getElementById('github-username-input');
+  const savedSettings = (typeof Storage !== 'undefined') ? Storage.get('github_settings', null) : null;
+  const configuredUser = (savedSettings && savedSettings.username) ? savedSettings.username : '2k25adityasharma';
+
   if (rawParam) {
     const extracted = extractGitHubUsername(rawParam);
     if (extracted) {
@@ -87,7 +90,9 @@ function checkUrlParameters() {
       analyzeGitHubUser(extracted);
     }
   } else {
-    if (input) input.value = '';
+    if (input && !input.value) {
+      input.placeholder = `e.g. ${configuredUser} or https://github.com/...`;
+    }
   }
 }
 
@@ -103,28 +108,28 @@ function initAnalyzerControls() {
   const bannerExportTxtBtn = document.getElementById('btn-banner-export-txt');
   const bannerExportJsonBtn = document.getElementById('btn-banner-export-json');
 
+  const executeAnalysis = () => {
+    let raw = usernameInput ? usernameInput.value.trim() : '';
+    if (!raw) {
+      const savedSettings = (typeof Storage !== 'undefined') ? Storage.get('github_settings', null) : null;
+      raw = (savedSettings && savedSettings.username) ? savedSettings.username : '2k25adityasharma';
+      if (usernameInput) usernameInput.value = raw;
+    }
+    const username = extractGitHubUsername(raw);
+    if (username) {
+      if (usernameInput) usernameInput.value = username;
+      analyzeGitHubUser(username);
+    } else {
+      showToast('Please enter a valid GitHub username or profile link', 'error');
+    }
+  };
+
   if (analyzeBtn && usernameInput) {
-    analyzeBtn.addEventListener('click', () => {
-      const raw = usernameInput.value.trim();
-      const username = extractGitHubUsername(raw);
-      if (username) {
-        usernameInput.value = username;
-        analyzeGitHubUser(username);
-      } else {
-        showToast('Please enter a valid GitHub username or profile link', 'error');
-      }
-    });
+    analyzeBtn.addEventListener('click', executeAnalysis);
 
     usernameInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
-        const raw = usernameInput.value.trim();
-        const username = extractGitHubUsername(raw);
-        if (username) {
-          usernameInput.value = username;
-          analyzeGitHubUser(username);
-        } else {
-          showToast('Please enter a valid GitHub username or profile link', 'error');
-        }
+        executeAnalysis();
       }
     });
   }

@@ -7,6 +7,7 @@ const defaultSettings = {
     fullName: 'Aditya Sharma',
     title: 'Senior Full Stack Engineer',
     email: 'aditya.sharma@example.dev',
+    githubUsername: '2k25adityasharma',
     bio: 'Building next-gen developer tools and high-scale web applications.'
   },
   apiKeys: {
@@ -28,13 +29,32 @@ const defaultSettings = {
 };
 
 let settings = Storage.get('user_settings', defaultSettings);
+const savedGithub = Storage.get('github_settings', null);
+if (savedGithub && savedGithub.username) {
+  if (!settings.profile) settings.profile = {};
+  settings.profile.githubUsername = savedGithub.username;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   initSettingsTabs();
   populateSettingsForm();
   initPasswordToggles();
   initSettingsSave();
+  initGithubLinkUpdater();
 });
+
+function initGithubLinkUpdater() {
+  const ghInput = document.getElementById('set-github-username');
+  const ghLink = document.getElementById('link-github-profile');
+  if (ghInput && ghLink) {
+    const updateLink = () => {
+      const user = ghInput.value.trim() || '2k25adityasharma';
+      ghLink.href = `https://github.com/${user}`;
+    };
+    ghInput.addEventListener('input', updateLink);
+    updateLink();
+  }
+}
 
 function initSettingsTabs() {
   const tabs = document.querySelectorAll('.settings-tab-btn');
@@ -60,6 +80,7 @@ function populateSettingsForm() {
   setVal('set-fullname', settings.profile.fullName);
   setVal('set-title', settings.profile.title);
   setVal('set-email', settings.profile.email);
+  setVal('set-github-username', settings.profile.githubUsername || '2k25adityasharma');
   setVal('set-bio', settings.profile.bio);
 
   // API Keys
@@ -113,7 +134,15 @@ function initSettingsSave() {
       settings.profile.fullName = getVal('set-fullname');
       settings.profile.title = getVal('set-title');
       settings.profile.email = getVal('set-email');
+      const ghUsername = getVal('set-github-username') || '2k25adityasharma';
+      settings.profile.githubUsername = ghUsername;
       settings.profile.bio = getVal('set-bio');
+
+      // Sync github_settings for Dashboard and Analyzer
+      Storage.set('github_settings', {
+        username: ghUsername,
+        updatedAt: new Date().toISOString()
+      });
 
       // Collect API Keys
       settings.apiKeys.githubToken = getVal('set-github-token');

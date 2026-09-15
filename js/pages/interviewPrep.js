@@ -49,6 +49,28 @@
     setupEventListeners();
     updateMetrics();
     renderMode(state.currentMode);
+    handleUrlParams();
+  }
+
+  function handleUrlParams() {
+    try {
+      if (typeof window === 'undefined' || !window.location || !window.location.search) return;
+      const params = new URLSearchParams(window.location.search);
+      const catId = params.get('cat');
+      const topic = params.get('topic');
+
+      if (catId && window.interviewPrepRegistry) {
+        const cat = window.interviewPrepRegistry.getCategory(catId);
+        if (cat) {
+          openCategoryModal(cat);
+          if (topic) {
+            startTopicQuiz(catId, topic);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Error handling URL params in interviewPrep:', e);
+    }
   }
 
   function loadStorage() {
