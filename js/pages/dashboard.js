@@ -15,6 +15,7 @@
   let cachedGithubData = null;
   let isGithubLoading = false;
   let lastSyncTimestamp = Date.now();
+  let isGlobalTimerSubscribed = false;
 
   document.addEventListener('DOMContentLoaded', () => {
     initDashboard();
@@ -450,6 +451,7 @@
           renderStreak();
           renderCalendar();
           renderRecentActivity();
+          renderFooterProductivity();
         }
       });
     });
@@ -631,26 +633,82 @@
   // ==========================================
   function renderFooterProductivity() {
     const focusTimeEl = document.getElementById('focus-time-display');
+    const focusSubtextEl = document.getElementById('focus-time-subtext');
+    const topSkillEl = document.getElementById('top-skill-display');
+    const topSkillSubtextEl = document.getElementById('top-skill-subtext');
+    const topSkillIconEl = document.getElementById('top-skill-icon');
+    const tasksCompletedEl = document.getElementById('tasks-completed-count');
+    const tasksTotalEl = document.getElementById('tasks-total-count');
+    const tasksPercentEl = document.getElementById('tasks-percentage-subtext');
+    const streakEl = document.getElementById('current-streak-display');
+    const streakSubtextEl = document.getElementById('current-streak-subtext');
     const focusBtn = document.getElementById('start-focus-btn');
     const focusBtnText = document.getElementById('focus-btn-text');
 
-    if (typeof DashboardDataService !== 'undefined' && focusTimeEl) {
-      const focusStats = DashboardDataService.getFocusTimeToday();
-      focusTimeEl.innerHTML = `${focusStats.displayStr} <span class="font-label-md text-label-md text-[#10b981] flex items-center ml-2"><span class="material-symbols-outlined text-[14px]">arrow_upward</span> Active</span>`;
+    if (typeof DashboardDataService === 'undefined') return;
+
+    // 1. Focus Time Today
+    const focusStats = DashboardDataService.getFocusTimeToday();
+    const timerState = (typeof window !== 'undefined' && window.GlobalTimer) ? window.GlobalTimer.getState() : null;
+
+    if (focusTimeEl) {
+      if (timerState && timerState.isRunning) {
+        focusTimeEl.innerHTML = `${focusStats.displayStr} <span class="font-label-md text-label-md text-[#10b981] flex items-center ml-1.5"><span class="material-symbols-outlined text-[14px]">arrow_upward</span> In Session</span>`;
+        if (focusSubtextEl) focusSubtextEl.innerHTML = '<span class="text-[#10b981] font-medium">Session in progress...</span>';
+      } else if (focusStats.minutes > 0) {
+        focusTimeEl.innerHTML = `${focusStats.displayStr} <span class="font-label-md text-label-md text-[#10b981] flex items-center ml-1.5"><span class="material-symbols-outlined text-[14px]">arrow_upward</span> Active</span>`;
+        if (focusSubtextEl) {
+          focusSubtextEl.innerHTML = `<span class="text-outline">${focusStats.sessionsCount} ${focusStats.sessionsCount === 1 ? 'session' : 'sessions'} today</span>`;
+        }
+      } else {
+        focusTimeEl.textContent = '0m';
+        if (focusSubtextEl) focusSubtextEl.innerHTML = '<span class="text-outline">0 sessions</span>';
+      }
     }
 
-    if (focusBtn && typeof window !== 'undefined' && window.GlobalTimer) {
-      const state = window.GlobalTimer.getState();
-      updateTimerButtonState(state, focusBtn, focusBtnText);
+    // 2. Top Skill (Weekly Weighted Score)
+    const topSkill = DashboardDataService.getTopSkill('week');
+    if (topSkillEl) {
+      topSkillEl.textContent = topSkill.skill;
+      topSkillEl.title = topSkill.skill;
+    }
+    if (topSkillSubtextEl) {
+      topSkillSubtextEl.textContent = topSkill.subtext;
+    }
+    if (topSkillIconEl) {
+      topSkillIconEl.textContent = topSkill.icon || 'data_object';
+    }
 
-      // Subscribe to global timer state updates
-      window.GlobalTimer.subscribe((newState) => {
-        updateTimerButtonState(newState, focusBtn, focusBtnText);
-        if (typeof DashboardDataService !== 'undefined' && focusTimeEl) {
-          const stats = DashboardDataService.getFocusTimeToday();
-          focusTimeEl.innerHTML = `${stats.displayStr} <span class="font-label-md text-label-md text-[#10b981] flex items-center ml-2"><span class="material-symbols-outlined text-[14px]">arrow_upward</span> Active</span>`;
-        }
-      });
+    // 3. Tasks Completed Today
+    const tasksSummary = DashboardDataService.getTodayTasksSummary();
+    if (tasksCompletedEl) tasksCompletedEl.textContent = tasksSummary.completed;
+    if (tasksTotalEl) tasksTotalEl.textContent = tasksSummary.total;
+    if (tasksPercentEl) tasksPercentEl.textContent = `${tasksSummary.percentage}% today`;
+
+    // 4. Current Streak
+    const streakData = DashboardDataService.getStreak();
+    if (streakEl) {
+      streakEl.textContent = `${streakData.currentStreak} ${streakData.currentStreak === 1 ? 'day' : 'days'}`;
+    }
+    if (streakSubtextEl) {
+      if (streakData.currentStreak > 0) {
+        streakSubtextEl.innerHTML = '<span>🔥</span> <span>Consistent</span>';
+      } else {
+        streakSubtextEl.innerHTML = '<span class="text-outline">Start a streak!</span>';
+      }
+    }
+
+    // 5. Global Timer Button State
+    if (focusBtn && typeof window !== 'undefined' && window.GlobalTimer) {
+      updateTimerButtonState(timerState, focusBtn, focusBtnText);
+
+      // Subscribe to global timer state updates ONCE
+      if (!isGlobalTimerSubscribed) {
+        isGlobalTimerSubscribed = true;
+        window.GlobalTimer.subscribe((newState) => {
+          renderFooterProductivity();
+        });
+      }
     }
   }
 

@@ -59,12 +59,15 @@
     return user.id;
   }
 
-  function generateUuid() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-      const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
+  function generateUuid(prefix = '') {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      const uuid = crypto.randomUUID();
+      return prefix ? `${prefix}_${uuid}` : uuid;
+    }
+    const r1 = Math.random().toString(36).substring(2, 9);
+    const r2 = Math.random().toString(36).substring(2, 9);
+    const time = Date.now().toString(36);
+    return prefix ? `${prefix}_${time}_${r1}${r2}` : `${time}-${r1}-${r2}`;
   }
 
   // --------------------------------------------------------------------------
@@ -76,8 +79,40 @@
 
   function readStore(resource, fallback = []) {
     try {
-      const item = localStorage.getItem(userKey(resource));
-      return item ? JSON.parse(item) : fallback;
+      const primaryKey = userKey(resource);
+      const item = localStorage.getItem(primaryKey);
+      if (item) return JSON.parse(item);
+
+      // Graceful migration fallback: check legacy user-scoped keys
+      const legacyKey = `u_${getUserId()}_${resource}`;
+      const legacyItem = localStorage.getItem(legacyKey);
+      if (legacyItem) {
+        const parsed = JSON.parse(legacyItem);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          localStorage.setItem(primaryKey, legacyItem);
+          return parsed;
+        }
+      }
+
+      // Check root legacy keys if any
+      const rootLegacyMap = {
+        habits: 'habits_data',
+        daily_goals: 'daily_goals',
+        completions: 'habits_completions',
+        weekly_goals: 'weekly_goals'
+      };
+      if (rootLegacyMap[resource]) {
+        const rootItem = localStorage.getItem(rootLegacyMap[resource]);
+        if (rootItem) {
+          const parsed = JSON.parse(rootItem);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            localStorage.setItem(primaryKey, rootItem);
+            return parsed;
+          }
+        }
+      }
+
+      return fallback;
     } catch (e) {
       return fallback;
     }
@@ -214,12 +249,13 @@
 
     // Local store
     const habits = readStore('habits', []);
-    const idx = habits.findIndex(h => h.id === id && h.user_id === userId);
+    const idx = habits.findIndex(h => h.id === id && (!h.user_id || h.user_id === userId));
     if (idx === -1) throw new Error('Habit not found or not owned by user.');
 
     habits[idx] = {
       ...habits[idx],
       ...updates,
+      user_id: userId,
       updated_at: new Date().toISOString()
     };
     writeStore('habits', habits);
@@ -255,14 +291,14 @@
       } catch (e) {}
     }
 
-    // Local store delete
+    // Local store delete (safe match by ID)
     let habits = readStore('habits', []);
-    habits = habits.filter(h => !(h.id === id && h.user_id === userId));
+    habits = habits.filter(h => !(h.id === id && (!h.user_id || h.user_id === userId)));
     writeStore('habits', habits);
 
     // Cascade delete completions
     let completions = readStore('completions', []);
-    completions = completions.filter(c => !(c.habit_id === id && c.user_id === userId));
+    completions = completions.filter(c => !(c.habit_id === id && (!c.user_id || c.user_id === userId)));
     writeStore('completions', completions);
 
     // Unlink weekly goals
@@ -382,26 +418,41 @@
   // ==========================================================================
 
   /**
-   * Fetches daily goals for the authenticated user on a specific date.
+   * Fetches daily goals for the authenticated user on a specific date (or all dates).
    */
-  async function getDailyGoals(dateStr = null) {
+  async function getDailyGoals(dateStr = null, allDates = false) {
     const userId = getUserId();
-    const targetDate = dateStr || HabitsData.getTodayStr();
+    const targetDate = allDates ? null : (dateStr || HabitsData.getTodayStr());
 
     if (typeof window !== 'undefined' && window.supabase && window.supabase.from) {
       try {
-        const { data, error } = await window.supabase
+        let query = window.supabase
           .from('daily_goals')
           .select('*')
-          .eq('user_id', userId)
-          .eq('date', targetDate)
-          .order('created_at', { ascending: true });
+          .eq('user_id', userId);
+        if (targetDate) {
+          query = query.eq('date', targetDate);
+        }
+        query = query.order('created_at', { ascending: true });
+        const { data, error } = await query;
         if (!error && Array.isArray(data)) return data;
       } catch (e) {}
     }
 
     const goals = readStore('daily_goals', []);
-    return goals.filter(g => g.user_id === userId && g.date === targetDate);
+    return goals.filter(g => {
+      const belongsToUser = !g.user_id || g.user_id === userId;
+      if (!belongsToUser) return false;
+      if (allDates) return true;
+      return g.date === targetDate;
+    });
+  }
+
+  /**
+   * Fetches all daily goals across history for heatmap matrix calculations.
+   */
+  async function getAllDailyGoals() {
+    return getDailyGoals(null, true);
   }
 
   /**
@@ -414,7 +465,7 @@
     if (!cleanTitle) throw new Error('Daily goal title is required.');
 
     const newGoal = {
-      id: generateUuid(),
+      id: generateUuid('dg'),
       user_id: userId,
       title: cleanTitle,
       target: Math.max(1, parseInt(target, 10) || 1),
@@ -451,16 +502,17 @@
     const userId = getUserId();
 
     const goals = readStore('daily_goals', []);
-    const idx = goals.findIndex(g => g.id === id && g.user_id === userId);
+    const idx = goals.findIndex(g => g.id === id && (!g.user_id || g.user_id === userId));
     if (idx === -1) throw new Error('Daily goal not found.');
 
     const goal = goals[idx];
-    const newProgress = Math.max(0, Math.min(goal.target * 2, goal.progress + delta));
+    const newProgress = Math.max(0, Math.min(goal.target * 2, (goal.progress || 0) + delta));
     const isCompleted = newProgress >= goal.target;
 
     const updates = {
       progress: newProgress,
       completed: isCompleted,
+      user_id: userId,
       updated_at: new Date().toISOString()
     };
 
@@ -484,16 +536,17 @@
     const userId = getUserId();
 
     const goals = readStore('daily_goals', []);
-    const idx = goals.findIndex(g => g.id === id && g.user_id === userId);
+    const idx = goals.findIndex(g => g.id === id && (!g.user_id || g.user_id === userId));
     if (idx === -1) throw new Error('Daily goal not found.');
 
     const goal = goals[idx];
     const isCompleted = !goal.completed;
-    const newProgress = isCompleted ? Math.max(goal.progress, goal.target) : 0;
+    const newProgress = isCompleted ? Math.max(goal.progress || 0, goal.target) : 0;
 
     const updates = {
       completed: isCompleted,
       progress: newProgress,
+      user_id: userId,
       updated_at: new Date().toISOString()
     };
 
@@ -523,7 +576,7 @@
     }
 
     let goals = readStore('daily_goals', []);
-    goals = goals.filter(g => !(g.id === id && g.user_id === userId));
+    goals = goals.filter(g => !(g.id === id && (!g.user_id || g.user_id === userId)));
     writeStore('daily_goals', goals);
 
     emitRealtimeChange('DAILY_GOAL_CHANGED', { id, deleted: true });
@@ -554,7 +607,7 @@
     }
 
     const goals = readStore('weekly_goals', []);
-    return goals.filter(g => g.user_id === userId && g.week_key === currentWeekKey);
+    return goals.filter(g => (!g.user_id || g.user_id === userId) && g.week_key === currentWeekKey);
   }
 
   /**
@@ -567,7 +620,7 @@
     if (!cleanTitle) throw new Error('Weekly goal title is required.');
 
     const newGoal = {
-      id: generateUuid(),
+      id: generateUuid('wg'),
       user_id: userId,
       title: cleanTitle,
       habit_id: habitId || null,
@@ -611,7 +664,7 @@
     }
 
     let goals = readStore('weekly_goals', []);
-    goals = goals.filter(g => !(g.id === id && g.user_id === userId));
+    goals = goals.filter(g => !(g.id === id && (!g.user_id || g.user_id === userId)));
     writeStore('weekly_goals', goals);
 
     emitRealtimeChange('WEEKLY_GOAL_CHANGED', { id, deleted: true });
@@ -641,6 +694,7 @@
     getCompletions,
     toggleCompletion,
     getDailyGoals,
+    getAllDailyGoals,
     createDailyGoal,
     adjustDailyGoalProgress,
     toggleDailyGoalComplete,

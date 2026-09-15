@@ -40,37 +40,13 @@ function runTests() {
   const weeks = HabitsData.calculateHeatmapMatrix(habits, completions, 26, today, dailyGoals);
   assert(weeks && weeks.length === 26, `Heatmap matrix generates exactly 26 weeks (received: ${weeks.length})`);
 
-  // TEST 2: Month header alignment logic sums to exactly 26 columns without gap
-  const monthSpans = [];
-  let currentMonth = -1;
-
-  weeks.forEach((week, wIdx) => {
-    for (let d = 0; d < week.length; d++) {
-      const dObj = HabitsData.parseDate(week[d].date);
-      const m = dObj.getMonth();
-      if (m !== currentMonth) {
-        currentMonth = m;
-        const prev = monthSpans[monthSpans.length - 1];
-        if (!prev || (wIdx - prev.colIndex >= 2)) {
-          monthSpans.push({
-            name: dObj.toLocaleDateString('en-US', { month: 'short' }),
-            colIndex: wIdx
-          });
-        }
-        break;
-      }
-    }
-  });
-
-  for (let i = 0; i < monthSpans.length; i++) {
-    const startCol = monthSpans[i].colIndex;
-    const endCol = (i + 1 < monthSpans.length) ? monthSpans[i + 1].colIndex : weeks.length;
-    monthSpans[i].span = Math.max(1, endCol - startCol);
-  }
+  // TEST 2: Dynamic month headers without skipping months (e.g. April preserved)
+  const monthSpans = HabitsData.calculateHeatmapMonthSpans(weeks);
 
   const totalSpan = monthSpans.reduce((sum, m) => sum + m.span, 0);
   assert(totalSpan === 26, `Month spans sum to exactly 26 columns without gap (total: ${totalSpan})`);
   assert(monthSpans.length >= 4, `At least 4-6 months tracked in 26-week span (found: ${monthSpans.length})`);
+  assert(monthSpans.some(m => m.name === 'Apr'), 'April must be included in month headers across 26 weeks');
 
   const lastMonth = monthSpans[monthSpans.length - 1];
   assert(lastMonth.colIndex + lastMonth.span === 26, `Last month ends exactly at column 26 (${lastMonth.name} span: ${lastMonth.span})`);

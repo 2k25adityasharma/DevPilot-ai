@@ -629,6 +629,8 @@
           completedHabits.push(titleMap[id] || 'Habit');
         });
 
+        const totalActivity = count + goalsCompletedCount;
+
         // Intensity:
         // 0 -> l0
         // 1 -> l1
@@ -637,10 +639,10 @@
         // 4+ -> l4
         let levelClass = 'heatmap-l0';
         if (!isFuture) {
-          if (count >= 4) levelClass = 'heatmap-l4';
-          else if (count === 3) levelClass = 'heatmap-l3';
-          else if (count === 2) levelClass = 'heatmap-l2';
-          else if (count === 1) levelClass = 'heatmap-l1';
+          if (totalActivity >= 4) levelClass = 'heatmap-l4';
+          else if (totalActivity === 3) levelClass = 'heatmap-l3';
+          else if (totalActivity === 2) levelClass = 'heatmap-l2';
+          else if (totalActivity === 1) levelClass = 'heatmap-l1';
         }
 
         const dateObj = parseDate(dateStr);
@@ -657,7 +659,7 @@
           count,
           completedHabits,
           goalsCompletedCount,
-          totalActivity: count + goalsCompletedCount,
+          totalActivity,
           levelClass,
           isToday: dateStr === today,
           isFuture
@@ -845,12 +847,90 @@
   }
 
   // ==========================================
-  // 9. LEGACY MIGRATION & SEEDING (Dev/Demo Only)
+  // 9. COLLISION-SAFE UNIQUE ID GENERATOR
+  // ==========================================
+
+  /**
+   * Collision-safe permanent unique identifier generator.
+   * Leverages crypto.randomUUID() when available, with a monotonic timestamp + random fallback.
+   */
+  function generateUniqueId(prefix = '') {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      const uuid = crypto.randomUUID();
+      return prefix ? `${prefix}_${uuid}` : uuid;
+    }
+    const rand1 = Math.random().toString(36).substring(2, 9);
+    const rand2 = Math.random().toString(36).substring(2, 9);
+    const time = Date.now().toString(36);
+    return prefix ? `${prefix}_${time}_${rand1}${rand2}` : `${time}-${rand1}-${rand2}`;
+  }
+
+  // ==========================================
+  // 10. HEATMAP DYNAMIC MONTH LABELS
+  // ==========================================
+
+  /**
+   * Calculates dynamic month headers across the heatmap week columns.
+   * Ensures no visible month is skipped (fixing the April erasure bug),
+   * prevents label collisions, handles year boundaries, and ensures
+   * total spans align with the 26-week columns.
+   */
+  function calculateHeatmapMonthSpans(weeks = []) {
+    if (!Array.isArray(weeks) || weeks.length === 0) return [];
+
+    const monthStarts = [];
+    let lastMonth = -1;
+
+    weeks.forEach((week, wIdx) => {
+      for (let d = 0; d < week.length; d++) {
+        const dObj = parseDate(week[d].date);
+        const m = dObj.getMonth();
+        if (m !== lastMonth) {
+          lastMonth = m;
+          monthStarts.push({
+            name: dObj.toLocaleDateString('en-US', { month: 'short' }),
+            monthIndex: m,
+            colIndex: wIdx,
+            year: dObj.getFullYear()
+          });
+          break;
+        }
+      }
+    });
+
+    if (monthStarts.length === 0) return [];
+
+    // Filter out initial partial month if it only spans 1 column before the next month starts,
+    // which causes label collisions and suppresses the first full month.
+    let filtered = [];
+    if (monthStarts.length >= 2 && (monthStarts[1].colIndex - monthStarts[0].colIndex < 2)) {
+      // Keep from the first full month, but anchor at column 0 so totalSpan covers all columns
+      filtered = monthStarts.slice(1);
+      if (filtered.length > 0) {
+        filtered[0].colIndex = 0;
+      }
+    } else {
+      filtered = [...monthStarts];
+    }
+
+    // Calculate exact spans
+    for (let i = 0; i < filtered.length; i++) {
+      const startCol = filtered[i].colIndex;
+      const endCol = (i + 1 < filtered.length) ? filtered[i + 1].colIndex : weeks.length;
+      filtered[i].span = Math.max(1, endCol - startCol);
+    }
+
+    return filtered;
+  }
+
+  // ==========================================
+  // 11. LEGACY MIGRATION & SEEDING (Dev/Demo Only)
   // ==========================================
 
   /**
    * Safely migrates existing legacy habits stored in localStorage without injecting mock data.
    * If storedHabits is empty, returns empty array [].
+   * Never uses array index as identity.
    */
   function migrateLegacyHabits(storedHabits, refDate = getTodayStr()) {
     if (!Array.isArray(storedHabits) || storedHabits.length === 0) {
@@ -859,10 +939,12 @@
 
     const today = formatDate(refDate);
 
-    return storedHabits.map((h, idx) => {
+    return storedHabits.map((h) => {
+      const habitId = (h && h.id && String(h.id).trim()) || generateUniqueId('h');
+
       if (h && typeof h.completionHistory === 'object' && Object.keys(h.completionHistory).length > 0) {
         return {
-          id: h.id || `h_${Date.now()}_${idx}`,
+          id: habitId,
           title: h.title || 'Untitled Habit',
           category: h.category || 'General',
           description: h.description || '',
@@ -891,7 +973,7 @@
       }
 
       return {
-        id: h.id || `h_${Date.now()}_${idx}`,
+        id: habitId,
         title: h.title || 'Untitled Habit',
         category: h.category || 'General',
         description: h.description || '',
@@ -922,8 +1004,10 @@
     calculateDailyGoalsSummary,
     calculateWeeklyMomentum,
     calculateHeatmapMatrix,
+    calculateHeatmapMonthSpans,
     calculateHabitInsights,
     calculateWeeklyGoalProgress,
+    generateUniqueId,
     migrateLegacyHabits
   };
 });

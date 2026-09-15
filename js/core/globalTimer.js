@@ -147,7 +147,18 @@
 
     // Always calculate remaining seconds deterministically if running
     if (state.isRunning && state.endTimestamp) {
-      state.remainingSeconds = getTimerData().calculateRemaining(state.endTimestamp);
+      const now = Date.now();
+      // If browser was closed and endTimestamp is in the past by more than 5 minutes (300s),
+      // the countdown expired while user was away: safely reset to idle without logging a ghost session!
+      if (now - state.endTimestamp > 5 * 60 * 1000) {
+        state.isRunning = false;
+        state.isPaused = false;
+        state.endTimestamp = null;
+        state.remainingSeconds = state.durationSeconds;
+        storage.set(STORAGE_KEY_STATE, state);
+      } else {
+        state.remainingSeconds = getTimerData().calculateRemaining(state.endTimestamp, now);
+      }
     }
 
     return state;
@@ -234,10 +245,16 @@
 
   function reset() {
     const state = getState();
+    const settings = getSettings();
+    let minutes = settings.focusDuration || 25;
+    if (state.mode === 'shortBreak') minutes = settings.shortBreakDuration || 5;
+    if (state.mode === 'longBreak') minutes = settings.longBreakDuration || 15;
+
+    state.durationSeconds = minutes * 60;
+    state.remainingSeconds = state.durationSeconds;
     state.isRunning = false;
     state.isPaused = false;
     state.endTimestamp = null;
-    state.remainingSeconds = state.durationSeconds;
 
     saveState(state);
     render();
@@ -344,81 +361,92 @@
     }, 300); // 300ms interval guarantees sub-second responsiveness without CPU waste
   }
 
+  let isCompleting = false;
+
   /**
    * Atomic completion handling: guarantees exactly ONE completion event
    * even across multiple tabs or simultaneous UI components.
    */
   function completeSession(state, elapsedSeconds = null) {
     // Atomic check
+    if (isCompleting) return;
     if (!state.isRunning && !state.endTimestamp && !elapsedSeconds) return;
 
-    state.isRunning = false;
-    state.isPaused = false;
-    state.remainingSeconds = 0;
-    state.endTimestamp = null;
+    isCompleting = true;
+    try {
+      state.isRunning = false;
+      state.isPaused = false;
+      state.remainingSeconds = 0;
+      state.endTimestamp = null;
 
-    // 1. Log session if work mode (strictly NEVER log breaks)
-    const wasWork = state.mode === 'work';
-    if (wasWork) {
-      try {
-        const storage = getStorage();
-        const rawSessions = storage.get(STORAGE_KEY_SESSIONS, []) || [];
-        const sessions = Array.isArray(rawSessions)
-          ? rawSessions.filter(s => s && s.id !== 'ts_1' && s.id !== 'ts_2' && s.id !== 'ts_3' && s.mode === 'work')
-          : [];
+      // 1. Log session if work mode (strictly NEVER log breaks)
+      const wasWork = state.mode === 'work';
+      if (wasWork) {
+        try {
+          const storage = getStorage();
+          const rawSessions = storage.get(STORAGE_KEY_SESSIONS, []) || [];
+          const sessions = Array.isArray(rawSessions)
+            ? rawSessions.filter(s => s && s.id !== 'ts_1' && s.id !== 'ts_2' && s.id !== 'ts_3' && s.mode === 'work')
+            : [];
 
-        const dur = (typeof elapsedSeconds === 'number' && elapsedSeconds > 0)
-          ? elapsedSeconds
-          : state.durationSeconds;
+          const dur = (typeof elapsedSeconds === 'number' && elapsedSeconds > 0)
+            ? elapsedSeconds
+            : state.durationSeconds;
 
-        sessions.unshift({
-          id: `ts_${Date.now()}`,
-          task: state.currentTask || 'Deep Work Focus',
-          mode: 'work',
-          durationSeconds: dur,
-          completedAt: new Date().toISOString()
-        });
-        storage.set(STORAGE_KEY_SESSIONS, sessions);
-      } catch (e) {
-        console.warn('Could not save completed session:', e);
+          // Guard: genuine focus interval must be at least 60 seconds
+          if (dur >= 60) {
+            sessions.unshift({
+              id: `ts_${Date.now()}`,
+              task: state.currentTask || 'Deep Work Focus',
+              mode: 'work',
+              durationSeconds: dur,
+              completedAt: new Date().toISOString()
+            });
+            storage.set(STORAGE_KEY_SESSIONS, sessions);
+          }
+        } catch (e) {
+          console.warn('Could not save completed session:', e);
+        }
       }
-    }
 
-    // 2. Advance cycle & transition
-    const settings = getSettings();
-    const transition = getTimerData().getNextSessionTransition(
-      state.mode,
-      state.cyclePosition,
-      settings.sessionsBeforeLongBreak
-    );
+      // 2. Advance cycle & transition
+      const settings = getSettings();
+      const transition = getTimerData().getNextSessionTransition(
+        state.mode,
+        state.cyclePosition,
+        settings.sessionsBeforeLongBreak
+      );
 
-    state.cyclePosition = transition.nextCycle;
+      state.cyclePosition = transition.nextCycle;
 
-    // Configure next mode duration
-    let nextMinutes = settings.focusDuration;
-    if (transition.nextMode === 'shortBreak') nextMinutes = settings.shortBreakDuration;
-    if (transition.nextMode === 'longBreak') nextMinutes = settings.longBreakDuration;
+      // Configure next mode duration
+      let nextMinutes = settings.focusDuration;
+      if (transition.nextMode === 'shortBreak') nextMinutes = settings.shortBreakDuration;
+      if (transition.nextMode === 'longBreak') nextMinutes = settings.longBreakDuration;
 
-    state.mode = transition.nextMode;
-    state.durationSeconds = nextMinutes * 60;
-    state.remainingSeconds = state.durationSeconds;
+      state.mode = transition.nextMode;
+      state.durationSeconds = nextMinutes * 60;
+      state.remainingSeconds = state.durationSeconds;
 
-    // Save final state
-    saveState(state);
-    render();
+      // Save final state
+      saveState(state);
+      render();
 
-    // 3. Audio & Notification feedback
-    playChime();
-    triggerNotification(
-      wasWork ? '🎉 Focus Session Complete!' : '☕ Break Complete!',
-      transition.message
-    );
+      // 3. Audio & Notification feedback
+      playChime();
+      triggerNotification(
+        wasWork ? '🎉 Focus Session Complete!' : '☕ Break Complete!',
+        transition.message
+      );
 
-    // 4. Auto-start next if enabled
-    if (settings.autoStart) {
-      setTimeout(() => {
-        start();
-      }, 1500);
+      // 4. Auto-start next if enabled
+      if (settings.autoStart) {
+        setTimeout(() => {
+          start();
+        }, 1500);
+      }
+    } finally {
+      isCompleting = false;
     }
   }
 
@@ -461,6 +489,38 @@
     state.remainingSeconds = state.durationSeconds;
     saveState(state);
 
+    return state;
+  }
+
+  function updateSettings(newSettings) {
+    const storage = getStorage();
+    const currentSettings = getSettings();
+    const merged = Object.assign({}, currentSettings, newSettings || {});
+    storage.set(STORAGE_KEY_SETTINGS, merged);
+
+    const state = getState();
+    let currentMinutes = merged.focusDuration || 25;
+    if (state.mode === 'shortBreak') currentMinutes = merged.shortBreakDuration || 5;
+    if (state.mode === 'longBreak') currentMinutes = merged.longBreakDuration || 15;
+
+    if (!state.isRunning) {
+      state.durationSeconds = currentMinutes * 60;
+      state.remainingSeconds = state.durationSeconds;
+      state.endTimestamp = null;
+      saveState(state);
+    } else {
+      const prevTotal = state.durationSeconds || (currentMinutes * 60);
+      const newTotal = currentMinutes * 60;
+      state.durationSeconds = newTotal;
+      const now = Date.now();
+      const remaining = Math.max(0, Math.ceil((state.endTimestamp - now) / 1000));
+      const elapsed = Math.max(0, prevTotal - remaining);
+      const newRemaining = Math.max(1, newTotal - elapsed);
+      state.remainingSeconds = newRemaining;
+      state.endTimestamp = now + (newRemaining * 1000);
+      saveState(state);
+    }
+    render();
     return state;
   }
 
@@ -548,7 +608,7 @@
     bindGlobalEvents();
 
     const state = getState();
-    if (state.isRunning) {
+    if (state.isRunning && state.endTimestamp) {
       ensureTicking();
     }
     render();
@@ -658,7 +718,7 @@
         actionsContainer.prepend(headerPill);
       } else if (pageHeader) {
         // Insert into page header on pages/*.html
-        const headerActions = pageHeader.querySelector('.flex.items-center.gap-3, .flex.items-center.gap-2.5') || pageHeader;
+        const headerActions = pageHeader.querySelector('.flex.items-center.gap-3, .flex.items-center[class*="gap-2"], .flex.items-center') || pageHeader;
         headerActions.prepend(headerPill);
       } else {
         // Floating fallback in top-right
@@ -1068,6 +1128,7 @@
     subscribe,
     completeSession,
     manualComplete,
+    updateSettings,
     getRelativePath
   };
 });

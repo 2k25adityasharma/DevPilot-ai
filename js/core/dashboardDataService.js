@@ -184,14 +184,20 @@
     const userId = getUserId();
 
     // Read habits
-    let habits = storage.get(`u_${userId}_habits`, null);
+    let habits = storage.get(`devpilot_u_${userId}_habits`, null);
+    if (!Array.isArray(habits)) {
+      habits = storage.get(`u_${userId}_habits`, null);
+    }
     if (!Array.isArray(habits)) {
       habits = storage.get('habits_data', []);
     }
     if (!Array.isArray(habits)) habits = [];
 
     // Read completions
-    let completions = storage.get(`u_${userId}_completions`, null);
+    let completions = storage.get(`devpilot_u_${userId}_completions`, null);
+    if (!Array.isArray(completions)) {
+      completions = storage.get(`u_${userId}_completions`, null);
+    }
     if (!Array.isArray(completions)) {
       completions = storage.get('habits_completions', []);
     }
@@ -223,8 +229,11 @@
     const storage = getStorage();
     const userId = getUserId();
 
-    const storeKey = `u_${userId}_daily_goals`;
-    let goals = storage.get(storeKey, null);
+    const primaryKey = `devpilot_u_${userId}_daily_goals`;
+    let goals = storage.get(primaryKey, null);
+    if (!Array.isArray(goals)) {
+      goals = storage.get(`u_${userId}_daily_goals`, null);
+    }
     if (!Array.isArray(goals)) {
       goals = storage.get('daily_goals', null);
     }
@@ -277,7 +286,8 @@
           completed: false
         }
       ];
-      storage.set(storeKey, goals);
+      storage.set(primaryKey, goals);
+      storage.set(`u_${userId}_daily_goals`, goals);
     }
 
     // Return goals matching target date (or all if stored without dates)
@@ -335,8 +345,11 @@
   function toggleDailyGoal(id) {
     const storage = getStorage();
     const userId = getUserId();
-    const storeKey = `u_${userId}_daily_goals`;
-    let goals = storage.get(storeKey, null);
+    const primaryKey = `devpilot_u_${userId}_daily_goals`;
+    const fallbackKey = `u_${userId}_daily_goals`;
+
+    let goals = storage.get(primaryKey, null);
+    if (!Array.isArray(goals)) goals = storage.get(fallbackKey, null);
     if (!Array.isArray(goals)) goals = storage.get('daily_goals', []);
     if (!Array.isArray(goals)) goals = [];
 
@@ -345,7 +358,22 @@
       targetGoal.completed = !targetGoal.completed;
       targetGoal.progress = targetGoal.completed ? (targetGoal.target || 1) : 0;
       targetGoal.updated_at = new Date().toISOString();
-      storage.set(storeKey, goals);
+      storage.set(primaryKey, goals);
+      storage.set(fallbackKey, goals);
+
+      // Notify other pages and components via BroadcastChannel
+      try {
+        if (typeof BroadcastChannel !== 'undefined') {
+          const channel = new BroadcastChannel('devpilot_habits_realtime');
+          channel.postMessage({
+            type: 'DAILY_GOAL_CHANGED',
+            userId,
+            data: targetGoal,
+            timestamp: Date.now()
+          });
+        }
+      } catch (e) {}
+
       return targetGoal;
     }
     return null;
@@ -1300,8 +1328,19 @@
   // ==========================================
   function getFocusTimeToday() {
     const storage = getStorage();
-    const rawSessions = storage.get('timer_sessions', []);
-    const sessions = (Array.isArray(rawSessions) ? rawSessions : []).map(s => {
+    const userId = getUserId();
+
+    // Check user-scoped key first, then fallback
+    let rawSessions = storage.get(`devpilot_u_${userId}_timer_sessions`, null);
+    if (!Array.isArray(rawSessions)) {
+      rawSessions = storage.get(`u_${userId}_timer_sessions`, null);
+    }
+    if (!Array.isArray(rawSessions)) {
+      rawSessions = storage.get('timer_sessions', []);
+    }
+    if (!Array.isArray(rawSessions)) rawSessions = [];
+
+    const sessions = rawSessions.map(s => {
       if (!s) return null;
       const durationSeconds = s.durationSeconds || (s.durationMinutes ? s.durationMinutes * 60 : 0);
       const completedAt = s.completedAt || s.date || new Date().toISOString();
@@ -1340,7 +1379,264 @@
   }
 
   // ==========================================
-  // 12. UTILITIES
+  // 12. TODAY TASKS SUMMARY
+  // ==========================================
+  function getTodayTasksSummary() {
+    const todayStr = getTodayDateStr();
+    const goals = getDailyGoals(todayStr);
+    const total = Array.isArray(goals) ? goals.length : 0;
+    const completed = Array.isArray(goals) ? goals.filter(g => !!g.completed).length : 0;
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    return {
+      completed,
+      total,
+      percentage,
+      fractionText: `${completed} / ${total}`,
+      percentageText: `${percentage}% today`
+    };
+  }
+
+  // ==========================================
+  // 13. TOP SKILL ENGINE (WEIGHTED ACTIVITY SCORE)
+  // ==========================================
+  function getTopSkill(timeframe = 'week') {
+    const storage = getStorage();
+    const userId = getUserId();
+    const todayDate = new Date();
+    const todayStr = getTodayDateStr();
+
+    // Calculate Monday of current week
+    const refD = new Date(todayDate.getTime());
+    const dayOfWeek = refD.getDay(); // 0 is Sun, 1 is Mon...
+    const diffToMon = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek;
+    const monday = new Date(refD);
+    monday.setDate(refD.getDate() + diffToMon);
+    const mondayYear = monday.getFullYear();
+    const mondayMonth = String(monday.getMonth() + 1).padStart(2, '0');
+    const mondayDay = String(monday.getDate()).padStart(2, '0');
+    const mondayStr = `${mondayYear}-${mondayMonth}-${mondayDay}`;
+
+    // Preferred language for DSA
+    const preferredLang = (storage.get('dsa_preferred_lang', 'cpp') || 'cpp').toLowerCase();
+    let dsaSkillName = 'DSA in C++';
+    if (preferredLang === 'python') dsaSkillName = 'DSA in Python';
+    else if (preferredLang === 'javascript' || preferredLang === 'js') dsaSkillName = 'DSA in JavaScript';
+    else if (preferredLang === 'java') dsaSkillName = 'DSA in Java';
+    else if (preferredLang === 'typescript' || preferredLang === 'ts') dsaSkillName = 'DSA in TypeScript';
+
+    const skillsMap = {};
+
+    function registerActivity(skillName, options = {}) {
+      if (!skillName) return;
+      const cleanName = String(skillName).trim();
+      if (!cleanName) return;
+
+      const normKey = cleanName.toLowerCase();
+      if (!skillsMap[normKey]) {
+        let icon = 'terminal';
+        if (/dsa|leetcode|algorithm|data struct/i.test(cleanName)) icon = 'data_object';
+        else if (/frontend|react|vue|css|html|ui/i.test(cleanName)) icon = 'devices';
+        else if (/backend|node|express|api|database|sql/i.test(cleanName)) icon = 'dns';
+        else if (/system design|architecture|scalability/i.test(cleanName)) icon = 'architecture';
+        else if (/focus|deep work|study/i.test(cleanName)) icon = 'psychology';
+
+        skillsMap[normKey] = {
+          name: cleanName,
+          focusMinutes: 0,
+          activitiesCount: 0,
+          score: 0,
+          icon
+        };
+      }
+
+      const entry = skillsMap[normKey];
+      const pts = options.points || 0;
+      const mins = options.focusMinutes || 0;
+      const acts = options.activities || 1;
+
+      entry.score += pts;
+      entry.focusMinutes += mins;
+      entry.activitiesCount += acts;
+    }
+
+    // 1. Focus Sessions this week
+    let rawSessions = storage.get(`devpilot_u_${userId}_timer_sessions`, null);
+    if (!Array.isArray(rawSessions)) rawSessions = storage.get(`u_${userId}_timer_sessions`, null);
+    if (!Array.isArray(rawSessions)) rawSessions = storage.get('timer_sessions', []);
+    if (Array.isArray(rawSessions)) {
+      rawSessions.forEach(s => {
+        if (!s || s.mode !== 'work') return;
+        const durSec = s.durationSeconds || (s.durationMinutes ? s.durationMinutes * 60 : 0);
+        if (durSec < 60) return; // ignore sub-minute intervals
+        const compAt = s.completedAt || s.date || '';
+        const sDateStr = compAt.slice(0, 10);
+        if (sDateStr && (sDateStr < mondayStr || sDateStr > todayStr)) return; // not this week
+
+        let skillName = s.skill || s.skillTag || null;
+        if (!skillName && s.task) {
+          const taskLower = s.task.toLowerCase();
+          if (/\b(dsa|leetcode|algorithm|tree|graph|binary search|dp)\b/.test(taskLower)) skillName = dsaSkillName;
+          else if (/\b(javascript|typescript|js|ts)\b/.test(taskLower)) skillName = 'JavaScript';
+          else if (/\b(react|frontend|css|html|tailwind|vue|next)\b/.test(taskLower)) skillName = 'Frontend Development';
+          else if (/\b(node|backend|express|api|sql|database|postgres|mongo)\b/.test(taskLower)) skillName = 'Backend Development';
+          else if (/\b(system design|architecture|caching|microservices)\b/.test(taskLower)) skillName = 'System Design';
+          else if (/\b(python|django|fastapi)\b/.test(taskLower)) skillName = 'Python';
+          else if (/\b(c\+\+|cpp)\b/.test(taskLower)) skillName = 'C++';
+          else if (/\b(java|spring)\b/.test(taskLower)) skillName = 'Java';
+          else skillName = s.task.length > 24 ? s.task.slice(0, 24) : s.task;
+        }
+        if (!skillName) skillName = 'Focus & Deep Work';
+
+        const focusMins = Math.round(durSec / 60);
+        // 1.5 points per 15 minutes of focus (e.g. 1 hour = 6 points)
+        const points = (focusMins / 15) * 1.5;
+        registerActivity(skillName, { points, focusMinutes: focusMins, activities: 1 });
+      });
+    }
+
+    // 2. Completed Daily Goals this week
+    let rawDailyGoals = storage.get(`devpilot_u_${userId}_daily_goals`, null);
+    if (!Array.isArray(rawDailyGoals)) rawDailyGoals = storage.get(`u_${userId}_daily_goals`, null);
+    if (!Array.isArray(rawDailyGoals)) rawDailyGoals = storage.get('daily_goals', []);
+    if (Array.isArray(rawDailyGoals)) {
+      rawDailyGoals.forEach(g => {
+        if (!g || !g.completed) return;
+        const gDate = g.date || todayStr;
+        if (gDate < mondayStr || gDate > todayStr) return; // not this week
+
+        let skillName = null;
+        const cat = (g.category || '').toLowerCase();
+        if (cat === 'coding' || cat === 'dsa') skillName = dsaSkillName;
+        else if (cat === 'frontend') skillName = 'Frontend Development';
+        else if (cat === 'backend') skillName = 'Backend Development';
+        else if (cat === 'system design') skillName = 'System Design';
+        else if (g.title) {
+          const tLower = g.title.toLowerCase();
+          if (/\b(dsa|leetcode|graphs?|trees?|dp)\b/.test(tLower)) skillName = dsaSkillName;
+          else if (/\b(react|frontend|css|ui)\b/.test(tLower)) skillName = 'Frontend Development';
+          else if (/\b(system design|cache|scaling)\b/.test(tLower)) skillName = 'System Design';
+          else if (/\b(javascript|typescript|js|ts)\b/.test(tLower)) skillName = 'JavaScript';
+          else skillName = g.category || 'Problem Solving';
+        } else {
+          skillName = g.category || 'Problem Solving';
+        }
+
+        registerActivity(skillName, { points: 2, activities: 1 });
+      });
+    }
+
+    // 3. Completed Habits this week
+    let habits = storage.get(`devpilot_u_${userId}_habits`, null);
+    if (!Array.isArray(habits)) habits = storage.get(`u_${userId}_habits`, null);
+    if (!Array.isArray(habits)) habits = storage.get('habits_data', []);
+    if (!Array.isArray(habits)) habits = [];
+
+    let completions = storage.get(`devpilot_u_${userId}_completions`, null);
+    if (!Array.isArray(completions)) completions = storage.get(`u_${userId}_completions`, null);
+    if (!Array.isArray(completions)) completions = storage.get('habits_completions', []);
+    if (!Array.isArray(completions)) completions = [];
+
+    const habitsMap = {};
+    habits.forEach(h => { if (h && h.id) habitsMap[h.id] = h; });
+
+    completions.forEach(c => {
+      if (!c || !c.completion_date) return;
+      if (c.completion_date < mondayStr || c.completion_date > todayStr) return; // not this week
+      const h = habitsMap[c.habit_id];
+      if (!h) return;
+
+      let skillName = null;
+      const cat = (h.category || '').toLowerCase();
+      if (cat === 'dsa' || cat === 'coding') skillName = dsaSkillName;
+      else if (cat === 'frontend') skillName = 'Frontend Development';
+      else if (cat === 'backend') skillName = 'Backend Development';
+      else if (cat === 'system design') skillName = 'System Design';
+      else skillName = h.title || h.category || 'Development Practice';
+
+      registerActivity(skillName, { points: 2, activities: 1 });
+    });
+
+    // 4. Completed DSA Questions
+    const dsaProgress = storage.get('dsa_progress', {}) || {};
+    const dsaEvals = storage.get('dsa_roadmap_evaluations', {}) || {};
+    const solvedIds = new Set();
+    Object.keys(dsaProgress).forEach(k => {
+      const val = dsaProgress[k];
+      if (val === true || (val && val.solved)) solvedIds.add(k);
+    });
+    Object.keys(dsaEvals).forEach(k => {
+      const val = dsaEvals[k];
+      if (val === true || (val && val.passed)) solvedIds.add(k);
+    });
+
+    if (solvedIds.size > 0) {
+      // 3 points per solved problem, +1 activity count each
+      registerActivity(dsaSkillName, { points: solvedIds.size * 3, activities: solvedIds.size });
+    }
+
+    // 5. Career Roadmap Progress
+    try {
+      const careerProgRaw = storage.get('career_roadmaps_progress', null);
+      if (careerProgRaw && careerProgRaw.activeCareer) {
+        const activeId = careerProgRaw.activeCareer;
+        const roleProg = careerProgRaw[activeId] || {};
+        const completedNodes = Array.isArray(roleProg.completed) ? roleProg.completed : [];
+        if (completedNodes.length > 0) {
+          let roleTitle = 'Software Engineering';
+          if (activeId.includes('frontend')) roleTitle = 'Frontend Development';
+          else if (activeId.includes('backend')) roleTitle = 'Backend Development';
+          else if (activeId.includes('fullstack')) roleTitle = 'Full Stack Development';
+          else if (activeId.includes('devops')) roleTitle = 'DevOps & Cloud';
+          else if (activeId.includes('mobile')) roleTitle = 'Mobile Development';
+
+          registerActivity(roleTitle, { points: completedNodes.length * 3, activities: completedNodes.length });
+        }
+      }
+    } catch (e) {}
+
+    // Evaluate winner
+    const allSkills = Object.values(skillsMap);
+    if (allSkills.length === 0) {
+      return {
+        hasActivity: false,
+        skill: 'No activity yet',
+        subtext: '0 activities this week',
+        icon: 'data_object',
+        score: 0,
+        activitiesCount: 0
+      };
+    }
+
+    allSkills.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      return b.activitiesCount - a.activitiesCount;
+    });
+
+    const top = allSkills[0];
+    if (top.activitiesCount === 0 || top.score <= 0) {
+      return {
+        hasActivity: false,
+        skill: 'No activity yet',
+        subtext: '0 activities this week',
+        icon: 'data_object',
+        score: 0,
+        activitiesCount: 0
+      };
+    }
+
+    return {
+      hasActivity: true,
+      skill: top.name,
+      subtext: `${top.activitiesCount} ${top.activitiesCount === 1 ? 'activity' : 'activities'} this week`,
+      icon: top.icon,
+      score: Math.round(top.score * 10) / 10,
+      activitiesCount: top.activitiesCount
+    };
+  }
+
+  // ==========================================
+  // 14. UTILITIES
   // ==========================================
   function formatTimeAgo(dateString) {
     if (!dateString) return '';
@@ -1378,6 +1674,9 @@
     getAISuggestion,
     getCalendarData,
     getFocusTimeToday,
+    getTodayTasksSummary,
+    getTopSkill,
     getTodayDateStr
   };
 });
+

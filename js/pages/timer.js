@@ -156,39 +156,58 @@
   }
 
   function loadActiveState() {
-    const stored = Storage.get('timer_active_state');
     const defaultDuration = (settings.focusDuration || 25) * 60;
 
-    activeState = Object.assign({
-      mode: 'work',
-      durationSeconds: defaultDuration,
-      startTimestamp: null,
-      endTimestamp: null,
-      remainingSeconds: defaultDuration,
-      isRunning: false,
-      isPaused: false,
-      cyclePosition: 1,
-      currentTask: ''
-    }, stored || {});
+    if (typeof window.GlobalTimer !== 'undefined') {
+      activeState = window.GlobalTimer.getState();
+    } else {
+      const stored = Storage.get('timer_active_state');
+      activeState = Object.assign({
+        mode: 'work',
+        durationSeconds: defaultDuration,
+        startTimestamp: null,
+        endTimestamp: null,
+        remainingSeconds: defaultDuration,
+        isRunning: false,
+        isPaused: false,
+        cyclePosition: 1,
+        currentTask: ''
+      }, stored || {});
+    }
 
-    // Resume running timer if page reloaded during an active countdown
+    // Check running countdown on page load
     if (activeState.isRunning && activeState.endTimestamp) {
-      const remaining = TimerData.calculateRemaining(activeState.endTimestamp);
+      const now = Date.now();
+      const remaining = TimerData.calculateRemaining(activeState.endTimestamp, now);
       if (remaining > 0) {
         activeState.remainingSeconds = remaining;
         startTicking();
       } else {
-        // Finished while browser was closed / refreshed
-        activeState.remainingSeconds = 0;
-        activeState.isRunning = false;
-        activeState.isPaused = false;
-        setTimeout(() => handleTimerCompletion(), 300);
+        // Expired while tab/browser was closed
+        // If older than 5 minutes, user was away: reset cleanly without fake logging
+        if (now - activeState.endTimestamp > 5 * 60 * 1000) {
+          activeState.isRunning = false;
+          activeState.isPaused = false;
+          activeState.endTimestamp = null;
+          activeState.remainingSeconds = activeState.durationSeconds;
+          saveActiveState();
+        } else {
+          // Finished recently
+          activeState.remainingSeconds = 0;
+          activeState.isRunning = false;
+          activeState.isPaused = false;
+          activeState.endTimestamp = null;
+          saveActiveState();
+          if (typeof window.GlobalTimer !== 'undefined') {
+            window.GlobalTimer.completeSession(activeState);
+          } else {
+            handleTimerCompletion();
+          }
+        }
       }
     } else if (activeState.isPaused) {
-      // Kept paused with remaining time
       activeState.isRunning = false;
     } else {
-      // Clean idle state
       activeState.isRunning = false;
       activeState.isPaused = false;
       activeState.endTimestamp = null;
@@ -540,6 +559,11 @@
   // ==========================================
 
   function startTicking() {
+    if (typeof window.GlobalTimer !== 'undefined') {
+      window.GlobalTimer.ensureTicking();
+      return;
+    }
+
     if (timerInterval) clearInterval(timerInterval);
 
     timerInterval = setInterval(() => {
@@ -563,29 +587,35 @@
   function setupVisibilityListeners() {
     // Sync accurately whenever user returns to tab
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && activeState.isRunning && activeState.endTimestamp) {
-        const remaining = TimerData.calculateRemaining(activeState.endTimestamp);
-        activeState.remainingSeconds = remaining;
-        renderTimerDisplay();
-        if (remaining <= 0) {
-          clearInterval(timerInterval);
-          timerInterval = null;
-          activeState.remainingSeconds = 0;
-          activeState.isRunning = false;
-          activeState.isPaused = false;
-          activeState.endTimestamp = null;
-          saveActiveState();
-          handleTimerCompletion();
+      if (!document.hidden) {
+        if (typeof window.GlobalTimer !== 'undefined') {
+          activeState = window.GlobalTimer.getState();
+        } else if (activeState.isRunning && activeState.endTimestamp) {
+          const remaining = TimerData.calculateRemaining(activeState.endTimestamp);
+          activeState.remainingSeconds = remaining;
+          if (remaining <= 0) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            activeState.remainingSeconds = 0;
+            activeState.isRunning = false;
+            activeState.isPaused = false;
+            activeState.endTimestamp = null;
+            saveActiveState();
+            handleTimerCompletion();
+          }
         }
+        renderTimerDisplay();
       }
     });
 
     window.addEventListener('focus', () => {
-      if (activeState.isRunning && activeState.endTimestamp) {
+      if (typeof window.GlobalTimer !== 'undefined') {
+        activeState = window.GlobalTimer.getState();
+      } else if (activeState.isRunning && activeState.endTimestamp) {
         const remaining = TimerData.calculateRemaining(activeState.endTimestamp);
         activeState.remainingSeconds = remaining;
-        renderTimerDisplay();
       }
+      renderTimerDisplay();
     });
   }
 
@@ -593,7 +623,7 @@
   // 5. SESSION COMPLETION & CYCLE ADVANCEMENT
   // ==========================================
 
-  function handleTimerCompletion(customTaskName = null) {
+  function handleTimerCompletion(customTaskName = null, customElapsed = null) {
     playChime();
 
     const wasWorkSession = activeState.mode === 'work';
@@ -603,12 +633,17 @@
                      'Deep Work Focus';
 
     // 1. If focus mode finished, log real completed session
-    if (wasWorkSession) {
+    // (Only log directly if GlobalTimer is NOT loaded to prevent double-logging!)
+    if (wasWorkSession && typeof window.GlobalTimer === 'undefined') {
+      const dur = (typeof customElapsed === 'number' && customElapsed >= 60)
+        ? customElapsed
+        : activeState.durationSeconds;
+
       const completedSession = {
         id: `ts_${Date.now()}`,
         task: taskName,
         mode: 'work',
-        durationSeconds: activeState.durationSeconds,
+        durationSeconds: dur,
         completedAt: new Date().toISOString()
       };
 
@@ -625,6 +660,18 @@
 
     activeState.cyclePosition = transition.nextCycle;
     nextPendingTransition = transition;
+
+    // Reset remainingSeconds to next phase duration so it never lingers at 0:00
+    let nextMinutes = settings.focusDuration;
+    if (transition.nextMode === 'shortBreak') nextMinutes = settings.shortBreakDuration;
+    if (transition.nextMode === 'longBreak') nextMinutes = settings.longBreakDuration;
+    activeState.mode = transition.nextMode;
+    activeState.durationSeconds = nextMinutes * 60;
+    activeState.remainingSeconds = activeState.durationSeconds;
+    activeState.isRunning = false;
+    activeState.isPaused = false;
+    activeState.endTimestamp = null;
+    saveActiveState();
 
     // Trigger notification
     triggerBrowserNotification(
@@ -664,38 +711,51 @@
       currentRemaining = TimerData.calculateRemaining(activeState.endTimestamp);
     }
 
-    // 3. PREVENT PREMATURE COMPLETION:
-    // If the 25 minutes (or configured focus duration) have not finished, do not allow completion!
-    if (currentRemaining > 0) {
-      if (!activeState.isRunning && currentRemaining >= targetSeconds) {
-        showToast(`Focus session has not started yet. Complete the full ${targetMinutes}-minute session before completing!`, 'warning');
-      } else {
-        const remainingStr = TimerData.formatTime(currentRemaining);
-        showToast(`Focus session is not complete yet (${remainingStr} remaining)! Complete the full ${targetMinutes} minutes to mark it complete.`, 'warning');
-      }
+    // 3. Prevent logging if session has not started yet (0 seconds elapsed)
+    if (!activeState.isRunning && !activeState.isPaused && currentRemaining >= targetSeconds) {
+      showToast('Focus session has not started yet. Click "Start Focus" to begin!', 'warning');
       return;
     }
 
-    // 4. Timer has completed (remaining is 0):
+    // 4. Calculate actual elapsed focus seconds
+    let elapsed = activeState.durationSeconds - currentRemaining;
+    if (currentRemaining <= 0) {
+      elapsed = activeState.durationSeconds;
+    }
+
+    // 5. Guard against premature / sub-minute clicks (< 60 seconds)
+    if (elapsed < 60) {
+      showToast(`Only ${Math.max(1, elapsed)}s elapsed. Focus for at least 1 minute before completing!`, 'warning');
+      return;
+    }
+
+    // 6. User has genuinely focused for >= 1 minute: Complete & Log!
     const typedTask = (dom.taskInput && dom.taskInput.value.trim()) || 
                       activeState.currentTask || 
                       'Deep Work Focus';
 
     activeState.currentTask = typedTask;
 
-    if (activeState.isRunning) {
+    if (timerInterval) {
       clearInterval(timerInterval);
       timerInterval = null;
+    }
+
+    if (typeof window.GlobalTimer !== 'undefined') {
+      activeState = window.GlobalTimer.manualComplete(typedTask, elapsed);
+    } else {
       activeState.isRunning = false;
       activeState.isPaused = false;
       activeState.endTimestamp = null;
+      activeState.remainingSeconds = activeState.durationSeconds;
+      saveActiveState();
+      handleTimerCompletion(typedTask, elapsed);
     }
 
-    activeState.remainingSeconds = 0;
-    saveActiveState();
-
-    // Call standard completion handler to log completed session, advance cycle, chime & notify
-    handleTimerCompletion(typedTask);
+    loadSessions();
+    renderAll();
+    const elapsedMins = Math.round(elapsed / 60);
+    showToast(`Focus session logged: ${typedTask} (+${elapsedMins}m)`, 'success');
   }
 
   function showCompletionModal(transition, wasWork) {
@@ -955,9 +1015,17 @@
           const todayStr = TimerData.formatDate(new Date());
           sessions = sessions.filter(s => TimerData.formatDate(s.completedAt) !== todayStr);
           saveSessions();
+          activeState.cyclePosition = 1;
+          if (typeof window.GlobalTimer !== 'undefined') {
+            const gtState = window.GlobalTimer.getState();
+            gtState.cyclePosition = 1;
+            window.GlobalTimer.saveState(gtState);
+          }
+          saveActiveState();
           renderTodayStats();
           renderSessionsHistory();
-          showToast('Today\'s session history cleared', 'info');
+          renderCycleSteps();
+          showToast('Today\'s session history cleared and cycle reset to 1', 'info');
         }
       });
     }
@@ -1069,18 +1137,23 @@
     saveSettings();
     closeSettingsModal();
 
-    // If timer is not currently running, update duration immediately
-    if (!activeState.isRunning) {
+    if (typeof window.GlobalTimer !== 'undefined' && typeof window.GlobalTimer.updateSettings === 'function') {
+      const updatedState = window.GlobalTimer.updateSettings(settings);
+      activeState = Object.assign({}, activeState, updatedState);
+    } else {
       let currentMinutes = settings.focusDuration;
       if (activeState.mode === 'shortBreak') currentMinutes = settings.shortBreakDuration;
       if (activeState.mode === 'longBreak') currentMinutes = settings.longBreakDuration;
 
       activeState.durationSeconds = currentMinutes * 60;
-      activeState.remainingSeconds = activeState.durationSeconds;
+      if (!activeState.isRunning) {
+        activeState.remainingSeconds = activeState.durationSeconds;
+      }
       saveActiveState();
-      renderAll();
     }
 
+    updateModeLabels();
+    renderAll();
     showToast('Timer preferences saved', 'success');
   }
 

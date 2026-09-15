@@ -14,6 +14,7 @@
   let habits = [];
   let completions = [];
   let dailyGoals = [];
+  let allDailyGoals = [];
   let weeklyGoals = [];
 
   // Temporary UI selection state
@@ -173,16 +174,18 @@
 
     try {
       // Parallel fetch for speed
-      const [fetchedHabits, fetchedCompletions, fetchedDailyGoals, fetchedWeeklyGoals] = await Promise.all([
+      const [fetchedHabits, fetchedCompletions, fetchedDailyGoals, fetchedAllDailyGoals, fetchedWeeklyGoals] = await Promise.all([
         HabitService.getHabits(),
         HabitService.getCompletions(),
         HabitService.getDailyGoals(todayStr),
+        HabitService.getAllDailyGoals(),
         HabitService.getWeeklyGoals(weekKey)
       ]);
 
       habits = fetchedHabits;
       completions = fetchedCompletions;
       dailyGoals = fetchedDailyGoals;
+      allDailyGoals = fetchedAllDailyGoals;
       weeklyGoals = fetchedWeeklyGoals;
 
       renderAll();
@@ -216,6 +219,7 @@
       completions = await HabitService.getCompletions();
     } else if (type === 'DAILY_GOAL_CHANGED') {
       dailyGoals = await HabitService.getDailyGoals(todayStr);
+      allDailyGoals = await HabitService.getAllDailyGoals();
     } else if (type === 'WEEKLY_GOAL_CHANGED') {
       weeklyGoals = await HabitService.getWeeklyGoals(weekKey);
     } else {
@@ -234,6 +238,7 @@
     habits = [];
     completions = [];
     dailyGoals = [];
+    allDailyGoals = [];
     weeklyGoals = [];
 
     updateUserHeaderUI();
@@ -606,7 +611,8 @@
   function renderHeatmap() {
     if (!dom.habitHeatmapGrid) return;
 
-    const weeks = HabitsData.calculateHeatmapMatrix(habits, completions, 26, HabitsData.getTodayStr(), dailyGoals);
+    const goalsData = (allDailyGoals && allDailyGoals.length > 0) ? allDailyGoals : dailyGoals;
+    const weeks = HabitsData.calculateHeatmapMatrix(habits, completions, 26, HabitsData.getTodayStr(), goalsData);
     if (!weeks || weeks.length === 0) return;
 
     // Default selected date to today if not yet chosen
@@ -615,33 +621,8 @@
       selectedHeatmapDate = todayStr;
     }
 
-    // Mathematically anchor month labels to the exact week columns where each month starts
-    const monthSpans = [];
-    let currentMonth = -1;
-
-    weeks.forEach((week, wIdx) => {
-      for (let d = 0; d < week.length; d++) {
-        const dObj = HabitsData.parseDate(week[d].date);
-        const m = dObj.getMonth();
-        if (m !== currentMonth) {
-          currentMonth = m;
-          const prev = monthSpans[monthSpans.length - 1];
-          if (!prev || (wIdx - prev.colIndex >= 2)) {
-            monthSpans.push({
-              name: dObj.toLocaleDateString('en-US', { month: 'short' }),
-              colIndex: wIdx
-            });
-          }
-          break;
-        }
-      }
-    });
-
-    for (let i = 0; i < monthSpans.length; i++) {
-      const startCol = monthSpans[i].colIndex;
-      const endCol = (i + 1 < monthSpans.length) ? monthSpans[i + 1].colIndex : weeks.length;
-      monthSpans[i].span = Math.max(1, endCol - startCol);
-    }
+    // Mathematically anchor month labels using dynamic calculation that prevents skipping months
+    const monthSpans = HabitsData.calculateHeatmapMonthSpans(weeks);
 
     const monthHeadersHtml = `
       <div class="heatmap-months-row">
@@ -704,6 +685,14 @@
 
     const cells = dom.habitHeatmapGrid.querySelectorAll('.heatmap-cell');
     cells.forEach(cell => {
+      // Keyboard selection support
+      cell.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          cell.click();
+        }
+      });
+
       // Cell Click: Select this day and show history in bullets
       cell.addEventListener('click', () => {
         const cellDate = cell.getAttribute('data-date');
@@ -810,8 +799,9 @@
       return HabitsData.isHabitScheduledOn(h, targetDate);
     });
 
-    // Daily goals for this date
-    const goalsForDate = (dailyGoals || []).filter(g => g.date === targetDate);
+    // Daily goals for this date across history
+    const allGoals = (allDailyGoals && allDailyGoals.length > 0) ? allDailyGoals : dailyGoals;
+    const goalsForDate = (allGoals || []).filter(g => g.date === targetDate);
 
     // Stats
     const totalScheduled = completedList.length + missedList.length;
@@ -842,7 +832,7 @@
     } else if (completedList.length === 0 && missedList.length === 0 && goalsForDate.length === 0) {
       listContent = `
         <div class="py-3 px-3 rounded-lg bg-slate-50/70 border border-dashed border-slate-200 text-center">
-          <p class="text-xs text-slate-500 font-medium">No habits were scheduled or completed on this date.</p>
+          <p class="text-xs text-slate-500 font-medium">No activity recorded for this day.</p>
           <p class="text-[11px] text-slate-400 mt-0.5">Click any other square in the heatmap above to inspect consistency history.</p>
         </div>
       `;
@@ -1075,8 +1065,8 @@
         reminderTime
       });
 
-      habits.unshift(created);
       closeAddHabitModal();
+      habits = await HabitService.getHabits();
       renderAll();
       showToast(`Added habit: "${created.title}"`, 'success');
     } catch (err) {
@@ -1153,7 +1143,7 @@
     const reminderTime = (dom.editHabitReminderInput ? dom.editHabitReminderInput.value : '').trim();
 
     try {
-      const updated = await HabitService.updateHabit(id, {
+      await HabitService.updateHabit(id, {
         title,
         category,
         target_frequency: selectedEditFrequency,
@@ -1161,10 +1151,8 @@
         reminder_time: reminderTime
       });
 
-      const idx = habits.findIndex(h => h.id === id);
-      if (idx !== -1) habits[idx] = updated;
-
       closeEditHabitModal();
+      habits = await HabitService.getHabits();
       renderAll();
       showToast(`Updated habit: "${title}"`, 'success');
     } catch (err) {
@@ -1173,48 +1161,38 @@
   }
 
   async function deactivateHabit(habitId) {
-    const habit = habits.find(h => h.id === habitId);
-    if (!habit) return;
-
     try {
       await HabitService.archiveHabit(habitId);
-      habit.active = false;
       closeManageModal();
+      habits = await HabitService.getHabits();
       renderAll();
-      showToast(`Habit archived: "${habit.title}". History is preserved in analytics.`, 'info');
+      showToast('Habit archived. History is preserved in analytics.', 'info');
     } catch (err) {
       showToast('Error archiving habit.', 'error');
     }
   }
 
   async function deleteHabitPermanently(habitId) {
-    const habit = habits.find(h => h.id === habitId);
-    if (!habit) return;
-
     try {
       await HabitService.deleteHabit(habitId);
-      habits = habits.filter(h => h.id !== habitId);
-      completions = completions.filter(c => c.habit_id !== habitId);
-      weeklyGoals = weeklyGoals.map(wg => (wg.habit_id === habitId ? { ...wg, habit_id: null } : wg));
-
       closeManageModal();
+      habits = await HabitService.getHabits();
+      completions = await HabitService.getCompletions();
+      weeklyGoals = await HabitService.getWeeklyGoals();
       renderAll();
-      showToast(`Permanently deleted habit: "${habit.title}"`, 'error');
+      showToast('Permanently deleted habit.', 'error');
     } catch (err) {
       showToast('Error deleting habit.', 'error');
     }
   }
 
   window.reactivateHabit = async function (habitId) {
-    const habit = habits.find(h => h.id === habitId);
-    if (!habit) return;
-
     try {
       await HabitService.reactivateHabit(habitId);
-      habit.active = true;
+      habits = await HabitService.getHabits();
       renderAll();
       renderInactiveHabitsList();
-      showToast(`Reactivated habit: "${habit.title}"`, 'success');
+      showToast('Reactivated habit.', 'success');
     } catch (err) {
       showToast('Error reactivating habit.', 'error');
     }
@@ -1254,10 +1232,10 @@
         date: HabitsData.getTodayStr()
       });
 
-      dailyGoals.push(created);
       closeAddDailyGoalModal();
-      renderDailyGoals();
-      renderHeatmap();
+      dailyGoals = await HabitService.getDailyGoals(HabitsData.getTodayStr());
+      allDailyGoals = await HabitService.getAllDailyGoals();
+      renderAll();
       showToast(`Daily goal added: "${title}"`, 'success');
     } catch (err) {
       showToast('Failed to add daily goal.', 'error');
@@ -1266,11 +1244,10 @@
 
   window.adjustDailyGoal = async function (id, delta) {
     try {
-      const updated = await HabitService.adjustDailyGoalProgress(id, delta);
-      const idx = dailyGoals.findIndex(g => g.id === id);
-      if (idx !== -1) dailyGoals[idx] = updated;
-      renderDailyGoals();
-      renderHeatmap();
+      await HabitService.adjustDailyGoalProgress(id, delta);
+      dailyGoals = await HabitService.getDailyGoals(HabitsData.getTodayStr());
+      allDailyGoals = await HabitService.getAllDailyGoals();
+      renderAll();
     } catch (err) {
       showToast('Could not update daily goal progress.', 'error');
     }
@@ -1278,11 +1255,10 @@
 
   window.toggleDailyGoalComplete = async function (id) {
     try {
-      const updated = await HabitService.toggleDailyGoalComplete(id);
-      const idx = dailyGoals.findIndex(g => g.id === id);
-      if (idx !== -1) dailyGoals[idx] = updated;
-      renderDailyGoals();
-      renderHeatmap();
+      await HabitService.toggleDailyGoalComplete(id);
+      dailyGoals = await HabitService.getDailyGoals(HabitsData.getTodayStr());
+      allDailyGoals = await HabitService.getAllDailyGoals();
+      renderAll();
     } catch (err) {
       showToast('Could not update daily goal.', 'error');
     }
@@ -1291,9 +1267,9 @@
   window.deleteDailyGoal = async function (id) {
     try {
       await HabitService.deleteDailyGoal(id);
-      dailyGoals = dailyGoals.filter(g => g.id !== id);
-      renderDailyGoals();
-      renderHeatmap();
+      dailyGoals = await HabitService.getDailyGoals(HabitsData.getTodayStr());
+      allDailyGoals = await HabitService.getAllDailyGoals();
+      renderAll();
       showToast('Daily goal removed.', 'info');
     } catch (err) {
       showToast('Could not remove daily goal.', 'error');
@@ -1343,9 +1319,9 @@
         weekKey: HabitsData.getWeekId(HabitsData.getTodayStr())
       });
 
-      weeklyGoals.push(created);
       closeAddGoalModal();
-      renderWeeklyGoals();
+      weeklyGoals = await HabitService.getWeeklyGoals(HabitsData.getWeekId(HabitsData.getTodayStr()));
+      renderAll();
       showToast(`Weekly goal added: "${title}"`, 'success');
     } catch (err) {
       showToast('Failed to add weekly goal.', 'error');
@@ -1356,8 +1332,8 @@
     if (confirm('Remove this weekly goal?')) {
       try {
         await HabitService.deleteWeeklyGoal(id);
-        weeklyGoals = weeklyGoals.filter(g => g.id !== id);
-        renderWeeklyGoals();
+        weeklyGoals = await HabitService.getWeeklyGoals(HabitsData.getWeekId(HabitsData.getTodayStr()));
+        renderAll();
         showToast('Weekly goal removed.', 'info');
       } catch (err) {
         showToast('Could not remove weekly goal.', 'error');
