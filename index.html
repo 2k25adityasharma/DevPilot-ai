@@ -568,12 +568,20 @@ Start Learning
 </div>
 <!-- GitHub Activity (Spans 4 cols) -->
 <div class="lg:col-span-4 bg-surface border border-outline-variant rounded-[16px] p-5 shadow-ambient flex flex-col" id="github-activity-card">
-<div class="flex items-center justify-between mb-4">
+<div class="flex items-start justify-between mb-4">
+<div class="flex flex-col">
 <div class="flex items-center gap-2">
 <span class="material-symbols-outlined text-on-surface">code</span>
 <h3 class="font-title-md text-title-md text-on-surface">GitHub Activity</h3>
 </div>
-<span class="bg-surface-container px-2 py-0.5 rounded text-label-sm text-on-surface-variant" id="github-range-badge">This Week</span>
+<a href="https://github.com/2k25adityasharma" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 mt-1 text-xs text-on-surface-variant hover:text-primary transition-colors group" id="github-user-profile-link" title="View Verified GitHub Profile">
+<span class="font-mono font-medium text-primary group-hover:underline" id="github-username-display">@2k25adityasharma</span>
+<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#10b981]/15 text-[#10b981] border border-[#10b981]/30">
+<span class="material-symbols-outlined text-[13px] text-[#10b981]">verified</span> Verified
+</span>
+</a>
+</div>
+<span class="bg-surface-container px-2 py-0.5 rounded text-label-sm text-on-surface-variant shrink-0" id="github-range-badge">This Week</span>
 </div>
 <div class="flex-1">
 <div class="flex items-center gap-3 mb-4">
@@ -702,27 +710,6 @@ Finish Active Milestone
 </div>
 </div>
 </div>
-<!-- Coding Activity Heatmap -->
-<div class="bg-surface border border-outline-variant rounded-[16px] p-6 shadow-ambient mb-stack-lg">
-<div class="flex justify-between items-center mb-4">
-<h3 class="font-title-md text-title-md text-on-surface">Contribution Activity</h3>
-<div class="flex items-center gap-2 text-label-sm text-outline">
-<span class="">Less</span>
-<div class="flex gap-1">
-<div class="w-3 h-3 rounded-sm bg-surface-container-high"></div>
-<div class="w-3 h-3 rounded-sm bg-primary/20"></div>
-<div class="w-3 h-3 rounded-sm bg-primary/40"></div>
-<div class="w-3 h-3 rounded-sm bg-primary/70"></div>
-<div class="w-3 h-3 rounded-sm bg-primary"></div>
-</div>
-<span class="">More</span>
-</div>
-</div>
-<!-- CSS Grid based heatmap (built via JS, no document.write) -->
-<div class="overflow-x-auto pb-2 custom-scrollbar">
-<div class="flex gap-1" style="min-width: max-content;" id="heatmap-container"></div>
-</div>
-</div>
 <!-- Productivity Summary (Wide Footer) -->
 <div class="bg-surface border border-outline-variant rounded-[16px] p-6 shadow-ambient flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6" id="productivity-summary">
 <div class="flex flex-wrap gap-6 sm:gap-8 items-center">
@@ -739,19 +726,8 @@ Finish Active Milestone
 <div class="hidden sm:block w-px h-10 bg-outline-variant"></div>
 
 <!-- 2. TOP SKILL -->
-<div class="min-w-[140px] max-w-[220px]">
-<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Top Skill</p>
-<div class="flex items-center gap-2">
-<div class="w-8 h-8 rounded bg-secondary-container flex items-center justify-center text-on-secondary-container shrink-0" id="top-skill-icon-box">
-<span class="material-symbols-outlined text-[16px]" id="top-skill-icon">data_object</span>
-</div>
-<div class="min-w-0 flex-1">
-<p class="font-title-md text-title-md text-on-surface truncate" id="top-skill-display" title="No activity yet">No activity yet</p>
-<p class="font-label-sm text-label-sm text-on-surface-variant mt-0.5 truncate" id="top-skill-subtext">0 activities this week</p>
-</div>
-</div>
-</div>
-<div class="hidden sm:block w-px h-10 bg-outline-variant"></div>
+
+
 
 <!-- 3. TASKS COMPLETED -->
 <div class="min-w-[110px]">

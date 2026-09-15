@@ -253,14 +253,38 @@ Feel free to ask for step-by-step code implementations or unit tests!`,
 }
 
 function checkIncomingPrompt() {
-  const incoming = localStorage.getItem('devpilot_prompt_to_run');
-  if (incoming) {
+  let incoming = null;
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    incoming = urlParams.get('prompt');
+  } catch (e) {}
+
+  if (!incoming) {
+    try {
+      incoming = localStorage.getItem('devpilot_prompt_to_run');
+    } catch (e) {}
+  }
+
+  if (incoming && incoming.trim()) {
     const textarea = document.getElementById('chat-input');
     if (textarea) {
-      textarea.value = incoming;
+      textarea.value = incoming.trim();
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 140) + 'px';
       textarea.focus();
-      localStorage.removeItem('devpilot_prompt_to_run');
-      showToast('Prompt loaded into chat input!', 'info');
+      if (typeof textarea.setSelectionRange === 'function') {
+        textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+      }
+      try {
+        localStorage.removeItem('devpilot_prompt_to_run');
+      } catch (e) {}
+      if (window.history && window.history.replaceState) {
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+      if (typeof showToast === 'function') {
+        showToast('Prompt loaded into chat input! Edit or press Enter to send.', 'info');
+      }
     }
   }
 }

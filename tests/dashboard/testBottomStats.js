@@ -39,6 +39,9 @@ global.AuthService = AuthService;
 global.TimerData = TimerData;
 global.HabitsData = HabitsData;
 global.HabitService = HabitService;
+global.DashboardDataService = DashboardDataService;
+global.window.AuthService = AuthService;
+global.window.DashboardDataService = DashboardDataService;
 
 console.log('====================================================');
 console.log(' DevPilot-AI: Testing Dashboard Bottom Stats');
@@ -63,7 +66,7 @@ async function runTest(name, fn) {
 async function runAll() {
 // TEST 1: New User Empty State
 // ------------------------------------------------------------------
-runTest('New user with zero activity starts with clean empty states', async () => {
+  await runTest('New user with zero activity starts with clean empty states', async () => {
   global.localStorage.clear();
   await AuthService.switchAccount('00000000-0000-4000-a000-000000000002'); // Alex Chen (fresh)
 
@@ -92,7 +95,7 @@ runTest('New user with zero activity starts with clean empty states', async () =
 // ------------------------------------------------------------------
 // TEST 2: Focus Time Today (Multi-session, sub-hour, local date)
 // ------------------------------------------------------------------
-runTest('Focus Time Today calculates completed focus minutes and formats correctly', async () => {
+  await runTest('Focus Time Today calculates completed focus minutes and formats correctly', async () => {
   global.localStorage.clear();
   await AuthService.switchAccount('00000000-0000-4000-a000-000000000001');
   const user = AuthService.getCurrentUser();
@@ -129,7 +132,7 @@ runTest('Focus Time Today calculates completed focus minutes and formats correct
 // ------------------------------------------------------------------
 // TEST 3: Top Skill Weighted Scoring (Focus time vs Tasks)
 // ------------------------------------------------------------------
-runTest('Top Skill correctly weights focus time and tasks instead of simple count', async () => {
+  await runTest('Top Skill correctly weights focus time and tasks instead of simple count', async () => {
   global.localStorage.clear();
   await AuthService.switchAccount('00000000-0000-4000-a000-000000000001');
   const user = AuthService.getCurrentUser();
@@ -143,13 +146,13 @@ runTest('Top Skill correctly weights focus time and tasks instead of simple coun
     { id: 'ts_js1', mode: 'work', durationSeconds: 3600, completedAt: nowIso, task: 'JavaScript Async / Await' },
     { id: 'ts_js2', mode: 'work', durationSeconds: 3600, completedAt: nowIso, task: 'JavaScript Promises' }
   ];
-  window.Storage.set(`devpilot_u_${userId}_timer_sessions`, sessions);
+  window.Storage.set(`u_${userId}_timer_sessions`, sessions);
 
   const dailyGoals = [
     { id: 'dg_1', title: 'Two Pointers DSA', category: 'DSA', completed: true, date: DashboardDataService.getTodayDateStr() },
     { id: 'dg_2', title: 'Binary Search DSA', category: 'DSA', completed: true, date: DashboardDataService.getTodayDateStr() }
   ];
-  window.Storage.set(`devpilot_u_${userId}_daily_goals`, dailyGoals);
+  window.Storage.set(`u_${userId}_daily_goals`, dailyGoals);
 
   const topSkill = DashboardDataService.getTopSkill('week');
   assert.strictEqual(topSkill.hasActivity, true);
@@ -174,7 +177,7 @@ runTest('Top Skill correctly weights focus time and tasks instead of simple coun
 // ------------------------------------------------------------------
 // TEST 4: Tasks Completed Today & Percentage Calculation
 // ------------------------------------------------------------------
-runTest('Tasks Completed reflects today goals, fraction text, and percentage', async () => {
+  await runTest('Tasks Completed reflects today goals, fraction text, and percentage', async () => {
   global.localStorage.clear();
   await AuthService.switchAccount('00000000-0000-4000-a000-000000000001');
   const user = AuthService.getCurrentUser();
@@ -186,7 +189,7 @@ runTest('Tasks Completed reflects today goals, fraction text, and percentage', a
     { id: 'dg_2', title: 'Solve Graph Problem', date: todayStr, completed: true },
     { id: 'dg_3', title: 'Write Tests', date: todayStr, completed: false }
   ];
-  window.Storage.set(`devpilot_u_${userId}_daily_goals`, dailyGoals);
+  window.Storage.set(`u_${userId}_daily_goals`, dailyGoals);
 
   const summary = DashboardDataService.getTodayTasksSummary();
   assert.strictEqual(summary.completed, 2);
@@ -207,7 +210,7 @@ runTest('Tasks Completed reflects today goals, fraction text, and percentage', a
 // ------------------------------------------------------------------
 // TEST 5: Current Streak Synchronization
 // ------------------------------------------------------------------
-runTest('Current Streak is derived from actual habit completions', async () => {
+  await runTest('Current Streak is derived from actual habit completions', async () => {
   global.localStorage.clear();
   await AuthService.switchAccount('00000000-0000-4000-a000-000000000001');
   const user = AuthService.getCurrentUser();
@@ -221,8 +224,8 @@ runTest('Current Streak is derived from actual habit completions', async () => {
     { habit_id: 'h_1', completion_date: todayStr }
   ];
 
-  window.Storage.set(`devpilot_u_${userId}_habits`, habits);
-  window.Storage.set(`devpilot_u_${userId}_completions`, completions);
+  window.Storage.set(`u_${userId}_habits`, habits);
+  window.Storage.set(`u_${userId}_completions`, completions);
 
   const streak = DashboardDataService.getStreak();
   assert.strictEqual(streak.currentStreak, 1);
@@ -232,7 +235,7 @@ runTest('Current Streak is derived from actual habit completions', async () => {
 // ------------------------------------------------------------------
 // TEST 6: Multi-User Data Isolation
 // ------------------------------------------------------------------
-runTest('User switching provides complete isolation of bottom statistics', async () => {
+  await runTest('User switching provides complete isolation of bottom statistics', async () => {
   global.localStorage.clear();
 
   // Setup User A (Aditya) with 45m focus and React tasks
@@ -241,10 +244,10 @@ runTest('User switching provides complete isolation of bottom statistics', async
   const todayStr = DashboardDataService.getTodayDateStr();
   const nowIso = new Date().toISOString();
 
-  window.Storage.set(`devpilot_u_${userA.id}_timer_sessions`, [
+  window.Storage.set(`u_${userA.id}_timer_sessions`, [
     { id: 'ts_a', mode: 'work', durationSeconds: 2700, completedAt: nowIso, task: 'React UI' }
   ]);
-  window.Storage.set(`devpilot_u_${userA.id}_daily_goals`, [
+  window.Storage.set(`u_${userA.id}_daily_goals`, [
     { id: 'dg_a1', title: 'Build Header', date: todayStr, completed: true }
   ]);
 
@@ -266,6 +269,7 @@ runTest('User switching provides complete isolation of bottom statistics', async
   assert.strictEqual(statsB.displayStr, '0m');
   assert.strictEqual(skillB.skill, 'No activity yet');
   assert.strictEqual(tasksB.fractionText, '0 / 0');
+  });
 
   console.log('\n====================================================');
   console.log(` Test Execution Finished: ${passedTests} Passed, ${totalTests - passedTests} Failed`);

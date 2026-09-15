@@ -62,6 +62,7 @@
       habitsCompletedText: document.getElementById('habits-completed-text'),
       habitsPctText: document.getElementById('habits-pct-text'),
       habitsProgressBar: document.getElementById('habits-progress-bar'),
+      btnAddHabitCard: document.getElementById('btn-add-habit-card'),
 
       // Daily Goals
       dailyGoalsDateBadge: document.getElementById('daily-goals-date-badge'),
@@ -1500,6 +1501,7 @@
     }
 
     if (dom.btnAddHabit) dom.btnAddHabit.addEventListener('click', window.openAddHabitModal);
+    if (dom.btnAddHabitCard) dom.btnAddHabitCard.addEventListener('click', window.openAddHabitModal);
     if (dom.btnCloseAddHabit) dom.btnCloseAddHabit.addEventListener('click', closeAddHabitModal);
     if (dom.btnCancelAddHabit) dom.btnCancelAddHabit.addEventListener('click', closeAddHabitModal);
 

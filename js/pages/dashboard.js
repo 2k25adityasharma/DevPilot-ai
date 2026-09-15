@@ -35,7 +35,6 @@
     renderTasksSection();
     renderCalendar();
     renderRecentActivity();
-    renderHeatmap();
     renderFooterProductivity();
     initEventListeners();
     initCrossPageSync();
@@ -194,6 +193,13 @@
 
     if (startBtn && suggestion.targetUrl) {
       startBtn.setAttribute('href', suggestion.targetUrl);
+      startBtn.onclick = function () {
+        if (suggestion && suggestion.chatPrompt) {
+          try {
+            localStorage.setItem('devpilot_prompt_to_run', suggestion.chatPrompt);
+          } catch (e) {}
+        }
+      };
     }
   }
 
@@ -204,8 +210,21 @@
     const countEl = document.getElementById('github-commit-count');
     const eventsListEl = document.getElementById('github-events-list');
     const rangeBadgeEl = document.getElementById('github-range-badge');
+    const userProfileLink = document.getElementById('github-user-profile-link');
+    const usernameDisplay = document.getElementById('github-username-display');
 
     if (typeof DashboardDataService === 'undefined') return;
+
+    // Immediately render current username from settings if available
+    const currentSettings = typeof DashboardDataService.getGithubSettings === 'function'
+      ? DashboardDataService.getGithubSettings()
+      : { username: '2k25adityasharma' };
+    if (usernameDisplay && currentSettings.username) {
+      usernameDisplay.textContent = `@${currentSettings.username}`;
+    }
+    if (userProfileLink && currentSettings.username) {
+      userProfileLink.href = `https://github.com/${encodeURIComponent(currentSettings.username)}`;
+    }
 
     if (isGithubLoading && !forceRefresh) return;
     isGithubLoading = true;
@@ -223,6 +242,11 @@
     try {
       const data = await DashboardDataService.getGithubActivity(forceRefresh);
       cachedGithubData = data;
+
+      if (data && data.username) {
+        if (usernameDisplay) usernameDisplay.textContent = `@${data.username}`;
+        if (userProfileLink) userProfileLink.href = `https://github.com/${encodeURIComponent(data.username)}`;
+      }
 
       if (countEl) {
         countEl.textContent = data.weeklyCommits || data.totalCommitsCount || 0;
@@ -559,77 +583,7 @@
   }
 
   // ==========================================
-  // 12. CODING ACTIVITY HEATMAP
-  // ==========================================
-  function renderHeatmap() {
-    const heatmapContainer = document.getElementById('heatmap-container');
-    if (!heatmapContainer) return;
-
-    heatmapContainer.innerHTML = '';
-    const intensities = [
-      'bg-surface-container-high',
-      'bg-primary/20',
-      'bg-primary/40',
-      'bg-primary/70',
-      'bg-primary'
-    ];
-
-    // Build real 28-week activity view
-    const today = new Date();
-    const daysToShow = 28 * 7;
-    const startDate = new Date(today);
-    startDate.setDate(today.getDate() - daysToShow + 1);
-
-    // Collect activity dates from habits
-    let activityMap = {};
-    if (typeof Storage !== 'undefined') {
-      const habits = Storage.get('habits_data', []);
-      habits.forEach(h => {
-        if (Array.isArray(h.completions)) {
-          h.completions.forEach(dateStr => {
-            activityMap[dateStr] = (activityMap[dateStr] || 0) + 1;
-          });
-        }
-      });
-    }
-
-    for (let colIndex = 0; colIndex < 28; colIndex++) {
-      const col = document.createElement('div');
-      col.className = 'flex flex-col gap-1';
-
-      for (let rowIndex = 0; rowIndex < 7; rowIndex++) {
-        const cellDate = new Date(startDate);
-        const dayOffset = colIndex * 7 + rowIndex;
-        cellDate.setDate(startDate.getDate() + dayOffset);
-
-        const dateStr = cellDate.toISOString().split('T')[0];
-        const count = activityMap[dateStr] || 0;
-
-        let cls = intensities[0];
-        if (count >= 4) cls = intensities[4];
-        else if (count >= 3) cls = intensities[3];
-        else if (count >= 2) cls = intensities[2];
-        else if (count >= 1) cls = intensities[1];
-
-        const cell = document.createElement('div');
-        cell.className = `w-3.5 h-3.5 rounded-sm ${cls} transition-transform hover:scale-125 cursor-pointer`;
-        cell.title = `${dateStr}: ${count} contribution${count === 1 ? '' : 's'}`;
-
-        cell.addEventListener('click', () => {
-          selectedDateStr = dateStr;
-          renderCalendar();
-          renderTasksSection();
-          renderMainGoal();
-        });
-
-        col.appendChild(cell);
-      }
-      heatmapContainer.appendChild(col);
-    }
-  }
-
-  // ==========================================
-  // 13. PRODUCTIVITY SUMMARY & GLOBAL TIMER
+  // 12. PRODUCTIVITY SUMMARY & GLOBAL TIMER
   // ==========================================
   function renderFooterProductivity() {
     const focusTimeEl = document.getElementById('focus-time-display');
@@ -879,7 +833,6 @@
     renderTasksSection();
     renderCalendar();
     renderRecentActivity();
-    renderHeatmap();
     renderFooterProductivity();
   }
 

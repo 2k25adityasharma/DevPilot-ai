@@ -96,7 +96,8 @@
 
       // Check root legacy keys if any
       const rootLegacyMap = {
-        habits: 'habits_data',
+      habits: 'habits_data',
+        habit_goals: 'habit_goals',
         daily_goals: 'daily_goals',
         completions: 'habits_completions',
         weekly_goals: 'weekly_goals'
@@ -583,8 +584,88 @@
     return true;
   }
 
-  // ==========================================================================
-  // 4. WEEKLY GOALS (Calendar Week Scoped)
+  // ===========================================================================
+  // 4. TODAY'S HABIT GOALS (separate from Daily Goals)
+  // ===========================================================================
+
+  async function getHabitGoals(dateStr = null) {
+    const userId = getUserId();
+    const targetDate = dateStr || HabitsData.getTodayStr();
+    if (typeof window !== 'undefined' && window.supabase && window.supabase.from) {
+      try {
+        const { data, error } = await window.supabase.from('habit_goals').select('*')
+          .eq('user_id', userId).eq('date', targetDate).order('created_at', { ascending: true });
+        if (!error && Array.isArray(data)) return data;
+      } catch (e) {}
+    }
+    return readStore('habit_goals', []).filter(g => (!g.user_id || g.user_id === userId) && g.date === targetDate);
+  }
+
+  async function createHabitGoal({ title, target = 1, category = 'General', date = null }) {
+    const userId = getUserId();
+    const cleanTitle = (title || '').trim();
+    if (!cleanTitle) throw new Error('Habit goal title is required.');
+    const newGoal = {
+      id: generateUuid(), user_id: userId, title: cleanTitle,
+      target: Math.max(1, parseInt(target, 10) || 1), progress: 0,
+      date: date || HabitsData.getTodayStr(), category: (category || 'General').trim(),
+      completed: false, created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+    };
+    if (typeof window !== 'undefined' && window.supabase && window.supabase.from) {
+      try {
+        const { data, error } = await window.supabase.from('habit_goals').insert(newGoal).select().single();
+        if (!error && data) { emitRealtimeChange('HABIT_GOAL_CHANGED', data); return data; }
+      } catch (e) {}
+    }
+    const goals = readStore('habit_goals', []);
+    goals.push(newGoal);
+    writeStore('habit_goals', goals);
+    emitRealtimeChange('HABIT_GOAL_CHANGED', newGoal);
+    return newGoal;
+  }
+
+  async function updateHabitGoal(id, updater) {
+    const userId = getUserId();
+    const goals = readStore('habit_goals', []);
+    const idx = goals.findIndex(g => g.id === id && (!g.user_id || g.user_id === userId));
+    if (idx === -1) throw new Error('Habit goal not found.');
+    const updates = { ...updater(goals[idx]), user_id: userId, updated_at: new Date().toISOString() };
+    if (typeof window !== 'undefined' && window.supabase && window.supabase.from) {
+      try { await window.supabase.from('habit_goals').update(updates).eq('id', id).eq('user_id', userId); } catch (e) {}
+    }
+    goals[idx] = { ...goals[idx], ...updates };
+    writeStore('habit_goals', goals);
+    emitRealtimeChange('HABIT_GOAL_CHANGED', goals[idx]);
+    return goals[idx];
+  }
+
+  async function adjustHabitGoalProgress(id, delta = 1) {
+    return updateHabitGoal(id, goal => {
+      const progress = Math.max(0, Math.min(goal.target * 2, (goal.progress || 0) + delta));
+      return { progress, completed: progress >= goal.target };
+    });
+  }
+
+  async function toggleHabitGoalComplete(id) {
+    return updateHabitGoal(id, goal => {
+      const completed = !goal.completed;
+      return { completed, progress: completed ? Math.max(goal.progress || 0, goal.target) : 0 };
+    });
+  }
+
+  async function deleteHabitGoal(id) {
+    const userId = getUserId();
+    if (typeof window !== 'undefined' && window.supabase && window.supabase.from) {
+      try { await window.supabase.from('habit_goals').delete().eq('id', id).eq('user_id', userId); } catch (e) {}
+    }
+    const goals = readStore('habit_goals', []).filter(g => !(g.id === id && (!g.user_id || g.user_id === userId)));
+    writeStore('habit_goals', goals);
+    emitRealtimeChange('HABIT_GOAL_CHANGED', { id, deleted: true });
+    return true;
+  }
+
+  // ===========================================================================
+  // 5. WEEKLY GOALS (Calendar Week Scoped)
   // ==========================================================================
 
   /**
@@ -699,6 +780,11 @@
     adjustDailyGoalProgress,
     toggleDailyGoalComplete,
     deleteDailyGoal,
+    getHabitGoals,
+    createHabitGoal,
+    adjustHabitGoalProgress,
+    toggleHabitGoalComplete,
+    deleteHabitGoal,
     getWeeklyGoals,
     createWeeklyGoal,
     deleteWeeklyGoal,

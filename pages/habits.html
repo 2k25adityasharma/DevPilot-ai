@@ -163,13 +163,6 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-3">
-        <!-- User Session Indicator & Account Switcher Button -->
-        <button class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition-colors shadow-sm" id="btn-account-switch" title="Manage Account & Sync">
-          <span class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] font-bold uppercase" id="user-avatar-badge">A</span>
-          <span id="user-name-badge" class="truncate max-w-[120px]">Aditya</span>
-          <span class="material-symbols-outlined text-[16px] text-slate-400">expand_more</span>
-        </button>
-
         <!-- Live Streak Milestone Badge -->
         <div class="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-900 px-3.5 py-1.5 rounded-xl shadow-sm">
           <span class="material-symbols-outlined text-amber-600 text-[20px]" style='font-variation-settings: "FILL" 1;'>local_fire_department</span>
@@ -201,13 +194,19 @@
           <div class="flex items-center justify-between mb-4">
             <div>
               <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <span>Today's Developer Habits</span>
+                <span>Developer Habit</span>
                 <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-2 py-0.5 bg-slate-100 rounded-md" id="today-date-badge">Today</span>
               </h2>
               <p class="text-[11px] text-slate-500 font-medium">Repeated routines you want to maintain.</p>
               <p class="text-xs text-slate-400 mt-0.5" id="habits-completed-text">0 of 0 Completed</p>
             </div>
-            <span class="text-sm font-bold text-indigo-600" id="habits-pct-text">0%</span>
+            <div class="flex items-center gap-3">
+              <span class="text-sm font-bold text-indigo-600" id="habits-pct-text">0%</span>
+              <button class="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors flex items-center gap-1" id="btn-add-habit-card" type="button">
+                <span class="material-symbols-outlined text-[16px]">add</span>
+                <span>Add Habit</span>
+              </button>
+            </div>
           </div>
 
           <!-- Progress Bar -->
@@ -219,6 +218,7 @@
           <div class="space-y-3" id="habits-list-container">
             <!-- Rendered dynamically by js/pages/habit.js -->
           </div>
+
         </div>
 
         <!-- 2. Daily Goals Card (Separate Feature from Habits) -->

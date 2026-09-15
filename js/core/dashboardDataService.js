@@ -166,9 +166,13 @@
   }
 
   function getUserId() {
-    if (typeof window !== 'undefined' && window.AuthService && typeof window.AuthService.getCurrentUser === 'function') {
+    const auth = (typeof window !== 'undefined' && window.AuthService)
+      ? window.AuthService
+      : (typeof AuthService !== 'undefined' ? AuthService : null);
+
+    if (auth && typeof auth.getCurrentUser === 'function') {
       try {
-        const u = window.AuthService.getCurrentUser();
+        const u = auth.getCurrentUser();
         if (u && u.id) return u.id;
       } catch (e) {}
     }
@@ -210,10 +214,11 @@
     if (habitsData && typeof habitsData.calculateOverallStreak === 'function') {
       try {
         const streakInfo = habitsData.calculateOverallStreak(habits, completions, todayStr);
+        const isExtendedToday = !streakInfo.isAtRisk && (streakInfo.currentStreak || 0) > 0;
         return {
           currentStreak: streakInfo.currentStreak || 0,
           isAtRisk: !!streakInfo.isAtRisk,
-          isExtendedToday: !!streakInfo.isExtendedToday
+          isExtendedToday
         };
       } catch (e) {}
     }
@@ -229,65 +234,67 @@
     const storage = getStorage();
     const userId = getUserId();
 
-    const primaryKey = `devpilot_u_${userId}_daily_goals`;
-    let goals = storage.get(primaryKey, null);
+    let goals = storage.get(`u_${userId}_daily_goals`, null);
     if (!Array.isArray(goals)) {
-      goals = storage.get(`u_${userId}_daily_goals`, null);
+      goals = storage.get(`devpilot_u_${userId}_daily_goals`, null);
     }
-    if (!Array.isArray(goals)) {
+    if (!Array.isArray(goals) && userId === '00000000-0000-4000-a000-000000000001') {
       goals = storage.get('daily_goals', null);
     }
 
     if (!Array.isArray(goals)) {
-      // Seed default developer daily goals on initial run
-      goals = [
-        {
-          id: 'goal-seed-1',
-          user_id: userId,
-          title: 'Solve 3 Medium LC Problems',
-          target: 3,
-          progress: 1,
-          date: targetDate,
-          category: 'Coding',
-          time: '11:30 AM',
-          completed: false
-        },
-        {
-          id: 'goal-seed-2',
-          user_id: userId,
-          title: 'Revise Linked List concepts',
-          target: 1,
-          progress: 1,
-          date: targetDate,
-          category: 'Study',
-          time: '09:00 AM',
-          completed: true
-        },
-        {
-          id: 'goal-seed-3',
-          user_id: userId,
-          title: 'Write snippet for BFS template',
-          target: 1,
-          progress: 0,
-          date: targetDate,
-          category: 'Coding',
-          time: '02:00 PM',
-          completed: false
-        },
-        {
-          id: 'goal-seed-4',
-          user_id: userId,
-          title: 'Read System Design article (Caching)',
-          target: 1,
-          progress: 0,
-          date: targetDate,
-          category: 'Architecture',
-          time: '04:30 PM',
-          completed: false
-        }
-      ];
-      storage.set(primaryKey, goals);
-      storage.set(`u_${userId}_daily_goals`, goals);
+      if (userId === '00000000-0000-4000-a000-000000000001') {
+        // Seed default developer daily goals on initial run for default demo account
+        goals = [
+          {
+            id: 'goal-seed-1',
+            user_id: userId,
+            title: 'Solve 3 Medium LC Problems',
+            target: 3,
+            progress: 1,
+            date: targetDate,
+            category: 'Coding',
+            time: '11:30 AM',
+            completed: false
+          },
+          {
+            id: 'goal-seed-2',
+            user_id: userId,
+            title: 'Revise Linked List concepts',
+            target: 1,
+            progress: 1,
+            date: targetDate,
+            category: 'Study',
+            time: '09:00 AM',
+            completed: true
+          },
+          {
+            id: 'goal-seed-3',
+            user_id: userId,
+            title: 'Write snippet for BFS template',
+            target: 1,
+            progress: 0,
+            date: targetDate,
+            category: 'Coding',
+            time: '02:15 PM',
+            completed: false
+          },
+          {
+            id: 'goal-seed-4',
+            user_id: userId,
+            title: 'Read System Design article (Caching)',
+            target: 1,
+            progress: 0,
+            date: targetDate,
+            category: 'Study',
+            time: '04:00 PM',
+            completed: false
+          }
+        ];
+        storage.set(`u_${userId}_daily_goals`, goals);
+      } else {
+        goals = [];
+      }
     }
 
     // Return goals matching target date (or all if stored without dates)
@@ -1182,7 +1189,7 @@
         buttonText: 'Ask AI to Explain',
         chatPrompt,
         careerUrl: 'pages/roadmaps.html',
-        targetUrl: `pages/chat.html?prompt=${encodeURIComponent(chatPrompt)}&autoSend=true`
+        targetUrl: `pages/chat.html?prompt=${encodeURIComponent(chatPrompt)}`
       };
     }
 
@@ -1201,7 +1208,7 @@
         buttonText: 'Ask AI to Solve',
         chatPrompt,
         dsaUrl: nextDSA.targetUrl,
-        targetUrl: `pages/chat.html?prompt=${encodeURIComponent(chatPrompt)}&autoSend=true`
+        targetUrl: `pages/chat.html?prompt=${encodeURIComponent(chatPrompt)}`
       };
     }
 
@@ -1219,7 +1226,7 @@
       buttonText: 'Ask AI to Solve',
       chatPrompt: fallbackPrompt,
       dsaUrl: 'pages/dsa.html',
-      targetUrl: `pages/chat.html?prompt=${encodeURIComponent(fallbackPrompt)}&autoSend=true`
+      targetUrl: `pages/chat.html?prompt=${encodeURIComponent(fallbackPrompt)}`
     };
   }
 
@@ -1331,11 +1338,11 @@
     const userId = getUserId();
 
     // Check user-scoped key first, then fallback
-    let rawSessions = storage.get(`devpilot_u_${userId}_timer_sessions`, null);
+    let rawSessions = storage.get(`u_${userId}_timer_sessions`, null);
     if (!Array.isArray(rawSessions)) {
-      rawSessions = storage.get(`u_${userId}_timer_sessions`, null);
+      rawSessions = storage.get(`devpilot_u_${userId}_timer_sessions`, null);
     }
-    if (!Array.isArray(rawSessions)) {
+    if (!Array.isArray(rawSessions) && userId === '00000000-0000-4000-a000-000000000001') {
       rawSessions = storage.get('timer_sessions', []);
     }
     if (!Array.isArray(rawSessions)) rawSessions = [];
@@ -1461,9 +1468,9 @@
     }
 
     // 1. Focus Sessions this week
-    let rawSessions = storage.get(`devpilot_u_${userId}_timer_sessions`, null);
-    if (!Array.isArray(rawSessions)) rawSessions = storage.get(`u_${userId}_timer_sessions`, null);
-    if (!Array.isArray(rawSessions)) rawSessions = storage.get('timer_sessions', []);
+    let rawSessions = storage.get(`u_${userId}_timer_sessions`, null);
+    if (!Array.isArray(rawSessions)) rawSessions = storage.get(`devpilot_u_${userId}_timer_sessions`, null);
+    if (!Array.isArray(rawSessions) && userId === '00000000-0000-4000-a000-000000000001') rawSessions = storage.get('timer_sessions', []);
     if (Array.isArray(rawSessions)) {
       rawSessions.forEach(s => {
         if (!s || s.mode !== 'work') return;
@@ -1496,9 +1503,9 @@
     }
 
     // 2. Completed Daily Goals this week
-    let rawDailyGoals = storage.get(`devpilot_u_${userId}_daily_goals`, null);
-    if (!Array.isArray(rawDailyGoals)) rawDailyGoals = storage.get(`u_${userId}_daily_goals`, null);
-    if (!Array.isArray(rawDailyGoals)) rawDailyGoals = storage.get('daily_goals', []);
+    let rawDailyGoals = storage.get(`u_${userId}_daily_goals`, null);
+    if (!Array.isArray(rawDailyGoals)) rawDailyGoals = storage.get(`devpilot_u_${userId}_daily_goals`, null);
+    if (!Array.isArray(rawDailyGoals) && userId === '00000000-0000-4000-a000-000000000001') rawDailyGoals = storage.get('daily_goals', []);
     if (Array.isArray(rawDailyGoals)) {
       rawDailyGoals.forEach(g => {
         if (!g || !g.completed) return;
@@ -1527,14 +1534,14 @@
     }
 
     // 3. Completed Habits this week
-    let habits = storage.get(`devpilot_u_${userId}_habits`, null);
-    if (!Array.isArray(habits)) habits = storage.get(`u_${userId}_habits`, null);
-    if (!Array.isArray(habits)) habits = storage.get('habits_data', []);
+    let habits = storage.get(`u_${userId}_habits`, null);
+    if (!Array.isArray(habits)) habits = storage.get(`devpilot_u_${userId}_habits`, null);
+    if (!Array.isArray(habits) && userId === '00000000-0000-4000-a000-000000000001') habits = storage.get('habits_data', []);
     if (!Array.isArray(habits)) habits = [];
 
-    let completions = storage.get(`devpilot_u_${userId}_completions`, null);
-    if (!Array.isArray(completions)) completions = storage.get(`u_${userId}_completions`, null);
-    if (!Array.isArray(completions)) completions = storage.get('habits_completions', []);
+    let completions = storage.get(`u_${userId}_completions`, null);
+    if (!Array.isArray(completions)) completions = storage.get(`devpilot_u_${userId}_completions`, null);
+    if (!Array.isArray(completions) && userId === '00000000-0000-4000-a000-000000000001') completions = storage.get('habits_completions', []);
     if (!Array.isArray(completions)) completions = [];
 
     const habitsMap = {};
