@@ -206,15 +206,15 @@
 .heatmap-cell:hover {
   transform: scale(1.35);
   z-index: 20;
-  outline: 1.5px solid #4f46e5;
+  outline: 1.5px solid var(--heatmap-accent, #4f46e5);
 }
 
 .heatmap-cell.is-today {
-  outline: 1.5px solid #6366f1;
+  outline: 1.5px solid var(--heatmap-accent, #6366f1);
 }
 
 .heatmap-cell.is-selected {
-  outline: 2px solid #4f46e5 !important;
+  outline: 2px solid var(--heatmap-accent, #4f46e5) !important;
   outline-offset: 1.5px;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
   transform: scale(1.25);
@@ -232,11 +232,11 @@
 }
 
 /* Heatmap intensity color tokens */
-.heatmap-l0 { background-color: #f1f5f9; }
-.heatmap-l1 { background-color: #c7d2fe; }
-.heatmap-l2 { background-color: #818cf8; }
-.heatmap-l3 { background-color: #4f46e5; }
-.heatmap-l4 { background-color: #312e81; }
+.heatmap-l0 { background-color: var(--heatmap-l0, #f1f5f9); }
+.heatmap-l1 { background-color: var(--heatmap-l1, #c7d2fe); }
+.heatmap-l2 { background-color: var(--heatmap-l2, #818cf8); }
+.heatmap-l3 { background-color: var(--heatmap-l3, #4f46e5); }
+.heatmap-l4 { background-color: var(--heatmap-l4, #312e81); }
 
 /* Interactive Popover Tooltip */
 .heatmap-tooltip {

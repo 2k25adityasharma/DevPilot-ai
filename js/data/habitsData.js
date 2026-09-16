@@ -319,7 +319,7 @@
   }
 
   // Streak threshold: day counts only if this % of habits completed
-  const STREAK_THRESHOLD_PCT = 75;
+  const STREAK_THRESHOLD_PCT = 50;
 
   /**
    * Calculates overall daily consistency streak across all habits.
@@ -658,20 +658,6 @@
 
     const { byDate } = buildCompletionMaps(habits, completions);
 
-    // Map habit ID to title for tooltip display
-    const titleMap = {};
-    habits.forEach(h => { titleMap[h.id] = h.title; });
-
-    // Also map daily goals completions by date
-    const dailyGoalsByDate = {};
-    if (Array.isArray(dailyGoals)) {
-      dailyGoals.forEach(g => {
-        if (g.completed && g.date) {
-          dailyGoalsByDate[g.date] = (dailyGoalsByDate[g.date] || 0) + 1;
-        }
-      });
-    }
-
     const weeks = [];
     let curDate = startCalendarDate;
 
@@ -680,29 +666,15 @@
       for (let d = 0; d < 7; d++) {
         const dateStr = curDate;
         const isFuture = diffDays(dateStr, today) > 0;
-        const habitIds = byDate[dateStr] || new Set();
-        const count = isFuture ? 0 : habitIds.size;
-        const goalsCompletedCount = isFuture ? 0 : (dailyGoalsByDate[dateStr] || 0);
+        const snapshot = getHistoricalDaySnapshot(habits, byDate, dailyGoals, dateStr, isFuture);
+        const { completedHabits, habitsForDate, goalsForDate, completedHabitsCount, completedGoalsCount, total, completed, pct } = snapshot;
 
-        const completedHabits = [];
-        habitIds.forEach(id => {
-          completedHabits.push(titleMap[id] || 'Habit');
-        });
-
-        const totalActivity = count + goalsCompletedCount;
-
-        // Intensity:
-        // 0 -> l0
-        // 1 -> l1
-        // 2 -> l2
-        // 3 -> l3
-        // 4+ -> l4
         let levelClass = 'heatmap-l0';
-        if (!isFuture) {
-          if (totalActivity >= 4) levelClass = 'heatmap-l4';
-          else if (totalActivity === 3) levelClass = 'heatmap-l3';
-          else if (totalActivity === 2) levelClass = 'heatmap-l2';
-          else if (totalActivity === 1) levelClass = 'heatmap-l1';
+        if (!isFuture && total > 0 && completed > 0) {
+          if (pct >= 75) levelClass = 'heatmap-l4';
+          else if (pct >= 50) levelClass = 'heatmap-l3';
+          else if (pct >= 25) levelClass = 'heatmap-l2';
+          else levelClass = 'heatmap-l1';
         }
 
         const dateObj = parseDate(dateStr);
@@ -716,10 +688,15 @@
         daysInWeek.push({
           date: dateStr,
           formattedDate,
-          count,
+          count: completedHabitsCount,
           completedHabits,
-          goalsCompletedCount,
-          totalActivity,
+          goalsCompletedCount: completedGoalsCount,
+          habitsForDate,
+          goalsForDate,
+          total,
+          completed,
+          totalActivity: completed,
+          pct,
           levelClass,
           isToday: dateStr === today,
           isFuture
@@ -731,6 +708,45 @@
     }
 
     return weeks;
+  }
+
+  /**
+   * Returns the exact persisted tasks that applied to one historical date.
+   * A current archive/delete state never changes an earlier day's snapshot.
+   */
+  function getHistoricalDaySnapshot(habits = [], completionByDate = {}, dailyGoals = [], dateStr, isFuture = false) {
+    if (isFuture) {
+      return { habitsForDate: [], goalsForDate: [], completedHabits: [], completedHabitsCount: 0, completedGoalsCount: 0, total: 0, completed: 0, pct: 0 };
+    }
+
+    const completedIds = completionByDate[dateStr] || new Set();
+    const habitsForDate = (habits || []).filter(habit => {
+      const created = formatDate(habit.created_at || habit.createdAt);
+      if (created && diffDays(dateStr, created) < 0) return false;
+      const retired = formatDate(habit.deleted_at || habit.deletedAt || habit.archived_at || habit.archivedAt);
+      if (retired && diffDays(dateStr, retired) >= 0) return false;
+      const scheduledHabit = { ...habit, active: true };
+      return isHabitScheduledOn(scheduledHabit, dateStr) || completedIds.has(habit.id);
+    });
+
+    // Daily goals are date-scoped records, so a goal only exists on its own date.
+    // Retained/deleted records stay in this snapshot for historical accuracy.
+    const goalsForDate = (dailyGoals || []).filter(goal => goal && goal.date === dateStr);
+    const completedHabits = habitsForDate.filter(habit => completedIds.has(habit.id));
+    const completedGoals = goalsForDate.filter(goal => goal.completed || Number(goal.progress) >= Number(goal.target || 1));
+    const total = habitsForDate.length + goalsForDate.length;
+    const completed = completedHabits.length + completedGoals.length;
+
+    return {
+      habitsForDate,
+      goalsForDate,
+      completedHabits,
+      completedHabitsCount: completedHabits.length,
+      completedGoalsCount: completedGoals.length,
+      total,
+      completed,
+      pct: total > 0 ? Math.round((completed / total) * 100) : 0
+    };
   }
 
   // ==========================================
@@ -1081,6 +1097,7 @@
     calculateDailyGoalsSummary,
     calculateWeeklyMomentum,
     calculateHeatmapMatrix,
+    getHistoricalDaySnapshot,
     calculateHeatmapMonthSpans,
     calculateHabitInsights,
     calculateWeeklyGoalProgress,

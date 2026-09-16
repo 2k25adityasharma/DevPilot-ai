@@ -209,20 +209,25 @@
 
     const completed = new Set(state[roleId].completed || []);
     const inProgress = new Set(state[roleId].inProgress || []);
+    const completedAt = state[roleId].completedAt || {};
 
     if (newStatus === 'completed') {
       completed.add(skillId);
       inProgress.delete(skillId);
+      completedAt[skillId] = new Date().toISOString();
     } else if (newStatus === 'in-progress') {
       inProgress.add(skillId);
       completed.delete(skillId);
+      delete completedAt[skillId];
     } else {
       completed.delete(skillId);
       inProgress.delete(skillId);
+      delete completedAt[skillId];
     }
 
     state[roleId].completed = Array.from(completed);
     state[roleId].inProgress = Array.from(inProgress);
+    state[roleId].completedAt = completedAt;
 
     // Check if 100% complete
     if (roadmap) {

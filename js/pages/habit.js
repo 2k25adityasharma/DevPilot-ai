@@ -24,6 +24,7 @@
   let selectedEditFrequency = 'daily';
   let selectedEditCustomDays = [1, 2, 3, 4, 5];
   let selectedHeatmapDate = null;
+  let heatmapDaysByDate = {};
 
   // DOM Elements cache
   let dom = {};
@@ -767,6 +768,26 @@
   /**
    * 6-Month Heatmap Matrix
    */
+  function applyHeatmapTheme() {
+    let accent = '#4f46e5';
+    try {
+      const settings = Storage.get('user_settings', null);
+      accent = settings && settings.ui && settings.ui.themeAccent || accent;
+    } catch (err) {}
+
+    const hex = String(accent).replace('#', '');
+    if (!/^[0-9a-f]{6}$/i.test(hex)) return;
+    const rgb = [0, 2, 4].map(offset => parseInt(hex.slice(offset, offset + 2), 16));
+    const mixWithWhite = (amount) => `rgb(${rgb.map(value => Math.round(255 - ((255 - value) * amount))).join(', ')})`;
+    const root = document.documentElement;
+    root.style.setProperty('--heatmap-l0', '#f1f5f9');
+    root.style.setProperty('--heatmap-l1', mixWithWhite(0.28));
+    root.style.setProperty('--heatmap-l2', mixWithWhite(0.48));
+    root.style.setProperty('--heatmap-l3', mixWithWhite(0.72));
+    root.style.setProperty('--heatmap-l4', mixWithWhite(1));
+    root.style.setProperty('--heatmap-accent', `#${hex}`);
+  }
+
   /**
    * 6-Month Heatmap Matrix
    */
@@ -776,6 +797,8 @@
     const goalsData = (allDailyGoals && allDailyGoals.length > 0) ? allDailyGoals : dailyGoals;
     const weeks = HabitsData.calculateHeatmapMatrix(habits, completions, 26, HabitsData.getTodayStr(), goalsData);
     if (!weeks || weeks.length === 0) return;
+    heatmapDaysByDate = Object.fromEntries(weeks.flat().map(day => [day.date, day]));
+    applyHeatmapTheme();
 
     // Default selected date to today if not yet chosen
     const todayStr = HabitsData.getTodayStr();
@@ -814,12 +837,14 @@
             class="heatmap-cell ${day.levelClass} ${day.isToday ? 'is-today' : ''} ${isSelected ? 'is-selected' : ''} ${day.isFuture ? 'is-future' : ''}" 
             data-date="${day.date}"
             data-formatted="${day.formattedDate}"
-            data-count="${day.count}"
-            data-goals="${day.goalsCompletedCount || 0}"
-            data-habits="${encodeURIComponent(JSON.stringify(day.completedHabits || []))}"
+            data-completed="${day.completed}"
+            data-total="${day.total}"
+            data-habits-total="${day.habitsForDate.length}"
+            data-goals-total="${day.goalsForDate.length}"
+            data-pct="${day.pct}"
             role="button"
             tabindex="0"
-            aria-label="${day.formattedDate}: ${day.count} habits completed"
+            aria-label="${day.formattedDate}: ${day.completed} of ${day.total} completed"
           ></div>
         `;
       }).join('');
@@ -870,22 +895,16 @@
       // Cell Hover: Smart floating tooltip with boundary clamping
       cell.addEventListener('mouseenter', () => {
         const dateStr = cell.getAttribute('data-formatted');
-        const count = parseInt(cell.getAttribute('data-count'), 10) || 0;
-        const goalsCount = parseInt(cell.getAttribute('data-goals'), 10) || 0;
-        let habitsList = [];
-        try {
-          habitsList = JSON.parse(decodeURIComponent(cell.getAttribute('data-habits') || '[]'));
-        } catch (err) {}
-
-        let content = `<div class="font-semibold text-slate-100">${dateStr}</div><div class="text-[11px] text-slate-300 mt-0.5">${count} habit${count === 1 ? '' : 's'} completed</div>`;
-        if (goalsCount > 0) {
-          content += `<div class="text-[11px] text-indigo-300">${goalsCount} daily goal${goalsCount === 1 ? '' : 's'} completed</div>`;
-        }
-        if (habitsList.length > 0) {
-          content += `<div class="mt-1.5 pt-1 border-t border-slate-700/80 text-[10px] text-slate-300 space-y-0.5">
-            ${habitsList.slice(0, 3).map(h => '<div>✓ ' + escapeHtml(h) + '</div>').join('')}
-            ${habitsList.length > 3 ? `<div class="text-slate-400 italic">+${habitsList.length - 3} more</div>` : ''}
-          </div>`;
+        const completed = parseInt(cell.getAttribute('data-completed'), 10) || 0;
+        const total = parseInt(cell.getAttribute('data-total'), 10) || 0;
+        const habitsTotal = parseInt(cell.getAttribute('data-habits-total'), 10) || 0;
+        const goalsTotal = parseInt(cell.getAttribute('data-goals-total'), 10) || 0;
+        const pct = parseInt(cell.getAttribute('data-pct'), 10) || 0;
+        let content = `<div class="font-semibold text-slate-100">${dateStr}</div>`;
+        if (total > 0) {
+          content += `<div class="text-[11px] text-slate-300 mt-0.5">${completed} of ${total} completed</div><div class="text-[11px] text-indigo-300">${habitsTotal} habits • ${goalsTotal} daily goals</div><div class="text-[11px] text-slate-300">${pct}% completion</div>`;
+        } else {
+          content += `<div class="text-[11px] text-slate-300 mt-0.5">No tracked tasks</div>`;
         }
         content += `<div class="mt-1 text-[9px] text-indigo-300/80 font-medium">Click to inspect day history</div>`;
 
@@ -947,28 +966,15 @@
     const isYesterday = (HabitsData.diffDays(todayStr, targetDate) === 1);
     const dayTag = isToday ? 'Today' : (isYesterday ? 'Yesterday' : '');
 
-    // 1. Determine habit completions for this day
-    const { byDate } = HabitsData.buildCompletionMaps(habits, completions);
-    const completedHabitIds = byDate[targetDate] || new Set();
-
-    // Completed habits
-    const completedList = habits.filter(h => completedHabitIds.has(h.id));
-
-    // Missed/Pending habits (active habits scheduled for this day but not completed)
-    const missedList = isFuture ? [] : habits.filter(h => {
-      if (h.active === false) return false;
-      if (completedHabitIds.has(h.id)) return false;
-      return HabitsData.isHabitScheduledOn(h, targetDate);
-    });
-
-    // Daily goals for this date across history
-    const allGoals = (allDailyGoals && allDailyGoals.length > 0) ? allDailyGoals : dailyGoals;
-    const goalsForDate = (allGoals || []).filter(g => g.date === targetDate);
-
-    // Stats
-    const totalScheduled = completedList.length + missedList.length;
-    const completedCount = completedList.length;
-    const pct = totalScheduled > 0 ? Math.round((completedCount / totalScheduled) * 100) : 0;
+    const day = heatmapDaysByDate[targetDate] || null;
+    const habitsForDate = day ? day.habitsForDate : [];
+    const goalsForDate = day ? day.goalsForDate : [];
+    const completedHabitIds = new Set((day ? day.completedHabits : []).map(h => h.id));
+    const completedList = (day ? day.completedHabits : []);
+    const missedList = habitsForDate.filter(h => !completedHabitIds.has(h.id));
+    const totalScheduled = day ? day.total : 0;
+    const completedCount = day ? day.completed : 0;
+    const pct = day ? day.pct : 0;
 
     let badgeClass = 'bg-slate-100 text-slate-600 border border-slate-200';
     let badgeText = `${completedCount} of ${totalScheduled} completed (${pct}%)`;
@@ -1038,15 +1044,16 @@
 
       // Daily goals for this day
       goalsForDate.forEach(g => {
+        const isGoalCompleted = g.completed || Number(g.progress) >= Number(g.target || 1);
         itemsHtml.push(`
-          <div class="heatmap-history-item flex items-center justify-between py-1.5 px-2.5 rounded-lg ${g.completed ? 'bg-indigo-50/60 border border-indigo-100' : 'bg-slate-50/80 border border-slate-200/70'} text-xs">
+          <div class="heatmap-history-item flex items-center justify-between py-1.5 px-2.5 rounded-lg ${isGoalCompleted ? 'bg-indigo-50/60 border border-indigo-100' : 'bg-slate-50/80 border border-slate-200/70'} text-xs">
             <div class="flex items-center gap-2 min-w-0">
-              <span class="w-4 h-4 rounded-full ${g.completed ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-500'} flex items-center justify-center text-[10px] font-bold shrink-0">🎯</span>
-              <span class="font-medium ${g.completed ? 'text-indigo-950' : 'text-slate-700'} truncate">${escapeHtml(g.title)}</span>
+              <span class="w-4 h-4 rounded-full ${isGoalCompleted ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-500'} flex items-center justify-center text-[10px] font-bold shrink-0">🎯</span>
+              <span class="font-medium ${isGoalCompleted ? 'text-indigo-950' : 'text-slate-700'} truncate">${escapeHtml(g.title)}</span>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
-              <span class="text-[10px] font-semibold ${g.completed ? 'text-indigo-700 bg-indigo-100' : 'text-slate-500 bg-slate-100'} px-1.5 py-0.5 rounded">
-                ${g.completed ? 'Goal Achieved' : 'In Progress'}
+              <span class="text-[10px] font-semibold ${isGoalCompleted ? 'text-indigo-700 bg-indigo-100' : 'text-slate-500 bg-slate-100'} px-1.5 py-0.5 rounded">
+                ${isGoalCompleted ? 'Goal Achieved' : 'In Progress'}
               </span>
             </div>
           </div>

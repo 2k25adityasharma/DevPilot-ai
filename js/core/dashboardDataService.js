@@ -26,7 +26,8 @@
   // Constants
   const STORAGE_KEY_GITHUB_SETTINGS = 'github_settings';
   const STORAGE_KEY_GITHUB_CACHE_PREFIX = 'github_cache_';
-  // No default GitHub username — users must explicitly configure their own
+  // Keep the dashboard consistent with the starter profile shown in Settings.
+  const DEFAULT_GITHUB_USERNAME = '2k25adityasharma';
   const GITHUB_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes cache
 
   // Helpers
@@ -249,10 +250,7 @@
     // storage.get() uses window.Storage which prepends 'devpilot_'
     // so 'u_{id}_daily_goals' → reads localStorage['devpilot_u_{id}_daily_goals'] ✓
     let goals = storage.get(`u_${userId}_daily_goals`, null);
-    if (!Array.isArray(goals) && userId === '00000000-0000-4000-a000-000000000001') {
-      // Legacy anonymous user fallback
-      goals = storage.get('daily_goals', null);
-    }
+    if (!Array.isArray(goals)) goals = storage.get('daily_goals', null);
 
     if (!Array.isArray(goals)) {
       // No goals exist yet for this user — return empty (no fake/seed data)
@@ -329,14 +327,19 @@
   function toggleDailyGoal(id) {
     const storage = getStorage();
     const userId = getUserId();
-    // storage.get/set already prepend 'devpilot_', so use un-prefixed key names:
-    // 'u_{id}_daily_goals' → devpilot_u_{id}_daily_goals in localStorage
-    const storageKey = `u_${userId}_daily_goals`;
 
-    let goals = storage.get(storageKey, null);
-    if (!Array.isArray(goals) && userId === '00000000-0000-4000-a000-000000000001') {
-      goals = storage.get('daily_goals', []);
+    // Try HabitService first
+    const hs = getHabitService();
+    if (hs && typeof hs.toggleDailyGoalComplete === 'function') {
+      try {
+        hs.toggleDailyGoalComplete(id);
+        return;
+      } catch (e) {}
     }
+
+    const storageKey = `u_${userId}_daily_goals`;
+    let goals = storage.get(storageKey, null);
+    if (!Array.isArray(goals)) goals = storage.get('daily_goals', []);
     if (!Array.isArray(goals)) goals = [];
 
     const targetGoal = goals.find(g => g.id === id);
@@ -976,7 +979,8 @@
     const profileUsername = normalizeGithubUsername(userSettings && userSettings.profile && userSettings.profile.githubUsername);
     const stored = storage.get(STORAGE_KEY_GITHUB_SETTINGS, null);
     const syncedUsername = normalizeGithubUsername(stored && stored.username);
-    const username = profileUsername || syncedUsername;
+    const hasStoredPreference = stored !== null;
+    const username = profileUsername || syncedUsername || (hasStoredPreference ? '' : DEFAULT_GITHUB_USERNAME);
     if (username) {
       return { username, isConfigured: true };
     }
@@ -1164,18 +1168,24 @@
     const storage = getStorage();
     const activities = [];
 
-    // 1. GitHub Activity (Highest priority)
+    const addActivity = (activity) => {
+      if (!activity || !activity.id || !activity.title) return;
+      activities.push({
+        ...activity,
+        timestamp: Number.isFinite(activity.timestamp) ? activity.timestamp : 0,
+        timeAgo: activity.timeAgo || 'Recently'
+      });
+    };
+
+    // GitHub: only code-changing activity belongs in this concise milestone feed.
     try {
       const gh = await getGithubActivity();
       if (gh && Array.isArray(gh.events)) {
-        gh.events.slice(0, 3).forEach(evt => {
-          activities.push({
+        gh.events.filter(evt => evt.type === 'push').slice(0, 2).forEach(evt => {
+          addActivity({
             id: `gh_${evt.id}`,
             source: 'github',
-            type: 'github',
             title: evt.title,
-            text: evt.title,
-            subtitle: `${evt.repo} • ${evt.timeAgoStr}`,
             timeAgo: evt.timeAgoStr,
             dotColor: '#10b981', // Emerald
             timestamp: new Date(evt.createdAt).getTime(),
@@ -1185,7 +1195,7 @@
       }
     } catch (e) {}
 
-    // 2. Real Solved LeetCode / DSA Problems
+    // DSA: a solved problem is a meaningful learning milestone.
     try {
       const evaluations = storage.get('dsa_roadmap_evaluations', {}) || {};
       const roadmap = getDsaRoadmap();
@@ -1204,68 +1214,106 @@
         }
 
         if (foundQ) {
-          activities.push({
+          addActivity({
             id: `dsa_${foundQ.id}`,
             source: 'dsa',
-            type: 'dsa',
             title: `Solved ${foundQ.title}`,
-            text: `Solved ${foundQ.title}`,
-            subtitle: `#${foundQ.leetcodeNumber || foundQ.id} • DSA Roadmap`,
             timeAgo: 'Recently',
             dotColor: '#4f46e5', // Indigo
-            timestamp: Date.now() - (2 * 3600 * 1000), // Recent within today
+            // Older roadmap records do not store a completion time. Keep their
+            // timestamp neutral instead of inventing one.
+            timestamp: 0,
             url: `pages/dsa.html#row-${foundQ.id}`
           });
         }
       }
     } catch (e) {}
 
-    // 3. Real Notes Created
+    // Notes: surface only notes explicitly marked important for interview prep.
     try {
       const notes = storage.get('dev_notes', []);
-      if (Array.isArray(notes) && notes.length > 0) {
-        const latestNote = notes[0];
-        activities.push({
+      if (Array.isArray(notes)) {
+        const latestNote = notes
+          .filter(note => note && note.isInterviewImportant)
+          .sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0))[0];
+        if (latestNote) addActivity({
           id: `note_${latestNote.id}`,
           source: 'notes',
-          type: 'notes',
-          title: `Created Note: ${latestNote.title}`,
-          text: `Created Note: ${latestNote.title}`,
-          subtitle: `${latestNote.category || 'General'} • Notes Knowledge Base`,
-          timeAgo: formatTimeAgo(latestNote.createdAt),
+          title: `${latestNote.updatedAt ? 'Updated' : 'Created'} important note: ${latestNote.title}`,
+          timeAgo: formatTimeAgo(latestNote.updatedAt || latestNote.createdAt),
           dotColor: '#f59e0b', // Amber
-          timestamp: latestNote.createdAt ? new Date(latestNote.createdAt).getTime() : Date.now() - (5 * 3600 * 1000),
+          timestamp: new Date(latestNote.updatedAt || latestNote.createdAt).getTime(),
           url: 'pages/notes.html'
         });
       }
     } catch (e) {}
 
-    // 4. Real Focus Timer Sessions
+    // Career Roadmap: a completed skill is a real progression milestone.
     try {
-      const sessions = storage.get('timer_sessions', []);
-      if (Array.isArray(sessions) && sessions.length > 0) {
-        const latestSession = sessions[0];
-        const durMin = Math.round((latestSession.durationSeconds || 1500) / 60);
-        activities.push({
-          id: `timer_${latestSession.id}`,
-          source: 'timer',
-          type: 'timer',
-          title: `Completed ${durMin}m Focus: ${latestSession.task || 'Deep Work'}`,
-          text: `Completed ${durMin}m Focus: ${latestSession.task || 'Deep Work'}`,
-          subtitle: `Pomodoro Timer • ${formatTimeAgo(latestSession.completedAt)}`,
-          timeAgo: formatTimeAgo(latestSession.completedAt),
-          dotColor: '#8b5cf6', // Violet
-          timestamp: new Date(latestSession.completedAt).getTime(),
-          url: 'pages/timer.html'
+      const careerState = storage.get('career_roadmaps_progress', {}) || {};
+      const roles = getCareerRoles();
+      roles.forEach(role => {
+        const roleState = careerState[role.id];
+        const completedAt = roleState && roleState.completedAt;
+        if (!completedAt || typeof completedAt !== 'object') return;
+        const latestSkillId = Object.keys(completedAt)
+          .sort((a, b) => new Date(completedAt[b]).getTime() - new Date(completedAt[a]).getTime())[0];
+        const roadmap = getRoadmapForRole(role.id, role);
+        const skill = roadmap && (roadmap.levels || []).flatMap(level => level.skills || [])
+          .find(item => String(item.id) === String(latestSkillId));
+        if (!skill) return;
+        addActivity({
+          id: `career_${role.id}_${latestSkillId}`,
+          source: 'career',
+          title: `Completed roadmap topic: ${skill.title || skill.name}`,
+          timeAgo: formatTimeAgo(completedAt[latestSkillId]),
+          dotColor: '#8b5cf6',
+          timestamp: new Date(completedAt[latestSkillId]).getTime(),
+          url: 'pages/roadmaps.html'
         });
-      }
+      });
     } catch (e) {}
 
-    // Sort newest first and limit to 4 items
-    activities.sort((a, b) => b.timestamp - a.timestamp);
+    // Interview Prep: show only completed sections, never individual attempts.
+    try {
+      const interviewProgress = storage.get('interview_prep_progress', {}) || {};
+      const completedTopic = Object.values(interviewProgress)
+        .filter(item => item && item.completed && item.lastAttempted)
+        .sort((a, b) => Number(b.lastAttempted) - Number(a.lastAttempted))[0];
+      if (completedTopic) addActivity({
+        id: `interview_${completedTopic.categoryId}_${completedTopic.topic}`,
+        source: 'interview',
+        title: `Completed interview section: ${completedTopic.topic || 'Practice topic'}`,
+        timeAgo: formatTimeAgo(completedTopic.lastAttempted),
+        dotColor: '#0ea5e9',
+        timestamp: Number(completedTopic.lastAttempted),
+        url: 'pages/interviewPrep.html'
+      });
+    } catch (e) {}
 
-    // Return empty array for fresh users — dashboard will show intentional empty state
-    return activities.slice(0, 4);
+    // Goals: only completed measurable daily goals are displayed.
+    try {
+      const userId = getUserId();
+      let goals = storage.get(`u_${userId}_daily_goals`, null);
+      if (!Array.isArray(goals)) goals = storage.get('daily_goals', []);
+      const latestGoal = Array.isArray(goals) && goals
+        .filter(goal => goal && (goal.completed || (goal.target && Number(goal.progress) >= Number(goal.target))) && (goal.updated_at || goal.completedAt))
+        .sort((a, b) => new Date(b.updated_at || b.completedAt).getTime() - new Date(a.updated_at || a.completedAt).getTime())[0];
+      if (latestGoal) addActivity({
+        id: `goal_${latestGoal.id}`,
+        source: 'goals',
+        title: `Completed daily goal: ${latestGoal.title}`,
+        timeAgo: formatTimeAgo(latestGoal.updated_at || latestGoal.completedAt),
+        dotColor: '#ec4899',
+        timestamp: new Date(latestGoal.updated_at || latestGoal.completedAt).getTime(),
+        url: 'pages/habits.html'
+      });
+    } catch (e) {}
+
+    // Keep the latest five genuine milestones. Timer, sync, navigation, auth,
+    // and other background events deliberately never enter this feed.
+    activities.sort((a, b) => b.timestamp - a.timestamp);
+    return activities.slice(0, 5);
   }
 
   // ==========================================

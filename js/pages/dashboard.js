@@ -627,9 +627,9 @@
 
       return `
         <label class="flex items-start gap-3 p-3 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-outline-variant/30 ${cardBg} task-item" ${dataAttr}>
-          <div class="relative flex items-center justify-center mt-0.5">
-            <input ${isChecked ? 'checked' : ''} class="peer appearance-none w-5 h-5 border-2 border-outline rounded-md checked:bg-primary checked:border-primary transition-all ${checkClass}" type="checkbox" data-id="${task.id}" data-source="${task.source || 'goal'}"/>
-            <span class="material-symbols-outlined absolute text-white text-[16px] opacity-0 peer-checked:opacity-100 pointer-events-none" style="font-variation-settings: 'FILL' 1;">check</span>
+          <div class="relative flex items-center justify-center mt-0.5 shrink-0">
+            <input ${isChecked ? 'checked' : ''} class="peer appearance-none w-5 h-5 border-2 ${isChecked ? 'bg-primary border-primary' : 'border-outline'} rounded-md checked:bg-primary checked:border-primary transition-all cursor-pointer ${checkClass}" type="checkbox" data-id="${task.id}" data-source="${task.source || 'goal'}"/>
+            <span class="material-symbols-outlined absolute text-white text-[16px] pointer-events-none select-none transition-opacity ${isChecked ? 'opacity-100' : 'opacity-0'} peer-checked:opacity-100" style="font-variation-settings: 'FILL' 1;">check</span>
           </div>
           <div class="flex-1 min-w-0">
             <p class="font-label-md text-label-md ${textClass} truncate task-text">${escapeHtml(task.title)}</p>
@@ -675,31 +675,24 @@
       `;
     }
 
-    // ── ALL TASKS DONE — Premium celebration state ──────────────────────────────
+    // All tasks completed banner (shown alongside tasks in 'all' view)
+    let celebrationBanner = '';
     if (total > 0 && completed === total) {
-      taskListEl.innerHTML = `
-        <div class="py-8 flex flex-col items-center justify-center text-center gap-3">
-          <div class="relative">
-            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-primary flex items-center justify-center shadow-lg">
-              <span class="material-symbols-outlined text-white text-3xl" style='font-variation-settings: "FILL" 1;'>workspace_premium</span>
-            </div>
-            <span class="absolute -top-1 -right-1 text-xl">🎉</span>
+      celebrationBanner = `
+        <div class="mb-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+            <span class="material-symbols-outlined text-lg" style='font-variation-settings: "FILL" 1;'>workspace_premium</span>
           </div>
-          <div>
-            <p class="font-title-sm text-on-surface font-bold">Excellence! All done for today.</p>
-            <p class="text-label-sm text-on-surface-variant mt-0.5">${completed} / ${total} tasks completed</p>
-          </div>
-          <div class="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-4 py-2 rounded-full border border-emerald-400/30 font-semibold">
-            <span class="material-symbols-outlined text-[14px]">star</span>
-            Outstanding work — you crushed it today! 💪
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-bold text-emerald-700 dark:text-emerald-300">All tasks completed today! 🎉</p>
+            <p class="text-[11px] text-emerald-600 dark:text-emerald-400">Great work! All ${completed} of ${total} tasks finished.</p>
           </div>
         </div>
       `;
-      return;
     }
 
     // All-done state when filter=active removes everything
-    if (displayHabits.length === 0 && displayGoals.length === 0 && total > 0) {
+    if (taskFilterMode === 'active' && displayHabits.length === 0 && displayGoals.length === 0 && total > 0) {
       html = `
         <div class="py-6 text-center">
           <span class="material-symbols-outlined text-3xl text-[#10b981]">task_alt</span>
@@ -707,6 +700,8 @@
           <p class="text-label-sm text-outline mt-1">${completed}/${total} done today 🎉</p>
         </div>
       `;
+    } else {
+      html = celebrationBanner + html;
     }
 
     taskListEl.innerHTML = html;
@@ -833,11 +828,14 @@
       if (type === 'github') dotColor = 'bg-[#10b981]';
       else if (type === 'dsa') dotColor = 'bg-indigo-600';
       else if (type === 'notes') dotColor = 'bg-amber-500';
-      else if (type === 'timer') dotColor = 'bg-rose-500';
+      else if (type === 'career') dotColor = 'bg-violet-500';
+      else if (type === 'interview') dotColor = 'bg-sky-500';
+      else if (type === 'goals') dotColor = 'bg-pink-500';
 
-      const text = act.text || act.title || 'Recent Activity';
-      const timeStr = act.timeAgo || act.subtitle || 'Recently';
-      const sourceStr = act.source || act.type || 'System';
+      const text = act.title || act.text || 'Recent activity';
+      const timeStr = act.timeAgo || 'Recently';
+      const sourceLabels = { github: 'GitHub', dsa: 'DSA', notes: 'Notes', career: 'Career Roadmap', interview: 'Interview Prep', goals: 'Goals' };
+      const sourceStr = sourceLabels[act.source || act.type] || 'Workspace';
 
       return `
         <div class="relative group">
@@ -1069,14 +1067,26 @@
       }
     });
 
-    // 2. Realtime BroadcastChannel
+    // 2. Realtime BroadcastChannel (persisted on window to prevent GC)
     if (typeof BroadcastChannel !== 'undefined') {
       try {
-        const channel = new BroadcastChannel('devpilot_habits_realtime');
-        channel.onmessage = () => {
+        if (window._habitsBroadcastChannel) {
+          try { window._habitsBroadcastChannel.close(); } catch (e) {}
+        }
+        window._habitsBroadcastChannel = new BroadcastChannel('devpilot_habits_realtime');
+        window._habitsBroadcastChannel.onmessage = () => {
           syncAllCards();
         };
       } catch (err) {}
+    }
+
+    // 3. HabitService in-page listener
+    if (typeof HabitService !== 'undefined' && typeof HabitService.onRealtimeChange === 'function') {
+      try {
+        HabitService.onRealtimeChange(() => {
+          syncAllCards();
+        });
+      } catch (e) {}
     }
 
     // 3. Tab focus / visibility change sync

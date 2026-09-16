@@ -94,10 +94,10 @@ console.log('====================================================\n');
 // TEST 1: Default GitHub Settings & Custom Username
 // ----------------------------------------------------
 runTest('TEST 1: GitHub Settings persistence', () => {
-  // Default: no GitHub configured (not hardcoded to personal username)
+  // Default: matches the starter profile shown in Settings.
   const defaultSettings = DashboardDataService.getGithubSettings();
-  assert.strictEqual(defaultSettings.isConfigured, false, 'Should NOT be configured by default');
-  assert.strictEqual(defaultSettings.username, '', 'Default username must be empty string (not hardcoded)');
+  assert.strictEqual(defaultSettings.isConfigured, true, 'Starter profile GitHub should be configured by default');
+  assert.strictEqual(defaultSettings.username, '2k25adityasharma');
 
   // After setting a username, isConfigured should be true
   DashboardDataService.setGithubSettings('custom-dev');

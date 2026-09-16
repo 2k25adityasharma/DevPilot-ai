@@ -65,3 +65,21 @@
     box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
   }
 }
+
+/* Custom Checkboxes in Task List */
+.task-checkbox,
+.task-habit-checkbox {
+  cursor: pointer;
+}
+
+.task-checkbox:checked,
+.task-habit-checkbox:checked {
+  background-color: var(--color-primary, #4648d4) !important;
+  border-color: var(--color-primary, #4648d4) !important;
+}
+
+.task-checkbox:checked ~ span,
+.task-habit-checkbox:checked ~ span {
+  opacity: 1 !important;
+}
+

@@ -269,14 +269,14 @@
    * Archives a habit (active = false).
    */
   async function archiveHabit(id) {
-    return updateHabit(id, { active: false });
+    return updateHabit(id, { active: false, archived_at: new Date().toISOString() });
   }
 
   /**
    * Reactivates an archived habit (active = true).
    */
   async function reactivateHabit(id) {
-    return updateHabit(id, { active: true });
+    return updateHabit(id, { active: true, archived_at: null });
   }
 
   /**
