@@ -43,45 +43,35 @@
   color: #94a3b8;
 }
 
-/* Custom Checkbox */
-.habit-checkbox {
-  appearance: none !important;
-  -webkit-appearance: none !important;
-  background-image: none !important;
+/* Habit Toggle Button (matches Daily Goals check button style) */
+.habit-toggle-btn {
   width: 1.25rem;
   height: 1.25rem;
-  border: 2px solid #cbd5e1;
   border-radius: 0.375rem;
+  border: 1.5px solid #cbd5e1;
   background-color: #ffffff;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  transition: all 0.15s ease-in-out;
   flex-shrink: 0;
+  transition: all 0.15s ease-in-out;
+  color: transparent;
+  padding: 0;
 }
 
-.habit-checkbox:hover {
+.habit-toggle-btn:hover {
   border-color: #6366f1;
+  color: #6366f1;
 }
 
-.habit-checkbox:checked {
+.habit-toggle-btn.is-checked {
   background-color: #4f46e5;
   border-color: #4f46e5;
+  color: #ffffff;
 }
 
-.habit-checkbox:checked::after {
-  content: '';
-  width: 5px;
-  height: 9px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg) translate(-0.5px, -1px);
-  display: block;
-}
-
-.habit-checkbox:focus-visible {
+.habit-toggle-btn:focus-visible {
   outline: 2px solid #6366f1;
   outline-offset: 2px;
 }

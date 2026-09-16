@@ -391,15 +391,15 @@
       return `
         <div class="habit-item ${isCompleted ? 'is-completed' : ''}" data-id="${habit.id}">
           <div class="flex items-center gap-3 flex-1 min-w-0">
-            <input 
-              type="checkbox" 
-              class="habit-checkbox" 
-              id="chk-${habit.id}" 
-              ${isCompleted ? 'checked' : ''} 
-              onchange="window.toggleHabit('${habit.id}')"
-              aria-label="Mark ${escapeHtml(habit.title)} completed"
-            />
-            <label for="chk-${habit.id}" class="cursor-pointer select-none flex-1 min-w-0">
+            <button
+              class="habit-toggle-btn ${isCompleted ? 'is-checked' : ''}"
+              onclick="window.toggleHabit('${habit.id}')"
+              title="${isCompleted ? 'Mark Incomplete' : 'Mark Complete'}"
+              aria-label="Mark ${escapeHtml(habit.title)} ${isCompleted ? 'incomplete' : 'complete'}"
+            >
+              <span class="material-symbols-outlined text-[14px]">check</span>
+            </button>
+            <div class="cursor-pointer select-none flex-1 min-w-0" onclick="window.toggleHabit('${habit.id}')">
               <div class="flex items-center gap-2 flex-wrap">
                 <p class="habit-title font-semibold text-sm truncate text-slate-800">${escapeHtml(habit.title)}</p>
                 ${restDayNotice}
@@ -414,7 +414,7 @@
                 <span class="text-slate-300">•</span>
                 <span class="text-[11px] text-slate-400">Best: ${stats.bestStreak}d</span>
               </div>
-            </label>
+            </div>
           </div>
           <button 
             class="text-slate-400 hover:text-indigo-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors flex items-center justify-center shrink-0" 
@@ -1066,7 +1066,7 @@
         reminderTime
       });
 
-      closeAddHabitModal();
+      window.closeAddHabitModal();
       habits = await HabitService.getHabits();
       renderAll();
       showToast(`Added habit: "${created.title}"`, 'success');
@@ -1481,6 +1481,11 @@
     }
 
     // Add Habit Button & Modal
+    function closeAddHabitModal() {
+      if (dom.modalAddHabit) dom.modalAddHabit.classList.remove('active');
+    }
+    window.closeAddHabitModal = closeAddHabitModal;
+
     window.openAddHabitModal = function () {
       if (dom.formAddHabit) dom.formAddHabit.reset();
       selectedAddFrequency = 'daily';
@@ -1496,9 +1501,6 @@
       }, 100);
     };
 
-    function closeAddHabitModal() {
-      if (dom.modalAddHabit) dom.modalAddHabit.classList.remove('active');
-    }
 
     if (dom.btnAddHabit) dom.btnAddHabit.addEventListener('click', window.openAddHabitModal);
     if (dom.btnAddHabitCard) dom.btnAddHabitCard.addEventListener('click', window.openAddHabitModal);
