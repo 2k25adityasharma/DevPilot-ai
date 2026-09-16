@@ -7,7 +7,6 @@
  * - Dynamic streak badges & at-risk indicators
  * - 6-month heatmap grid with month headers & weekday labels
  * - Interactive heatmap day detail tooltip
- * - Weekly goals with completion animations
  * - Actionable habit insights cards
  * - Accessible modal dialogs
  */
@@ -289,27 +288,7 @@
   transform: translateX(2px);
 }
 
-/* ==========================================================================
-   3. Weekly Goals
-   ========================================================================== */
-
-.goal-card {
-  padding: 1rem;
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
-  transition: all 0.2s ease;
-}
-
-.goal-card:hover {
-  border-color: #cbd5e1;
-}
-
-.goal-card.is-completed {
-  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
-  border-color: #86efac;
-}
-
+/* Daily Goals */
 .daily-goal-item {
   padding: 0.875rem 1rem;
   background-color: #ffffff;

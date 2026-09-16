@@ -209,24 +209,14 @@
     const storage = getStorage();
     const userId = getUserId();
 
-    // Read habits
-    let habits = storage.get(`devpilot_u_${userId}_habits`, null);
-    if (!Array.isArray(habits)) {
-      habits = storage.get(`u_${userId}_habits`, null);
-    }
-    if (!Array.isArray(habits)) {
-      habits = storage.get('habits_data', []);
-    }
+    // Read habits — storage.get prepends 'devpilot_', so 'u_{id}_habits' → 'devpilot_u_{id}_habits'
+    let habits = storage.get(`u_${userId}_habits`, null);
+    if (!Array.isArray(habits)) habits = storage.get('habits_data', []);
     if (!Array.isArray(habits)) habits = [];
 
-    // Read completions
-    let completions = storage.get(`devpilot_u_${userId}_completions`, null);
-    if (!Array.isArray(completions)) {
-      completions = storage.get(`u_${userId}_completions`, null);
-    }
-    if (!Array.isArray(completions)) {
-      completions = storage.get('habits_completions', []);
-    }
+    // Read completions — same prefix rule applies
+    let completions = storage.get(`u_${userId}_completions`, null);
+    if (!Array.isArray(completions)) completions = storage.get('habits_completions', []);
     if (!Array.isArray(completions)) completions = [];
 
     const todayStr = habitsData && typeof habitsData.getTodayStr === 'function'
@@ -256,11 +246,11 @@
     const storage = getStorage();
     const userId = getUserId();
 
+    // storage.get() uses window.Storage which prepends 'devpilot_'
+    // so 'u_{id}_daily_goals' → reads localStorage['devpilot_u_{id}_daily_goals'] ✓
     let goals = storage.get(`u_${userId}_daily_goals`, null);
-    if (!Array.isArray(goals)) {
-      goals = storage.get(`devpilot_u_${userId}_daily_goals`, null);
-    }
     if (!Array.isArray(goals) && userId === '00000000-0000-4000-a000-000000000001') {
+      // Legacy anonymous user fallback
       goals = storage.get('daily_goals', null);
     }
 
@@ -339,21 +329,24 @@
   function toggleDailyGoal(id) {
     const storage = getStorage();
     const userId = getUserId();
-    const primaryKey = `devpilot_u_${userId}_daily_goals`;
-    const fallbackKey = `u_${userId}_daily_goals`;
+    // storage.get/set already prepend 'devpilot_', so use un-prefixed key names:
+    // 'u_{id}_daily_goals' → devpilot_u_{id}_daily_goals in localStorage
+    const storageKey = `u_${userId}_daily_goals`;
 
-    let goals = storage.get(primaryKey, null);
-    if (!Array.isArray(goals)) goals = storage.get(fallbackKey, null);
-    if (!Array.isArray(goals)) goals = storage.get('daily_goals', []);
+    let goals = storage.get(storageKey, null);
+    if (!Array.isArray(goals) && userId === '00000000-0000-4000-a000-000000000001') {
+      goals = storage.get('daily_goals', []);
+    }
     if (!Array.isArray(goals)) goals = [];
 
     const targetGoal = goals.find(g => g.id === id);
     if (targetGoal) {
       targetGoal.completed = !targetGoal.completed;
+      // When marking complete: set progress to target; when unchecking: reset progress
       targetGoal.progress = targetGoal.completed ? (targetGoal.target || 1) : 0;
       targetGoal.updated_at = new Date().toISOString();
-      storage.set(primaryKey, goals);
-      storage.set(fallbackKey, goals);
+      // Write back with the correct key (no double-prefix)
+      storage.set(storageKey, goals);
 
       // Notify other pages and components via BroadcastChannel
       try {
@@ -365,6 +358,7 @@
             data: targetGoal,
             timestamp: Date.now()
           });
+          channel.close();
         }
       } catch (e) {}
 
@@ -967,11 +961,24 @@
   // ==========================================
   // 7. GITHUB SETTINGS & ACTIVITY ENGINE
   // ==========================================
+  function normalizeGithubUsername(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+
+    const withoutUrl = raw.replace(/^https?:\/\/(?:www\.)?github\.com\//i, '');
+    const username = withoutUrl.replace(/^@/, '').replace(/\/$/, '');
+    return /^[a-z\d](?:[a-z\d-]{0,37}[a-z\d])?$/i.test(username) ? username : '';
+  }
+
   function getGithubSettings() {
     const storage = getStorage();
+    const userSettings = storage.get('user_settings', null);
+    const profileUsername = normalizeGithubUsername(userSettings && userSettings.profile && userSettings.profile.githubUsername);
     const stored = storage.get(STORAGE_KEY_GITHUB_SETTINGS, null);
-    if (stored && stored.username && stored.username.trim()) {
-      return { username: stored.username.trim(), isConfigured: true };
+    const syncedUsername = normalizeGithubUsername(stored && stored.username);
+    const username = profileUsername || syncedUsername;
+    if (username) {
+      return { username, isConfigured: true };
     }
     // No username configured — user has never set up GitHub
     return { username: '', isConfigured: false };
@@ -979,14 +986,21 @@
 
   function setGithubSettings(username) {
     const storage = getStorage();
-    const cleanUser = (username || '').trim().replace(/^@/, '');
+    const cleanUser = normalizeGithubUsername(username);
     const settingsObj = { username: cleanUser, isConfigured: !!cleanUser };
     storage.set(STORAGE_KEY_GITHUB_SETTINGS, settingsObj);
+    const userSettings = storage.get('user_settings', {});
+    userSettings.profile = userSettings.profile || {};
+    userSettings.profile.githubUsername = cleanUser;
+    storage.set('user_settings', userSettings);
     return settingsObj;
   }
 
   async function getGithubActivity(forceRefresh = false) {
     const { username } = getGithubSettings();
+    if (!username) {
+      return { username: '', commitsThisWeek: 0, weeklyCommits: 0, events: [], error: 'GitHub username is not configured.', updatedAt: Date.now() };
+    }
     const cacheKey = `${STORAGE_KEY_GITHUB_CACHE_PREFIX}${username}`;
     const storage = getStorage();
 
@@ -1001,11 +1015,13 @@
     // 2. Fetch fresh public events from GitHub REST API
     try {
       const url = `https://api.github.com/users/${encodeURIComponent(username)}/events/public?per_page=30`;
-      const response = await fetch(url, {
-        headers: {
-          'Accept': 'application/vnd.github.v3+json'
-        }
-      });
+      const userSettings = storage.get('user_settings', {});
+      const githubToken = String(userSettings && userSettings.apiKeys && userSettings.apiKeys.githubToken || '').trim();
+      const headers = { 'Accept': 'application/vnd.github+json' };
+      if (githubToken && !/^(ghp_mock|sk-mock|mock)/i.test(githubToken)) {
+        headers.Authorization = `Bearer ${githubToken}`;
+      }
+      const response = await fetch(url, { headers });
 
       if (!response.ok) {
         if (response.status === 403) {
@@ -1471,9 +1487,6 @@
 
     // Check user-scoped key first, then fallback
     let rawSessions = storage.get(`u_${userId}_timer_sessions`, null);
-    if (!Array.isArray(rawSessions)) {
-      rawSessions = storage.get(`devpilot_u_${userId}_timer_sessions`, null);
-    }
     if (!Array.isArray(rawSessions) && userId === '00000000-0000-4000-a000-000000000001') {
       rawSessions = storage.get('timer_sessions', []);
     }
@@ -1534,20 +1547,14 @@
     const userId = getUserId();
     const habitsData = getHabitsData();
 
-    // Read habits
-    let habits = storage.get(`devpilot_u_${userId}_habits`, null);
-    if (!Array.isArray(habits)) habits = storage.get(`u_${userId}_habits`, null);
-    if (!Array.isArray(habits) && userId === '00000000-0000-4000-a000-000000000001') {
-      habits = storage.get('habits_data', null);
-    }
+    // Read habits — 'u_{id}_habits' key → localStorage['devpilot_u_{id}_habits'] (no double-prefix)
+    let habits = storage.get(`u_${userId}_habits`, null);
+    if (!Array.isArray(habits)) habits = storage.get('habits_data', []);
     if (!Array.isArray(habits)) habits = [];
 
-    // Read completions
-    let completions = storage.get(`devpilot_u_${userId}_completions`, null);
-    if (!Array.isArray(completions)) completions = storage.get(`u_${userId}_completions`, null);
-    if (!Array.isArray(completions) && userId === '00000000-0000-4000-a000-000000000001') {
-      completions = storage.get('habits_completions', null);
-    }
+    // Read completions — 'u_{id}_completions' → localStorage['devpilot_u_{id}_completions']
+    let completions = storage.get(`u_${userId}_completions`, null);
+    if (!Array.isArray(completions)) completions = storage.get('habits_completions', []);
     if (!Array.isArray(completions)) completions = [];
 
     // Build completion lookup: { habitId: { date: true } }
@@ -1590,7 +1597,15 @@
 
     const allTasks = [...habits, ...goalsWithSource];
     const total = allTasks.length;
-    const completed = allTasks.filter(t => !!t.completed).length;
+
+    // Count as completed: explicitly completed OR session-based (progress >= target)
+    const completed = allTasks.filter(t => {
+      if (!!t.completed) return true;
+      // Session-based goal: progress reached target
+      if (t.source === 'goal' && t.target && typeof t.progress === 'number' && t.progress >= t.target) return true;
+      return false;
+    }).length;
+
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     return {
@@ -1611,17 +1626,20 @@
     const storage = getStorage();
     const userId = getUserId();
 
-    // Try HabitService first (async, but we still fire it for Supabase sync)
+    // Try HabitService first (authoritative user-isolated store + Supabase sync + broadcast)
     const hs = getHabitService();
     if (hs && typeof hs.toggleCompletion === 'function') {
-      try { hs.toggleCompletion(habitId, dateStr); } catch (e) {}
+      try {
+        hs.toggleCompletion(habitId, dateStr);
+        return;
+      } catch (e) {
+        console.warn('HabitService toggleCompletion failed, falling back to direct storage:', e);
+      }
     }
 
-    // Sync local store update
-    const primaryKey = `devpilot_u_${userId}_completions`;
-    const fallbackKey = `u_${userId}_completions`;
-    let completions = storage.get(primaryKey, null);
-    if (!Array.isArray(completions)) completions = storage.get(fallbackKey, null);
+    // Fallback direct storage update (only when HabitService is unavailable)
+    const storageKey = `u_${userId}_completions`;
+    let completions = storage.get(storageKey, null);
     if (!Array.isArray(completions)) completions = storage.get('habits_completions', []);
     if (!Array.isArray(completions)) completions = [];
 
@@ -1644,8 +1662,8 @@
       isNowCompleted = true;
     }
 
-    storage.set(primaryKey, completions);
-    storage.set(fallbackKey, completions);
+    // Write back to single correct key (no double-prefix)
+    storage.set(storageKey, completions);
 
     // Broadcast to other pages
     try {
@@ -1741,7 +1759,6 @@
 
     // 1. Focus Sessions this week
     let rawSessions = storage.get(`u_${userId}_timer_sessions`, null);
-    if (!Array.isArray(rawSessions)) rawSessions = storage.get(`devpilot_u_${userId}_timer_sessions`, null);
     if (!Array.isArray(rawSessions) && userId === '00000000-0000-4000-a000-000000000001') rawSessions = storage.get('timer_sessions', []);
     if (Array.isArray(rawSessions)) {
       rawSessions.forEach(s => {
@@ -1776,7 +1793,6 @@
 
     // 2. Completed Daily Goals this week
     let rawDailyGoals = storage.get(`u_${userId}_daily_goals`, null);
-    if (!Array.isArray(rawDailyGoals)) rawDailyGoals = storage.get(`devpilot_u_${userId}_daily_goals`, null);
     if (!Array.isArray(rawDailyGoals) && userId === '00000000-0000-4000-a000-000000000001') rawDailyGoals = storage.get('daily_goals', []);
     if (Array.isArray(rawDailyGoals)) {
       rawDailyGoals.forEach(g => {
@@ -1807,12 +1823,10 @@
 
     // 3. Completed Habits this week
     let habits = storage.get(`u_${userId}_habits`, null);
-    if (!Array.isArray(habits)) habits = storage.get(`devpilot_u_${userId}_habits`, null);
     if (!Array.isArray(habits) && userId === '00000000-0000-4000-a000-000000000001') habits = storage.get('habits_data', []);
     if (!Array.isArray(habits)) habits = [];
 
     let completions = storage.get(`u_${userId}_completions`, null);
-    if (!Array.isArray(completions)) completions = storage.get(`devpilot_u_${userId}_completions`, null);
     if (!Array.isArray(completions) && userId === '00000000-0000-4000-a000-000000000001') completions = storage.get('habits_completions', []);
     if (!Array.isArray(completions)) completions = [];
 

@@ -30,7 +30,7 @@ const defaultSettings = {
 
 let settings = Storage.get('user_settings', defaultSettings);
 const savedGithub = Storage.get('github_settings', null);
-if (savedGithub && savedGithub.username) {
+if ((!settings.profile || !settings.profile.githubUsername) && savedGithub && savedGithub.username) {
   if (!settings.profile) settings.profile = {};
   settings.profile.githubUsername = savedGithub.username;
 }
@@ -134,13 +134,14 @@ function initSettingsSave() {
       settings.profile.fullName = getVal('set-fullname');
       settings.profile.title = getVal('set-title');
       settings.profile.email = getVal('set-email');
-      const ghUsername = getVal('set-github-username') || '2k25adityasharma';
+      const ghUsername = getVal('set-github-username').replace(/^https?:\/\/(?:www\.)?github\.com\//i, '').replace(/^@/, '').replace(/\/$/, '');
       settings.profile.githubUsername = ghUsername;
       settings.profile.bio = getVal('set-bio');
 
       // Sync github_settings for Dashboard and Analyzer
       Storage.set('github_settings', {
         username: ghUsername,
+        isConfigured: !!ghUsername,
         updatedAt: new Date().toISOString()
       });
 

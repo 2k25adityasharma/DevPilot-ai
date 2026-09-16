@@ -324,11 +324,20 @@
       }
 
       if (rangeBadgeEl) {
-        rangeBadgeEl.textContent = data.isCached ? 'Cached' : 'This Week';
+        rangeBadgeEl.textContent = data.fromCache ? 'Cached' : 'This Week';
       }
 
       if (eventsListEl) {
-        if (!data.events || data.events.length === 0) {
+        if (data.error) {
+          eventsListEl.innerHTML = `
+            <div class="py-3 text-center">
+              <p class="text-label-sm text-outline">${escapeHtml(data.error)}</p>
+              <button id="btn-retry-github" class="mt-2 text-xs text-primary hover:underline font-semibold">Retry GitHub Sync</button>
+            </div>
+          `;
+          const retryBtn = document.getElementById('btn-retry-github');
+          if (retryBtn) retryBtn.addEventListener('click', () => fetchAndRenderGitHub(true));
+        } else if (!data.events || data.events.length === 0) {
           eventsListEl.innerHTML = `
             <div class="py-3 text-center">
               <p class="text-label-sm text-outline">No recent commits found for @${escapeHtml(data.username)}.</p>
@@ -339,11 +348,11 @@
           eventsListEl.innerHTML = data.events.slice(0, 3).map(event => `
             <div class="flex items-start gap-2 group">
               <span class="material-symbols-outlined text-[16px] text-outline mt-0.5 group-hover:text-primary transition-colors">
-                ${event.type === 'PushEvent' ? 'commit' : (event.type === 'CreateEvent' ? 'add_circle' : 'update')}
+                ${event.icon || (event.type === 'push' ? 'commit' : 'update')}
               </span>
               <div class="min-w-0 flex-1">
-                <p class="font-label-md text-label-md text-on-surface truncate font-medium">${escapeHtml(event.message)}</p>
-                <p class="font-label-sm text-label-sm text-outline truncate">${escapeHtml(event.repo)} • ${escapeHtml(event.timeAgo)}</p>
+                <p class="font-label-md text-label-md text-on-surface truncate font-medium">${escapeHtml(event.title || 'GitHub activity')}</p>
+                <p class="font-label-sm text-label-sm text-outline truncate">${escapeHtml(event.repo)} • ${escapeHtml(event.timeAgoStr || '')}</p>
               </div>
             </div>
           `).join('');
@@ -589,17 +598,29 @@
     let displayGoals = goals;
     if (taskFilterMode === 'active') {
       displayHabits = habits.filter(h => !h.completed);
-      displayGoals = goals.filter(g => !g.completed);
+      displayGoals = goals.filter(g => !g.completed && !(g.target && typeof g.progress === 'number' && g.progress >= g.target));
     }
 
     // Build task item HTML helper
     function buildTaskItem(task) {
-      const isChecked = !!task.completed;
       const isHabit = task.source === 'habit';
+      const isSessionGoal = !isHabit && task.target && typeof task.progress === 'number';
+      const progressCompleted = isSessionGoal && task.progress >= task.target;
+      const isChecked = !!task.completed || progressCompleted;
+
       const cardBg = isChecked ? 'hover:bg-surface-container-low' : 'bg-surface-container-lowest shadow-sm border-outline-variant/20 hover:bg-surface-container-low';
       const textClass = isChecked ? 'line-through text-on-surface-variant' : 'text-on-surface font-medium';
       const timeClass = isChecked ? 'text-outline' : 'text-primary';
-      const timeLabel = isChecked ? 'Completed' : (task.time || (isHabit ? 'Daily Habit' : 'In Progress'));
+      
+      let timeLabel;
+      if (isChecked) {
+        timeLabel = 'Completed';
+      } else if (isSessionGoal) {
+        timeLabel = `${task.progress}/${task.target}`;
+      } else {
+        timeLabel = task.time || (isHabit ? 'Daily Habit' : 'In Progress');
+      }
+
       const categoryLabel = task.category || (isHabit ? 'Habit' : 'Goal');
       const dataAttr = isHabit ? `data-habit-id="${task.id}"` : `data-goal-id="${task.id}"`;
       const checkClass = isHabit ? 'task-habit-checkbox' : 'task-checkbox';
@@ -608,7 +629,7 @@
         <label class="flex items-start gap-3 p-3 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-outline-variant/30 ${cardBg} task-item" ${dataAttr}>
           <div class="relative flex items-center justify-center mt-0.5">
             <input ${isChecked ? 'checked' : ''} class="peer appearance-none w-5 h-5 border-2 border-outline rounded-md checked:bg-primary checked:border-primary transition-all ${checkClass}" type="checkbox" data-id="${task.id}" data-source="${task.source || 'goal'}"/>
-            <span class="material-symbols-outlined absolute text-white text-[16px] opacity-0 peer-checked:opacity-100 pointer-events-none">check</span>
+            <span class="material-symbols-outlined absolute text-white text-[16px] opacity-0 peer-checked:opacity-100 pointer-events-none" style="font-variation-settings: 'FILL' 1;">check</span>
           </div>
           <div class="flex-1 min-w-0">
             <p class="font-label-md text-label-md ${textClass} truncate task-text">${escapeHtml(task.title)}</p>
@@ -698,6 +719,7 @@
         if (habitId && typeof DashboardDataService !== 'undefined') {
           DashboardDataService.toggleHabitCompletion(habitId, selectedDateStr);
           renderTasksSection();
+          renderMainGoal();  // ← Bug fix: habit card must also refresh
           renderStreak();
           renderCalendar();
           renderRecentActivity();
@@ -1035,6 +1057,8 @@
       if (!e.key) return;
       if (
         e.key.includes('habits') ||
+        e.key.includes('completions') ||
+        e.key.includes('daily_goals') ||
         e.key.includes('dsa') ||
         e.key.includes('dev_notes') ||
         e.key.includes('timer') ||
@@ -1079,6 +1103,8 @@
     renderCalendar();
     renderRecentActivity();
     renderFooterProductivity();
+    cachedGithubData = null;
+    fetchAndRenderGitHub(true);
   }
 
   // Utility

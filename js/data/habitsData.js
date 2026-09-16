@@ -903,10 +903,10 @@
         });
       }
     } else {
-      // General habit count in this week
+      // General habit count: count active days in this week where habits were completed
       weekDates.forEach(dateStr => {
-        if (byDate[dateStr]) {
-          current += byDate[dateStr].size;
+        if (byDate[dateStr] && byDate[dateStr].size > 0) {
+          current++;
         }
       });
     }

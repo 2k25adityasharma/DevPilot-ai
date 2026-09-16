@@ -186,7 +186,7 @@
     <!-- Section 1: Main Grid Layout -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
       
-      <!-- Left Column: Habits, Daily Goals, Weekly Goals (7 cols) -->
+      <!-- Left Column: Habits and Daily Goals (7 cols) -->
       <div class="lg:col-span-7 space-y-8">
         
         <!-- 1. Daily Habit Checklist Card -->
@@ -258,30 +258,6 @@
 
           <!-- Daily Goals List Container -->
           <div class="space-y-3" id="daily-goals-container">
-            <!-- Rendered dynamically by js/pages/habit.js -->
-          </div>
-        </div>
-
-        <!-- 3. Weekly Goals Card -->
-        <div class="dev-card">
-          <div class="flex items-center justify-between mb-4">
-            <div>
-              <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <span class="material-symbols-outlined text-indigo-600 text-xl">flag</span>
-                <span>Weekly Goals</span>
-                <span class="text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md" id="current-week-badge">This Week</span>
-              </h2>
-              <p class="text-[11px] text-indigo-700/80 font-medium">Targets you want to complete this week.</p>
-              <p class="text-xs text-slate-400 mt-0.5">Measurable weekly targets synced automatically with daily habit completions.</p>
-            </div>
-            <button class="px-3 py-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors flex items-center gap-1" id="btn-add-goal">
-              <span class="material-symbols-outlined text-[16px]">add</span>
-              <span>Add Goal</span>
-            </button>
-          </div>
-
-          <!-- Goals List Container -->
-          <div class="space-y-3" id="weekly-goals-container">
             <!-- Rendered dynamically by js/pages/habit.js -->
           </div>
         </div>
@@ -573,54 +549,6 @@
         <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
           <button type="button" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" id="btn-cancel-add-daily-goal">Cancel</button>
           <button type="submit" class="btn-primary bg-amber-600 hover:bg-amber-700 text-xs py-2 px-4 shadow-sm border-transparent">Set Goal</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ==========================================
-       MODAL 4: ADD WEEKLY GOAL
-       ========================================== -->
-  <div class="modal-backdrop" id="modal-add-goal">
-    <div class="modal-container p-6">
-      <div class="flex items-center justify-between mb-5">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-            <span class="material-symbols-outlined text-xl">flag</span>
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-slate-900">Set Weekly Goal</h3>
-            <p class="text-xs text-slate-500">Track target completions for this calendar week</p>
-          </div>
-        </div>
-        <button class="text-slate-400 hover:text-slate-600 p-1 rounded-lg" id="btn-close-add-goal">
-          <span class="material-symbols-outlined text-xl">close</span>
-        </button>
-      </div>
-
-      <form id="form-add-goal" class="space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="goal-title-input">Weekly Goal Title (Target for This Week) *</label>
-          <input type="text" id="goal-title-input" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors" placeholder="e.g. Solve 20 DSA questions this week" required maxlength="60"/>
-          <p class="text-[11px] text-slate-400 mt-1">Larger target you want to complete this calendar week.</p>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="goal-habit-select">Link to Habit (Auto-Progress)</label>
-          <select id="goal-habit-select" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors">
-            <option value="">General (Count all completed habits)</option>
-          </select>
-          <p class="text-[11px] text-slate-400 mt-1">When the linked habit is completed, this goal updates automatically.</p>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="goal-target-input">Target Completions Per Week</label>
-          <input type="number" id="goal-target-input" min="1" max="21" value="5" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors" required/>
-        </div>
-
-        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-          <button type="button" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" id="btn-cancel-add-goal">Cancel</button>
-          <button type="submit" class="btn-primary text-xs py-2 px-4 shadow-sm">Set Goal</button>
         </div>
       </form>
     </div>
