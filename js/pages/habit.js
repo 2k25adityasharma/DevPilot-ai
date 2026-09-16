@@ -306,10 +306,46 @@
    */
   function renderTodayProgress() {
     const progress = HabitsData.calculateTodayProgress(habits, completions);
+    const overall = HabitsData.calculateOverallStreak(habits, completions);
+    const pct = progress.pct;
+    const threshold = overall.streakThreshold || 75;
 
     if (dom.habitsCompletedText) dom.habitsCompletedText.textContent = progress.text;
-    if (dom.habitsPctText) dom.habitsPctText.textContent = `${progress.pct}%`;
-    if (dom.habitsProgressBar) dom.habitsProgressBar.style.width = `${progress.pct}%`;
+    if (dom.habitsPctText) {
+      dom.habitsPctText.textContent = `${pct}%`;
+      // Color: green if >=75%, amber if <75%, slate if 0%
+      if (pct >= threshold) {
+        dom.habitsPctText.className = 'text-sm font-bold text-emerald-600';
+      } else if (pct > 0) {
+        dom.habitsPctText.className = 'text-sm font-bold text-amber-500';
+      } else {
+        dom.habitsPctText.className = 'text-sm font-bold text-indigo-600';
+      }
+    }
+    if (dom.habitsProgressBar) {
+      dom.habitsProgressBar.style.width = `${pct}%`;
+      // Progress bar color reflects streak eligibility
+      if (pct >= threshold) {
+        dom.habitsProgressBar.style.background = '#10b981'; // emerald
+      } else {
+        dom.habitsProgressBar.style.background = ''; // default indigo
+      }
+    }
+
+    // Update streak rule hint dynamically
+    const hintEl = document.getElementById('streak-rule-hint');
+    if (hintEl) {
+      if (pct >= threshold) {
+        hintEl.textContent = `✅ ${pct}% today — streak eligible!`;
+        hintEl.className = 'text-[11px] font-semibold text-emerald-600 mt-1';
+      } else if (pct > 0) {
+        hintEl.textContent = `⚡ ${pct}% today — reach ${threshold}% to count for streak`;
+        hintEl.className = 'text-[11px] font-semibold text-amber-500 mt-1';
+      } else {
+        hintEl.textContent = `Complete ≥${threshold}% of habits daily to build your streak`;
+        hintEl.className = 'text-[11px] text-slate-400 mt-1';
+      }
+    }
   }
 
   /**
@@ -525,17 +561,142 @@
     if (!dom.weeklyGoalsContainer) return;
 
     if (weeklyGoals.length === 0) {
+      // Build smart suggestions based on user's real habits
+      const activeHabits = habits.filter(h => h.active !== false);
+      const count = activeHabits.length;
+      const todayStr = HabitsData.getTodayStr();
+      const overall = HabitsData.calculateOverallStreak(habits, completions);
+      const currentStreak = overall.currentStreak || 0;
+
+      // Generate suggestions tailored to what the user actually has
+      const suggestions = [];
+
+      if (count >= 1) {
+        // Suggestion 1: Complete all habits N days this week
+        const daysTarget = count === 1 ? 5 : 5;
+        suggestions.push({
+          icon: 'task_alt',
+          color: 'text-indigo-600',
+          bg: 'bg-indigo-50 border-indigo-200',
+          title: count === 1
+            ? `Complete "${activeHabits[0].title}" 5 days this week`
+            : `Complete all ${count} habits for 5 days this week`,
+          subtitle: 'Daily consistency builds momentum',
+          goalPayload: {
+            title: count === 1
+              ? `Complete "${activeHabits[0].title}" 5 days`
+              : `Complete all habits 5 days`,
+            target: daysTarget,
+            habitId: count === 1 ? activeHabits[0].id : null
+          }
+        });
+      }
+
+      if (currentStreak >= 1) {
+        // Suggestion 2: Extend current streak
+        const streakTarget = Math.max(currentStreak + 3, 7);
+        suggestions.push({
+          icon: 'local_fire_department',
+          color: 'text-amber-600',
+          bg: 'bg-amber-50 border-amber-200',
+          title: `Extend streak to ${streakTarget} consecutive days`,
+          subtitle: `You're at ${currentStreak}d — keep the fire going!`,
+          goalPayload: {
+            title: `Reach a ${streakTarget}-day consistency streak`,
+            target: streakTarget,
+            habitId: null
+          }
+        });
+      }
+
+      if (count >= 2) {
+        // Suggestion 3: 75%+ completion every day this week
+        suggestions.push({
+          icon: 'percent',
+          color: 'text-emerald-600',
+          bg: 'bg-emerald-50 border-emerald-200',
+          title: 'Hit 75%+ completion every day this week',
+          subtitle: 'Threshold for streak — 7 qualifying days',
+          goalPayload: {
+            title: 'Hit 75%+ daily completion all 7 days',
+            target: 7,
+            habitId: null
+          }
+        });
+      }
+
+      if (count >= 1) {
+        // Suggestion 4: based on weakest habit (if insights available)
+        const insights = HabitsData.calculateHabitInsights(habits, completions);
+        if (insights.needsAttention) {
+          suggestions.push({
+            icon: 'trending_up',
+            color: 'text-rose-600',
+            bg: 'bg-rose-50 border-rose-200',
+            title: `Focus on "${insights.needsAttention.title}" — complete 4 times`,
+            subtitle: `Currently at ${insights.needsAttention.rate}% — build the habit`,
+            goalPayload: {
+              title: `Complete "${insights.needsAttention.title}" 4 times`,
+              target: 4,
+              habitId: insights.needsAttention.id
+            }
+          });
+        } else if (insights.mostConsistent) {
+          suggestions.push({
+            icon: 'military_tech',
+            color: 'text-indigo-600',
+            bg: 'bg-indigo-50 border-indigo-200',
+            title: `Perfect week for "${insights.mostConsistent.title}"`,
+            subtitle: 'Complete it every scheduled day this week',
+            goalPayload: {
+              title: `Perfect week: "${insights.mostConsistent.title}" daily`,
+              target: 7,
+              habitId: insights.mostConsistent.id
+            }
+          });
+        }
+      }
+
+      const suggestionsHtml = suggestions.length > 0
+        ? suggestions.map((s, idx) => `
+          <div class="flex items-start gap-3 p-3 rounded-xl border ${s.bg} cursor-pointer hover:opacity-90 transition-opacity group suggestion-add-card" data-suggestion-index="${idx}" title="Click to add this goal">
+            <span class="material-symbols-outlined text-xl ${s.color} shrink-0 mt-0.5" style='font-variation-settings: "FILL" 1;'>${s.icon}</span>
+            <div class="min-w-0 flex-1 pointer-events-none">
+              <p class="text-xs font-bold text-slate-800 leading-snug">${escapeHtml(s.title)}</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">${escapeHtml(s.subtitle)}</p>
+            </div>
+            <span class="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-indigo-600 shrink-0 transition-colors pointer-events-none">add_circle</span>
+          </div>
+        `).join('')
+        : `<p class="text-xs text-slate-400 text-center py-2">Add your first habit to get personalized goal suggestions.</p>`;
+
       dom.weeklyGoalsContainer.innerHTML = `
-        <div class="text-center py-6 px-4 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
-          <p class="text-xs text-slate-500 font-medium">No weekly goals set for this calendar week.</p>
-          <button class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 mt-2 inline-flex items-center gap-1" onclick="window.openAddGoalModal()">
+        <div class="space-y-2">
+          <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1 mb-3">
+            <span class="material-symbols-outlined text-[14px] text-indigo-500">auto_awesome</span>
+            Suggested for you — tap to add
+          </p>
+          ${suggestionsHtml}
+          <button class="w-full mt-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 py-2 border border-dashed border-indigo-200 rounded-xl hover:bg-indigo-50 transition-colors flex items-center justify-center gap-1" onclick="window.openAddGoalModal()">
             <span class="material-symbols-outlined text-[14px]">add</span>
-            <span>+ Set a Weekly Goal</span>
+            Set a custom weekly goal
           </button>
         </div>
       `;
+
+      // Bind suggestion clicks safely (no inline JSON issues)
+      dom.weeklyGoalsContainer.querySelectorAll('.suggestion-add-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const idx = parseInt(card.getAttribute('data-suggestion-index'), 10);
+          if (!isNaN(idx) && suggestions[idx]) {
+            window.addSuggestedWeeklyGoal(suggestions[idx].goalPayload);
+          }
+        });
+      });
+
       return;
     }
+
 
     dom.weeklyGoalsContainer.innerHTML = weeklyGoals.map((goal) => {
       const progress = HabitsData.calculateWeeklyGoalProgress(goal, habits, completions);
@@ -921,20 +1082,49 @@
     if (!dom.habitInsightsContainer) return;
 
     const insights = HabitsData.calculateHabitInsights(habits, completions);
+    const activeHabits = habits.filter(h => h.active !== false);
 
-    const mostConsistentTitle = insights.mostConsistent
-      ? `${escapeHtml(insights.mostConsistent.title)}`
-      : 'No data yet';
-    const mostConsistentRate = insights.mostConsistent
-      ? `${insights.mostConsistent.rate}%`
-      : '—';
+    // Show skeleton if no data at all
+    if (!insights.mostConsistent && insights.totalCheckmarks === 0) {
+      dom.habitInsightsContainer.innerHTML = `
+        <div class="insight-metric-card col-span-2 text-center py-6">
+          <span class="material-symbols-outlined text-3xl text-slate-300 mb-2">insights</span>
+          <p class="text-xs font-semibold text-slate-500">No data yet. Complete some habits to see insights.</p>
+        </div>
+      `;
+      return;
+    }
 
-    const needsAttentionTitle = insights.needsAttention
-      ? `${escapeHtml(insights.needsAttention.title)}`
-      : (habits.length > 0 ? 'All habits consistent' : 'No data yet');
-    const needsAttentionRate = insights.needsAttention
-      ? `${insights.needsAttention.rate}%`
-      : '—';
+    const mostConsistentTitle = insights.mostConsistent ? escapeHtml(insights.mostConsistent.title) : 'No data yet';
+    const mostConsistentRate  = insights.mostConsistent ? `${insights.mostConsistent.rate}%` : '—';
+
+    // Build the second card: hide entirely when nothing needs attention
+    let secondCard = '';
+    if (insights.needsAttention) {
+      secondCard = `
+        <div class="insight-metric-card">
+          <p class="text-[11px] font-semibold text-amber-700 uppercase tracking-wider flex items-center gap-1">
+            <span class="material-symbols-outlined text-[15px]">priority_high</span>
+            Needs Attention
+          </p>
+          <p class="text-sm font-bold text-slate-800 mt-1 truncate" title="${escapeHtml(insights.needsAttention.title)}">${escapeHtml(insights.needsAttention.title)}</p>
+          <p class="text-xs text-amber-600 font-semibold mt-0.5">${insights.needsAttention.rate}% completion</p>
+        </div>
+      `;
+    } else if (activeHabits.length > 0) {
+      // All habits are consistent — show celebration instead
+      secondCard = `
+        <div class="insight-metric-card bg-emerald-50/60 border-emerald-200">
+          <p class="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider flex items-center gap-1">
+            <span class="material-symbols-outlined text-[15px]">celebration</span>
+            All Done!
+          </p>
+          <p class="text-sm font-bold text-emerald-800 mt-1">Every habit on track</p>
+          <p class="text-xs text-emerald-600 font-semibold mt-0.5">✅ Keep it up!</p>
+        </div>
+      `;
+    }
+    // else secondCard stays '' (no habits, don't render)
 
     dom.habitInsightsContainer.innerHTML = `
       <div class="insight-metric-card">
@@ -946,14 +1136,7 @@
         <p class="text-xs text-emerald-600 font-semibold mt-0.5">${mostConsistentRate} completion</p>
       </div>
 
-      <div class="insight-metric-card">
-        <p class="text-[11px] font-semibold text-amber-700 uppercase tracking-wider flex items-center gap-1">
-          <span class="material-symbols-outlined text-[15px]">priority_high</span>
-          Needs Attention
-        </p>
-        <p class="text-sm font-bold text-slate-800 mt-1 truncate" title="${needsAttentionTitle}">${needsAttentionTitle}</p>
-        <p class="text-xs text-amber-600 font-semibold mt-0.5">${needsAttentionRate} completion</p>
-      </div>
+      ${secondCard}
 
       <div class="insight-metric-card">
         <p class="text-[11px] font-semibold text-indigo-700 uppercase tracking-wider flex items-center gap-1">
@@ -1341,6 +1524,39 @@
       }
     }
   };
+
+  /**
+   * One-tap add a suggested weekly goal (from the smart suggestion cards).
+   * Accepts a JSON payload object (or stringified JSON from the onclick attr).
+   */
+  window.addSuggestedWeeklyGoal = async function (payloadOrStr) {
+    let payload;
+    try {
+      payload = typeof payloadOrStr === 'string' ? JSON.parse(payloadOrStr) : payloadOrStr;
+    } catch (e) {
+      showToast('Could not parse goal suggestion.', 'error');
+      return;
+    }
+
+    const { title, target, habitId } = payload;
+    if (!title) return;
+
+    try {
+      await HabitService.createWeeklyGoal({
+        title,
+        habitId: habitId || null,
+        target: target || 5,
+        weekKey: HabitsData.getWeekId(HabitsData.getTodayStr())
+      });
+
+      weeklyGoals = await HabitService.getWeeklyGoals(HabitsData.getWeekId(HabitsData.getTodayStr()));
+      renderAll();
+      showToast(`Goal added: "${title}" 🎯`, 'success');
+    } catch (err) {
+      showToast('Could not add suggested goal.', 'error');
+    }
+  };
+
 
   // ==========================================================================
   // 7. ARCHIVED HABITS MODAL

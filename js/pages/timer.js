@@ -141,8 +141,17 @@
   function loadSessions() {
     const stored = Storage.get('timer_sessions');
     if (Array.isArray(stored)) {
-      // Clean out legacy starter fake sessions and premature sub-minute test clicks (< 60s)
-      sessions = stored.filter(s => s && s.id !== 'ts_1' && s.id !== 'ts_2' && s.id !== 'ts_3' && (s.mode !== 'work' || !s.durationSeconds || s.durationSeconds >= 60));
+      // Clean out ALL sub-minute work sessions (test clicks, legacy fake IDs, etc.)
+      sessions = stored.filter(s => {
+        if (!s || !s.id) return false;
+        // Remove legacy hardcoded fake sessions
+        if (s.id === 'ts_1' || s.id === 'ts_2' || s.id === 'ts_3') return false;
+        // For work sessions: must be at least 60 seconds of real focus
+        if (s.mode === 'work' && (!s.durationSeconds || s.durationSeconds < 60)) return false;
+        // Must have a valid completedAt timestamp
+        if (!s.completedAt) return false;
+        return true;
+      });
     } else {
       sessions = [];
     }
@@ -315,10 +324,14 @@
 
   function renderCycleSteps() {
     const maxCycles = settings.sessionsBeforeLongBreak || 4;
-    const current = Math.min(maxCycles, Math.max(1, activeState.cyclePosition || 1));
+    const isLongBreak = activeState.mode === 'longBreak';
+    // During long break, treat all sessions as completed (cyclePosition was reset to 1 already)
+    const current = isLongBreak ? maxCycles + 1 : Math.min(maxCycles, Math.max(1, activeState.cyclePosition || 1));
 
     if (dom.cycleFractionText) {
-      dom.cycleFractionText.textContent = `Session ${current} of ${maxCycles}`;
+      dom.cycleFractionText.textContent = isLongBreak
+        ? `All ${maxCycles} sessions done!`
+        : `Session ${current} of ${maxCycles}`;
     }
 
     if (dom.roundsIndicators) {
@@ -344,7 +357,6 @@
       }
 
       // Long break step
-      const isLongBreak = activeState.mode === 'longBreak';
       html += `
         <button type="button" class="cycle-step-pill ${isLongBreak ? 'current' : ''}" data-cycle-mode="longBreak" title="Long Break Recovery">
           <span class="material-symbols-outlined text-[14px]">local_cafe</span>
@@ -358,12 +370,17 @@
 
   function renderTodayStats() {
     const stats = TimerData.calculateTodayStats(sessions);
+    const maxCycles = settings.sessionsBeforeLongBreak || 4;
+    // If in long break, show full cycle (e.g. 4/4); otherwise show current position
+    const displayCycle = activeState.mode === 'longBreak'
+      ? maxCycles
+      : Math.min(maxCycles, Math.max(1, activeState.cyclePosition || 1));
 
     if (dom.completedRoundsCount) dom.completedRoundsCount.textContent = stats.todayFocusCount;
     if (dom.statTodaySessions) dom.statTodaySessions.textContent = stats.todayFocusCount;
     if (dom.statTodayMinutes) dom.statTodayMinutes.textContent = stats.todayFocusMinutes;
     if (dom.statCyclePosition) {
-      dom.statCyclePosition.textContent = `${activeState.cyclePosition || 1} / ${settings.sessionsBeforeLongBreak || 4}`;
+      dom.statCyclePosition.textContent = `${displayCycle} / ${maxCycles}`;
     }
     if (dom.statWeekSessions) dom.statWeekSessions.textContent = stats.weekFocusCount;
   }
@@ -517,7 +534,19 @@
 
     const maxCycles = settings.sessionsBeforeLongBreak || 4;
     const current = activeState.cyclePosition || 1;
-    activeState.cyclePosition = current < maxCycles ? current + 1 : 1;
+
+    // Skip always moves to next Focus session
+    if (activeState.mode === 'work') {
+      // Skipping a focus: advance cycle (wrap back to 1 after max)
+      activeState.cyclePosition = current < maxCycles ? current + 1 : 1;
+    } else if (activeState.mode === 'shortBreak') {
+      // Skipping a short break: stay at current cycle (next focus = current + 1)
+      activeState.cyclePosition = current < maxCycles ? current + 1 : 1;
+    } else {
+      // Skipping long break: reset to cycle 1
+      activeState.cyclePosition = 1;
+    }
+
     activeState.mode = 'work';
     activeState.durationSeconds = (settings.focusDuration || 25) * 60;
     activeState.remainingSeconds = activeState.durationSeconds;
@@ -627,6 +656,7 @@
     playChime();
 
     const wasWorkSession = activeState.mode === 'work';
+    const wasLongBreak = activeState.mode === 'longBreak';
     const taskName = customTaskName || 
                      (dom.taskInput && dom.taskInput.value.trim()) || 
                      activeState.currentTask || 
@@ -639,16 +669,18 @@
         ? customElapsed
         : activeState.durationSeconds;
 
-      const completedSession = {
-        id: `ts_${Date.now()}`,
-        task: taskName,
-        mode: 'work',
-        durationSeconds: dur,
-        completedAt: new Date().toISOString()
-      };
-
-      sessions.unshift(completedSession);
-      saveSessions();
+      // Guard: only log genuine sessions (>= 60s)
+      if (dur >= 60) {
+        const completedSession = {
+          id: `ts_${Date.now()}`,
+          task: taskName,
+          mode: 'work',
+          durationSeconds: dur,
+          completedAt: new Date().toISOString()
+        };
+        sessions.unshift(completedSession);
+        saveSessions();
+      }
     }
 
     // 2. Compute next transition
@@ -658,7 +690,12 @@
       settings.sessionsBeforeLongBreak
     );
 
-    activeState.cyclePosition = transition.nextCycle;
+    // After long break finishes: reset cycle to 1 (fresh start)
+    if (wasLongBreak) {
+      activeState.cyclePosition = 1;
+    } else {
+      activeState.cyclePosition = transition.nextCycle;
+    }
     nextPendingTransition = transition;
 
     // Reset remainingSeconds to next phase duration so it never lingers at 0:00

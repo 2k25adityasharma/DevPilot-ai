@@ -318,44 +318,94 @@
     return Math.max(maxStreak, knownCurrentStreak);
   }
 
+  // Streak threshold: day counts only if this % of habits completed
+  const STREAK_THRESHOLD_PCT = 75;
+
   /**
    * Calculates overall daily consistency streak across all habits.
-   * A day counts if at least one eligible habit was completed on that date.
+   * A day counts only if >= 75% of scheduled habits were completed.
    */
   function calculateOverallStreak(habits = [], completions = null, refDate = getTodayStr()) {
     const activeHabits = habits.filter(h => h.active !== false);
     const today = formatDate(refDate);
 
-    const { byDate } = buildCompletionMaps(activeHabits, completions);
+    const { byHabit } = buildCompletionMaps(activeHabits, completions);
 
-    const isTodayDone = byDate[today] && byDate[today].size > 0;
+    /**
+     * Returns the completion % for active habits on a given date.
+     * Returns null if no habits were scheduled that day (don't penalize).
+     */
+    function getDayCompletionPct(dateStr) {
+      const scheduled = activeHabits.filter(h => isHabitScheduledOn(h, dateStr));
+      if (scheduled.length === 0) return null; // rest day — neutral
+      const done = scheduled.filter(h => byHabit[h.id] && byHabit[h.id][dateStr]).length;
+      return Math.round((done / scheduled.length) * 100);
+    }
+
+    function dayCountsForStreak(dateStr) {
+      const pct = getDayCompletionPct(dateStr);
+      if (pct === null) return false; // no scheduled habits = rest day, doesn't count
+      return pct >= STREAK_THRESHOLD_PCT;
+    }
+
+    const isTodayDone = dayCountsForStreak(today);
+    const todayPct = getDayCompletionPct(today) || 0;
     let currentStreak = 0;
     let isAtRisk = false;
 
     if (isTodayDone) {
       currentStreak = 1;
       let checkDate = addDays(today, -1);
-      while (byDate[checkDate] && byDate[checkDate].size > 0) {
-        currentStreak++;
-        checkDate = addDays(checkDate, -1);
-      }
-    } else {
-      const yesterday = addDays(today, -1);
-      if (byDate[yesterday] && byDate[yesterday].size > 0) {
-        currentStreak = 1;
-        isAtRisk = true;
-        let checkDate = addDays(yesterday, -1);
-        while (byDate[checkDate] && byDate[checkDate].size > 0) {
+      let safety = 0;
+      while (safety++ < 730) {
+        const pct = getDayCompletionPct(checkDate);
+        if (pct === null) {
+          // rest day — skip without breaking streak
+          checkDate = addDays(checkDate, -1);
+          continue;
+        }
+        if (pct >= STREAK_THRESHOLD_PCT) {
           currentStreak++;
           checkDate = addDays(checkDate, -1);
+        } else {
+          break;
         }
-      } else {
-        currentStreak = 0;
-        isAtRisk = false;
+      }
+      isAtRisk = false;
+    } else {
+      // Today not yet at threshold. Check if yesterday kept streak alive.
+      let checkDate = addDays(today, -1);
+      let safety = 0;
+      while (safety++ < 14) {
+        const pct = getDayCompletionPct(checkDate);
+        if (pct === null) {
+          checkDate = addDays(checkDate, -1);
+          continue;
+        }
+        if (pct >= STREAK_THRESHOLD_PCT) {
+          // Yesterday (or recent scheduled day) passed — streak alive but at risk
+          currentStreak = 1;
+          isAtRisk = true;
+          let prev = addDays(checkDate, -1);
+          let s2 = 0;
+          while (s2++ < 730) {
+            const p2 = getDayCompletionPct(prev);
+            if (p2 === null) { prev = addDays(prev, -1); continue; }
+            if (p2 >= STREAK_THRESHOLD_PCT) {
+              currentStreak++;
+              prev = addDays(prev, -1);
+            } else break;
+          }
+        } else {
+          currentStreak = 0;
+          isAtRisk = false;
+        }
+        break;
       }
     }
 
     // Best overall streak in history
+    const { byDate } = buildCompletionMaps(activeHabits, completions);
     const allDatesWithActivity = Object.keys(byDate)
       .filter(d => byDate[d] && byDate[d].size > 0)
       .sort();
@@ -365,9 +415,14 @@
       let run = 0;
       let cur = allDatesWithActivity[0];
       const last = allDatesWithActivity[allDatesWithActivity.length - 1];
-
-      while (diffDays(last, cur) >= 0) {
-        if (byDate[cur] && byDate[cur].size > 0) {
+      let safety = 0;
+      while (diffDays(last, cur) >= 0 && safety++ < 1000) {
+        const pct = getDayCompletionPct(cur);
+        if (pct === null) {
+          cur = addDays(cur, 1);
+          continue;
+        }
+        if (pct >= STREAK_THRESHOLD_PCT) {
           run++;
           if (run > bestOverallStreak) bestOverallStreak = run;
         } else {
@@ -377,6 +432,9 @@
       }
     }
     bestOverallStreak = Math.max(bestOverallStreak, currentStreak);
+
+    // Active days (days where >=1 habit was completed)
+    const totalActiveDays = allDatesWithActivity.length;
 
     // Dynamic milestone copy
     let milestoneText = '';
@@ -388,7 +446,7 @@
     else milestoneText = 'Start a streak today!';
 
     if (isAtRisk && currentStreak > 0) {
-      milestoneText += ' (At risk today)';
+      milestoneText += ' ⚠️ At risk today';
     }
 
     return {
@@ -396,7 +454,9 @@
       bestStreak: bestOverallStreak,
       isAtRisk,
       milestoneText,
-      totalActiveDays: allDatesWithActivity.length
+      totalActiveDays,
+      todayPct,
+      streakThreshold: STREAK_THRESHOLD_PCT
     };
   }
 
@@ -743,7 +803,17 @@
 
     habitPerformances.sort((a, b) => b.rate - a.rate);
     const mostConsistent = habitPerformances[0];
-    const needsAttention = habitPerformances.length > 1 ? habitPerformances[habitPerformances.length - 1] : null;
+
+    // needsAttention: only show when 2+ habits exist AND the worst is genuinely struggling (<70%)
+    // Avoids falsely flagging a user's only habit as "needing attention"
+    let needsAttention = null;
+    if (habitPerformances.length >= 2) {
+      const worst = habitPerformances[habitPerformances.length - 1];
+      // Only flag if meaningfully behind (< 70% completion AND at least 3 eligible days of data)
+      if (worst.rate < 70 && worst.eligibleDays >= 3) {
+        needsAttention = worst;
+      }
+    }
 
     // Day of week analysis (0 = Sun, 6 = Sat)
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
