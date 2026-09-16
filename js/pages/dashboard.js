@@ -1014,35 +1014,646 @@
   function initCommandPalette() {
     const cmdPalette = document.getElementById('command-palette');
     const cmdInput = document.getElementById('command-input');
+    const cmdResults = document.getElementById('command-results');
+    const cmdClearBtn = document.getElementById('command-clear-btn');
+    const cmdEscBtn = document.getElementById('command-esc-btn');
     const searchTrigger = document.getElementById('search-trigger');
+    const dummySearch = document.getElementById('dummy-search');
+    const mobileSearchTrigger = document.getElementById('mobile-search-trigger');
+
+    let currentResults = [];
+    let selectedIndex = 0;
+
+    // Quick Actions (when search query is empty)
+    const QUICK_ACTIONS = [
+      {
+        title: 'Ask AI',
+        subtitle: 'Start conversation with DevPilot AI coding assistant',
+        category: 'Quick Actions',
+        icon: 'smart_toy',
+        url: 'pages/chat.html',
+        shortcut: 'A',
+        badge: 'AI Assistant',
+        badgeColor: 'bg-primary/10 text-primary border border-primary/20',
+        iconBg: 'bg-primary/10 text-primary'
+      },
+      {
+        title: 'New Note',
+        subtitle: 'Create a new markdown note in knowledge base',
+        category: 'Quick Actions',
+        icon: 'note_add',
+        url: 'pages/notes.html?action=new',
+        shortcut: 'N',
+        badge: 'Notes',
+        badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
+        iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+      },
+      {
+        title: 'Add Habit',
+        subtitle: 'Create a new trackable recurring developer habit',
+        category: 'Quick Actions',
+        icon: 'add_task',
+        url: 'pages/habits.html?action=add-habit',
+        shortcut: 'H',
+        badge: 'Habits',
+        badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
+        iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+      },
+      {
+        title: 'Add Daily Goal',
+        subtitle: 'Set a quantitative target for today (e.g. 3 LeetCode problems)',
+        category: 'Quick Actions',
+        icon: 'flag',
+        url: 'pages/habits.html?action=add-daily-goal',
+        shortcut: 'G',
+        badge: 'Daily Goals',
+        badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20',
+        iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+      },
+      {
+        title: 'Open DSA Roadmap',
+        subtitle: '24 Topic roadmap covering NeetCode 150 & Blind 75 questions',
+        category: 'Quick Actions',
+        icon: 'alt_route',
+        url: 'pages/dsa.html',
+        shortcut: 'D',
+        badge: 'DSA Practice',
+        badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20',
+        iconBg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
+      },
+      {
+        title: 'Open Career Roadmap',
+        subtitle: 'Role milestones for Frontend, Backend, AI & DevOps',
+        category: 'Quick Actions',
+        icon: 'map',
+        url: 'pages/roadmaps.html',
+        shortcut: 'R',
+        badge: 'Career',
+        badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20',
+        iconBg: 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
+      },
+      {
+        title: 'Open Interview Prep',
+        subtitle: 'Practice Aptitude, Operating Systems & HR interview questions',
+        category: 'Quick Actions',
+        icon: 'work',
+        url: 'pages/interviewPrep.html',
+        shortcut: 'I',
+        badge: 'Interview',
+        badgeColor: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20',
+        iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+      }
+    ];
+
+    // Core Navigation & Pages
+    const NAV_PAGES = [
+      {
+        title: 'Dashboard',
+        subtitle: 'Overview, today tasks, streaks & metrics',
+        category: 'Navigation',
+        icon: 'dashboard',
+        url: 'index.html',
+        keywords: ['home', 'overview', 'summary', 'today', 'tasks', 'metrics', 'streak']
+      },
+      {
+        title: 'GitHub Analyzer',
+        subtitle: 'Developer profile analytics, commit heatmaps & repositories',
+        category: 'Navigation',
+        icon: 'analytics',
+        url: 'pages/github.html',
+        keywords: ['github', 'git', 'repos', 'profile', 'commits', 'stats', 'activity']
+      },
+      {
+        title: 'AI Chat',
+        subtitle: 'Coding assistant, debugging & conceptual mentorship',
+        category: 'Navigation',
+        icon: 'smart_toy',
+        url: 'pages/chat.html',
+        keywords: ['chat', 'ai', 'gemini', 'assistant', 'ask', 'prompt', 'code', 'help', 'llm']
+      },
+      {
+        title: 'Resume',
+        subtitle: 'ATS resume scoring, pillar benchmarks & JD analyzer',
+        category: 'Navigation',
+        icon: 'description',
+        url: 'pages/resume.html',
+        keywords: ['resume', 'cv', 'ats', 'job', 'analyzer', 'career', 'score', 'audit']
+      },
+      {
+        title: 'DSA Roadmap',
+        subtitle: '24 Topics covering NeetCode 150 & Blind 75 questions',
+        category: 'Navigation',
+        icon: 'alt_route',
+        url: 'pages/dsa.html',
+        keywords: ['dsa', 'leetcode', 'algorithms', 'data structures', 'neetcode', 'blind75', 'coding', 'binary tree', 'graph', 'dp']
+      },
+      {
+        title: 'Career Roadmaps',
+        subtitle: 'Frontend, Backend, Fullstack, AI, DevOps & Cloud learning paths',
+        category: 'Navigation',
+        icon: 'map',
+        url: 'pages/roadmaps.html',
+        keywords: ['career', 'roadmap', 'frontend', 'backend', 'fullstack', 'devops', 'cloud', 'skills', 'role']
+      },
+      {
+        title: 'Interview Prep',
+        subtitle: 'Aptitude tests, Operating Systems, DBMS & HR interviews',
+        category: 'Navigation',
+        icon: 'work',
+        url: 'pages/interviewPrep.html',
+        keywords: ['interview', 'prep', 'aptitude', 'os', 'hr', 'technical', 'questions', 'operating systems', 'dbms']
+      },
+      {
+        title: 'Notes',
+        subtitle: 'Developer markdown notes, tag search & revision vault',
+        category: 'Navigation',
+        icon: 'edit_note',
+        url: 'pages/notes.html',
+        keywords: ['notes', 'knowledge', 'docs', 'revision', 'markdown', 'write', 'journal']
+      },
+      {
+        title: 'Snippets',
+        subtitle: 'Curated code snippet vault across languages & frameworks',
+        category: 'Navigation',
+        icon: 'terminal',
+        url: 'pages/snippets.html',
+        keywords: ['snippets', 'code', 'syntax', 'vault', 'javascript', 'python', 'cpp', 'react', 'fastapi', 'sql']
+      },
+      {
+        title: 'Prompts',
+        subtitle: 'AI prompt library engineered for software engineering workflows',
+        category: 'Navigation',
+        icon: 'bolt',
+        url: 'pages/prompts.html',
+        keywords: ['prompts', 'ai', 'library', 'chatgpt', 'gemini', 'engineering', 'templates']
+      },
+      {
+        title: 'Habits',
+        subtitle: 'Habit tracker, streak momentum & 26-week activity heatmap',
+        category: 'Navigation',
+        icon: 'check_circle',
+        url: 'pages/habits.html',
+        keywords: ['habits', 'tracker', 'streak', 'heatmap', 'consistency', 'goals', 'momentum']
+      },
+      {
+        title: 'Timer',
+        subtitle: 'Pomodoro focus timer, deep work intervals & stats',
+        category: 'Navigation',
+        icon: 'timer',
+        url: 'pages/timer.html',
+        keywords: ['timer', 'pomodoro', 'focus', 'deep work', 'clock', 'break', 'intervals', 'cycles']
+      },
+      {
+        title: 'Settings',
+        subtitle: 'Theme preferences, Gemini API key, user accounts & session',
+        category: 'Navigation',
+        icon: 'settings',
+        url: 'pages/settings.html',
+        keywords: ['settings', 'preferences', 'theme', 'dark mode', 'api key', 'account', 'profile', 'gemini']
+      }
+    ];
+
+    function getAllSearchableData() {
+      const all = [...NAV_PAGES];
+
+      // 1. User Notes
+      try {
+        const rawNotes = (typeof Storage !== 'undefined') ? Storage.get('dev_notes', null) : null;
+        const notesList = Array.isArray(rawNotes) && rawNotes.length > 0
+          ? rawNotes
+          : (typeof DEFAULT_NOTES !== 'undefined' ? DEFAULT_NOTES : []);
+
+        notesList.forEach(n => {
+          if (!n || !n.title) return;
+          all.push({
+            title: n.title,
+            subtitle: n.category ? `${n.category} • Note` : 'Technical Note',
+            category: 'Notes',
+            icon: 'edit_note',
+            url: `pages/notes.html?search=${encodeURIComponent(n.title)}`,
+            keywords: ['note', ...(Array.isArray(n.tags) ? n.tags : []), n.category || '', (n.content || '').substring(0, 80)]
+          });
+        });
+      } catch (e) {}
+
+      // 2. User Habits
+      try {
+        const userId = (typeof AuthService !== 'undefined' && AuthService.getCurrentUser())
+          ? AuthService.getCurrentUser().id
+          : '00000000-0000-4000-a000-000000000001';
+        
+        let habits = (typeof Storage !== 'undefined') ? Storage.get(`u_${userId}_habits`, null) : null;
+        if (!Array.isArray(habits)) habits = (typeof Storage !== 'undefined') ? Storage.get('habits_data', []) : [];
+
+        if (Array.isArray(habits)) {
+          habits.filter(h => h && h.active !== false).forEach(h => {
+            all.push({
+              title: h.title,
+              subtitle: `${h.category || 'Developer'} Habit`,
+              category: 'Habits',
+              icon: 'task_alt',
+              url: 'pages/habits.html',
+              keywords: ['habit', h.category || '', 'streak']
+            });
+          });
+        }
+      } catch (e) {}
+
+      // 3. Daily Goals
+      try {
+        const userId = (typeof AuthService !== 'undefined' && AuthService.getCurrentUser())
+          ? AuthService.getCurrentUser().id
+          : '00000000-0000-4000-a000-000000000001';
+
+        let dailyGoals = (typeof Storage !== 'undefined') ? Storage.get(`u_${userId}_daily_goals`, null) : null;
+        if (!Array.isArray(dailyGoals)) dailyGoals = (typeof Storage !== 'undefined') ? Storage.get('daily_goals', []) : [];
+
+        if (Array.isArray(dailyGoals)) {
+          dailyGoals.forEach(g => {
+            if (!g || !g.title) return;
+            const targetStr = g.target ? `Target: ${g.progress || 0}/${g.target}` : 'Daily Goal';
+            all.push({
+              title: g.title,
+              subtitle: `${g.category || 'Goal'} • ${targetStr}`,
+              category: 'Daily Goals',
+              icon: 'flag',
+              url: 'pages/habits.html',
+              keywords: ['goal', 'daily goal', g.category || '']
+            });
+          });
+        }
+      } catch (e) {}
+
+      // 4. Code Snippets
+      try {
+        const savedSnippetIds = new Set((typeof Storage !== 'undefined') ? Storage.get('saved_snippets', []) : []);
+        const snippetList = typeof SNIPPETS_DATA !== 'undefined' && Array.isArray(SNIPPETS_DATA) ? SNIPPETS_DATA : [];
+
+        snippetList.forEach(s => {
+          if (!s || !s.title) return;
+          const isSaved = savedSnippetIds.has(s.id);
+          all.push({
+            title: s.title,
+            subtitle: `${s.language || 'Code'} • ${s.category || 'Snippet'}${isSaved ? ' ★ Saved' : ''}`,
+            category: 'Code Snippets',
+            icon: 'terminal',
+            badge: isSaved ? 'Saved' : '',
+            badgeColor: isSaved ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : '',
+            url: `pages/snippets.html?search=${encodeURIComponent(s.title)}`,
+            keywords: ['snippet', s.language || '', s.category || '', ...(Array.isArray(s.tags) ? s.tags : [])]
+          });
+        });
+      } catch (e) {}
+
+      // 5. AI Prompts
+      try {
+        const savedPromptIds = new Set((typeof Storage !== 'undefined') ? Storage.get('saved_prompts', []) : []);
+        const promptList = typeof PROMPTS_DATA !== 'undefined' && Array.isArray(PROMPTS_DATA) ? PROMPTS_DATA : [];
+
+        promptList.forEach(p => {
+          if (!p || !p.title) return;
+          const isSaved = savedPromptIds.has(p.id);
+          all.push({
+            title: p.title,
+            subtitle: `${p.category || 'Prompt'}${isSaved ? ' ★ Saved' : ''}`,
+            category: 'AI Prompts',
+            icon: 'bolt',
+            badge: isSaved ? 'Saved' : '',
+            badgeColor: isSaved ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' : '',
+            url: `pages/prompts.html?search=${encodeURIComponent(p.title)}`,
+            keywords: ['prompt', p.category || '', ...(Array.isArray(p.tags) ? p.tags : [])]
+          });
+        });
+      } catch (e) {}
+
+      return all;
+    }
+
+    function renderResults(query = '') {
+      if (!cmdResults) return;
+      const cleanQ = (query || '').trim().toLowerCase();
+
+      let html = '';
+      currentResults = [];
+      selectedIndex = 0;
+
+      if (!cleanQ) {
+        // Quick Actions section
+        html += `
+          <div class="mb-3">
+            <p class="px-3 py-1.5 text-[11px] font-bold text-outline uppercase tracking-wider flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[14px] text-primary">flash_on</span> Quick Actions
+            </p>
+            <div class="space-y-1">
+              ${QUICK_ACTIONS.map(action => {
+                const idx = currentResults.length;
+                currentResults.push(action);
+                return renderResultButton(action, idx);
+              }).join('')}
+            </div>
+          </div>
+        `;
+
+        // Popular Pages section
+        const popularNav = NAV_PAGES.slice(0, 6);
+        html += `
+          <div>
+            <p class="px-3 py-1.5 text-[11px] font-bold text-outline uppercase tracking-wider flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[14px]">explore</span> Jump to Page
+            </p>
+            <div class="space-y-1">
+              ${popularNav.map(nav => {
+                const idx = currentResults.length;
+                currentResults.push(nav);
+                return renderResultButton(nav, idx);
+              }).join('')}
+            </div>
+          </div>
+        `;
+
+        cmdResults.innerHTML = html;
+        bindResultItemListeners();
+        updateSelectionHighlight();
+        return;
+      }
+
+      // Filter all searchable items
+      const allData = getAllSearchableData();
+      const tokens = cleanQ.split(/\s+/).filter(Boolean);
+
+      const scored = [];
+      allData.forEach(item => {
+        const titleLower = item.title.toLowerCase();
+        const subtitleLower = (item.subtitle || '').toLowerCase();
+        const categoryLower = item.category.toLowerCase();
+        const keywords = (item.keywords || []).map(k => String(k).toLowerCase());
+
+        // All tokens must match somewhere
+        const allMatch = tokens.every(token => {
+          return titleLower.includes(token) ||
+                 subtitleLower.includes(token) ||
+                 categoryLower.includes(token) ||
+                 keywords.some(k => k.includes(token));
+        });
+
+        if (!allMatch) return;
+
+        // Calculate relevance score
+        let score = 0;
+        if (titleLower === cleanQ) score += 200;
+        else if (titleLower.startsWith(cleanQ)) score += 120;
+        else if (titleLower.includes(cleanQ)) score += 80;
+
+        tokens.forEach(token => {
+          if (titleLower.includes(token)) score += 30;
+          if (keywords.some(k => k.includes(token))) score += 15;
+          if (categoryLower.includes(token)) score += 10;
+          if (subtitleLower.includes(token)) score += 5;
+        });
+
+        scored.push({ item, score });
+      });
+
+      // Sort by score descending
+      scored.sort((a, b) => b.score - a.score);
+      const topMatches = scored.slice(0, 30).map(s => s.item);
+
+      if (topMatches.length === 0) {
+        cmdResults.innerHTML = `
+          <div class="py-12 px-4 text-center">
+            <div class="w-12 h-12 mx-auto rounded-full bg-surface-container flex items-center justify-center text-outline mb-3">
+              <span class="material-symbols-outlined text-2xl">search_off</span>
+            </div>
+            <p class="font-label-md text-on-surface font-semibold">No results found for "${escapeHtml(cleanQ)}"</p>
+            <p class="text-xs text-outline mt-1 max-w-sm mx-auto">
+              Try searching for pages (e.g. "github", "dsa", "timer"), user notes, habits, daily goals, or code snippets.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      // Group matches by category
+      const categoriesOrder = ['Navigation', 'Notes', 'Habits', 'Daily Goals', 'Code Snippets', 'AI Prompts'];
+      const grouped = {};
+      topMatches.forEach(item => {
+        const cat = item.category || 'General';
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(item);
+      });
+
+      const sortedCategories = Object.keys(grouped).sort((a, b) => {
+        const idxA = categoriesOrder.indexOf(a);
+        const idxB = categoriesOrder.indexOf(b);
+        return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
+      });
+
+      sortedCategories.forEach(cat => {
+        const items = grouped[cat];
+        html += `
+          <div class="mb-3">
+            <p class="px-3 py-1.5 text-[11px] font-bold text-outline uppercase tracking-wider flex items-center gap-1.5">
+              <span>${cat}</span>
+              <span class="text-[10px] text-outline/60 font-normal">(${items.length})</span>
+            </p>
+            <div class="space-y-1">
+              ${items.map(item => {
+                const idx = currentResults.length;
+                currentResults.push(item);
+                return renderResultButton(item, idx);
+              }).join('')}
+            </div>
+          </div>
+        `;
+      });
+
+      cmdResults.innerHTML = html;
+      bindResultItemListeners();
+      updateSelectionHighlight();
+    }
+
+    function renderResultButton(item, idx) {
+      const isSelected = idx === selectedIndex;
+      const badgeHtml = item.badge
+        ? `<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${item.badgeColor || 'bg-surface-container text-outline border border-outline-variant'}">${escapeHtml(item.badge)}</span>`
+        : `<span class="text-[10px] text-outline px-1.5 py-0.5 rounded bg-surface-container font-medium shrink-0">${escapeHtml(item.category)}</span>`;
+
+      const shortcutHtml = item.shortcut
+        ? `<span class="text-[10px] font-mono text-outline border border-outline-variant px-1.5 py-0.5 rounded shrink-0">${item.shortcut}</span>`
+        : '';
+
+      const iconBg = item.iconBg || 'bg-surface-container text-on-surface-variant';
+
+      return `
+        <button 
+          class="command-result-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left border border-transparent hover:bg-surface-container-low transition-colors cursor-pointer group ${isSelected ? 'is-selected' : ''}" 
+          data-index="${idx}" 
+          data-url="${item.url}"
+          type="button"
+        >
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-sm ${iconBg}">
+            <span class="material-symbols-outlined text-[18px]">${item.icon || 'link'}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-label-md text-on-surface font-semibold truncate group-hover:text-primary transition-colors">${escapeHtml(item.title)}</p>
+            <p class="text-xs text-on-surface-variant/80 truncate mt-0.5">${escapeHtml(item.subtitle || '')}</p>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            ${badgeHtml}
+            ${shortcutHtml}
+            <span class="material-symbols-outlined text-outline/50 group-hover:text-primary text-[16px] transition-colors">chevron_right</span>
+          </div>
+        </button>
+      `;
+    }
+
+    function bindResultItemListeners() {
+      if (!cmdResults) return;
+      const items = cmdResults.querySelectorAll('.command-result-item');
+      items.forEach(el => {
+        el.addEventListener('click', () => {
+          const url = el.getAttribute('data-url');
+          navigateTo(url);
+        });
+        el.addEventListener('mouseenter', () => {
+          const idx = parseInt(el.getAttribute('data-index'), 10);
+          if (!isNaN(idx)) {
+            selectedIndex = idx;
+            updateSelectionHighlight(false);
+          }
+        });
+      });
+    }
+
+    function updateSelectionHighlight(scrollIntoView = true) {
+      if (!cmdResults) return;
+      const items = cmdResults.querySelectorAll('.command-result-item');
+      items.forEach(el => {
+        const idx = parseInt(el.getAttribute('data-index'), 10);
+        if (idx === selectedIndex) {
+          el.classList.add('is-selected');
+          if (scrollIntoView) {
+            el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          }
+        } else {
+          el.classList.remove('is-selected');
+        }
+      });
+    }
 
     function openPalette() {
       if (cmdPalette) {
         cmdPalette.classList.remove('hidden');
-        setTimeout(() => cmdInput && cmdInput.focus(), 50);
+        if (cmdInput) {
+          cmdInput.value = '';
+          setTimeout(() => cmdInput.focus(), 50);
+        }
+        if (cmdClearBtn) cmdClearBtn.classList.add('hidden');
+        renderResults('');
       }
     }
 
     function closePalette() {
-      if (cmdPalette) cmdPalette.classList.add('hidden');
+      if (cmdPalette) {
+        cmdPalette.classList.add('hidden');
+      }
     }
 
-    if (searchTrigger) searchTrigger.addEventListener('click', openPalette);
+    function navigateTo(url) {
+      if (!url) return;
+      closePalette();
+      window.location.href = url;
+    }
 
+    // Input search listener
+    if (cmdInput) {
+      cmdInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        if (cmdClearBtn) {
+          cmdClearBtn.classList.toggle('hidden', !val);
+        }
+        renderResults(val);
+      });
+
+      // Keyboard navigation: ↑ ↓ Enter Esc
+      cmdInput.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (currentResults.length > 0) {
+            selectedIndex = (selectedIndex + 1) % currentResults.length;
+            updateSelectionHighlight(true);
+          }
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (currentResults.length > 0) {
+            selectedIndex = (selectedIndex - 1 + currentResults.length) % currentResults.length;
+            updateSelectionHighlight(true);
+          }
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (currentResults.length > 0 && currentResults[selectedIndex]) {
+            navigateTo(currentResults[selectedIndex].url);
+          }
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          closePalette();
+        }
+      });
+    }
+
+    // Clear and Esc button listeners
+    if (cmdClearBtn) {
+      cmdClearBtn.addEventListener('click', () => {
+        if (cmdInput) {
+          cmdInput.value = '';
+          cmdInput.focus();
+          cmdClearBtn.classList.add('hidden');
+          renderResults('');
+        }
+      });
+    }
+
+    if (cmdEscBtn) {
+      cmdEscBtn.addEventListener('click', closePalette);
+    }
+
+    // Triggers
+    if (searchTrigger) searchTrigger.addEventListener('click', openPalette);
+    if (dummySearch) dummySearch.addEventListener('click', openPalette);
+    if (mobileSearchTrigger) mobileSearchTrigger.addEventListener('click', openPalette);
+
+    // Global keyboard shortcuts
     document.addEventListener('keydown', (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      // Ctrl + K or Cmd + K
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         openPalette();
+        return;
       }
+
+      // '/' key when not focused in an input
+      if (e.key === '/' && !isTypingInInput(e)) {
+        e.preventDefault();
+        openPalette();
+        return;
+      }
+
+      // Escape to close
       if (e.key === 'Escape' && cmdPalette && !cmdPalette.classList.contains('hidden')) {
         closePalette();
       }
     });
 
+    // Close when clicking backdrop outside content
     if (cmdPalette) {
       cmdPalette.addEventListener('click', (e) => {
         if (e.target === cmdPalette) closePalette();
       });
+    }
+
+    function isTypingInInput(e) {
+      const tag = e.target && e.target.tagName;
+      return tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable);
     }
   }
 

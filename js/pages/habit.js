@@ -43,6 +43,17 @@
     // 3. Listen for Realtime Events
     HabitService.onRealtimeChange(handleRealtimeSync);
     AuthService.onAuthStateChange(handleAuthChange);
+
+    // 4. Handle URL actions from Global Search
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const action = urlParams.get('action');
+      if (action === 'add-habit') {
+        setTimeout(() => { if (typeof window.openAddHabitModal === 'function') window.openAddHabitModal(); }, 200);
+      } else if (action === 'add-daily-goal') {
+        setTimeout(() => { if (typeof window.openAddDailyGoalModal === 'function') window.openAddDailyGoalModal(); }, 200);
+      }
+    } catch (e) {}
   });
 
   function cacheDomElements() {

@@ -1714,7 +1714,9 @@ function extractProjectLinks(textLines) {
   }
 
   // 3. Explicit Labeled Demo pattern (Live Demo, Demo, Deployment, Hosted at, App, Web App, View Live)
-  const labeledDemoRegex = /(?:live(?:\s*demo|\s*link)?|demo(?:\s*link)?|deployment|hosted(?:\s*at)?|web\s*app|view\s*live|deployed\s*at|app(?:\s*link)?)\s*[:|–\-—]\s*(?:\[.*?\]\()?([^\s,;()|•<>]+)\)?/i;
+  // Labels must begin a line. Otherwise a project title such as "Notes App —
+  // Personal Project" can be misread as a deployment label.
+  const labeledDemoRegex = /(?:^|\n)\s*(?:[•\-*►▸▪]\s*)?(?:live(?:\s*(?:demo|web|link))?|demo(?:\s*link)?|website|web\s*site|deployment|hosted(?:\s*at)?|web\s*app|view\s*live|deployed\s*at)\s*[:|–\-—]\s*(?:\[.*?\]\()?([^\s,;()|•<>]+)\)?/im;
   const labeledMatch = fullText.match(labeledDemoRegex);
   if (labeledMatch) {
     const raw = labeledMatch[1].trim().replace(/^[<(\[]+|[.,;:)>\]|]+$/g, '');
@@ -2498,28 +2500,9 @@ function extractSkills(text, parsedSections = null) {
     categorized[category] = [];
     for (const skill of skills) {
       if (matchSkillExact(skill, textLower, text)) {
-        let displayName = skill;
-        if (skill === 'c++') displayName = 'C++';
-        else if (skill === 'c#') displayName = 'C#';
-        else if (skill === 'c') displayName = 'C';
-        else if (skill === 'javascript') displayName = 'JavaScript';
-        else if (skill === 'typescript') displayName = 'TypeScript';
-        else if (skill === 'html' || skill === 'html5') displayName = 'HTML5';
-        else if (skill === 'css' || skill === 'css3') displayName = 'CSS3';
-        else if (skill === 'sql') displayName = 'SQL';
-        else if (skill === 'postgresql' || skill === 'postgres') displayName = 'PostgreSQL';
-        else if (skill === 'mongodb') displayName = 'MongoDB';
-        else if (skill === 'react' || skill === 'react.js' || skill === 'reactjs') displayName = 'React';
-        else if (skill === 'node.js' || skill === 'nodejs') displayName = 'Node.js';
-        else if (skill === 'next.js' || skill === 'nextjs') displayName = 'Next.js';
-        else if (skill === 'express' || skill === 'express.js') displayName = 'Express';
-        else if (skill === 'aws' || skill === 'amazon web services') displayName = 'AWS';
-        else if (skill === 'docker') displayName = 'Docker';
-        else if (skill === 'git') displayName = 'Git';
-        else if (skill === 'github') displayName = 'GitHub';
-        else {
-          displayName = skill.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-        }
+        // Every consumer receives this canonical value. Java and JavaScript
+        // deliberately have distinct entries in the normalization map.
+        const displayName = normalizeSkillName(skill);
 
         if (!categorized[category].includes(displayName) && !allFound.includes(displayName)) {
           categorized[category].push(displayName);
@@ -2785,9 +2768,36 @@ function analyzeExperience(text, sectionContent) {
 /* ============================================================
    7. PROJECTS ANALYSIS & SUBSTANCE EVALUATION
    ============================================================ */
+/**
+ * Link metadata belongs to the project currently being parsed.  This check is
+ * intentionally independent of bullet formatting because PDF/DOCX extraction
+ * often removes bullets from GitHub and live-demo lines.
+ */
+function isProjectLinkMetadataLine(line) {
+  const trimmed = String(line || '').trim().replace(/^[•\-\*►▸▪]\s*/, '').trim();
+  if (!trimmed) return false;
+
+  const hasUrl = /(?:https?:\/\/)?(?:www\.)?(?:github\.com\/[^\s|,)\]]+|[a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)*\.(?:vercel\.app|netlify\.app|pages\.dev|github\.io|render\.com|railway\.app|web\.app|app|dev|io|com))(?:\/[^\s|,)\]]*)?/i.test(trimmed);
+  if (!hasUrl) return false;
+
+  // Explicit labels are metadata even when extraction has removed the bullet.
+  if (/^(?:git\s*hub|repository|repo|source(?:\s*code)?|live(?:\s*(?:demo|web|link))?|demo(?:\s*link)?|website|web\s*site|deployment|hosted(?:\s*at)?|view\s*live)\s*[:|\-–—]/i.test(trimmed)) {
+    return true;
+  }
+
+  // A naked URL (including Markdown link wrappers) cannot be a project title.
+  const withoutUrls = trimmed
+    .replace(/\[[^\]]*\]\((?:https?:\/\/)?[^)]+\)/gi, '')
+    .replace(/(?:https?:\/\/)?(?:www\.)?[a-z0-9][a-z0-9-]*(?:\.[a-z0-9-]+)*\.(?:vercel\.app|netlify\.app|pages\.dev|github\.io|render\.com|railway\.app|web\.app|app|dev|io|com)(?:\/[^\s|,)\]]*)?/gi, '')
+    .replace(/[\s|,:;()\[\]<>\-–—]+/g, '');
+  return withoutUrls.length === 0;
+}
+
 function isTechStackOrLinksLine(line) {
   const trimmed = line.trim();
   if (!trimmed) return false;
+
+  if (isProjectLinkMetadataLine(trimmed)) return true;
 
   // 1. Pure links line (e.g. "github.com/user/repo | live-demo.com" or "https://github.com/...")
   const strippedLinks = trimmed
@@ -2837,6 +2847,8 @@ function isProjectHeaderLine(line) {
   if (!trimmed) return false;
   if (/^[•\-\*►▸▪]/.test(trimmed)) return false;
 
+  if (isProjectLinkMetadataLine(trimmed)) return false;
+
   // Bug 2 Fix: A line matching tech stack or links should NEVER start a new project block
   if (isTechStackOrLinksLine(trimmed)) return false;
 
@@ -2858,7 +2870,7 @@ function isProjectHeaderLine(line) {
   }
 
   // Support em-dash (—), en-dash (–), spaced hyphens ( - ), and delimiters
-  if (trimmed.length < 150 && (trimmed.includes('|') || trimmed.includes('–') || trimmed.includes('—') || trimmed.includes(' - ') || /github\.com|demo|\.app|\.io|\.dev/i.test(trimmed))) {
+  if (trimmed.length < 150 && (trimmed.includes('|') || trimmed.includes('–') || trimmed.includes('—') || trimmed.includes(' - '))) {
     if (/\b(certificate|certification|certified|credential|coursera|udemy|credly|nptel|simplilearn)\b/i.test(trimmed)) {
       return false;
     }
@@ -3058,6 +3070,7 @@ function evaluateProjectSubstance(proj, depthKeywords) {
     isCertificate: isCertItem,
     githubUrl,
     demoUrl,
+    liveUrl: demoUrl,
     demoValidation
   };
 }
@@ -3092,8 +3105,10 @@ function analyzeEducation(text, parsedSections) {
   const hasAcademicDetails = Boolean(gpaMatch);
 
   let score = 2; // base presence
-  if (csOrEngDegree) score += 3;
-  else if (hasDegree) score += 2;
+  // A spelled-out Bachelor's/Master's degree carries the same evidence as an
+  // abbreviated degree. With degree, institution, major, dates, and academic
+  // detail present, this intentionally reaches the configured 10-point max.
+  if (hasDegree) score += 3;
 
   if (hasInstitution) score += 2;
   if (hasMajor) score += 1;
@@ -4044,6 +4059,23 @@ for (const [syn, can] of Object.entries(CANONICAL_TECH_MAP)) {
   CANONICAL_SYNONYMS[can].push(syn);
 }
 
+/** The sole normalization boundary for parsed skills and role requirements. */
+function normalizeSkillName(value) {
+  const normalized = String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  if (!normalized) return '';
+  if (CANONICAL_TECH_MAP[normalized]) return CANONICAL_TECH_MAP[normalized];
+  return normalized.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+}
+
+function normalizeUniqueSkills(skills) {
+  const seen = new Set();
+  return (skills || []).map(normalizeSkillName).filter(skill => {
+    if (!skill || seen.has(skill)) return false;
+    seen.add(skill);
+    return true;
+  });
+}
+
 function parseJobDescription(jdText) {
   if (!jdText || jdText.trim().length < 20) return null;
   const jdLower = jdText.toLowerCase();
@@ -4198,27 +4230,10 @@ function parseJobDescription(jdText) {
 }
 
 function matchJobProfileWithResume(resumeProfile, jobProfile) {
-  const resumeSkillsLower = [
-    ...(resumeProfile.skills?.all || []),
-    ...(resumeProfile.skills?.other || []),
-    ...(resumeProfile.skills?.languages || []),
-    ...(resumeProfile.skills?.frameworks || []),
-    ...(resumeProfile.skills?.databases || []),
-    ...(resumeProfile.skills?.tools || []),
-    ...(resumeProfile.skills?.cloud || []),
-    ...(resumeProfile.skills?.aiMl || [])
-  ].map(s => (typeof s === 'string' ? s.toLowerCase() : ''));
-
-  const resumeTextLower = (resumeProfile.resumeText || '').toLowerCase();
-
-  function hasSkill(canonicalName) {
-    const synonyms = CANONICAL_SYNONYMS[canonicalName] || [canonicalName.toLowerCase()];
-    for (const syn of synonyms) {
-      if (resumeSkillsLower.includes(syn)) return true;
-      if (matchSkillExact(syn, resumeTextLower, resumeTextLower)) return true;
-    }
-    return false;
-  }
+  // Role matching consumes the same unique normalized set rendered as skills.
+  // Never perform fuzzy/substring fallback searches over raw resume text here.
+  const resumeSkillSet = new Set(normalizeUniqueSkills(resumeProfile.skills?.all || []));
+  const hasSkill = canonicalName => resumeSkillSet.has(normalizeSkillName(canonicalName));
 
   // 1. Required Skills Match (30%)
   const matchedRequired = [];
@@ -4297,8 +4312,8 @@ function matchJobProfileWithResume(resumeProfile, jobProfile) {
     matchScore = Math.min(matchScore, 30);
   }
 
-  const allMatched = [...matchedRequired, ...matchedPreferred];
-  const allMissingSkills = [...missingRequired, ...missingPreferred];
+  const allMatched = normalizeUniqueSkills([...matchedRequired, ...matchedPreferred]);
+  const allMissingSkills = normalizeUniqueSkills([...missingRequired, ...missingPreferred]);
 
   const missingRequirementsDisplay = {
     required: [...missingRequired],
@@ -6386,7 +6401,19 @@ function executeMasterAiEvaluation(resumeText, jdText = null) {
   overallResumeScore = Math.min(Math.max(overallResumeScore, 10), 99);
 
   // 6. Dynamic Roles (Section 29)
-  const dynamicRoles = detectDynamicRoles(skillsData, projectsAnalysis.details, experienceAnalysis.details, careerStage);
+  // Use the same exact normalized skill matcher used by the rendered role-fit
+  // cards. This prevents the evaluator response from taking a separate fuzzy
+  // role-detection path.
+  const roleMatches = calculateJobRoleMatches({
+    resumeText: cleanText, contactInfo, skills: skillsData, summaryAnalysis,
+    experienceAnalysis, projectsAnalysis, educationAnalysis,
+    certificationsAnalysis, achievementsAnalysis
+  });
+  const dynamicRoles = {
+    ...roleMatches,
+    primaryRole: roleMatches.bestFit?.title || 'Software Engineer',
+    alternativeRoles: roleMatches.topRecommendations.slice(1).map(role => role.title)
+  };
 
   // 7. Job Match (Section 17, 31, 33)
   let jobMatchResult = null;
@@ -6880,6 +6907,12 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
     const deterministicSkills = extractSkills(resumeText, parsedSections);
     const deterministicFmt = analyzeATSFormatting(resumeText, parsedSections, null);
     const deterministicCq = analyzeContentQuality(resumeText, deterministicExp, deterministicProj);
+    const deterministicSummary = analyzeProfessionalSummary(resumeText, parsedSections, deterministicSkills);
+    const deterministicScores = calculateATSScore(
+      resumeText, deterministicContact, deterministicSummary,
+      deterministicSkills, deterministicExp, deterministicProj, deterministicEdu,
+      deterministicCerts, deterministicAch, deterministicCq, deterministicFmt
+    );
 
     // Consistency check using actual uploaded resume text
     const consistency = checkInternalConsistency(
@@ -6901,55 +6934,43 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
 
     const verified = Array.isArray(aiJson.skills?.verifiedSkills) ? aiJson.skills.verifiedSkills : [];
     const listed = Array.isArray(aiJson.skills?.listedOnlySkills) ? aiJson.skills.listedOnlySkills : [];
-    let allSkills = verified.concat(listed);
-    if (allSkills.length === 0 && aiJson.skills && typeof aiJson.skills === 'object') {
-      allSkills = Object.entries(aiJson.skills)
-        .filter(([k, v]) => k !== 'verifiedSkills' && k !== 'listedOnlySkills' && Array.isArray(v))
-        .map(([_, v]) => v)
-        .flat();
-    }
-    if (allSkills.length === 0 && deterministicSkills.all) {
-      allSkills = deterministicSkills.all;
-    }
-    allSkills = [...new Set(allSkills)];
+    // The resume text parser is authoritative. Never merge model-provided or
+    // cached lists, which can be stale and may introduce unsupported skills.
+    let allSkills = normalizeUniqueSkills(deterministicSkills.all);
 
-    const projectEntries = Array.isArray(aiJson.projects?.entries) && aiJson.projects.entries.length > 0
-      ? aiJson.projects.entries
-      : (deterministicProj.details || []);
-    const expEntries = Array.isArray(aiJson.experience?.entries) && aiJson.experience.entries.length > 0
-      ? aiJson.experience.entries
-      : (deterministicExp.details || []);
+    const projectEntries = deterministicProj.details || [];
+    const expEntries = deterministicExp.details || [];
+    const roleMatches = calculateJobRoleMatches({
+      resumeText, contactInfo: deterministicContact, skills: deterministicSkills,
+      summaryAnalysis: deterministicSummary, experienceAnalysis: deterministicExp,
+      projectsAnalysis: deterministicProj, educationAnalysis: deterministicEdu,
+      certificationsAnalysis: deterministicCerts, achievementsAnalysis: deterministicAch
+    });
+    const dynamicRoles = {
+      ...roleMatches,
+      primaryRole: roleMatches.bestFit?.title || 'Software Engineer',
+      alternativeRoles: roleMatches.topRecommendations.slice(1).map(role => role.title)
+    };
 
-    const dynamicRoles = detectDynamicRoles(
-      { all: allSkills },
-      projectEntries,
-      expEntries,
-      careerStage
-    );
+    const expBulletsCount = deterministicExp.bulletPointsCount || 0;
+    const hasExp = Boolean(deterministicExp.hasExperience && expBulletsCount > 0);
+    const calculatedExpScore = deterministicScores.breakdown.experience.score;
 
-    const expBulletsCount = (aiJson.experience?.metrics?.totalBullets !== undefined)
-      ? aiJson.experience.metrics.totalBullets
-      : (deterministicExp.bulletPointsCount || expEntries.reduce((acc, e) => acc + (Array.isArray(e.features) ? e.features.length : (e.responsibilities ? 1 : 0)) + (Array.isArray(e.achievements) ? e.achievements.length : 0), 0));
-    const hasExp = Boolean((aiJson.experience?.hasExperience || deterministicExp.hasExperience) && expBulletsCount > 0);
-    const calculatedExpScore = hasExp ? Math.round(((aiScores.experienceScore) || 0) / 100 * 15) : 0;
-
-    const isFresher = aiJson.experience?.isFresher !== undefined
-      ? Boolean(aiJson.experience.isFresher)
-      : (careerStage === 'Student' || careerStage === 'Fresher' || careerStage === 'Intern');
+    const isFresher = Boolean(deterministicExp.isFresher || deterministicExp.isOnlyInternship);
 
     // Calculate Controlled 8 Score Pillars (Part 4 & 9)
-    const atsScore = aiScores.atsScore ?? 85;
-    const contentQualityScore = aiScores.contentQualityScore ?? 80;
-    const technicalSkillsScore = aiScores.technicalSkillsScore ?? 85;
-    const experienceScore = hasExp ? (aiScores.experienceScore ?? 80) : 0;
-    const projectsScore = aiScores.projectsScore ?? 80;
-    const educationScore = aiScores.educationScore ?? 85;
-    const certificationsScore = aiScores.certificationsScore ?? 80;
-    const formattingScore = aiScores.formattingScore ?? Math.min(Math.round(((deterministicFmt.score || 6) / 7) * 95), 100);
+    const atsScore = Math.round((deterministicFmt.score / 7) * 100);
+    const contentQualityScore = Math.round((deterministicCq.score / 7) * 100);
+    const technicalSkillsScore = Math.round((deterministicScores.breakdown.keywords.score / 15) * 100);
+    const experienceScore = Math.round((deterministicScores.breakdown.experience.score / 15) * 100);
+    const projectsScore = Math.round((deterministicScores.breakdown.projects.score / 20) * 100);
+    const educationScore = Math.round((deterministicEdu.score / deterministicEdu.max) * 100);
+    const certificationsScore = Math.round((deterministicCerts.score / deterministicCerts.max) * 100);
+    const formattingScore = atsScore;
 
     const scores = {
-      overall: aiScores.overallResumeScore ?? 0,
-      overallResumeScore: aiScores.overallResumeScore ?? 0,
+      overall: deterministicScores.overall,
+      overallResumeScore: deterministicScores.overall,
       atsScore: atsScore,
       contentQualityScore: contentQualityScore,
       technicalSkillsScore: technicalSkillsScore,
@@ -6958,8 +6979,8 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
       educationScore: educationScore,
       certificationsScore: certificationsScore,
       formattingScore: formattingScore,
-      achievementsScore: aiScores.achievementsScore ?? 0,
-      contactScore: aiScores.contactScore ?? 0,
+      achievementsScore: Math.round((deterministicAch.score / deterministicAch.max) * 100),
+      contactScore: Math.round((deterministicScores.breakdown.contact.score / 3) * 100),
       jobMatchScore: aiScores.jobMatchScore ?? null,
       eightPillars: {
         ats: { id: 'ats', label: 'ATS Compatibility', score: atsScore, max: 100, desc: 'Evaluates standard section headings, single-column parsing, and resume layout compatibility.' },
@@ -6971,18 +6992,7 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
         certifications: { id: 'certifications', label: 'Certifications', score: certificationsScore, max: 100, desc: 'Evaluates industry-recognized cloud (AWS/GCP/Azure) credentials and professional specializations.' },
         formatting: { id: 'formatting', label: 'Formatting & Layout', score: formattingScore, max: 100, desc: 'Evaluates typography hierarchy, margin balance, bullet punctuation, and visual cleanliness.' }
       },
-      breakdown: {
-        summary: { score: Math.round(((aiJson.summaryAnalysis?.score) || 0) / 100 * 8), max: 8, label: 'Professional Summary' },
-        keywords: { score: Math.round(((aiScores.technicalSkillsScore) || 0) / 100 * 15), max: 15, label: 'Technical Skills' },
-        projects: { score: Math.round(((aiScores.projectsScore) || 0) / 100 * 20), max: 20, label: 'Technical Projects' },
-        experience: { score: calculatedExpScore, max: 15, label: 'Work / Internship Experience' },
-        education: { score: Math.round(((aiScores.educationScore) || 0) / 100 * 10), max: 10, label: 'Education' },
-        achievements: { score: Math.round(((aiScores.achievementsScore) || 0) / 100 * 10), max: 10, label: 'Achievements / DSA' },
-        certifications: { score: Math.round(((aiScores.certificationsScore) || 0) / 100 * 5), max: 5, label: 'Certifications' },
-        formatting: { score: Math.round(((aiScores.atsScore) || 0) / 100 * 7), max: 7, label: 'ATS & Structure' },
-        contact: { score: Math.round(((aiScores.contactScore) || 0) / 100 * 3), max: 3, label: 'Contact Information' },
-        contentQuality: { score: Math.round(((aiScores.contentQualityScore) || 0) / 100 * 7), max: 7, label: 'Content Quality & Impact' }
-      }
+      breakdown: deterministicScores.breakdown
     };
 
     // Intermediate Structured Resume Object (Part 2)
@@ -7062,25 +7072,8 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
       max: 3
     };
 
-    const summaryAnalysis = {
-      exists: Boolean(aiJson.summaryAnalysis?.present),
-      score: aiJson.summaryAnalysis?.score || 0,
-      confidence: aiScores.atsScore || 85,
-      text: aiJson.summaryAnalysis?.text || '',
-      strengths: Array.isArray(aiJson.summaryAnalysis?.strengths) ? aiJson.summaryAnalysis.strengths : [],
-      issues: Array.isArray(aiJson.summaryAnalysis?.issues) ? aiJson.summaryAnalysis.issues : [],
-      hasTargetRole: Boolean(candidateObj.primaryRole),
-      hasTechKeywords: allSkills.length > 0,
-      clichésFound: []
-    };
-
-    const skills = {
-      all: allSkills,
-      categorized: (aiJson.skills && typeof aiJson.skills === 'object') ? aiJson.skills : {},
-      evidenceMap: {},
-      confidence: aiScores.technicalSkillsScore || 85,
-      softSkills: Array.isArray(aiJson.skills?.softSkills) ? aiJson.skills.softSkills : []
-    };
+    const summaryAnalysis = deterministicSummary;
+    const skills = deterministicSkills;
 
     const isOnlyInternship = Boolean(aiJson.experience?.isOnlyInternship);
     const expJobTitles = hasExp ? expEntries.map(e => e.title).filter(Boolean) : [];
@@ -7153,60 +7146,20 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
 
     const eduEntries = Array.isArray(aiJson.education?.entries) ? aiJson.education.entries : [];
     const firstEdu = eduEntries[0] || {};
-    const educationAnalysis = {
-      exists: eduEntries.length > 0,
-      hasDegree: Boolean(firstEdu.degree),
-      hasInstitution: Boolean(firstEdu.institution),
-      degree: firstEdu.degree || '',
-      institution: firstEdu.institution || '',
-      details: eduEntries,
-      entries: eduEntries,
-      confidence: aiScores.educationScore || 85,
-      max: 10,
-      score: Math.round(((aiScores.educationScore) || 0) / 100 * 10)
-    };
+    const educationAnalysis = deterministicEdu;
 
     const certEntries = Array.isArray(aiJson.certifications?.entries) ? aiJson.certifications.entries : [];
     const relevantCerts = Array.isArray(aiJson.certifications?.relevant) ? aiJson.certifications.relevant : [];
     const detectedIssuers = certEntries.map(c => c.organization || c.issuer).filter(Boolean);
-    const certificationsAnalysis = {
-      exists: (aiJson.certifications?.count || certEntries.length) > 0,
-      count: aiJson.certifications?.count || certEntries.length,
-      details: certEntries,
-      entries: certEntries,
-      relevant: relevantCerts,
-      isPurelyGeneric: false,
-      hasRecognizedIssuer: relevantCerts.length > 0,
-      detectedIssuers: detectedIssuers,
-      confidence: aiScores.certificationsScore || 85,
-      max: 5,
-      score: Math.round(((aiScores.certificationsScore) || 0) / 100 * 5)
-    };
+    const certificationsAnalysis = deterministicCerts;
 
     const achEntries = Array.isArray(aiJson.achievements?.entries) ? aiJson.achievements.entries : [];
     const achMatched = achEntries.map(a => typeof a === 'string' ? a : (a.name || a.title || '')).filter(Boolean);
     const dsaProblemMatch = resumeText.match(/(\d+)\+?\s*(?:dsa|leetcode|problems|questions|challenges)/i);
-    const achievementsAnalysis = {
-      exists: achEntries.length > 0 || (aiScores.achievementsScore || 0) > 30,
-      details: achEntries,
-      entries: achEntries,
-      isGeneric: false,
-      problemCount: dsaProblemMatch ? dsaProblemMatch[1] : null,
-      matchedKeywords: achMatched,
-      confidence: aiScores.achievementsScore || 85,
-      max: 10,
-      score: Math.round(((aiScores.achievementsScore) || 0) / 100 * 10)
-    };
+    const achievementsAnalysis = deterministicAch;
 
     const redFlags = Array.isArray(aiJson.redFlags) ? aiJson.redFlags : [];
-    const contentQuality = {
-      score: Math.round(((aiScores.contentQualityScore) || 0) / 100 * 7),
-      wordCount: resumeText.split(/\s+/).filter(Boolean).length,
-      actionVerbCount: (resumeText.match(/\b(developed|engineered|architected|built|designed|implemented|optimized|created|led|automated)\b/gi) || []).length,
-      metricsCount: (resumeText.match(/\d+%|\d+\+|\$\d+|\d+x|\b\d+\s*(?:ms|users|requests|queries|seconds)\b/gi) || []).length,
-      vagueFound: redFlags,
-      issues: redFlags.map(rf => ({ type: 'warning', message: rf }))
-    };
+    const contentQuality = deterministicCq;
 
     const formattingStrengths = Array.isArray(aiJson.atsAnalysis?.strengths) ? aiJson.atsAnalysis.strengths : [];
     const formattingChecks = formattingStrengths.map(s => ({ pass: true, label: s, detail: 'Verified by ATS analyzer' }));
@@ -7214,13 +7167,13 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
       formattingChecks.push({ pass: true, label: 'Standard heading structure recognized', detail: 'Verified by ATS analyzer' });
     }
 
-    const rawImprovements = Array.isArray(aiJson.improvements) ? aiJson.improvements : [];
-    const suggestions = rawImprovements.map((imp, idx) => ({
-      priority: idx === 0 ? 'high' : (idx === 1 ? 'medium' : 'low'),
-      icon: idx === 0 ? 'rocket_launch' : (idx === 1 ? 'code' : 'lightbulb'),
-      title: 'Actionable Recommendation',
-      desc: imp
-    }));
+    // Recommendations are generated after the deterministic extraction pass so
+    // they cannot reference skills absent from the current uploaded resume.
+    const suggestions = generateSuggestions(
+      deterministicContact, parsedSections, deterministicSummary, deterministicSkills,
+      deterministicExp, deterministicProj, deterministicEdu, deterministicCerts,
+      deterministicAch, deterministicCq, deterministicScores
+    );
 
     // Inject deterministic critical checks (phone length & fake project links)
     if (deterministicContact?.phoneValidation && !deterministicContact.phoneValidation.isValid) {
@@ -10220,6 +10173,8 @@ if (typeof window !== 'undefined') {
   window.renderAllResults = renderAllResults;
   window.renderRejectionState = renderRejectionState;
   window.CANONICAL_TECH_MAP = CANONICAL_TECH_MAP;
+  window.normalizeSkillName = normalizeSkillName;
+  window.normalizeUniqueSkills = normalizeUniqueSkills;
   window.CERTIFICATION_TIERS = CERTIFICATION_TIERS;
   window.getCertificationTiers = getCertificationTiers;
   window.setCertificationTiers = setCertificationTiers;
@@ -10299,6 +10254,8 @@ if (typeof module !== 'undefined' && module.exports) {
     analyzeJobDescriptionMatch,
     generateSuggestions,
     CANONICAL_TECH_MAP,
+    normalizeSkillName,
+    normalizeUniqueSkills,
     CERTIFICATION_TIERS,
     getCertificationTiers,
     setCertificationTiers,
@@ -10343,4 +10300,3 @@ if (typeof module !== 'undefined' && module.exports) {
     verifyProjectLinksLive
   };
 }
-

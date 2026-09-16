@@ -29,6 +29,20 @@ document.addEventListener('DOMContentLoaded', () => {
   initDetailsModal();
   updateSavedCount();
   renderSnippets();
+
+  // Support search URL parameter from Global Search
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const q = urlParams.get('search');
+    if (q) {
+      const searchInput = document.getElementById('snippets-search-input');
+      if (searchInput) {
+        searchInput.value = q;
+        searchQuery = q;
+        renderSnippets();
+      }
+    }
+  } catch (e) {}
 });
 
 /**

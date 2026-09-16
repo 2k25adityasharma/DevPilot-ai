@@ -36,6 +36,20 @@ document.addEventListener('DOMContentLoaded', () => {
   initDetailsModal();
   updateSavedCount();
   renderPrompts();
+
+  // Support search URL parameter from Global Search
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const q = urlParams.get('search');
+    if (q) {
+      const searchInput = document.getElementById('prompts-search-input');
+      if (searchInput) {
+        searchInput.value = q;
+        searchQuery = q;
+        renderPrompts();
+      }
+    }
+  } catch (e) {}
 });
 
 /**

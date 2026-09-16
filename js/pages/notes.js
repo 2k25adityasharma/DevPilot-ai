@@ -21,6 +21,23 @@ document.addEventListener('DOMContentLoaded', () => {
   initNoteModal();
   initNoteSearch();
   renderNotes();
+
+  // Support URL search and action from Global Search
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get('action');
+    const search = urlParams.get('search');
+    if (action === 'new') {
+      setTimeout(openCreateModal, 150);
+    } else if (search) {
+      const searchInput = document.getElementById('notes-search-input');
+      if (searchInput) {
+        searchInput.value = search;
+        searchQuery = search;
+        renderNotes();
+      }
+    }
+  } catch (e) {}
 });
 
 /**

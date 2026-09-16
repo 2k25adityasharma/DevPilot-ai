@@ -83,3 +83,38 @@
   opacity: 1 !important;
 }
 
+/* ==========================================================================
+   Global Search / Command Palette Styling
+   ========================================================================== */
+.command-result-item {
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  outline: none;
+}
+
+.command-result-item.is-selected {
+  background-color: var(--color-surface-container, #efecf8) !important;
+  border-left: 3px solid var(--color-primary, #4648d4) !important;
+}
+
+.dark .command-result-item.is-selected {
+  background-color: rgba(96, 99, 238, 0.16) !important;
+  border-left: 3px solid var(--color-primary-container, #6063ee) !important;
+}
+
+.command-result-item:hover:not(.is-selected) {
+  background-color: var(--color-surface-container-low, #f5f2fe);
+}
+
+.dark .command-result-item:hover:not(.is-selected) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.command-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
