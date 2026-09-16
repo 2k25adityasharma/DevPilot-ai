@@ -148,9 +148,28 @@
     const percentEl = document.getElementById('continue-progress-percent');
     const barEl = document.getElementById('continue-progress-bar');
     const resumeBtn = document.getElementById('btn-resume-practice');
+    const cardEl = document.getElementById('continue-learning-card') || (categoryEl && categoryEl.closest('.card, [class*="card"]'));
 
     if (typeof DashboardDataService === 'undefined') return;
     const nextItem = DashboardDataService.getNextDSAItem();
+
+    // Empty state: user has never started DSA
+    if (!nextItem.hasStarted) {
+      if (categoryEl) categoryEl.textContent = 'Data Structures & Algorithms';
+      if (titleEl) {
+        titleEl.innerHTML = `
+          <span class="text-on-surface-variant text-sm font-normal block mt-1">Start learning to see your progress here.</span>
+        `;
+      }
+      if (percentEl) percentEl.textContent = '0%';
+      if (barEl) barEl.style.width = '0%';
+      if (resumeBtn) {
+        resumeBtn.setAttribute('href', 'pages/dsa.html');
+        const btnText = resumeBtn.querySelector('span:not(.material-symbols-outlined)') || resumeBtn;
+        if (btnText !== resumeBtn) btnText.textContent = 'Start DSA Roadmap';
+      }
+      return;
+    }
 
     if (categoryEl) {
       const cat = nextItem.category || 'Data Structures';
@@ -161,7 +180,7 @@
         categoryEl.textContent = cat;
       }
     }
-    if (titleEl) titleEl.textContent = nextItem.title;
+    if (titleEl) titleEl.textContent = nextItem.isComplete ? 'All DSA Problems Solved 🎉' : nextItem.title;
     if (percentEl) {
       percentEl.textContent = `${nextItem.percentage}%`;
       if (nextItem.totalQuestions) {
@@ -186,6 +205,19 @@
 
     if (typeof DashboardDataService === 'undefined') return;
     const suggestion = DashboardDataService.getAISuggestion();
+
+    // Empty state: new user with no activity yet
+    if (!suggestion.hasActivity) {
+      if (textEl) textEl.textContent = 'Start a section to get personalized recommendations.';
+      if (topicEl) topicEl.textContent = 'No activity yet';
+      if (badgeEl) badgeEl.textContent = 'Onboarding';
+      if (startBtn) {
+        startBtn.setAttribute('href', 'pages/dsa.html');
+        const btnText = startBtn.querySelector('span:not(.material-symbols-outlined)') || startBtn;
+        if (btnText !== startBtn) btnText.textContent = 'Get Started';
+      }
+      return;
+    }
 
     if (textEl) textEl.textContent = suggestion.reason;
     if (topicEl) topicEl.textContent = suggestion.title;
@@ -215,21 +247,35 @@
 
     if (typeof DashboardDataService === 'undefined') return;
 
-    // Immediately render current username from settings if available
     const currentSettings = typeof DashboardDataService.getGithubSettings === 'function'
       ? DashboardDataService.getGithubSettings()
-      : { username: '2k25adityasharma' };
-    if (usernameDisplay && currentSettings.username) {
-      usernameDisplay.textContent = `@${currentSettings.username}`;
+      : { username: '', isConfigured: false };
+
+    // GitHub not configured — show setup state
+    if (!currentSettings.isConfigured || !currentSettings.username) {
+      if (usernameDisplay) usernameDisplay.textContent = '@not configured';
+      if (countEl) countEl.textContent = '—';
+      if (rangeBadgeEl) rangeBadgeEl.textContent = 'Not Set';
+      if (eventsListEl) {
+        eventsListEl.innerHTML = `
+          <div class="py-3 text-center">
+            <p class="text-label-sm text-outline">Connect GitHub to see your activity.</p>
+            <a href="pages/settings.html" class="inline-block mt-2 text-xs text-primary hover:underline font-semibold">
+              Set up GitHub in Settings →
+            </a>
+          </div>
+        `;
+      }
+      return;
     }
-    if (userProfileLink && currentSettings.username) {
-      userProfileLink.href = `https://github.com/${encodeURIComponent(currentSettings.username)}`;
-    }
+
+    // GitHub configured — show username and fetch data
+    if (usernameDisplay) usernameDisplay.textContent = `@${currentSettings.username}`;
+    if (userProfileLink) userProfileLink.href = `https://github.com/${encodeURIComponent(currentSettings.username)}`;
 
     if (isGithubLoading && !forceRefresh) return;
     isGithubLoading = true;
 
-    // Show initial or loading state if no cached data yet
     if (!cachedGithubData && eventsListEl) {
       eventsListEl.innerHTML = `
         <div class="flex items-center gap-2 py-2 text-outline text-label-sm animate-pulse">
@@ -352,8 +398,15 @@
 
     if (!progress.milestones || progress.milestones.length === 0) {
       listEl.innerHTML = `
-        <p class="text-label-sm text-outline py-2">No active roadmap selected yet.</p>
+        <div class="py-6 text-center flex flex-col items-center gap-2">
+          <span class="material-symbols-outlined text-2xl text-outline">route</span>
+          <p class="text-label-sm text-outline">Your roadmap progress will appear here after you start a roadmap.</p>
+          <a href="pages/dsa.html" class="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-lg transition-colors mt-1">
+            <span class="material-symbols-outlined text-[14px]">play_arrow</span> Start DSA Roadmap
+          </a>
+        </div>
       `;
+      if (milestoneEl) milestoneEl.innerHTML = '';
     } else {
       listEl.innerHTML = progress.milestones.map((item, index) => {
         const colorClass = colorClasses[index % colorClasses.length];
@@ -364,6 +417,56 @@
             ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' 
             : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400';
 
+        // Career card: show levels breakdown
+        if (item.type === 'career' && Array.isArray(item.levels) && item.levels.length > 0) {
+          const levelsHtml = item.levels.map(lvl => {
+            const lvlBarColor = lvl.isActive ? colorClass : 'bg-on-surface-variant/30';
+            const textActive = lvl.isActive ? 'text-primary font-semibold' : 'text-on-surface-variant';
+            const dot = lvl.isActive
+              ? `<span class="w-1.5 h-1.5 rounded-full bg-primary inline-block shrink-0 mt-0.5"></span>`
+              : `<span class="w-1.5 h-1.5 rounded-full bg-outline/30 inline-block shrink-0 mt-0.5"></span>`;
+            return `
+              <div class="flex items-center gap-2 text-[10px] ${textActive}">
+                ${dot}
+                <span class="flex-1 truncate">${escapeHtml(lvl.name)}</span>
+                <span class="shrink-0 tabular-nums">${lvl.completed}/${lvl.total}</span>
+                <div class="w-16 h-1 bg-surface-container-highest rounded-full overflow-hidden shrink-0">
+                  <div class="h-full ${lvlBarColor} rounded-full transition-all duration-500" style="width:${lvl.percent}%"></div>
+                </div>
+                <span class="shrink-0 tabular-nums w-7 text-right">${lvl.percent}%</span>
+              </div>
+            `;
+          }).join('');
+
+          return `
+            <a href="${linkUrl}" class="block group p-2.5 rounded-xl border border-outline-variant/40 hover:border-primary/40 hover:bg-surface-container-low transition-all cursor-pointer bg-surface-container-lowest/40">
+              <div class="flex justify-between items-start text-label-sm font-label-sm mb-1">
+                <div class="min-w-0 pr-2">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-on-surface font-semibold truncate group-hover:text-primary transition-colors">${escapeHtml(item.title)}</span>
+                    ${item.badge ? `<span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${badgeColor}">${escapeHtml(item.badge)}</span>` : ''}
+                  </div>
+                  <p class="text-[11px] text-on-surface-variant truncate mt-0.5">${item.completedSkills}/${item.totalSkills} Skills Total</p>
+                </div>
+                <span class="text-on-surface font-semibold shrink-0 ml-2 group-hover:text-primary transition-colors">${item.percentage}%</span>
+              </div>
+              <div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden mb-2">
+                <div class="h-full ${colorClass} rounded-full transition-all duration-500" style="width: ${item.percentage}%;"></div>
+              </div>
+              <div class="flex flex-col gap-1 mb-1.5">
+                ${levelsHtml}
+              </div>
+              ${item.activePreview ? `
+                <div class="flex items-center gap-1.5 text-[11px] text-on-surface-variant bg-surface-container/60 dark:bg-slate-800/60 px-2 py-1 rounded-md border border-outline-variant/30 truncate mt-1.5">
+                  <span class="material-symbols-outlined text-[13px] text-primary shrink-0">${item.previewIcon || 'info'}</span>
+                  <span class="truncate font-medium">${escapeHtml(item.activePreview)}</span>
+                </div>
+              ` : ''}
+            </a>
+          `;
+        }
+
+        // Default card for DSA / Interview
         return `
           <a href="${linkUrl}" class="block group p-2.5 rounded-xl border border-outline-variant/40 hover:border-primary/40 hover:bg-surface-container-low transition-all cursor-pointer bg-surface-container-lowest/40">
             <div class="flex justify-between items-start text-label-sm font-label-sm mb-1">
@@ -412,64 +515,138 @@
     const totalCountEl = document.getElementById('tasks-total-count');
 
     if (typeof DashboardDataService === 'undefined' || !taskListEl) return;
-    const allGoals = DashboardDataService.getDailyGoals(selectedDateStr);
 
-    const completed = allGoals.filter(g => g.completed).length;
-    const total = allGoals.length;
+    // Get merged tasks: Developer Habits first, then Daily Goals
+    const merged = DashboardDataService.getMergedTodayTasks(selectedDateStr);
+    const { habits, goals } = merged;
+
+    const completed = merged.completed;
+    const total = merged.total;
 
     if (completedCountEl) completedCountEl.textContent = completed;
     if (totalCountEl) totalCountEl.textContent = total;
 
-    let displayGoals = allGoals;
-    if (taskFilterMode === 'active' && completed < total) {
-      displayGoals = allGoals.filter(g => !g.completed);
-    }
-
-    if (displayGoals.length === 0) {
+    // Truly empty: no habits and no goals for today
+    if (total === 0) {
       taskListEl.innerHTML = `
         <div class="py-8 text-center flex flex-col items-center justify-center">
           <div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-outline mb-2">
             <span class="material-symbols-outlined text-2xl">check_circle</span>
           </div>
-          <p class="font-label-md text-label-md text-on-surface font-medium">All caught up for this day!</p>
-          <p class="text-label-sm text-outline mt-1 mb-4">No pending daily goals.</p>
+          <p class="font-label-md text-label-md text-on-surface font-medium">No tasks for today.</p>
+          <p class="text-label-sm text-outline mt-1 mb-4">Your habits and daily goals will appear here.</p>
           <a href="pages/habits.html" class="inline-flex items-center gap-1.5 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-lg transition-colors">
-            <span class="material-symbols-outlined text-[16px]">add</span> Add Daily Goals in Habits
+            <span class="material-symbols-outlined text-[16px]">add</span> Add Habits &amp; Goals
           </a>
         </div>
       `;
       return;
     }
 
-    taskListEl.innerHTML = displayGoals.map(goal => {
-      const isChecked = !!goal.completed;
+    // Filter by active mode
+    let displayHabits = habits;
+    let displayGoals = goals;
+    if (taskFilterMode === 'active') {
+      displayHabits = habits.filter(h => !h.completed);
+      displayGoals = goals.filter(g => !g.completed);
+    }
+
+    // Build task item HTML helper
+    function buildTaskItem(task) {
+      const isChecked = !!task.completed;
+      const isHabit = task.source === 'habit';
       const cardBg = isChecked ? 'hover:bg-surface-container-low' : 'bg-surface-container-lowest shadow-sm border-outline-variant/20 hover:bg-surface-container-low';
       const textClass = isChecked ? 'line-through text-on-surface-variant' : 'text-on-surface font-medium';
       const timeClass = isChecked ? 'text-outline' : 'text-primary';
-      const timeLabel = isChecked ? 'Completed' : (goal.time || 'In Progress');
+      const timeLabel = isChecked ? 'Completed' : (task.time || (isHabit ? 'Daily Habit' : 'In Progress'));
+      const categoryLabel = task.category || (isHabit ? 'Habit' : 'Goal');
+      const dataAttr = isHabit ? `data-habit-id="${task.id}"` : `data-goal-id="${task.id}"`;
+      const checkClass = isHabit ? 'task-habit-checkbox' : 'task-checkbox';
 
       return `
-        <label class="flex items-start gap-3 p-3 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-outline-variant/30 ${cardBg} task-item" data-goal-id="${goal.id}">
+        <label class="flex items-start gap-3 p-3 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-outline-variant/30 ${cardBg} task-item" ${dataAttr}>
           <div class="relative flex items-center justify-center mt-0.5">
-            <input ${isChecked ? 'checked' : ''} class="peer appearance-none w-5 h-5 border-2 border-outline rounded-md checked:bg-primary checked:border-primary transition-all task-checkbox" type="checkbox" data-id="${goal.id}"/>
+            <input ${isChecked ? 'checked' : ''} class="peer appearance-none w-5 h-5 border-2 border-outline rounded-md checked:bg-primary checked:border-primary transition-all ${checkClass}" type="checkbox" data-id="${task.id}" data-source="${task.source || 'goal'}"/>
             <span class="material-symbols-outlined absolute text-white text-[16px] opacity-0 peer-checked:opacity-100 pointer-events-none">check</span>
           </div>
           <div class="flex-1 min-w-0">
-            <p class="font-label-md text-label-md ${textClass} truncate task-text">${escapeHtml(goal.title)}</p>
+            <p class="font-label-md text-label-md ${textClass} truncate task-text">${escapeHtml(task.title)}</p>
             <p class="font-label-sm text-label-sm ${timeClass} mt-0.5">${timeLabel}</p>
           </div>
-          <span class="bg-surface-container px-2 py-1 rounded text-label-sm font-label-sm text-on-surface-variant shrink-0">${escapeHtml(goal.category || 'Goal')}</span>
+          <span class="bg-surface-container px-2 py-1 rounded text-label-sm font-label-sm text-on-surface-variant shrink-0">${escapeHtml(categoryLabel)}</span>
         </label>
       `;
-    }).join('');
+    }
 
-    // Bind checkboxes
+    let html = '';
+
+    // Section: Developer Habits
+    if (displayHabits.length > 0) {
+      html += `
+        <div class="mb-1">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 px-1 mb-1.5 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px]">repeat</span> Developer Habits
+          </p>
+          ${displayHabits.map(buildTaskItem).join('')}
+        </div>
+      `;
+    } else if (habits.length > 0 && taskFilterMode === 'active') {
+      // All habits done, filter active mode — show nothing for this group
+    } else if (habits.length === 0 && goals.length > 0) {
+      // No habits, skip header
+    }
+
+    // Divider between sections (only if both groups have items)
+    if (displayHabits.length > 0 && displayGoals.length > 0) {
+      html += `<div class="border-t border-outline-variant/30 my-2"></div>`;
+    }
+
+    // Section: Daily Goals
+    if (displayGoals.length > 0) {
+      html += `
+        <div>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 px-1 mb-1.5 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px]">flag</span> Daily Goals
+          </p>
+          ${displayGoals.map(buildTaskItem).join('')}
+        </div>
+      `;
+    }
+
+    // All-done state when filter=active removes everything
+    if (displayHabits.length === 0 && displayGoals.length === 0 && total > 0) {
+      html = `
+        <div class="py-6 text-center">
+          <span class="material-symbols-outlined text-3xl text-[#10b981]">task_alt</span>
+          <p class="font-label-md text-label-md text-on-surface font-medium mt-2">All tasks completed!</p>
+          <p class="text-label-sm text-outline mt-1">${completed}/${total} done today 🎉</p>
+        </div>
+      `;
+    }
+
+    taskListEl.innerHTML = html;
+
+    // Bind habit checkboxes
+    taskListEl.querySelectorAll('.task-habit-checkbox').forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        const habitId = e.target.getAttribute('data-id');
+        if (habitId && typeof DashboardDataService !== 'undefined') {
+          DashboardDataService.toggleHabitCompletion(habitId, selectedDateStr);
+          renderTasksSection();
+          renderStreak();
+          renderCalendar();
+          renderRecentActivity();
+          renderFooterProductivity();
+        }
+      });
+    });
+
+    // Bind goal checkboxes
     taskListEl.querySelectorAll('.task-checkbox').forEach(cb => {
       cb.addEventListener('change', (e) => {
         const goalId = e.target.getAttribute('data-id');
         if (goalId && typeof DashboardDataService !== 'undefined') {
           DashboardDataService.toggleDailyGoal(goalId);
-          // Re-render affected sections
           renderTasksSection();
           renderMainGoal();
           renderStreak();
@@ -555,7 +732,10 @@
 
     if (!activities || !Array.isArray(activities) || activities.length === 0) {
       listEl.innerHTML = `
-        <p class="text-label-sm text-outline py-2 pl-2">No recent activity logged yet.</p>
+        <div class="py-4 text-center">
+          <p class="text-label-sm text-outline">No activity yet.</p>
+          <p class="text-[11px] text-outline/70 mt-0.5">Your activity will appear here as you use DevPilot.</p>
+        </div>
       `;
       return;
     }

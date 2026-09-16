@@ -26,7 +26,7 @@
   // Constants
   const STORAGE_KEY_GITHUB_SETTINGS = 'github_settings';
   const STORAGE_KEY_GITHUB_CACHE_PREFIX = 'github_cache_';
-  const DEFAULT_GITHUB_USERNAME = '2k25adityasharma';
+  // No default GitHub username — users must explicitly configure their own
   const GITHUB_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes cache
 
   // Helpers
@@ -130,6 +130,28 @@
       } catch (e) {}
     }
     return {};
+  }
+
+  /**
+   * Gets the roadmap object for a specific role ID.
+   * Uses lazy getRoadmap() getter (via window.getRoadmap) which re-reads the
+   * registry on every call, ensuring late-loaded roadmap scripts are found.
+   */
+  function getRoadmapForRole(roleId, role) {
+    if (!roleId) return null;
+
+    // Try the lazy getRoadmap() function first (most robust)
+    if (typeof window !== 'undefined' && typeof window.getRoadmap === 'function') {
+      const rm = window.getRoadmap(role?.roadmapId || roleId);
+      if (rm) return rm;
+    }
+
+    // Fallback: static careerRoadmaps dict
+    const roadmaps = getCareerRoadmaps();
+    return roadmaps[role?.roadmapId || roleId]
+      || roadmaps[roleId]
+      || roadmaps[roleId.toLowerCase()]
+      || null;
   }
 
   function getInterviewRegistry() {
@@ -243,63 +265,12 @@
     }
 
     if (!Array.isArray(goals)) {
-      if (userId === '00000000-0000-4000-a000-000000000001') {
-        // Seed default developer daily goals on initial run for default demo account
-        goals = [
-          {
-            id: 'goal-seed-1',
-            user_id: userId,
-            title: 'Solve 3 Medium LC Problems',
-            target: 3,
-            progress: 1,
-            date: targetDate,
-            category: 'Coding',
-            time: '11:30 AM',
-            completed: false
-          },
-          {
-            id: 'goal-seed-2',
-            user_id: userId,
-            title: 'Revise Linked List concepts',
-            target: 1,
-            progress: 1,
-            date: targetDate,
-            category: 'Study',
-            time: '09:00 AM',
-            completed: true
-          },
-          {
-            id: 'goal-seed-3',
-            user_id: userId,
-            title: 'Write snippet for BFS template',
-            target: 1,
-            progress: 0,
-            date: targetDate,
-            category: 'Coding',
-            time: '02:15 PM',
-            completed: false
-          },
-          {
-            id: 'goal-seed-4',
-            user_id: userId,
-            title: 'Read System Design article (Caching)',
-            target: 1,
-            progress: 0,
-            date: targetDate,
-            category: 'Study',
-            time: '04:00 PM',
-            completed: false
-          }
-        ];
-        storage.set(`u_${userId}_daily_goals`, goals);
-      } else {
-        goals = [];
-      }
+      // No goals exist yet for this user — return empty (no fake/seed data)
+      goals = [];
     }
 
-    // Return goals matching target date (or all if stored without dates)
-    const matching = goals.filter(g => !g.date || g.date === targetDate);
-    return matching.length > 0 ? matching : goals;
+    // Return goals matching target date only
+    return goals.filter(g => g.date === targetDate);
   }
 
   function getMainGoal(dateStr = null) {
@@ -397,27 +368,29 @@
     const dsaStats = getDSAProgress();
     const totalPercentage = dsaStats.percentage;
 
-    if (!Array.isArray(roadmap) || roadmap.length === 0) {
+    // Not started: roadmap data unavailable or user has never solved anything
+    if (!Array.isArray(roadmap) || roadmap.length === 0 || dsaStats.solved === 0) {
       return {
+        hasStarted: false,
         isComplete: false,
         hasData: false,
-        title: 'Two Sum',
-        problemTitle: 'Two Sum',
-        category: 'Data Structures',
-        categoryName: 'Data Structures',
-        topic: 'Arrays & Hashing',
-        patternName: 'Arrays & Hashing',
-        difficulty: 'Easy',
-        leetcodeNumber: '1',
-        problemId: '1',
-        percentage: totalPercentage,
-        percent: totalPercentage,
+        title: '',
+        problemTitle: '',
+        category: 'Data Structures & Algorithms',
+        categoryName: 'Data Structures & Algorithms',
+        topic: '',
+        patternName: '',
+        difficulty: '',
+        leetcodeNumber: '',
+        problemId: null,
+        percentage: 0,
+        percent: 0,
         totalSolved: dsaStats.solved,
         totalQuestions: dsaStats.total,
         patternPercentage: 0,
         patternSolved: 0,
         patternTotal: 0,
-        targetUrl: 'pages/dsa.html#row-1'
+        targetUrl: 'pages/dsa.html'
       };
     }
 
@@ -457,6 +430,7 @@
 
     if (!nextProblem) {
       return {
+        hasStarted: true,
         isComplete: true,
         hasData: true,
         title: 'All DSA Problems Solved 🎉',
@@ -484,6 +458,7 @@
     const patternPercent = patternTotal > 0 ? Math.round((patternSolved / patternTotal) * 100) : 0;
 
     return {
+      hasStarted: true,
       isComplete: false,
       hasData: true,
       title: nextProblem.title,
@@ -587,16 +562,26 @@
       }
     }
 
-    // Default fallback if brand new user
+    // Brand-new user: no interview activity yet — signal not started
     if (!categoryId) {
-      categoryId = 'operatingSystems';
-      topicName = 'Process Management & Scheduling';
+      return {
+        hasStarted: false,
+        categoryId: null,
+        categoryTitle: 'Interview Prep',
+        categoryIcon: 'quiz',
+        topicName: '',
+        questionsTotal: 0,
+        questionsAttempted: 0,
+        questionsCorrect: 0,
+        percentage: 0,
+        nextQuestion: ''
+      };
     }
 
     let categoryTitle = 'Operating Systems';
     let categoryIcon = 'memory';
     let questions = [];
-    let nextQuestion = 'Explain the difference between Preemptive and Non-Preemptive CPU Scheduling algorithms.';
+    let nextQuestion = '';
 
     const registry = getInterviewRegistry();
     if (registry && typeof registry.getCategory === 'function') {
@@ -639,6 +624,7 @@
     }
 
     return {
+      hasStarted: true,
       categoryId,
       categoryTitle,
       categoryIcon,
@@ -660,9 +646,13 @@
 
     const rawState = engine && typeof engine.getCareerState === 'function' ? engine.getCareerState() : {};
     const state = (rawState && typeof rawState === 'object') ? rawState : {};
+
+    // Career section: ONLY show if user explicitly activated a role
+    const hasActiveCareer = !!(state.activeCareer);
     let activeCareerId = state.activeCareer || null;
 
-    // If no explicit active career, find if user has made progress on any career role
+    // If no active career explicitly set, check if user has ANY progress on any role
+    // (handles legacy data where activeCareer flag may not have been set)
     if (!activeCareerId && roles && roles.length > 0) {
       for (const r of roles) {
         if (state[r.id] && Array.isArray(state[r.id].completed) && state[r.id].completed.length > 0) {
@@ -670,23 +660,23 @@
           break;
         }
       }
-      // If still none, default to flagship 'full-stack-developer' role
-      if (!activeCareerId) {
-        activeCareerId = 'full-stack-developer';
-      }
+      // If STILL none → user has never started career roadmap
     }
 
-    const hasActiveCareer = !!(state.activeCareer);
-    const role = (roles || []).find(r => r.id === activeCareerId) || (roles && roles[0]) || null;
-    const roleTitle = role ? role.title : 'Full Stack Developer';
-    const roadmap = roadmaps ? roadmaps[role?.roadmapId || activeCareerId] : null;
+    const role = activeCareerId
+      ? ((roles || []).find(r => r.id === activeCareerId) || null)
+      : null;
+    const roleTitle = role ? role.title : '';
+
+    // Use lazy getRoadmapForRole() to handle any script load order
+    const roadmap = activeCareerId ? getRoadmapForRole(activeCareerId, role) : null;
 
     let careerTotalSkills = 0;
     let careerCompletedSkills = 0;
     let careerPercent = 0;
     let currentLevelName = 'Foundation';
     let currentLevelNum = 1;
-    let nextSkillTitle = 'Master Web Architecture & Protocols';
+    let nextSkillTitle = '';
 
     if (roadmap && Array.isArray(roadmap.levels)) {
       const roleProg = state[activeCareerId] || { completed: [] };
@@ -727,11 +717,13 @@
     const nextDSA = getNextDSAItem();
     const dsaNextText = nextDSA && nextDSA.problemTitle ? `Next: ${nextDSA.problemTitle}` : 'Practice Algorithmic Patterns';
     const careerNextText = nextSkillTitle ? `Next: ${nextSkillTitle}` : 'Explore Role Roadmap';
-    const interviewNextText = `Q: ${interviewDetails.nextQuestion}`;
 
-    // 3 Key Dynamic Milestones: DSA Roadmap, Active Career Course, Interview Prep
-    const milestones = [
-      {
+    // Build milestones conditionally — only include sections the user has actually started
+    const milestones = [];
+
+    // 1. DSA — only if user has solved at least one problem
+    if (dsaSolved > 0 || nextDSA.hasStarted) {
+      milestones.push({
         title: 'Data Structures & Algorithms',
         percentage: dsaPercentage,
         subtitle: `${dsaSolved} / ${dsaTotal} Problems Solved`,
@@ -740,8 +732,33 @@
         type: 'dsa',
         badge: 'DSA',
         url: 'pages/dsa.html'
-      },
-      {
+      });
+    }
+
+    // 2. Career Roadmap — only if user explicitly activated a role OR has progress
+    if (activeCareerId) {
+      // Build per-level breakdown for rich card display
+      const careerLevels = [];
+      if (roadmap && Array.isArray(roadmap.levels)) {
+        const roleProg = state[activeCareerId] || { completed: [] };
+        const completedSet = new Set(roleProg.completed || []);
+        roadmap.levels.forEach(lvl => {
+          const lvlSkills = lvl.skills || [];
+          const lvlCompleted = lvlSkills.filter(s => completedSet.has(s.id)).length;
+          const lvlTotal = lvlSkills.length;
+          const lvlPercent = lvlTotal > 0 ? Math.round((lvlCompleted / lvlTotal) * 100) : 0;
+          careerLevels.push({
+            num: lvl.levelNum || 1,
+            name: lvl.name || `Level ${lvl.levelNum}`,
+            completed: lvlCompleted,
+            total: lvlTotal,
+            percent: lvlPercent,
+            isActive: lvl.levelNum === currentLevelNum
+          });
+        });
+      }
+
+      milestones.push({
         title: `Career: ${roleTitle}`,
         percentage: careerPercent,
         subtitle: `Level ${currentLevelNum}: ${currentLevelName} • ${careerCompletedSkills}/${careerTotalSkills} Skills`,
@@ -751,9 +768,19 @@
         badge: 'Career',
         roleId: activeCareerId,
         url: `pages/roadmaps.html#role=${activeCareerId}`,
-        isCommitted: hasActiveCareer
-      },
-      {
+        isCommitted: hasActiveCareer,
+        levels: careerLevels,
+        currentLevelNum,
+        currentLevelName,
+        totalSkills: careerTotalSkills,
+        completedSkills: careerCompletedSkills
+      });
+    }
+
+    // 3. Interview Prep — only if user has actually attempted questions
+    if (interviewDetails.hasStarted && interviewDetails.questionsAttempted > 0) {
+      const interviewNextText = interviewDetails.nextQuestion ? `Q: ${interviewDetails.nextQuestion}` : 'Continue Interview Prep';
+      milestones.push({
         title: `Interview: ${interviewDetails.categoryTitle}`,
         percentage: interviewDetails.percentage,
         subtitle: `Subsection: ${interviewDetails.topicName} • ${interviewDetails.questionsAttempted}/${interviewDetails.questionsTotal} Qs`,
@@ -764,11 +791,13 @@
         badge: 'Interview',
         categoryId: interviewDetails.categoryId,
         topicName: interviewDetails.topicName,
-        url: `pages/interviewPrep.html?cat=${interviewDetails.categoryId}&topic=${encodeURIComponent(interviewDetails.topicName)}`
-      }
-    ];
+        url: `pages/interviewPrep.html?cat=${interviewDetails.categoryId}&topic=${encodeURIComponent(interviewDetails.topicName || '')}`
+      });
+    }
 
-    let nextMilestone = nextSkillTitle ? `${nextSkillTitle} (${roleTitle})` : 'Finish Active Milestone';
+    const nextMilestone = nextSkillTitle
+      ? `${nextSkillTitle}${roleTitle ? ` (${roleTitle})` : ''}`
+      : (milestones.length > 0 ? 'Keep progressing on your active roadmap' : null);
 
     return {
       hasActiveCareer,
@@ -845,23 +874,12 @@
   // ==========================================
   function getNotesCount() {
     const storage = getStorage();
+    // Only read from the actual user-saved notes store — never fall back to template data
     const storedNotes = storage.get('dev_notes', null);
-
     if (Array.isArray(storedNotes)) {
       return storedNotes.length;
     }
-
-    if (typeof window !== 'undefined' && Array.isArray(window.DEFAULT_NOTES)) {
-      return window.DEFAULT_NOTES.length;
-    }
-
-    if (typeof require !== 'undefined') {
-      try {
-        const mod = require('../data/notesData.js');
-        if (mod && Array.isArray(mod.DEFAULT_NOTES)) return mod.DEFAULT_NOTES.length;
-      } catch (e) {}
-    }
-
+    // No notes saved yet
     return 0;
   }
 
@@ -871,16 +889,17 @@
   function getGithubSettings() {
     const storage = getStorage();
     const stored = storage.get(STORAGE_KEY_GITHUB_SETTINGS, null);
-    if (stored && stored.username) {
-      return { username: stored.username.trim() };
+    if (stored && stored.username && stored.username.trim()) {
+      return { username: stored.username.trim(), isConfigured: true };
     }
-    return { username: DEFAULT_GITHUB_USERNAME };
+    // No username configured — user has never set up GitHub
+    return { username: '', isConfigured: false };
   }
 
   function setGithubSettings(username) {
     const storage = getStorage();
-    const cleanUser = (username || DEFAULT_GITHUB_USERNAME).trim().replace(/^@/, '');
-    const settingsObj = { username: cleanUser };
+    const cleanUser = (username || '').trim().replace(/^@/, '');
+    const settingsObj = { username: cleanUser, isConfigured: !!cleanUser };
     storage.set(STORAGE_KEY_GITHUB_SETTINGS, settingsObj);
     return settingsObj;
   }
@@ -1148,22 +1167,7 @@
     // Sort newest first and limit to 4 items
     activities.sort((a, b) => b.timestamp - a.timestamp);
 
-    // If completely fresh (zero user activity), provide authentic initial prompt
-    if (activities.length === 0) {
-      activities.push({
-        id: 'welcome_1',
-        source: 'system',
-        type: 'system',
-        title: 'Welcome to DevPilot AI Workspace',
-        text: 'Welcome to DevPilot AI Workspace',
-        subtitle: 'Start your first DSA problem or Daily Goal',
-        timeAgo: 'Just now',
-        dotColor: '#4f46e5',
-        timestamp: Date.now(),
-        url: 'pages/dsa.html'
-      });
-    }
-
+    // Return empty array for fresh users — dashboard will show intentional empty state
     return activities.slice(0, 4);
   }
 
@@ -1173,19 +1177,46 @@
   function getAISuggestion() {
     const nextDSA = getNextDSAItem();
     const career = getCareerRoadmapProgress();
+    const interviewProg = getInterviewPrepProgress();
+
+    // Check if user has ANY real activity to base a suggestion on
+    const hasDSAActivity = nextDSA.hasStarted === true;
+    const hasCareerActivity = !!(career.activeCareerId);
+    const hasInterviewActivity = interviewProg.totalAttempted > 0;
+    const hasAnyActivity = hasDSAActivity || hasCareerActivity || hasInterviewActivity;
+
+    // New user: no activity → return empty state signal
+    if (!hasAnyActivity) {
+      return {
+        hasActivity: false,
+        track: '',
+        icon: 'auto_awesome',
+        badge: '',
+        description: '',
+        reason: '',
+        topic: '',
+        title: '',
+        subtext: '',
+        buttonText: 'Get Started',
+        chatPrompt: null,
+        targetUrl: 'pages/dsa.html'
+      };
+    }
 
     // Priority 1: If active career track has an upcoming skill
-    if (career.hasActiveCareer && career.nextSkillTitle) {
-      const chatPrompt = `Explain the core concepts and implementation best practices for "${career.nextSkillTitle}" in ${career.roleTitle}.`;
+    if (career.hasActiveCareer && career.career && career.career.nextSkillTitle) {
+      const nextSkill = career.career.nextSkillTitle;
+      const chatPrompt = `Explain the core concepts and implementation best practices for "${nextSkill}" in ${career.roleTitle}.`;
       return {
+        hasActivity: true,
         track: 'Career Roadmap',
         icon: 'alt_route',
         badge: 'Career Milestone',
         description: `Advance your ${career.roleTitle} roadmap by mastering this core milestone.`,
         reason: `Advance your ${career.roleTitle} roadmap by mastering this core milestone.`,
-        topic: career.nextSkillTitle,
-        title: career.nextSkillTitle,
-        subtext: `Level ${career.currentLevelNum} • ${career.roleTitle}`,
+        topic: nextSkill,
+        title: nextSkill,
+        subtext: `Level ${career.career.currentLevelNum} • ${career.roleTitle}`,
         buttonText: 'Ask AI to Explain',
         chatPrompt,
         careerUrl: 'pages/roadmaps.html',
@@ -1193,10 +1224,11 @@
       };
     }
 
-    // Priority 2: Next unfinished DSA problem
-    if (nextDSA && nextDSA.problemId && !nextDSA.isComplete) {
+    // Priority 2: Next unfinished DSA problem (only if user has actually started DSA)
+    if (hasDSAActivity && nextDSA.problemId && !nextDSA.isComplete) {
       const chatPrompt = `How to solve "${nextDSA.problemTitle}"? Please explain the intuition, optimal approach, and provide clean JavaScript code with time & space complexity.`;
       return {
+        hasActivity: true,
         track: 'DSA Mastery',
         icon: 'psychology',
         badge: 'Recommended Problem',
@@ -1212,20 +1244,39 @@
       };
     }
 
-    // Priority 3: Fallback fresh starter
-    const fallbackPrompt = 'Explain sliding window and two-pointer algorithmic techniques with optimal JavaScript examples and time complexity analysis.';
+    // Priority 3: Career activity exists — suggest exploring career skills
+    if (hasCareerActivity && career.roleTitle) {
+      const chatPrompt = `What are the most important skills for a ${career.roleTitle} and how should I learn them systematically?`;
+      return {
+        hasActivity: true,
+        track: 'Career Roadmap',
+        icon: 'alt_route',
+        badge: 'Career Growth',
+        description: `Continue building your ${career.roleTitle} skill set.`,
+        reason: `Continue building your ${career.roleTitle} skill set.`,
+        topic: `${career.roleTitle} Skills`,
+        title: `${career.roleTitle} Skills`,
+        subtext: 'Career roadmap in progress',
+        buttonText: 'Ask AI',
+        chatPrompt,
+        targetUrl: `pages/chat.html?prompt=${encodeURIComponent(chatPrompt)}`
+      };
+    }
+
+    // Priority 4: Interview activity exists
+    const fallbackPrompt = 'What are the most important interview topics for software engineers and how should I prepare?';
     return {
-      track: 'DSA Practice',
-      icon: 'auto_awesome',
-      badge: 'Starter Pattern',
-      description: 'Kickstart your placement prep by mastering sliding window and array two-pointer techniques.',
-      reason: 'Kickstart your placement prep by mastering sliding window and array two-pointer techniques.',
-      topic: 'Sliding Window & Two Pointer',
-      title: 'Sliding Window & Two Pointer',
-      subtext: 'Core algorithmic patterns for technical interviews',
-      buttonText: 'Ask AI to Solve',
+      hasActivity: true,
+      track: 'Interview Prep',
+      icon: 'quiz',
+      badge: 'Interview Practice',
+      description: 'Keep practicing interview questions to build confidence.',
+      reason: 'Keep practicing interview questions to build confidence.',
+      topic: 'Interview Preparation',
+      title: 'Interview Preparation',
+      subtext: 'Based on your recent practice',
+      buttonText: 'Ask AI',
       chatPrompt: fallbackPrompt,
-      dsaUrl: 'pages/dsa.html',
       targetUrl: `pages/chat.html?prompt=${encodeURIComponent(fallbackPrompt)}`
     };
   }
@@ -1388,19 +1439,159 @@
   // ==========================================
   // 12. TODAY TASKS SUMMARY
   // ==========================================
-  function getTodayTasksSummary() {
-    const todayStr = getTodayDateStr();
-    const goals = getDailyGoals(todayStr);
-    const total = Array.isArray(goals) ? goals.length : 0;
-    const completed = Array.isArray(goals) ? goals.filter(g => !!g.completed).length : 0;
+  // ==========================================
+  // HABIT TASK FUNCTIONS (for Today's Tasks)
+  // ==========================================
+
+  /**
+   * Returns today's applicable Developer Habits as task objects.
+   * Respects scheduling (daily / weekdays / custom days) and active state.
+   */
+  function getTodayHabitTasks(dateStr = null) {
+    const targetDate = dateStr || getTodayDateStr();
+    const storage = getStorage();
+    const userId = getUserId();
+    const habitsData = getHabitsData();
+
+    // Read habits
+    let habits = storage.get(`devpilot_u_${userId}_habits`, null);
+    if (!Array.isArray(habits)) habits = storage.get(`u_${userId}_habits`, null);
+    if (!Array.isArray(habits) && userId === '00000000-0000-4000-a000-000000000001') {
+      habits = storage.get('habits_data', null);
+    }
+    if (!Array.isArray(habits)) habits = [];
+
+    // Read completions
+    let completions = storage.get(`devpilot_u_${userId}_completions`, null);
+    if (!Array.isArray(completions)) completions = storage.get(`u_${userId}_completions`, null);
+    if (!Array.isArray(completions) && userId === '00000000-0000-4000-a000-000000000001') {
+      completions = storage.get('habits_completions', null);
+    }
+    if (!Array.isArray(completions)) completions = [];
+
+    // Build completion lookup: { habitId: { date: true } }
+    const completionMap = {};
+    completions.forEach(c => {
+      if (!c || !c.habit_id || !c.completion_date) return;
+      if (!completionMap[c.habit_id]) completionMap[c.habit_id] = {};
+      completionMap[c.habit_id][c.completion_date] = true;
+    });
+
+    // Filter habits scheduled for targetDate
+    const activeHabits = habits.filter(h => h.active !== false);
+    const scheduledHabits = habitsData && typeof habitsData.isHabitScheduledOn === 'function'
+      ? activeHabits.filter(h => habitsData.isHabitScheduledOn(h, targetDate))
+      : activeHabits; // fallback: all active habits if HabitsData unavailable
+
+    return scheduledHabits.map(h => {
+      const isCompleted = !!(completionMap[h.id] && completionMap[h.id][targetDate]);
+      return {
+        id: h.id,
+        title: h.title,
+        category: h.category || 'Habit',
+        completed: isCompleted,
+        source: 'habit', // discriminator
+        time: h.reminder_time || h.reminderTime || '',
+        habitId: h.id
+      };
+    });
+  }
+
+  /**
+   * Returns merged task list: Developer Habits first, then Daily Goals.
+   * Each item has a `source` field: 'habit' | 'goal'.
+   */
+  function getMergedTodayTasks(dateStr = null) {
+    const targetDate = dateStr || getTodayDateStr();
+    const habits = getTodayHabitTasks(targetDate);
+    const goals = getDailyGoals(targetDate);
+    const goalsWithSource = (Array.isArray(goals) ? goals : []).map(g => ({ ...g, source: 'goal' }));
+
+    const allTasks = [...habits, ...goalsWithSource];
+    const total = allTasks.length;
+    const completed = allTasks.filter(t => !!t.completed).length;
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     return {
-      completed,
+      habits,
+      goals: goalsWithSource,
+      allTasks,
       total,
-      percentage,
-      fractionText: `${completed} / ${total}`,
-      percentageText: `${percentage}% today`
+      completed,
+      percentage
+    };
+  }
+
+  /**
+   * Toggles a Developer Habit completion for a specific date.
+   * Mirrors HabitService.toggleCompletion logic but available synchronously in DashboardDataService.
+   */
+  function toggleHabitCompletion(habitId, dateStr) {
+    const storage = getStorage();
+    const userId = getUserId();
+
+    // Try HabitService first (async, but we still fire it for Supabase sync)
+    const hs = getHabitService();
+    if (hs && typeof hs.toggleCompletion === 'function') {
+      try { hs.toggleCompletion(habitId, dateStr); } catch (e) {}
+    }
+
+    // Sync local store update
+    const primaryKey = `devpilot_u_${userId}_completions`;
+    const fallbackKey = `u_${userId}_completions`;
+    let completions = storage.get(primaryKey, null);
+    if (!Array.isArray(completions)) completions = storage.get(fallbackKey, null);
+    if (!Array.isArray(completions)) completions = storage.get('habits_completions', []);
+    if (!Array.isArray(completions)) completions = [];
+
+    const existingIdx = completions.findIndex(
+      c => c.habit_id === habitId && c.completion_date === dateStr
+    );
+
+    let isNowCompleted = false;
+    if (existingIdx !== -1) {
+      completions.splice(existingIdx, 1);
+      isNowCompleted = false;
+    } else {
+      completions.push({
+        id: `hc_${Date.now()}`,
+        user_id: userId,
+        habit_id: habitId,
+        completion_date: dateStr,
+        created_at: new Date().toISOString()
+      });
+      isNowCompleted = true;
+    }
+
+    storage.set(primaryKey, completions);
+    storage.set(fallbackKey, completions);
+
+    // Broadcast to other pages
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        const channel = new BroadcastChannel('devpilot_habits_realtime');
+        channel.postMessage({
+          type: 'COMPLETION_CHANGED',
+          userId,
+          data: { habitId, dateStr, completed: isNowCompleted },
+          timestamp: Date.now()
+        });
+        channel.close();
+      }
+    } catch (e) {}
+
+    return { completed: isNowCompleted, habitId, dateStr };
+  }
+
+  function getTodayTasksSummary() {
+    const todayStr = getTodayDateStr();
+    const merged = getMergedTodayTasks(todayStr);
+    return {
+      completed: merged.completed,
+      total: merged.total,
+      percentage: merged.percentage,
+      fractionText: `${merged.completed} / ${merged.total}`,
+      percentageText: `${merged.percentage}% today`
     };
   }
 
@@ -1682,6 +1873,9 @@
     getCalendarData,
     getFocusTimeToday,
     getTodayTasksSummary,
+    getTodayHabitTasks,
+    getMergedTodayTasks,
+    toggleHabitCompletion,
     getTopSkill,
     getTodayDateStr
   };

@@ -94,15 +94,21 @@ console.log('====================================================\n');
 // TEST 1: Default GitHub Settings & Custom Username
 // ----------------------------------------------------
 runTest('TEST 1: GitHub Settings persistence', () => {
+  // Default: no GitHub configured (not hardcoded to personal username)
   const defaultSettings = DashboardDataService.getGithubSettings();
-  assert.strictEqual(defaultSettings.username, '2k25adityasharma');
+  assert.strictEqual(defaultSettings.isConfigured, false, 'Should NOT be configured by default');
+  assert.strictEqual(defaultSettings.username, '', 'Default username must be empty string (not hardcoded)');
 
+  // After setting a username, isConfigured should be true
   DashboardDataService.setGithubSettings('custom-dev');
   const updated = DashboardDataService.getGithubSettings();
   assert.strictEqual(updated.username, 'custom-dev');
+  assert.strictEqual(updated.isConfigured, true);
 
-  // Reset back to default
-  DashboardDataService.setGithubSettings('2k25adityasharma');
+  // Clear back to unconfigured
+  DashboardDataService.setGithubSettings('');
+  const cleared = DashboardDataService.getGithubSettings();
+  assert.strictEqual(cleared.isConfigured, false);
 });
 
 // ----------------------------------------------------
@@ -120,14 +126,44 @@ runTest('TEST 2: Momentum Streak Calculation', () => {
 // ----------------------------------------------------
 runTest('TEST 3: Daily Goals & Main Goal retrieval', () => {
   const todayStr = DashboardDataService.getTodayDateStr();
+
+  // New user: no seeded/fake goals — should be empty
   const goals = DashboardDataService.getDailyGoals(todayStr);
-  assert.ok(Array.isArray(goals), 'Goals should be an array');
-  assert.ok(goals.length > 0, 'Should have initial daily goals');
+  assert.ok(Array.isArray(goals), 'Goals should always be an array');
+  // Empty for new user is CORRECT behavior
 
   const mainGoal = DashboardDataService.getMainGoal(todayStr);
-  assert.ok(mainGoal.title, 'Main goal must have a title');
-  assert.ok(mainGoal.totalCount >= goals.length, 'Total count must match goals');
   assert.strictEqual(typeof mainGoal.percentage, 'number');
+  assert.strictEqual(typeof mainGoal.totalCount, 'number');
+  // hasGoal: false when no goals exist
+  if (goals.length === 0) {
+    assert.strictEqual(mainGoal.hasGoal, false);
+    assert.strictEqual(mainGoal.totalCount, 0);
+  } else {
+    assert.ok(mainGoal.title, 'Main goal must have a title when goals exist');
+    assert.ok(mainGoal.totalCount >= goals.length);
+  }
+
+  // Add a real goal and verify it appears
+  const userId = '00000000-0000-4000-a000-000000000001';
+  const testGoal = {
+    id: 'test-goal-abc',
+    user_id: userId,
+    title: 'Test My Dashboard',
+    target: 1,
+    progress: 0,
+    date: todayStr,
+    category: 'Testing',
+    completed: false
+  };
+  Storage.set(`u_${userId}_daily_goals`, [testGoal]);
+
+  const goalsWithData = DashboardDataService.getDailyGoals(todayStr);
+  assert.ok(goalsWithData.length > 0, 'Goals should appear after being added');
+  assert.strictEqual(goalsWithData[0].title, 'Test My Dashboard');
+
+  // Clean up
+  Storage.set(`u_${userId}_daily_goals`, []);
 });
 
 // ----------------------------------------------------
@@ -135,6 +171,21 @@ runTest('TEST 3: Daily Goals & Main Goal retrieval', () => {
 // ----------------------------------------------------
 runTest('TEST 4: Toggling Daily Goal updates progress', () => {
   const todayStr = DashboardDataService.getTodayDateStr();
+  const userId = '00000000-0000-4000-a000-000000000001';
+
+  // Seed a real goal for this test
+  const testGoal = {
+    id: 'toggle-test-goal',
+    user_id: userId,
+    title: 'Toggle Me',
+    target: 1,
+    progress: 0,
+    date: todayStr,
+    category: 'Testing',
+    completed: false
+  };
+  Storage.set(`u_${userId}_daily_goals`, [testGoal]);
+
   const goalsBefore = DashboardDataService.getDailyGoals(todayStr);
   const targetGoal = goalsBefore[0];
   const initialStatus = !!targetGoal.completed;
@@ -145,8 +196,9 @@ runTest('TEST 4: Toggling Daily Goal updates progress', () => {
   const updatedGoal = goalsAfter.find(g => g.id === targetGoal.id);
   assert.strictEqual(updatedGoal.completed, !initialStatus, 'Goal completed status should toggle');
 
-  // Toggle back to clean up
+  // Toggle back and clean up
   DashboardDataService.toggleDailyGoal(targetGoal.id);
+  Storage.set(`u_${userId}_daily_goals`, []);
 });
 
 // ----------------------------------------------------
@@ -155,13 +207,23 @@ runTest('TEST 4: Toggling Daily Goal updates progress', () => {
 runTest('TEST 5: Next DSA Item Discovery', () => {
   const nextItem = DashboardDataService.getNextDSAItem();
   const dsaProgress = DashboardDataService.getDSAProgress();
-  assert.ok(nextItem, 'Should return a next DSA item');
-  assert.ok(nextItem.title, 'Item must have a title');
+  assert.ok(nextItem, 'Should return a next DSA item object');
   assert.ok(nextItem.targetUrl.startsWith('pages/dsa.html'), 'URL must point to dsa.html');
   assert.strictEqual(typeof nextItem.percentage, 'number');
-  assert.strictEqual(nextItem.percentage, dsaProgress.percentage, 'Next item percentage must match overall DSA total progress');
   assert.strictEqual(typeof nextItem.totalSolved, 'number');
   assert.strictEqual(typeof nextItem.totalQuestions, 'number');
+  assert.strictEqual(typeof nextItem.hasStarted, 'boolean', 'Must have hasStarted flag');
+
+  // For a fresh user with no solved problems, hasStarted should be false
+  if (dsaProgress.solved === 0) {
+    assert.strictEqual(nextItem.hasStarted, false, 'hasStarted must be false when no problems solved');
+    assert.strictEqual(nextItem.percentage, 0, 'Percentage must be 0 for new user');
+  } else {
+    // User has solved problems — must have a title
+    assert.ok(nextItem.title, 'Item must have a title when user has progress');
+    assert.strictEqual(nextItem.hasStarted, true);
+    assert.strictEqual(nextItem.percentage, dsaProgress.percentage);
+  }
 });
 
 // ----------------------------------------------------
@@ -176,41 +238,30 @@ runTest('TEST 6: Real LeetCode solved count', () => {
 // ----------------------------------------------------
 // TEST 7: Career Roadmap Progress
 // ----------------------------------------------------
-runTest('TEST 7: Career Roadmap milestones & Next Milestone', () => {
+runTest('TEST 7: Career Roadmap milestones & conditional display', () => {
   const roadmapProgress = DashboardDataService.getCareerRoadmapProgress();
   assert.ok(roadmapProgress, 'Should return roadmap progress');
   assert.ok(Array.isArray(roadmapProgress.milestones), 'Milestones must be an array');
-  assert.strictEqual(roadmapProgress.milestones.length, 3, 'Should have 3 core milestones (DSA, Career Course, Interview Prep)');
-  assert.ok(roadmapProgress.nextMilestone, 'Next milestone must exist');
 
-  // Verify DSA milestone
-  const dsaMilestone = roadmapProgress.milestones.find(m => m.type === 'dsa');
-  assert.ok(dsaMilestone, 'DSA milestone must exist');
-  assert.strictEqual(typeof dsaMilestone.percentage, 'number');
+  // For a new user: milestones should be EMPTY (no fake sections)
+  // (In test environment with no solved DSA/career/interview progress)
+  const dsaProgress = DashboardDataService.getDSAProgress();
+  const interviewProg = DashboardDataService.getInterviewPrepProgress();
 
-  // Verify Career Course milestone
-  const careerMilestone = roadmapProgress.milestones.find(m => m.type === 'career');
-  assert.ok(careerMilestone, 'Career milestone must exist');
-  assert.ok(careerMilestone.title.includes('Career:'), 'Career title should include role name');
-  assert.strictEqual(typeof careerMilestone.percentage, 'number');
-  assert.ok(careerMilestone.subtitle, 'Career milestone must have level & skills subtitle');
-  assert.ok(careerMilestone.url, 'Career milestone must have a link');
+  if (dsaProgress.solved === 0 && !roadmapProgress.hasActiveCareer && interviewProg.totalAttempted === 0) {
+    assert.strictEqual(roadmapProgress.milestones.length, 0,
+      'New user should have 0 milestones — no fake roadmap cards');
+  }
 
-  // Verify Interview Prep milestone
-  const interviewMilestone = roadmapProgress.milestones.find(m => m.type === 'interview');
-  assert.ok(interviewMilestone, 'Interview Prep milestone must exist');
-  assert.ok(interviewMilestone.title.includes('Interview:'), 'Interview milestone must include category section');
-  assert.strictEqual(typeof interviewMilestone.percentage, 'number');
-  assert.ok(interviewMilestone.subtitle, 'Interview milestone must include subsection/topic');
-  assert.ok(interviewMilestone.question, 'Interview milestone must include active/next question preview');
+  // Each milestone that DOES exist must be well-formed
+  roadmapProgress.milestones.forEach(m => {
+    assert.ok(m.title, 'Milestone must have title');
+    assert.strictEqual(typeof m.percentage, 'number', 'Milestone must have percentage');
+    assert.ok(['dsa', 'career', 'interview'].includes(m.type), 'Milestone must have valid type');
+    assert.ok(m.url, 'Milestone must have a link URL');
+  });
 
-  // Verify interview prep details method
-  const interviewDetails = DashboardDataService.getInterviewPrepDetails();
-  assert.ok(interviewDetails.categoryTitle, 'Interview details must have category section title');
-  assert.ok(interviewDetails.topicName, 'Interview details must have subsection/topic name');
-  assert.ok(interviewDetails.nextQuestion, 'Interview details must provide next question text');
-
-  // Verify dynamic career change persistence
+  // Verify dynamic career change persistence still works
   Storage.set('career_roadmaps_progress', {
     activeCareer: 'frontend-developer',
     activeCareerStatus: 'active',
@@ -225,6 +276,7 @@ runTest('TEST 7: Career Roadmap milestones & Next Milestone', () => {
   assert.ok(updatedProgress.percent > 0, 'Completed skills must yield real percentage > 0');
 
   const updatedCareerMilestone = updatedProgress.milestones.find(m => m.type === 'career');
+  assert.ok(updatedCareerMilestone, 'Career milestone must appear when user has active career');
   assert.ok(updatedCareerMilestone.title.toLowerCase().includes('frontend'));
   assert.strictEqual(updatedCareerMilestone.percentage, updatedProgress.percent);
 
@@ -273,10 +325,19 @@ runTest('TEST 9: Calendar generation and leap year handling', () => {
 // ----------------------------------------------------
 runTest('TEST 10: AI Suggestion Engine', () => {
   const suggestion = DashboardDataService.getAISuggestion();
-  assert.ok(suggestion, 'Must return an AI suggestion');
-  assert.ok(suggestion.title, 'Suggestion must have a title');
-  assert.ok(suggestion.reason, 'Suggestion must have an explanation');
-  assert.ok(suggestion.targetUrl, 'Suggestion must have a targetUrl');
+  assert.ok(suggestion, 'Must return an AI suggestion object');
+  assert.strictEqual(typeof suggestion.hasActivity, 'boolean', 'Must have hasActivity flag');
+  assert.ok(suggestion.targetUrl, 'Suggestion must always have a targetUrl');
+
+  // For a new user with no activity, hasActivity should be false
+  // and title can be empty — that is the CORRECT empty state
+  if (!suggestion.hasActivity) {
+    assert.strictEqual(suggestion.title, '', 'Title should be empty for new user empty state');
+  } else {
+    // If user has activity, must have real content
+    assert.ok(suggestion.title, 'Suggestion must have a title when user has activity');
+    assert.ok(suggestion.reason, 'Suggestion must have an explanation when user has activity');
+  }
 });
 
 // ----------------------------------------------------

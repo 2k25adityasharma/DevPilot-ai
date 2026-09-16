@@ -185,9 +185,22 @@
 
   /**
    * Safe getter for roadmap by role ID, roadmap ID, or slug
+   * Lazily re-reads window.careerRoadmapsRegistry to pick up any modules
+   * registered after careerRoadmapsData.js first loaded.
    */
   function getRoadmap(identifier) {
     if (!identifier) return null;
+
+    // Lazy merge: pick up any new registrations that happened after initial load
+    if (typeof window !== 'undefined' && window.careerRoadmapsRegistry) {
+      const reg = window.careerRoadmapsRegistry;
+      Object.keys(reg).forEach(key => {
+        if (!roadmaps[key] && reg[key]) {
+          registerRoadmap(reg[key]);
+        }
+      });
+    }
+
     const cleanId = String(identifier).trim();
     if (roadmaps[cleanId]) return roadmaps[cleanId];
     if (roadmaps[cleanId.toLowerCase()]) return roadmaps[cleanId.toLowerCase()];

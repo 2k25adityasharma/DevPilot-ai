@@ -804,10 +804,17 @@
     habitPerformances.sort((a, b) => b.rate - a.rate);
     const mostConsistent = habitPerformances[0];
 
+    // Check if ALL habits scheduled for today are completed → show "All Done!" instead
+    const todayStr = today;
+    const habitsScheduledToday = activeHabits.filter(h => isHabitScheduledOn(h, todayStr));
+    const allDoneToday = habitsScheduledToday.length > 0 &&
+      habitsScheduledToday.every(h => byHabit[h.id] && byHabit[h.id][todayStr]);
+
     // needsAttention: only show when 2+ habits exist AND the worst is genuinely struggling (<70%)
+    // AND not all habits are done today (avoid flagging when user just finished everything)
     // Avoids falsely flagging a user's only habit as "needing attention"
     let needsAttention = null;
-    if (habitPerformances.length >= 2) {
+    if (!allDoneToday && habitPerformances.length >= 2) {
       const worst = habitPerformances[habitPerformances.length - 1];
       // Only flag if meaningfully behind (< 70% completion AND at least 3 eligible days of data)
       if (worst.rate < 70 && worst.eligibleDays >= 3) {
