@@ -274,49 +274,65 @@
   }
 
   function getMainGoal(dateStr = null) {
-    const goals = getDailyGoals(dateStr);
+    const targetDate = dateStr || getTodayDateStr();
 
-    if (!Array.isArray(goals) || goals.length === 0) {
+    // ── Developer Habits ONLY — Daily Goals never appear in this card ──────────
+    const habits      = getTodayHabitTasks(targetDate);
+    const totalHabits = habits.length;
+    const doneHabits  = habits.filter(h => h.completed).length;
+    const pending     = habits.filter(h => !h.completed);
+    const allDone     = totalHabits > 0 && doneHabits === totalHabits;
+
+    // No habits set up at all
+    if (totalHabits === 0) {
       return {
         hasGoal: false,
-        title: 'No goals set for today',
-        priority: 'Daily Focus',
+        source: 'none',
+        title: 'No developer habits set',
+        priority: 'Developer Habits',
         completedCount: 0,
         totalCount: 0,
         percentage: 0,
         percent: 0,
-        statusText: 'Add your first goal to kick off your day.'
+        statusText: 'Add habits in the Habits page to track them here.'
       };
     }
 
-    const totalCount = goals.length;
-    const completedCount = goals.filter(g => g.completed).length;
-    const percent = Math.round((completedCount / totalCount) * 100);
-
-    // Prioritize high priority or first incomplete goal
-    let mainGoal = goals.find(g => g.category && g.category.toLowerCase().includes('coding') && !g.completed);
-    if (!mainGoal) mainGoal = goals.find(g => !g.completed);
-    if (!mainGoal) mainGoal = goals[0];
-
-    let statusText = 'Ready to begin today\'s tasks.';
-    if (percent === 100) {
-      statusText = 'All goals completed today! 🎉';
-    } else if (percent > 0) {
-      statusText = 'On track to finish today.';
+    // All habits done — celebration state
+    if (allDone) {
+      return {
+        hasGoal: true,
+        source: 'habit',
+        title: 'All developer habits completed! 🏆',
+        priority: 'Developer Habits',
+        completedCount: totalHabits,
+        totalCount: totalHabits,
+        percentage: 100,
+        percent: 100,
+        statusText: 'Outstanding! All habits done for today.',
+        allHabitsDone: true
+      };
     }
 
-    const priorityLabel = mainGoal.category || 'High';
+    // Show first pending habit
+    const activeHabit   = pending[0];
+    const habitPercent  = Math.round((doneHabits / totalHabits) * 100);
+    const statusText    = doneHabits > 0
+      ? `${pending.length} habit${pending.length === 1 ? '' : 's'} remaining — keep going!`
+      : 'Start your developer habits for today.';
 
     return {
       hasGoal: true,
-      id: mainGoal.id,
-      title: mainGoal.title,
-      priority: priorityLabel,
-      completedCount,
-      totalCount,
-      percentage: percent,
-      percent,
-      statusText
+      source: 'habit',
+      id: activeHabit.id,
+      title: activeHabit.title,
+      priority: activeHabit.category || 'Developer Habit',
+      completedCount: doneHabits,
+      totalCount: totalHabits,
+      percentage: habitPercent,
+      percent: habitPercent,
+      statusText,
+      allHabitsDone: false
     };
   }
 
@@ -543,24 +559,68 @@
 
     // Find active / recent category & topic
     let categoryId = recent && recent.categoryId ? recent.categoryId : null;
+    // recent.topic can be null when user opened a category without selecting a topic yet
     let topicName = recent && recent.topic ? recent.topic : null;
 
-    // If no recent, check progressMap for any topic practiced
-    if (!categoryId && progressMap && typeof progressMap === 'object') {
-      const topicKeys = Object.keys(progressMap).filter(k => k.startsWith('topic:'));
+    // If no recent record OR recent has no topic, check progressMap for the most recently practiced topic
+    const needsTopic = categoryId && !topicName;
+    const needsCategory = !categoryId;
+
+    if ((needsCategory || needsTopic) && progressMap && typeof progressMap === 'object') {
+      // Filter topic keys — optionally constrain to the known categoryId
+      const topicKeys = Object.keys(progressMap).filter(k => {
+        if (!k.startsWith('topic:')) return false;
+        if (needsTopic) {
+          // Only look at topics within the same category the user just opened
+          return k.startsWith(`topic:${categoryId}:`);
+        }
+      // ── ALL TASKS DONE — Premium celebration state ──────────────────────────
+    if (total > 0 && completed === total) {
+      taskListEl.innerHTML = `
+        <div class="py-8 flex flex-col items-center justify-center text-center gap-3">
+          <div class="relative">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-primary flex items-center justify-center shadow-lg">
+              <span class="material-symbols-outlined text-white text-3xl" style='font-variation-settings: "FILL" 1;'>workspace_premium</span>
+            </div>
+            <span class="absolute -top-1 -right-1 text-xl">🎉</span>
+          </div>
+          <div>
+            <p class="font-title-sm text-on-surface font-bold">Excellence! All done for today.</p>
+            <p class="text-label-sm text-on-surface-variant mt-0.5">${completed} / ${total} tasks completed</p>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-4 py-2 rounded-full border border-emerald-400/30 font-semibold">
+            <span class="material-symbols-outlined text-[14px]">star</span>
+            Outstanding work — you crushed it today! 💪
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    taskListEl.innerHTML = html;
+   });
+
       if (topicKeys.length > 0) {
+        // Sort by most recently attempted (timestamp), fall back to most attempted count
         const sorted = topicKeys.sort((a, b) => {
           const statA = progressMap[a] || {};
           const statB = progressMap[b] || {};
-          return (statB.attempted || 0) - (statA.attempted || 0);
+          const tsA = statA.lastAttempted || 0;
+          const tsB = statB.lastAttempted || 0;
+          if (tsB !== tsA) return tsB - tsA;          // most recent first
+          return (statB.attempted || 0) - (statA.attempted || 0); // tiebreak: most practiced
         });
+
         const parts = sorted[0].split(':');
+        // parts = ['topic', categoryId, ...topicNameParts]
+        // topic names can contain colons, so rejoin all parts after index 2
         if (parts.length >= 3) {
-          categoryId = parts[1];
-          topicName = parts[2];
+          if (needsCategory) categoryId = parts[1];
+          topicName = parts.slice(2).join(':');
         }
       }
     }
+
 
     // Brand-new user: no interview activity yet — signal not started
     if (!categoryId) {
@@ -578,10 +638,11 @@
       };
     }
 
-    let categoryTitle = 'Operating Systems';
-    let categoryIcon = 'memory';
+    let categoryTitle = 'Interview Prep';  // generic default — overwritten by registry lookup below
+    let categoryIcon = 'quiz';
     let questions = [];
     let nextQuestion = '';
+
 
     const registry = getInterviewRegistry();
     if (registry && typeof registry.getCategory === 'function') {
@@ -795,9 +856,28 @@
       });
     }
 
-    const nextMilestone = nextSkillTitle
-      ? `${nextSkillTitle}${roleTitle ? ` (${roleTitle})` : ''}`
-      : (milestones.length > 0 ? 'Keep progressing on your active roadmap' : null);
+    // Determine the best "next milestone" text — prefer the most active track
+    let nextMilestone = null;
+    if (nextSkillTitle) {
+      // Career roadmap is the primary active track
+      nextMilestone = `${nextSkillTitle}${roleTitle ? ` (${roleTitle})` : ''}`;
+    } else if (interviewDetails.hasStarted && interviewDetails.questionsAttempted > 0) {
+      // Interview Prep is the main active track
+      const interviewNext = interviewDetails.nextQuestion
+        ? `${interviewDetails.categoryTitle}: ${interviewDetails.topicName}`
+        : `Continue Interview Prep — ${interviewDetails.categoryTitle}`;
+      nextMilestone = interviewNext;
+    } else if (milestones.length > 0) {
+      nextMilestone = 'Keep progressing on your active roadmap';
+    }
+
+    // Compute milestone URL to match the milestone text
+    let nextMilestoneUrl = activeCareerId
+      ? `pages/roadmaps.html#role=${activeCareerId}`
+      : 'pages/roadmaps.html';
+    if (!nextSkillTitle && interviewDetails.hasStarted && interviewDetails.questionsAttempted > 0) {
+      nextMilestoneUrl = `pages/interviewPrep.html?cat=${interviewDetails.categoryId}&topic=${encodeURIComponent(interviewDetails.topicName || '')}`;
+    }
 
     return {
       hasActiveCareer,
@@ -806,6 +886,7 @@
       activeCareerId,
       milestones,
       nextMilestone,
+      nextMilestoneUrl,
       career: {
         roleId: activeCareerId,
         roleTitle,

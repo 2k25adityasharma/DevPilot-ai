@@ -105,39 +105,64 @@
   }
 
   // ==========================================
-  // 3. TODAY'S MAIN GOAL
+  // ==========================================
+  // 3. TODAY'S MAIN GOAL (Habit-priority logic)
   // ==========================================
   function renderMainGoal() {
-    const titleEl = document.getElementById('main-goal-title');
-    const priorityEl = document.getElementById('main-goal-priority');
+    const titleEl       = document.getElementById('main-goal-title');
+    const priorityEl    = document.getElementById('main-goal-priority');
     const progressTextEl = document.getElementById('goal-progress-text');
     const progressBarEl = document.getElementById('goal-progress-bar');
-    const statusTextEl = document.getElementById('goal-status-text');
+    const statusTextEl  = document.getElementById('goal-status-text');
+    const headerLabelEl = document.getElementById('main-goal-header-label'); // optional
 
     if (typeof DashboardDataService === 'undefined') return;
     const mainGoal = DashboardDataService.getMainGoal(selectedDateStr);
 
+    const isHabitMode = mainGoal.source === 'habit';
+
+    // ── Header label (flag icon + text) ──
+    if (headerLabelEl) {
+      headerLabelEl.textContent = isHabitMode ? 'Developer Habits' : "Today's Main Goal";
+    }
+
+    // ── Title ──
     if (titleEl) titleEl.textContent = mainGoal.title;
+
+    // ── Priority badge ──
     if (priorityEl) {
-      const p = mainGoal.priority || 'Coding';
+      const p = mainGoal.priority || (isHabitMode ? 'Developer Habit' : 'Daily Focus');
       priorityEl.textContent = p.startsWith('Priority:') ? p : `Priority: ${p}`;
     }
-    if (progressTextEl) progressTextEl.textContent = `${mainGoal.completedCount}/${mainGoal.totalCount} Completed`;
+
+    // ── Progress text ──
+    if (progressTextEl) {
+      const unit = isHabitMode ? 'Habits' : 'Goals';
+      progressTextEl.textContent = `${mainGoal.completedCount}/${mainGoal.totalCount} ${unit} Done`;
+    }
+
+    // ── Progress bar ──
     if (progressBarEl) progressBarEl.style.width = `${mainGoal.percentage}%`;
 
+    // ── Status text ──
     if (statusTextEl) {
       if (mainGoal.percentage === 100) {
         statusTextEl.className = 'mt-3 text-label-sm font-label-sm text-[#10b981] flex items-center gap-1';
-        statusTextEl.innerHTML = '<span class="material-symbols-outlined text-[14px]">check_circle</span> All daily goals completed today! 🎉';
+        const msg = isHabitMode
+          ? '✅ All developer habits done! Daily goals unlocked.'
+          : '✅ All daily goals completed today! 🎉';
+        statusTextEl.innerHTML = `<span class="material-symbols-outlined text-[14px]">check_circle</span> ${msg}`;
       } else if (mainGoal.completedCount > 0) {
         statusTextEl.className = 'mt-3 text-label-sm font-label-sm text-primary flex items-center gap-1';
-        statusTextEl.innerHTML = `<span class="material-symbols-outlined text-[14px]">trending_up</span> On track — ${mainGoal.totalCount - mainGoal.completedCount} task${mainGoal.totalCount - mainGoal.completedCount === 1 ? '' : 's'} remaining.`;
+        statusTextEl.innerHTML = `<span class="material-symbols-outlined text-[14px]">trending_up</span> ${mainGoal.statusText}`;
       } else {
         statusTextEl.className = 'mt-3 text-label-sm font-label-sm text-on-surface-variant flex items-center gap-1';
-        statusTextEl.innerHTML = '<span class="material-symbols-outlined text-[14px]">schedule</span> Ready to begin today\'s development session.';
+        const icon = isHabitMode ? 'fitness_center' : 'schedule';
+        statusTextEl.innerHTML = `<span class="material-symbols-outlined text-[14px]">${icon}</span> ${mainGoal.statusText}`;
       }
     }
   }
+
 
   // ==========================================
   // 4. CONTINUE LEARNING CARD
@@ -417,26 +442,15 @@
             ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' 
             : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400';
 
-        // Career card: show levels breakdown
-        if (item.type === 'career' && Array.isArray(item.levels) && item.levels.length > 0) {
-          const levelsHtml = item.levels.map(lvl => {
-            const lvlBarColor = lvl.isActive ? colorClass : 'bg-on-surface-variant/30';
-            const textActive = lvl.isActive ? 'text-primary font-semibold' : 'text-on-surface-variant';
-            const dot = lvl.isActive
-              ? `<span class="w-1.5 h-1.5 rounded-full bg-primary inline-block shrink-0 mt-0.5"></span>`
-              : `<span class="w-1.5 h-1.5 rounded-full bg-outline/30 inline-block shrink-0 mt-0.5"></span>`;
-            return `
-              <div class="flex items-center gap-2 text-[10px] ${textActive}">
-                ${dot}
-                <span class="flex-1 truncate">${escapeHtml(lvl.name)}</span>
-                <span class="shrink-0 tabular-nums">${lvl.completed}/${lvl.total}</span>
-                <div class="w-16 h-1 bg-surface-container-highest rounded-full overflow-hidden shrink-0">
-                  <div class="h-full ${lvlBarColor} rounded-full transition-all duration-500" style="width:${lvl.percent}%"></div>
-                </div>
-                <span class="shrink-0 tabular-nums w-7 text-right">${lvl.percent}%</span>
-              </div>
-            `;
-          }).join('');
+        // Career card — compact like DSA, show only the currently active level
+        if (item.type === 'career') {
+          // Find the active level to show as subtitle
+          const activeLevel = Array.isArray(item.levels)
+            ? item.levels.find(l => l.isActive) || item.levels[0]
+            : null;
+          const careerSubtitle = activeLevel
+            ? `Level ${activeLevel.num}: ${activeLevel.name} • ${activeLevel.completed}/${activeLevel.total} Skills`
+            : `${item.completedSkills}/${item.totalSkills} Skills Total`;
 
           return `
             <a href="${linkUrl}" class="block group p-2.5 rounded-xl border border-outline-variant/40 hover:border-primary/40 hover:bg-surface-container-low transition-all cursor-pointer bg-surface-container-lowest/40">
@@ -446,19 +460,16 @@
                     <span class="text-on-surface font-semibold truncate group-hover:text-primary transition-colors">${escapeHtml(item.title)}</span>
                     ${item.badge ? `<span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${badgeColor}">${escapeHtml(item.badge)}</span>` : ''}
                   </div>
-                  <p class="text-[11px] text-on-surface-variant truncate mt-0.5">${item.completedSkills}/${item.totalSkills} Skills Total</p>
+                  <p class="text-[11px] text-on-surface-variant truncate mt-0.5">${escapeHtml(careerSubtitle)}</p>
                 </div>
                 <span class="text-on-surface font-semibold shrink-0 ml-2 group-hover:text-primary transition-colors">${item.percentage}%</span>
               </div>
-              <div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden mb-2">
+              <div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden mb-1.5">
                 <div class="h-full ${colorClass} rounded-full transition-all duration-500" style="width: ${item.percentage}%;"></div>
               </div>
-              <div class="flex flex-col gap-1 mb-1.5">
-                ${levelsHtml}
-              </div>
               ${item.activePreview ? `
-                <div class="flex items-center gap-1.5 text-[11px] text-on-surface-variant bg-surface-container/60 dark:bg-slate-800/60 px-2 py-1 rounded-md border border-outline-variant/30 truncate mt-1.5">
-                  <span class="material-symbols-outlined text-[13px] text-primary shrink-0">${item.previewIcon || 'info'}</span>
+                <div class="flex items-center gap-1.5 text-[11px] text-on-surface-variant bg-surface-container/60 dark:bg-slate-800/60 px-2 py-1 rounded-md border border-outline-variant/30 truncate">
+                  <span class="material-symbols-outlined text-[13px] text-primary shrink-0">${item.previewIcon || 'school'}</span>
                   <span class="truncate font-medium">${escapeHtml(item.activePreview)}</span>
                 </div>
               ` : ''}
@@ -466,7 +477,35 @@
           `;
         }
 
-        // Default card for DSA / Interview
+
+        // Interview card — same compact style as DSA card
+        if (item.type === 'interview') {
+          return `
+            <a href="${linkUrl}" class="block group p-2.5 rounded-xl border border-outline-variant/40 hover:border-primary/40 hover:bg-surface-container-low transition-all cursor-pointer bg-surface-container-lowest/40">
+              <div class="flex justify-between items-start text-label-sm font-label-sm mb-1">
+                <div class="min-w-0 pr-2">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="text-on-surface font-semibold truncate group-hover:text-primary transition-colors">${escapeHtml(item.title)}</span>
+                    ${item.badge ? `<span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${badgeColor}">${escapeHtml(item.badge)}</span>` : ''}
+                  </div>
+                  ${item.subtitle ? `<p class="text-[11px] text-on-surface-variant truncate mt-0.5">${escapeHtml(item.subtitle)}</p>` : ''}
+                </div>
+                <span class="text-on-surface font-semibold shrink-0 ml-2 group-hover:text-primary transition-colors">${item.percentage}%</span>
+              </div>
+              <div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden mb-1.5">
+                <div class="h-full ${colorClass} rounded-full transition-all duration-500" style="width: ${item.percentage}%;"></div>
+              </div>
+              ${item.activePreview ? `
+                <div class="flex items-center gap-1.5 text-[11px] text-on-surface-variant bg-surface-container/60 dark:bg-slate-800/60 px-2 py-1 rounded-md border border-outline-variant/30 truncate">
+                  <span class="material-symbols-outlined text-[13px] text-primary shrink-0">${item.previewIcon || 'quiz'}</span>
+                  <span class="truncate font-medium">${escapeHtml(item.activePreview)}</span>
+                </div>
+              ` : ''}
+            </a>
+          `;
+        }
+
+        // Default card for DSA
         return `
           <a href="${linkUrl}" class="block group p-2.5 rounded-xl border border-outline-variant/40 hover:border-primary/40 hover:bg-surface-container-low transition-all cursor-pointer bg-surface-container-lowest/40">
             <div class="flex justify-between items-start text-label-sm font-label-sm mb-1">
@@ -493,10 +532,12 @@
       }).join('');
     }
 
+
     if (milestoneEl && progress.nextMilestone) {
-      const milestoneTarget = progress.career?.roleId 
-        ? `pages/roadmaps.html#role=${progress.career.roleId}` 
-        : 'pages/roadmaps.html';
+      const milestoneTarget = progress.nextMilestoneUrl
+        || (progress.career?.roleId
+          ? `pages/roadmaps.html#role=${progress.career.roleId}`
+          : 'pages/roadmaps.html');
       milestoneEl.innerHTML = `
         <a href="${milestoneTarget}" class="flex items-center gap-2 hover:text-primary transition-colors truncate">
           <span class="material-symbols-outlined text-primary text-[16px] shrink-0">emoji_events</span>
@@ -613,6 +654,29 @@
       `;
     }
 
+    // ── ALL TASKS DONE — Premium celebration state ──────────────────────────────
+    if (total > 0 && completed === total) {
+      taskListEl.innerHTML = `
+        <div class="py-8 flex flex-col items-center justify-center text-center gap-3">
+          <div class="relative">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-primary flex items-center justify-center shadow-lg">
+              <span class="material-symbols-outlined text-white text-3xl" style='font-variation-settings: "FILL" 1;'>workspace_premium</span>
+            </div>
+            <span class="absolute -top-1 -right-1 text-xl">🎉</span>
+          </div>
+          <div>
+            <p class="font-title-sm text-on-surface font-bold">Excellence! All done for today.</p>
+            <p class="text-label-sm text-on-surface-variant mt-0.5">${completed} / ${total} tasks completed</p>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-4 py-2 rounded-full border border-emerald-400/30 font-semibold">
+            <span class="material-symbols-outlined text-[14px]">star</span>
+            Outstanding work — you crushed it today! 💪
+          </div>
+        </div>
+      `;
+      return;
+    }
+
     // All-done state when filter=active removes everything
     if (displayHabits.length === 0 && displayGoals.length === 0 && total > 0) {
       html = `
@@ -625,6 +689,7 @@
     }
 
     taskListEl.innerHTML = html;
+
 
     // Bind habit checkboxes
     taskListEl.querySelectorAll('.task-habit-checkbox').forEach(cb => {

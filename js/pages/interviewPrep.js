@@ -57,14 +57,35 @@
       if (typeof window === 'undefined' || !window.location || !window.location.search) return;
       const params = new URLSearchParams(window.location.search);
       const catId = params.get('cat');
-      const topic = params.get('topic');
+      const topic = params.get('topic');         // active subsection (for highlighting)
+      const autoStart = params.get('start');     // 'quiz' → auto-start quiz
 
       if (catId && window.interviewPrepRegistry) {
         const cat = window.interviewPrepRegistry.getCategory(catId);
         if (cat) {
+          // Always open the category view so the user sees sections & subsections
           openCategoryModal(cat);
+
           if (topic) {
-            startTopicQuiz(catId, topic);
+            if (autoStart === 'quiz') {
+              // Explicit deep-link: jump straight to the quiz
+              startTopicQuiz(catId, topic);
+            } else {
+              // Highlight the active topic row and scroll to it so the user
+              // can see exactly where they left off without forcing the quiz
+              requestAnimationFrame(() => {
+                const list = document.getElementById('ipTopicList');
+                if (!list) return;
+                const items = list.querySelectorAll('.ip-topic-item');
+                items.forEach(item => {
+                  const nameEl = item.querySelector('.ip-topic-name');
+                  if (nameEl && nameEl.textContent.trim().toLowerCase() === topic.trim().toLowerCase()) {
+                    item.classList.add('ring-2', 'ring-primary', 'ring-offset-1');
+                    item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }
+                });
+              });
+            }
           }
         }
       }
@@ -334,6 +355,12 @@
   function openCategoryModal(cat) {
     const mainContainer = document.getElementById('ipMainContent');
     if (!mainContainer) return;
+
+    // ✅ Update recent activity when user opens any category,
+    //    so the dashboard always shows the correct section even without starting a quiz.
+    saveRecent(cat.id, state.recentActivity?.topic && state.recentActivity?.categoryId === cat.id
+      ? state.recentActivity.topic   // keep the active topic if same category
+      : null);                       // clear topic if switching to a new category
 
     mainContainer.innerHTML = `
       <div class="mb-6">
@@ -624,6 +651,10 @@
       state.progress[tKey].attempted++;
       if (isCorrect) state.progress[tKey].correct++;
       else state.progress[tKey].incorrect++;
+      // ✅ Track last-attempted timestamp so dashboard picks the most RECENT topic
+      state.progress[tKey].lastAttempted = Date.now();
+      // Also update recent so dashboard reflects the exact topic being practiced
+      saveRecent(state.activeCategory.id, q.topic);
     }
 
     saveProgress();
