@@ -411,6 +411,26 @@
 
     writeStore('completions', completions);
     emitRealtimeChange('COMPLETION_CHANGED', { habitId, dateStr, completed: isNowCompleted });
+
+    if (isNowCompleted) {
+      try {
+        const ns = typeof window !== 'undefined' ? window.NotificationService : (typeof NotificationService !== 'undefined' ? NotificationService : null);
+        if (ns && typeof ns.notify === 'function') {
+          const habits = readStore('habits', []);
+          const h = habits.find(item => item.id === habitId);
+          const hTitle = h ? h.title : 'Habit';
+          ns.notify({
+            id: `habit_comp_${habitId}_${dateStr}`,
+            type: 'habit_streak',
+            section: 'Habits',
+            title: '🎯 Habit completed',
+            message: `${hTitle} completed today.`,
+            url: 'pages/habits.html'
+          });
+        }
+      } catch (e) {}
+    }
+
     return { completed: isNowCompleted, habitId, dateStr };
   }
 
@@ -527,6 +547,24 @@
     writeStore('daily_goals', goals);
 
     emitRealtimeChange('DAILY_GOAL_CHANGED', goals[idx]);
+
+    if (isCompleted) {
+      try {
+        const ns = typeof window !== 'undefined' ? window.NotificationService : (typeof NotificationService !== 'undefined' ? NotificationService : null);
+        if (ns && typeof ns.notify === 'function') {
+          const dateStamp = goals[idx].date || new Date().toISOString().split('T')[0];
+          ns.notify({
+            id: `goal_${goals[idx].id}_${dateStamp}`,
+            type: 'daily_goal',
+            section: 'Daily Goals',
+            title: `🎯 Daily Goal Completed: ${goals[idx].title}`,
+            message: 'You successfully finished your daily goal target!',
+            url: 'pages/habits.html'
+          });
+        }
+      } catch (e) {}
+    }
+
     return goals[idx];
   }
 
@@ -561,6 +599,24 @@
     writeStore('daily_goals', goals);
 
     emitRealtimeChange('DAILY_GOAL_CHANGED', goals[idx]);
+
+    if (isCompleted) {
+      try {
+        const ns = typeof window !== 'undefined' ? window.NotificationService : (typeof NotificationService !== 'undefined' ? NotificationService : null);
+        if (ns && typeof ns.notify === 'function') {
+          const dateStamp = goals[idx].date || new Date().toISOString().split('T')[0];
+          ns.notify({
+            id: `goal_${goals[idx].id}_${dateStamp}`,
+            type: 'daily_goal',
+            section: 'Daily Goals',
+            title: `🎯 Daily Goal Completed: ${goals[idx].title}`,
+            message: 'You successfully finished your daily goal target!',
+            url: 'pages/habits.html'
+          });
+        }
+      } catch (e) {}
+    }
+
     return goals[idx];
   }
 

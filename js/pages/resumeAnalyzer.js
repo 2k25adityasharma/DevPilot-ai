@@ -7341,6 +7341,22 @@ async function runRealAnalysis(fromBuilder = false, fileOverride = null) {
     analyzerState.analysisComplete = true;
 
     saveAnalysisResult(analysisResult);
+
+    try {
+      const ns = typeof window !== 'undefined' ? window.NotificationService : null;
+      if (ns && typeof ns.notify === 'function') {
+        const score = scores.overall || scores.atsScore || 85;
+        ns.notify({
+          id: `resume_analysis_${Date.now()}`,
+          type: 'resume',
+          section: 'Resume Analyzer',
+          title: `Resume Analysis Completed (${score}/100)`,
+          message: `ATS score and actionable feedback generated for your resume.`,
+          url: 'pages/resume.html'
+        });
+      }
+    } catch (e) {}
+
     renderAllResults(analysisResult);
 
     if (resultsArea) resultsArea.style.display = 'block';

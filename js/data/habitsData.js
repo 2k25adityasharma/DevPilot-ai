@@ -319,7 +319,7 @@
   }
 
   // Streak threshold: day counts only if this % of habits completed
-  const STREAK_THRESHOLD_PCT = 50;
+  const STREAK_THRESHOLD_PCT = 75;
 
   /**
    * Calculates overall daily consistency streak across all habits.

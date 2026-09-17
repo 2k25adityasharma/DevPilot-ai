@@ -412,17 +412,59 @@
 <button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all sm:hidden" id="mobile-search-trigger" aria-label="Open global search">
 <span class="material-symbols-outlined">search</span>
 </button>
-<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all relative">
+<div class="relative" id="notification-bell-wrapper">
+<button id="notification-bell-btn" class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all relative flex items-center justify-center cursor-pointer" aria-label="Notifications" aria-expanded="false">
 <span class="material-symbols-outlined">notifications</span>
-<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border border-background"></span>
+<span id="notification-unread-badge" class="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 bg-error text-white font-bold text-[10px] rounded-full flex items-center justify-center border-2 border-background hidden" aria-live="polite">0</span>
 </button>
-<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all mr-2 hidden sm:block">
+
+<!-- Notification Dropdown Panel -->
+<div id="notification-panel" class="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-surface border border-outline-variant rounded-2xl shadow-2xl overflow-hidden z-50 hidden" role="dialog" aria-label="Notifications">
+  <!-- Header -->
+  <div class="px-4 py-3 border-b border-outline-variant flex items-center justify-between bg-surface-container-low/60">
+    <div class="flex items-center gap-2">
+      <h3 class="font-title-md text-title-md text-on-surface font-bold">Notifications</h3>
+      <span id="notification-header-count" class="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold hidden">0 unread</span>
+    </div>
+    <button id="notification-mark-all-read" class="text-label-sm font-label-sm text-primary hover:text-primary-container font-medium px-2 py-1 rounded hover:bg-surface-container transition-colors disabled:opacity-40 disabled:cursor-not-allowed" title="Mark all as read">
+      Mark all as read
+    </button>
+  </div>
+
+  <!-- Notification List -->
+  <div id="notification-list" class="max-h-[380px] overflow-y-auto custom-scrollbar divide-y divide-outline-variant/30" role="list">
+    <!-- Dynamic notifications rendered here -->
+  </div>
+
+  <!-- Footer with Clear All -->
+  <div id="notification-footer" class="px-4 py-2.5 border-t border-outline-variant/60 flex items-center justify-between bg-surface-container-low/40 text-xs text-on-surface-variant">
+    <span id="notification-total-count" class="text-[11px] text-outline">0 notifications</span>
+    <button id="notification-clear-all-btn" class="text-[11px] font-medium text-error hover:text-error/80 px-2 py-1 rounded hover:bg-error-container/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+      Clear all
+    </button>
+  </div>
+
+  <!-- Clear All Confirmation Bar -->
+  <div id="notification-clear-confirm" class="px-4 py-2.5 bg-error-container text-on-error-container border-t border-error/20 flex items-center justify-between text-xs hidden">
+    <span class="font-medium">Clear all notifications?</span>
+    <div class="flex items-center gap-2">
+      <button id="notification-cancel-clear-btn" class="px-2 py-0.5 rounded bg-surface text-on-surface text-[11px] font-medium hover:bg-surface-container transition-colors">
+        Cancel
+      </button>
+      <button id="notification-confirm-clear-btn" class="px-2 py-0.5 rounded bg-error text-white text-[11px] font-bold hover:opacity-90 transition-colors">
+        Clear
+      </button>
+    </div>
+  </div>
+</div>
+</div>
+<a id="top-nav-settings-btn" href="pages/settings.html" class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all mr-2 hidden sm:flex items-center justify-center" aria-label="Settings">
 <span class="material-symbols-outlined">settings</span>
-</button>
-<button class="bg-primary hover:bg-primary/90 text-on-primary px-3 sm:px-4 py-2 rounded-lg font-label-md text-label-md shadow-sm transition-transform hover:-translate-y-0.5 sm:mr-4 flex items-center gap-2">
+</a>
+<a id="top-nav-ask-ai-btn" href="pages/chat.html" class="bg-primary hover:bg-primary/90 text-on-primary px-3 sm:px-4 py-2 rounded-lg font-label-md text-label-md shadow-sm transition-transform hover:-translate-y-0.5 sm:mr-4 flex items-center gap-2">
 <span class="material-symbols-outlined text-[18px]">smart_toy</span>
 <span class="hidden sm:inline">Ask AI</span>
-</button>
+</a>
 <div class="hidden sm:block h-8 w-px bg-outline-variant mx-2"></div>
 <!-- Profile Dropdown Trigger -->
 <button class="flex items-center gap-3 hover:bg-surface-container-low p-1.5 rounded-lg transition-colors sm:ml-2">
@@ -786,6 +828,9 @@ Finish Active Milestone
 <script src="js/data/interviewPrep/aptitude.js"></script>
 <script src="js/data/interviewPrep/checklists.js"></script>
 <script src="js/data/interviewPrep/index.js"></script>
+<script src="js/core/authService.js"></script>
+<script src="js/core/notificationService.js"></script>
+<script src="js/core/notificationUI.js"></script>
 <script src="js/core/dashboardDataService.js?v=20260916-github-sync"></script>
 <script src="js/core/app.js"></script>
 <script src="js/pages/dashboard.js?v=20260916-github-sync"></script>

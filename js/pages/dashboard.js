@@ -96,6 +96,8 @@
     if (streakSubtitleEl) {
       if (streak.isExtendedToday) {
         streakSubtitleEl.textContent = 'Active today • Keep it up!';
+      } else if (streak.isAtRisk && streak.currentStreak > 0) {
+        streakSubtitleEl.textContent = `⚠ At risk today • Reach ${streak.streakThreshold || 75}% to maintain it`;
       } else if (streak.currentStreak > 0) {
         streakSubtitleEl.textContent = 'Complete today\'s goal to maintain!';
       } else {
@@ -120,6 +122,12 @@
     const mainGoal = DashboardDataService.getMainGoal(selectedDateStr);
 
     const isHabitMode = mainGoal.source === 'habit';
+    const todayStr = DashboardDataService.getTodayDateStr();
+    const streak = DashboardDataService.getStreak();
+    const isStreakAtRiskToday = isHabitMode
+      && selectedDateStr === todayStr
+      && streak.isAtRisk
+      && streak.currentStreak > 0;
 
     // ── Header label (flag icon + text) ──
     if (headerLabelEl) {
@@ -152,6 +160,9 @@
           ? '✅ All developer habits done! Daily goals unlocked.'
           : '✅ All daily goals completed today! 🎉';
         statusTextEl.innerHTML = `<span class="material-symbols-outlined text-[14px]">check_circle</span> ${msg}`;
+      } else if (isStreakAtRiskToday) {
+        statusTextEl.className = 'mt-3 text-label-sm font-label-sm text-[#f97316] flex items-center gap-1';
+        statusTextEl.innerHTML = `<span class="material-symbols-outlined text-[14px]">warning</span> Attention: your ${streak.currentStreak}-day streak is at risk — reach ${streak.streakThreshold || 75}% today to maintain it.`;
       } else if (mainGoal.completedCount > 0) {
         statusTextEl.className = 'mt-3 text-label-sm font-label-sm text-primary flex items-center gap-1';
         statusTextEl.innerHTML = `<span class="material-symbols-outlined text-[14px]">trending_up</span> ${mainGoal.statusText}`;

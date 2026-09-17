@@ -231,12 +231,13 @@
         return {
           currentStreak: streakInfo.currentStreak || 0,
           isAtRisk: !!streakInfo.isAtRisk,
-          isExtendedToday
+          isExtendedToday,
+          streakThreshold: streakInfo.streakThreshold || 75
         };
       } catch (e) {}
     }
 
-    return { currentStreak: 0, isAtRisk: false, isExtendedToday: false };
+    return { currentStreak: 0, isAtRisk: false, isExtendedToday: false, streakThreshold: 75 };
   }
 
   // ==========================================

@@ -708,6 +708,22 @@
     if (accuracy < 50) scoreColor = '#ef4444';
     else if (accuracy < 75) scoreColor = '#f59e0b';
 
+    try {
+      const ns = typeof window !== 'undefined' ? window.NotificationService : null;
+      if (ns && typeof ns.notify === 'function' && state.activeTopic) {
+        const topicName = state.activeTopic;
+        const catId = state.activeCategory ? state.activeCategory.id : 'prep';
+        ns.notify({
+          id: `interview_${catId}_${topicName}`,
+          type: 'interview_prep',
+          section: 'Interview Prep',
+          title: `Interview Prep: ${topicName}`,
+          message: `Completed practice revision (${stats.correct}/${stats.total} correct).`,
+          url: 'pages/interviewPrep.html'
+        });
+      }
+    } catch (e) {}
+
     mainContainer.innerHTML = `
       <div class="dev-card p-8 text-center max-w-lg mx-auto">
         <div class="ip-score-circle" style="--score-color: ${scoreColor}; --score-percent: ${accuracy};">

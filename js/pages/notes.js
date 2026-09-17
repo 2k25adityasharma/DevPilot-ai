@@ -526,6 +526,20 @@ function saveNoteFromModal() {
     };
     notes.unshift(newNote);
     showToast('New note created!', 'success');
+
+    try {
+      const ns = typeof window !== 'undefined' ? window.NotificationService : (typeof NotificationService !== 'undefined' ? NotificationService : null);
+      if (ns && typeof ns.notify === 'function') {
+        ns.notify({
+          id: `note_created_${newNote.id}`,
+          type: 'note',
+          section: 'Notes',
+          title: '📝 New Note Created',
+          message: `Created "${newNote.title}" in ${newNote.category}.`,
+          url: 'pages/notes.html'
+        });
+      }
+    } catch (e) {}
   }
 
   Storage.set('dev_notes', notes);

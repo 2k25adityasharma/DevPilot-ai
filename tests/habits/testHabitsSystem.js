@@ -192,7 +192,7 @@ runTest('TEST 4: Best streak correctly finds maximum run (3 -> 5 -> 8 -> 2 => be
 // ----------------------------------------------------
 // TEST 5: Overall Consistency Streak vs Individual Habit Streak
 // ----------------------------------------------------
-runTest('TEST 5: Overall consistency streak counts any eligible habit completed on that day', () => {
+runTest('TEST 5: Overall consistency streak requires at least 75% completion per day', () => {
   const refDate = '2026-09-14';
 
   const habit1 = {
@@ -224,10 +224,10 @@ runTest('TEST 5: Overall consistency streak counts any eligible habit completed 
   assert.strictEqual(statsH2.currentStreak, 1, 'Habit 2 streak from yesterday is 1');
   assert.strictEqual(statsH2.isAtRisk, true);
 
-  // Overall streak: Sep 14 (h1 done), Sep 13 (h2 done), Sep 12 (h1 done), Sep 11 (h2 done) -> 4 consecutive days!
+  // Each day has only 1 of 2 habits completed (50%), which is below the 75% streak threshold.
   const overall = HabitsData.calculateOverallStreak([habit1, habit2], null, refDate);
-  assert.strictEqual(overall.currentStreak, 4, 'Overall consistency streak must be 4 across both habits');
-  assert.strictEqual(overall.isAtRisk, false, 'Overall streak is alive today');
+  assert.strictEqual(overall.currentStreak, 0, 'A 50% completion day must not extend the overall streak');
+  assert.strictEqual(overall.isAtRisk, false, 'No prior qualifying streak exists');
 });
 
 // ----------------------------------------------------
@@ -257,9 +257,9 @@ runTest('TEST 6: Engine supports normalized database rows [ { habit_id, completi
   const h1Streak = HabitsData.calculateHabitStreak(habits[0], refDate, normalizedCompletions);
   assert.strictEqual(h1Streak.currentStreak, 2);
 
-  // Overall streak
+  // Overall streak: today qualifies at 100%; yesterday's 50% does not.
   const overall = HabitsData.calculateOverallStreak(habits, normalizedCompletions, refDate);
-  assert.strictEqual(overall.currentStreak, 2);
+  assert.strictEqual(overall.currentStreak, 1);
 });
 
 // ----------------------------------------------------

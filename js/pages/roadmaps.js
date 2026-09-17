@@ -215,6 +215,28 @@
       completed.add(skillId);
       inProgress.delete(skillId);
       completedAt[skillId] = new Date().toISOString();
+
+      try {
+        const ns = typeof window !== 'undefined' ? window.NotificationService : (typeof NotificationService !== 'undefined' ? NotificationService : null);
+        if (ns && typeof ns.notify === 'function') {
+          let skillTitle = skillId;
+          if (roadmap && Array.isArray(roadmap.levels)) {
+            for (const lvl of roadmap.levels) {
+              const found = (lvl.skills || []).find(s => s.id === skillId);
+              if (found) { skillTitle = found.title; break; }
+            }
+          }
+          const roleTitle = role ? role.title : roleId.replace(/-/g, ' ');
+          ns.notify({
+            id: `career_${roleId}_${skillId}`,
+            type: 'roadmap',
+            section: 'Career Roadmaps',
+            title: 'Roadmap Milestone Completed',
+            message: `Completed "${skillTitle}" in ${roleTitle}.`,
+            url: 'pages/roadmaps.html'
+          });
+        }
+      } catch (e) {}
     } else if (newStatus === 'in-progress') {
       inProgress.add(skillId);
       completed.delete(skillId);
