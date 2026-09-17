@@ -426,9 +426,14 @@
       <h3 class="font-title-md text-title-md text-on-surface font-bold">Notifications</h3>
       <span id="notification-header-count" class="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold hidden">0 unread</span>
     </div>
-    <button id="notification-mark-all-read" class="text-label-sm font-label-sm text-primary hover:text-primary-container font-medium px-2 py-1 rounded hover:bg-surface-container transition-colors disabled:opacity-40 disabled:cursor-not-allowed" title="Mark all as read">
-      Mark all as read
-    </button>
+    <div class="flex items-center gap-1.5">
+      <button id="notification-mark-all-read" class="text-label-sm font-label-sm text-primary hover:text-primary-container font-medium px-2 py-1 rounded hover:bg-surface-container transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer" title="Mark all as read">
+        Mark all as read
+      </button>
+      <button id="notification-close-btn" class="p-1 rounded-lg text-slate-400 hover:text-on-surface hover:bg-surface-container transition-colors flex items-center justify-center cursor-pointer" title="Close notifications" aria-label="Close notifications">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+    </div>
   </div>
 
   <!-- Notification List -->

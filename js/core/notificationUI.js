@@ -23,6 +23,7 @@
   function getElements() {
     return {
       bellBtn: document.getElementById('notification-bell-btn'),
+      closeBtn: document.getElementById('notification-close-btn'),
       badge: document.getElementById('notification-unread-badge'),
       panel: document.getElementById('notification-panel'),
       list: document.getElementById('notification-list'),
@@ -74,6 +75,23 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+  }
+
+  /**
+   * Handle individual notification deletion cleanly and reactively
+   */
+  function handleDelete(event, id) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (!id) return;
+    if (window.NotificationService) {
+      window.NotificationService.deleteNotification(id);
+      const currentNotifs = window.NotificationService.getNotifications();
+      renderList(currentNotifs);
+      updateBadge(window.NotificationService.getUnreadCount());
+    }
   }
 
   /**
@@ -181,7 +199,7 @@
             data-delete-id="${escapeHtml(item.id)}"
             aria-label="Remove notification"
             title="Remove notification"
-            onclick="event.stopPropagation();"
+            onclick="window.NotificationUI && window.NotificationUI.handleDelete(event, this.getAttribute('data-delete-id'))"
           >
             <span class="material-symbols-outlined text-[16px] pointer-events-none select-none">close</span>
           </button>
@@ -295,6 +313,14 @@
       togglePanel();
     });
 
+    // Close button in panel header
+    if (els.closeBtn) {
+      els.closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closePanel();
+      });
+    }
+
     // 2. Click outside closes panel
     document.addEventListener('click', (e) => {
       if (!isPanelOpen) return;
@@ -337,12 +363,14 @@
       });
     }
 
-    // 7. Confirm clear -> Delete all notifications from storage
+    // 7. Confirm clear -> Delete all notifications permanently from storage
     if (els.confirmClearBtn) {
       els.confirmClearBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (window.NotificationService) {
           window.NotificationService.clearAll();
+          renderList([]);
+          updateBadge(0);
         }
         hideClearConfirm();
       });
@@ -351,19 +379,14 @@
     // 8. Notification item delegation: Click to Read/Navigate OR Delete
     if (els.list) {
       els.list.addEventListener('click', (e) => {
-        // Individual Delete button click
+        // Individual Delete button click delegation
         const deleteBtn = e.target.closest('.notif-delete-btn, [data-delete-id]');
         if (deleteBtn) {
           e.preventDefault();
           e.stopPropagation();
           const deleteId = deleteBtn.getAttribute('data-delete-id');
-          if (deleteId && window.NotificationService) {
-            window.NotificationService.deleteNotification(deleteId);
-          }
-          if (window.NotificationService) {
-            const currentNotifs = window.NotificationService.getNotifications();
-            renderList(currentNotifs);
-            updateBadge(window.NotificationService.getUnreadCount());
+          if (deleteId) {
+            handleDelete(e, deleteId);
           }
           return;
         }
@@ -425,6 +448,7 @@
     togglePanel,
     renderList,
     updateBadge,
-    resolveUrl
+    resolveUrl,
+    handleDelete
   };
 });

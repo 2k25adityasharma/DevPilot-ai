@@ -315,7 +315,78 @@ console.log('====================================================\n');
   console.log('✓ [PASS] TEST 8: All notifications (including GitHub activity) are individually deletable and permanently blocked from resurrection');
 })();
 
+// ----------------------------------------------------
+// TEST 9: Clear all permanently dismisses all current authoritative activity (Goals, DSA, Habit Streaks, GitHub)
+// so refreshing/re-syncing NEVER restores cleared items, but NEW activity is still added and fully functional
+// ----------------------------------------------------
+(function testClearAllReloadPersistenceAndNewActivity() {
+  mockCurrentUser = { id: 'user-gamma-003', email: 'gamma@devpilot.ai' };
+
+  // 1. Seed authoritative data: 1 goal + 11 DSA questions + 1 habit event
+  mockStorage['devpilot_u_user-gamma-003_daily_goals'] = JSON.stringify([
+    { id: 'goal_hvh', title: 'hvh', completed: true, date: '2026-09-17' }
+  ]);
+  const dsaEvals = {};
+  for (let i = 1; i <= 11; i++) {
+    dsaEvals[i] = 'self';
+  }
+  mockStorage['devpilot_dsa_roadmap_evaluations'] = JSON.stringify(dsaEvals);
+
+  // Clear dismissed for this user
+  mockStorage['devpilot_u_user-gamma-003_dismissed_notifications'] = JSON.stringify([]);
+  mockStorage['devpilot_u_user-gamma-003_notifications'] = JSON.stringify([]);
+
+  NotificationService.init();
+
+  // Habit completed notification
+  NotificationService.notify({
+    id: 'habit_comp_m_2026-09-17',
+    type: 'habit_streak',
+    section: 'Habits',
+    title: '🎯 Habit completed',
+    message: 'm completed today.',
+    url: 'pages/habits.html'
+  });
+
+  const initialNotifs = NotificationService.getNotifications();
+  assert.ok(initialNotifs.length >= 12, 'Must have at least 12 notifications loaded (Goal + DSA + Habit)');
+
+  // 2. Clear All notifications
+  NotificationService.clearAll();
+  assert.strictEqual(NotificationService.getNotifications().length, 0, 'Notifications list must be empty after clearAll');
+  assert.strictEqual(NotificationService.getUnreadCount(), 0, 'Unread count must be 0 after clearAll');
+
+  // 3. Simulate page reload / refresh (calling init and syncAuthoritativeActivity)
+  NotificationService.syncAuthoritativeActivity();
+  const afterReloadNotifs = NotificationService.getNotifications();
+  assert.strictEqual(afterReloadNotifs.length, 0, 'Cleared notifications must NOT resurrect on page reload/refresh!');
+
+  // 4. NEW ACTIVITY: User completes a NEW daily goal
+  mockStorage['devpilot_u_user-gamma-003_daily_goals'] = JSON.stringify([
+    { id: 'goal_hvh', title: 'hvh', completed: true, date: '2026-09-17' },
+    { id: 'goal_new_brand', title: 'Finish system architecture', completed: true, date: '2026-09-18' }
+  ]);
+
+  // And user solves a NEW DSA question (#999)
+  dsaEvals['999'] = 'self';
+  mockStorage['devpilot_dsa_roadmap_evaluations'] = JSON.stringify(dsaEvals);
+
+  NotificationService.syncAuthoritativeActivity();
+
+  const withNewActivity = NotificationService.getNotifications();
+  assert.strictEqual(withNewActivity.length, 2, 'Exactly 2 NEW notifications should appear (New Goal + New DSA)');
+  assert.ok(withNewActivity.some(n => n.id.includes('goal_new_brand')), 'Must contain new goal notification');
+  assert.ok(withNewActivity.some(n => n.id === 'dsa_solved_999'), 'Must contain new DSA solved question');
+
+  // Verify that the old cleared items are STILL not in the list!
+  assert.strictEqual(withNewActivity.some(n => n.id.includes('goal_hvh')), false, 'Old goal_hvh must NOT resurrect');
+  assert.strictEqual(withNewActivity.some(n => n.id === 'dsa_solved_1'), false, 'Old dsa_solved_1 must NOT resurrect');
+
+  console.log('✓ [PASS] TEST 9: Clear all permanently blocks resurrection on reload, but NEW activity is fully functional');
+})();
+
 console.log('\n----------------------------------------------------');
-console.log('All 8 Extended Notification System Tests Passed! 🎉');
+console.log('All 9 Extended Notification System Tests Passed! 🎉');
 console.log('----------------------------------------------------');
+
 

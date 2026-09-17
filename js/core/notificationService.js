@@ -180,7 +180,7 @@
   function saveDismissedIds(idSet) {
     const storage = getStorage();
     const key = getDismissedStorageKey();
-    const arr = Array.from(idSet).slice(-500);
+    const arr = Array.from(idSet).slice(-1000);
     storage.set(key, arr);
     if (typeof window === 'undefined') {
       storage.set(DISMISSED_KEY_BASE, arr);
@@ -218,7 +218,6 @@
     const key = getStorageKey();
     let data = storage.get(key, null);
     if (Array.isArray(data)) return data;
-    // In Node test or legacy environment without auth:
     if (typeof window === 'undefined') {
       data = storage.get(STORAGE_KEY_BASE, null);
       if (Array.isArray(data)) return data;
@@ -230,7 +229,6 @@
     const storage = getStorage();
     const key = getStorageKey();
     storage.set(key, notifications);
-    // In Node test or legacy environment, also sync to base key
     if (typeof window === 'undefined') {
       storage.set(STORAGE_KEY_BASE, notifications);
     }
@@ -376,6 +374,95 @@
   }
 
   /**
+   * Scans all current data stores to find IDs of all historical activity
+   * so clearAll can permanently dismiss them and prevent resurrection on reload.
+   */
+  function getAllAuthoritativeIds() {
+    const storage = getStorage();
+    const userId = getUserId();
+    const ids = [];
+
+    // 1. DAILY GOALS
+    try {
+      let goals = storage.get(`u_${userId}_daily_goals`, null);
+      if (!Array.isArray(goals)) goals = storage.get('daily_goals', []);
+      if (Array.isArray(goals)) {
+        goals.forEach(goal => {
+          if (!goal || !goal.id) return;
+          const dateStamp = goal.completed_at || goal.updated_at || goal.completedAt || goal.date || 'today';
+          ids.push(`goal_${goal.id}_${dateStamp}`);
+          ids.push(`goal_${goal.id}`);
+          if (goal.date) ids.push(`goal_${goal.id}_${goal.date}`);
+          if (goal.completed_at) ids.push(`goal_${goal.id}_${goal.completed_at}`);
+          if (goal.updated_at) ids.push(`goal_${goal.id}_${goal.updated_at}`);
+        });
+      }
+    } catch (e) {}
+
+    // 2. HABIT STREAKS
+    [3, 7, 14, 30].forEach(m => ids.push(`streak_milestone_${m}`));
+
+    // 3. DSA ROADMAP
+    try {
+      const evaluations = storage.get('dsa_roadmap_evaluations', {}) || {};
+      Object.keys(evaluations).forEach(qId => {
+        ids.push(`dsa_solved_${qId}`);
+      });
+    } catch (e) {}
+
+    // 4. CAREER ROADMAP
+    try {
+      const careerState = storage.get('career_roadmaps_progress', {}) || {};
+      Object.keys(careerState).forEach(roleId => {
+        const roleState = careerState[roleId];
+        const completedAt = roleState && roleState.completedAt;
+        if (completedAt && typeof completedAt === 'object') {
+          Object.keys(completedAt).forEach(skillId => {
+            ids.push(`career_${roleId}_${skillId}`);
+          });
+        }
+      });
+    } catch (e) {}
+
+    // 5. INTERVIEW PREP
+    try {
+      const interviewProgress = storage.get('interview_prep_progress', {}) || {};
+      Object.values(interviewProgress).forEach(item => {
+        if (!item) return;
+        const topic = item.topic || 'Practice Topic';
+        ids.push(`interview_${item.categoryId || 'prep'}_${topic}`);
+      });
+    } catch (e) {}
+
+    // 6. RESUME ANALYSIS
+    try {
+      const analysis = storage.get('resume_analysis', null);
+      if (analysis) {
+        const dateStamp = analysis.analysisDate || analysis.timestamp || 'latest';
+        ids.push(`resume_analysis_${dateStamp}`);
+        ids.push('resume_analysis_latest');
+      }
+    } catch (e) {}
+
+    // 7. GITHUB
+    try {
+      const settings = storage.get('github_settings', null);
+      const username = (settings && settings.username) ? settings.username : '2k25adityasharma';
+      const cache = storage.get(`github_cache_${username}`, null);
+      if (cache && cache.data && Array.isArray(cache.data.events)) {
+        cache.data.events.forEach((evt, idx) => {
+          if (!evt) return;
+          if (evt.id) ids.push(`github_${evt.id}`);
+          if (evt.createdAt) ids.push(`github_${evt.repo || 'repo'}_${new Date(evt.createdAt).getTime()}`);
+          ids.push(`github_${idx}`);
+        });
+      }
+    } catch (e) {}
+
+    return ids;
+  }
+
+  /**
    * Delete / remove a single notification permanently
    * @param {string} id
    * @returns {boolean}
@@ -387,25 +474,41 @@
     // 1. Permanently record in dismissed list so authoritative sync won't recreate it
     addDismissedId(targetId);
 
+    // If it's a goal notification like goal_123_something, also dismiss base goal ID
+    if (targetId.startsWith('goal_')) {
+      const parts = targetId.split('_');
+      if (parts.length >= 2) {
+        addDismissedId(`goal_${parts[1]}`);
+      }
+    }
+
     // 2. Remove all matching instances from stored list
     const items = loadStoredNotifications();
-    const remaining = items.filter(n => String(n.id).trim() !== targetId);
-    const changed = remaining.length !== items.length;
+    const remaining = items.filter(n => {
+      const curId = String(n.id).trim();
+      if (curId === targetId) return false;
+      if (targetId.startsWith('goal_')) {
+        const parts = targetId.split('_');
+        if (parts.length >= 2 && curId.startsWith(`goal_${parts[1]}`)) return false;
+      }
+      return true;
+    });
 
-    if (changed) {
-      saveStoredNotifications(remaining);
-    }
+    saveStoredNotifications(remaining);
     emitChange();
     return true;
   }
 
   /**
-   * Clear all notifications permanently
+   * Clear all notifications permanently and prevent resurrection on reload
    */
   function clearAll() {
     const items = loadStoredNotifications();
     const idsToDismiss = items.map(n => String(n.id).trim()).filter(Boolean);
-    addDismissedIds(idsToDismiss);
+    const authIds = getAllAuthoritativeIds();
+    const allToDismiss = [...new Set([...idsToDismiss, ...authIds])];
+
+    addDismissedIds(allToDismiss);
     saveStoredNotifications([]);
     emitChange();
   }
@@ -421,7 +524,11 @@
     const dismissedIds = getDismissedIds();
     const knownIds = new Set(currentItems.map(n => String(n.id)));
 
-    const shouldSkip = (notifId) => knownIds.has(notifId) || dismissedIds.has(notifId);
+    const shouldSkip = (notifId, baseId = null) => {
+      if (knownIds.has(notifId) || dismissedIds.has(notifId)) return true;
+      if (baseId && (knownIds.has(baseId) || dismissedIds.has(baseId))) return true;
+      return false;
+    };
 
     const newNotifications = [];
 
@@ -435,9 +542,9 @@
           const isDone = !!goal.completed || (goal.target && Number(goal.progress) >= Number(goal.target));
           if (!isDone) return;
 
-          const dateStamp = goal.completed_at || goal.updated_at || goal.completedAt || 'today';
+          const dateStamp = goal.completed_at || goal.updated_at || goal.completedAt || goal.date || 'today';
           const notifId = `goal_${goal.id}_${dateStamp}`;
-          if (shouldSkip(notifId)) return;
+          if (shouldSkip(notifId, `goal_${goal.id}`)) return;
 
           newNotifications.push({
             id: notifId,
@@ -637,7 +744,7 @@
           .forEach((evt, idx) => {
             const rawId = evt.id ? String(evt.id) : (evt.createdAt ? `${evt.repo || 'repo'}_${new Date(evt.createdAt).getTime()}` : `${idx}`);
             const notifId = `github_${rawId}`;
-            if (shouldSkip(notifId)) return;
+            if (shouldSkip(notifId, evt.id ? `github_${evt.id}` : null)) return;
 
             newNotifications.push({
               id: notifId,
