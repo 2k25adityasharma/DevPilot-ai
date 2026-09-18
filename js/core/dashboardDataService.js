@@ -572,31 +572,8 @@
           // Only look at topics within the same category the user just opened
           return k.startsWith(`topic:${categoryId}:`);
         }
-      // ── ALL TASKS DONE — Premium celebration state ──────────────────────────
-    if (total > 0 && completed === total) {
-      taskListEl.innerHTML = `
-        <div class="py-8 flex flex-col items-center justify-center text-center gap-3">
-          <div class="relative">
-            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-primary flex items-center justify-center shadow-lg">
-              <span class="material-symbols-outlined text-white text-3xl" style='font-variation-settings: "FILL" 1;'>workspace_premium</span>
-            </div>
-            <span class="absolute -top-1 -right-1 text-xl">🎉</span>
-          </div>
-          <div>
-            <p class="font-title-sm text-on-surface font-bold">Excellence! All done for today.</p>
-            <p class="text-label-sm text-on-surface-variant mt-0.5">${completed} / ${total} tasks completed</p>
-          </div>
-          <div class="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-4 py-2 rounded-full border border-emerald-400/30 font-semibold">
-            <span class="material-symbols-outlined text-[14px]">star</span>
-            Outstanding work — you crushed it today! 💪
-          </div>
-        </div>
-      `;
-      return;
-    }
-
-    taskListEl.innerHTML = html;
-   });
+        return true;
+      });
 
       if (topicKeys.length > 0) {
         // Sort by most recently attempted (timestamp), fall back to most attempted count

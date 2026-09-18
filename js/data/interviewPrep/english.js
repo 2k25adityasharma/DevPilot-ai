@@ -482,12 +482,12 @@
     "difficulty": "easy",
     "question": "Find the error part: 'The team (A) / are working (B) / on the module (C) / since two months (D).'",
     "options": [
-      "(D) since two months",
       "(A) The team",
       "(B) are working",
-      "(C) on the module"
+      "(C) on the module",
+      "(D) since two months"
     ],
-    "correctAnswer": 0,
+    "correctAnswer": 3,
     "explanation": "For a duration of time ('two months'), the preposition 'for' should be used instead of 'since'. Correct phrase: 'for two months'."
   },
   {
@@ -497,12 +497,12 @@
     "difficulty": "easy",
     "question": "Find the error part: 'She did not (A) / passed the exam (B) / despite preparing (C) / diligently (D).'",
     "options": [
-      "(B) passed the exam",
       "(A) She did not",
+      "(B) passed the exam",
       "(C) despite preparing",
       "(D) diligently"
     ],
-    "correctAnswer": 0,
+    "correctAnswer": 1,
     "explanation": "After 'did not', the main verb must be in base form: 'pass', not 'passed'."
   },
   {
@@ -527,12 +527,12 @@
     "difficulty": "easy",
     "question": "Find the error part: 'I am looking forward (A) / to meet you (B) / at the conference (C) / next week (D).'",
     "options": [
-      "(B) to meet you",
       "(A) I am looking forward",
+      "(B) to meet you",
       "(C) at the conference",
       "(D) next week"
     ],
-    "correctAnswer": 0,
+    "correctAnswer": 1,
     "explanation": "The phrase 'look forward to' is followed by a gerund (-ing form). Correct: 'to meeting you'."
   },
   {
@@ -542,12 +542,12 @@
     "difficulty": "medium",
     "question": "Find the error part: 'Although he worked hard (A) / but he could not (B) / achieve the desired (C) / throughput target (D).'",
     "options": [
-      "(B) but he could not",
       "(A) Although he worked hard",
+      "(B) but he could not",
       "(C) achieve the desired",
       "(D) throughput target"
     ],
-    "correctAnswer": 0,
+    "correctAnswer": 1,
     "explanation": "'Although' and 'but' are redundant conjunctions when used together in the same clause relationship. Remove 'but'."
   },
   {
@@ -572,12 +572,12 @@
     "difficulty": "medium",
     "question": "Find the error part: 'The quality of these (A) / newly manufactured (B) / microprocessors are (C) / remarkably superior (D).'",
     "options": [
-      "(C) microprocessors are",
       "(A) The quality of these",
       "(B) newly manufactured",
+      "(C) microprocessors are",
       "(D) remarkably superior"
     ],
-    "correctAnswer": 0,
+    "correctAnswer": 2,
     "explanation": "The subject is 'The quality' (singular), not 'microprocessors'. Therefore, the verb must be 'is', not 'are'."
   },
   {
@@ -602,12 +602,12 @@
     "difficulty": "hard",
     "question": "Find the error part: 'Not only the technical lead (A) / but also the developers (B) / was commended (C) / for resolving the zero-day vulnerability (D).'",
     "options": [
-      "(C) was commended",
       "(A) Not only the technical lead",
       "(B) but also the developers",
+      "(C) was commended",
       "(D) for resolving the zero-day vulnerability"
     ],
-    "correctAnswer": 0,
+    "correctAnswer": 2,
     "explanation": "With 'Not only... but also', the verb agrees with the closer subject. 'The developers' is plural, so it requires 'were commended'."
   },
   {
@@ -617,12 +617,12 @@
     "difficulty": "hard",
     "question": "Find the error part: 'No sooner did the CEO (A) / made the announcement (B) / than the stock price (C) / surged by ten percent (D).'",
     "options": [
-      "(B) made the announcement",
       "(A) No sooner did the CEO",
+      "(B) made the announcement",
       "(C) than the stock price",
       "(D) surged by ten percent"
     ],
-    "correctAnswer": 0,
+    "correctAnswer": 1,
     "explanation": "After auxiliary 'did', the verb must remain in base form 'make', not past tense 'made'. Correct: 'make the announcement'."
   },
   {

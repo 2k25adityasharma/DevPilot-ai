@@ -235,13 +235,17 @@
         </div>
       </div>
       <button id="ipResumeBtn" class="btn-primary text-xs py-2 px-4 flex items-center gap-1.5">
-        <span>Continue Practice</span>
+        <span>${state.recentActivity.topic ? 'Continue Practice' : 'Explore Topics'}</span>
         <span class="material-symbols-outlined text-xs">arrow_forward</span>
       </button>
     `;
 
     document.getElementById('ipResumeBtn').addEventListener('click', () => {
-      startTopicQuiz(cat.id, state.recentActivity.topic);
+      if (state.recentActivity.topic) {
+        startTopicQuiz(cat.id, state.recentActivity.topic);
+      } else {
+        openCategoryModal(cat);
+      }
     });
   }
 
@@ -290,7 +294,7 @@
       const card = document.createElement('div');
       card.className = 'ip-cat-card dev-card dev-card-interactive';
 
-      // Calculate category progress
+      // Calculate category progress from q:* records
       let catAttempted = 0;
       let catCorrect = 0;
       if (cat.questions) {
@@ -331,7 +335,12 @@
                 <div class="h-full ${catAccuracy >= 75 ? 'bg-emerald-500' : catAccuracy >= 50 ? 'bg-amber-500' : 'bg-red-500'}" style="width: ${catAccuracy}%"></div>
               </div>
             </div>
-          ` : ''}
+          ` : `
+            <div class="mb-3 flex justify-between text-xs text-on-surface-variant">
+              <span>Status</span>
+              <span class="font-medium text-slate-400">Not attempted yet</span>
+            </div>
+          `}
 
           <div class="ip-cat-actions">
             <button class="btn-primary flex-1 text-xs py-2 px-3.5 ip-open-cat-btn" data-cat="${cat.id}">
@@ -435,13 +444,66 @@
   }
 
   // ==========================================================
+  // QUESTION PREPARATION & SHUFFLE ENGINE
+  // ==========================================================
+  /**
+   * Prepares a question for an active attempt with stable option IDs
+   * and a non-mutating Fisher-Yates shuffle of options.
+   */
+  function prepareQuestionForAttempt(rawQ) {
+    const categoryId = rawQ.categoryId || rawQ.category || (state.activeCategory ? state.activeCategory.id : 'prep');
+    const categoryTitle = rawQ.categoryTitle || (state.activeCategory ? state.activeCategory.title : 'Interview Prep');
+
+    const rawOpts = rawQ.options || [];
+    const stableOptions = rawOpts.map((opt, idx) => {
+      const text = (typeof opt === 'object' && opt !== null) ? opt.text : String(opt);
+      const id = (typeof opt === 'object' && opt !== null && opt.id) ? opt.id : `opt_${idx}`;
+      return { id, text, originalIndex: idx };
+    });
+
+    let correctOptionId;
+    if (rawQ.correctOptionId) {
+      correctOptionId = rawQ.correctOptionId;
+    } else if (typeof rawQ.correctAnswer === 'number' && stableOptions[rawQ.correctAnswer]) {
+      correctOptionId = stableOptions[rawQ.correctAnswer].id;
+    } else {
+      correctOptionId = stableOptions[0] ? stableOptions[0].id : 'opt_0';
+    }
+
+    // Authentic Fisher-Yates shuffle on option objects
+    const shuffledOptions = [...stableOptions];
+    for (let i = shuffledOptions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
+    }
+
+    const correctMatch = stableOptions.find(o => o.id === correctOptionId);
+
+    return {
+      id: rawQ.id,
+      categoryId: categoryId,
+      categoryTitle: categoryTitle,
+      topic: rawQ.topic,
+      difficulty: rawQ.difficulty || 'Medium',
+      question: rawQ.question,
+      explanation: rawQ.explanation,
+      options: shuffledOptions,
+      correctOptionId: correctOptionId,
+      correctText: correctMatch ? correctMatch.text : '',
+      selectedOptionId: null,
+      isAnswered: false,
+      isCorrect: null
+    };
+  }
+
+  // ==========================================================
   // QUESTION ENGINE (Interactive Quiz & Immediate Feedback)
   // ==========================================================
   function startTopicQuiz(categoryId, topicName) {
     const cat = window.interviewPrepRegistry.getCategory(categoryId);
     if (!cat) return;
 
-    const topicQuestions = cat.questions.filter(q => q.topic && q.topic.toLowerCase() === topicName.toLowerCase());
+    const topicQuestions = cat.questions.filter(q => q.topic && q.topic.toLowerCase() === topicName.toLowerCase()).slice(0, 10);
     if (topicQuestions.length === 0) {
       alert('No questions available for this topic.');
       return;
@@ -449,12 +511,12 @@
 
     state.activeCategory = cat;
     state.activeTopic = topicName;
-    state.quiz.questions = [...topicQuestions];
+    state.quiz.questions = topicQuestions.map(prepareQuestionForAttempt);
     state.quiz.currentIndex = 0;
     state.quiz.selectedOption = null;
     state.quiz.isAnswered = false;
     state.quiz.userAnswers = [];
-    state.quiz.sessionStats = { correct: 0, incorrect: 0, total: topicQuestions.length };
+    state.quiz.sessionStats = { correct: 0, incorrect: 0, total: state.quiz.questions.length };
     state.quiz.sourceMode = 'category';
 
     saveRecent(categoryId, topicName);
@@ -466,17 +528,22 @@
     const cat = window.interviewPrepRegistry.getCategory(categoryId);
     if (!cat || !cat.questions || cat.questions.length === 0) return;
 
-    // Pick 20 random questions from category
-    const shuffled = [...cat.questions].sort(() => 0.5 - Math.random()).slice(0, 20);
+    // Pick 20 random questions from category using Fisher-Yates
+    const pool = [...cat.questions];
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    const selected = pool.slice(0, 20);
 
     state.activeCategory = cat;
     state.activeTopic = 'All Topics (Mixed)';
-    state.quiz.questions = shuffled;
+    state.quiz.questions = selected.map(prepareQuestionForAttempt);
     state.quiz.currentIndex = 0;
     state.quiz.selectedOption = null;
     state.quiz.isAnswered = false;
     state.quiz.userAnswers = [];
-    state.quiz.sessionStats = { correct: 0, incorrect: 0, total: shuffled.length };
+    state.quiz.sessionStats = { correct: 0, incorrect: 0, total: state.quiz.questions.length };
     state.quiz.sourceMode = 'mixed';
 
     saveRecent(categoryId, 'All Topics');
@@ -491,23 +558,33 @@
       return;
     }
 
-    // Collect questions from weak topics
+    // Collect questions from weak topics without duplicates
     const pool = [];
+    const seenIds = new Set();
     weakList.forEach(w => {
       const qs = window.interviewPrepRegistry.getQuestionsByTopic(w.categoryId, w.topic);
-      pool.push(...qs);
+      qs.forEach(q => {
+        if (!seenIds.has(q.id)) {
+          seenIds.add(q.id);
+          pool.push(q);
+        }
+      });
     });
 
-    const shuffled = pool.sort(() => 0.5 - Math.random()).slice(0, 15);
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    const selected = pool.slice(0, 15);
 
     state.activeCategory = { id: 'weak_topics', title: 'Weak Topics Drill', icon: 'healing' };
     state.activeTopic = 'Targeted Practice';
-    state.quiz.questions = shuffled;
+    state.quiz.questions = selected.map(prepareQuestionForAttempt);
     state.quiz.currentIndex = 0;
     state.quiz.selectedOption = null;
     state.quiz.isAnswered = false;
     state.quiz.userAnswers = [];
-    state.quiz.sessionStats = { correct: 0, incorrect: 0, total: shuffled.length };
+    state.quiz.sessionStats = { correct: 0, incorrect: 0, total: state.quiz.questions.length };
     state.quiz.sourceMode = 'weakTopics';
 
     state.currentMode = 'quiz';
@@ -573,7 +650,7 @@
           <!-- Action Footer -->
           <div class="flex items-center justify-between pt-4 border-t border-outline-variant mt-6 flex-wrap gap-3">
             <div class="text-xs text-on-surface-variant">Select an option to immediately view solution & explanation.</div>
-            <button id="ipNextQuestionBtn" class="btn-primary text-sm py-2 px-5 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5" disabled>
+            <button id="ipNextQuestionBtn" class="btn-primary text-sm py-2 px-5 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5" ${q.isAnswered ? '' : 'disabled'}>
               <span>${currentNum === total ? 'Finish Practice' : 'Next Question'}</span>
               <span class="material-symbols-outlined text-sm">arrow_forward</span>
             </button>
@@ -591,17 +668,50 @@
     const optionsGrid = document.getElementById('ipOptionsGrid');
     const letters = ['A', 'B', 'C', 'D'];
 
-    q.options.forEach((optText, idx) => {
+    q.options.forEach((opt, idx) => {
       const btn = document.createElement('button');
       btn.className = 'ip-option-btn';
+      btn.dataset.optionId = opt.id;
       btn.innerHTML = `
         <div class="ip-option-badge">${letters[idx]}</div>
-        <div class="flex-1">${optText}</div>
+        <div class="flex-1">${opt.text}</div>
       `;
 
-      btn.addEventListener('click', () => handleOptionSelection(idx));
+      if (q.isAnswered) {
+        btn.disabled = true;
+        if (opt.id === q.correctOptionId) {
+          btn.classList.add('correct-option');
+        } else if (opt.id === q.selectedOptionId && !q.isCorrect) {
+          btn.classList.add('incorrect-option');
+        }
+      } else {
+        btn.addEventListener('click', () => handleOptionSelection(opt.id));
+      }
+
       optionsGrid.appendChild(btn);
     });
+
+    // If already answered, reveal explanation box
+    const explanationBox = document.getElementById('ipExplanationBox');
+    if (q.isAnswered && explanationBox) {
+      const correctDispIdx = q.options.findIndex(o => o.id === q.correctOptionId);
+      const correctLetter = letters[correctDispIdx] || 'A';
+      const correctText = q.options[correctDispIdx] ? q.options[correctDispIdx].text : q.correctText;
+      const isCorrect = q.isCorrect;
+
+      explanationBox.className = 'ip-explanation-panel';
+      explanationBox.innerHTML = `
+        <div class="ip-explanation-title ${isCorrect ? 'text-emerald-400' : 'text-red-400'}">
+          <span class="material-symbols-outlined">${isCorrect ? 'check_circle' : 'cancel'}</span>
+          <span>${isCorrect ? 'Correct! Well Done.' : 'Incorrect.'}</span>
+        </div>
+        <div class="ip-explanation-text">
+          <p class="mb-2"><strong>Correct Answer:</strong> Option ${correctLetter} — ${correctText}</p>
+          <p>${q.explanation}</p>
+        </div>
+      `;
+      explanationBox.classList.remove('hidden');
+    }
 
     document.getElementById('ipNextQuestionBtn').addEventListener('click', () => {
       state.quiz.currentIndex++;
@@ -611,14 +721,14 @@
     });
   }
 
-  function handleOptionSelection(selectedIndex) {
-    if (state.quiz.isAnswered) return; // Prevent multiple clicks
-
-    state.quiz.isAnswered = true;
-    state.quiz.selectedOption = selectedIndex;
-
+  function handleOptionSelection(selectedOptionId) {
     const q = state.quiz.questions[state.quiz.currentIndex];
-    const isCorrect = (selectedIndex === q.correctAnswer);
+    if (!q || q.isAnswered) return; // Prevent multiple clicks
+
+    q.isAnswered = true;
+    q.selectedOptionId = selectedOptionId;
+    const isCorrect = (selectedOptionId === q.correctOptionId);
+    q.isCorrect = isCorrect;
 
     // Update session stats
     if (isCorrect) {
@@ -636,12 +746,13 @@
     if (isCorrect) state.progress[qKey].correct++;
     else state.progress[qKey].incorrect++;
 
-    // Save topic attempt
-    if (state.activeCategory && q.topic) {
-      const tKey = `topic:${state.activeCategory.id}:${q.topic}`;
+    // Save topic attempt using the question's actual categoryId
+    const catId = q.categoryId || q.category || (state.activeCategory ? state.activeCategory.id : 'prep');
+    if (catId && q.topic) {
+      const tKey = `topic:${catId}:${q.topic}`;
       if (!state.progress[tKey]) {
         state.progress[tKey] = {
-          categoryId: state.activeCategory.id,
+          categoryId: catId,
           topic: q.topic,
           attempted: 0,
           correct: 0,
@@ -654,7 +765,7 @@
       // ✅ Track last-attempted timestamp so dashboard picks the most RECENT topic
       state.progress[tKey].lastAttempted = Date.now();
       // Also update recent so dashboard reflects the exact topic being practiced
-      saveRecent(state.activeCategory.id, q.topic);
+      saveRecent(catId, q.topic);
     }
 
     saveProgress();
@@ -663,12 +774,14 @@
     // Style the options
     const optionsGrid = document.getElementById('ipOptionsGrid');
     const buttons = optionsGrid.querySelectorAll('.ip-option-btn');
+    const letters = ['A', 'B', 'C', 'D'];
 
-    buttons.forEach((btn, idx) => {
+    buttons.forEach((btn) => {
       btn.disabled = true;
-      if (idx === q.correctAnswer) {
+      const optId = btn.dataset.optionId;
+      if (optId === q.correctOptionId) {
         btn.classList.add('correct-option');
-      } else if (idx === selectedIndex && !isCorrect) {
+      } else if (optId === selectedOptionId && !isCorrect) {
         btn.classList.add('incorrect-option');
       }
     });
@@ -676,6 +789,10 @@
     // Reveal explanation panel
     const explanationBox = document.getElementById('ipExplanationBox');
     if (explanationBox) {
+      const correctDispIdx = q.options.findIndex(o => o.id === q.correctOptionId);
+      const correctLetter = letters[correctDispIdx] || 'A';
+      const correctText = q.options[correctDispIdx] ? q.options[correctDispIdx].text : q.correctText;
+
       explanationBox.className = 'ip-explanation-panel';
       explanationBox.innerHTML = `
         <div class="ip-explanation-title ${isCorrect ? 'text-emerald-400' : 'text-red-400'}">
@@ -683,10 +800,11 @@
           <span>${isCorrect ? 'Correct! Well Done.' : 'Incorrect.'}</span>
         </div>
         <div class="ip-explanation-text">
-          <p class="mb-2"><strong>Correct Answer:</strong> Option ${['A', 'B', 'C', 'D'][q.correctAnswer]} — ${q.options[q.correctAnswer]}</p>
+          <p class="mb-2"><strong>Correct Answer:</strong> Option ${correctLetter} — ${correctText}</p>
           <p>${q.explanation}</p>
         </div>
       `;
+      explanationBox.classList.remove('hidden');
     }
 
     // Enable Next Question Button
@@ -950,9 +1068,9 @@
   }
 
   function startMockTest() {
-    const pool = window.interviewPrepRegistry.getMockTestPool(50);
+    const rawPool = window.interviewPrepRegistry.getMockTestPool(50);
     state.mockTest.active = true;
-    state.mockTest.questions = pool;
+    state.mockTest.questions = rawPool.map(prepareQuestionForAttempt);
     state.mockTest.currentIndex = 0;
     state.mockTest.answers = {};
     state.mockTest.timeRemaining = 3600;
@@ -1042,18 +1160,20 @@
 
     updateMockTimerDisplay();
 
-    // Render Options
+    // Render Options with stable option IDs
     const optionsGrid = document.getElementById('ipMockOptionsGrid');
     const letters = ['A', 'B', 'C', 'D'];
-    q.options.forEach((optText, idx) => {
+    q.options.forEach((opt, idx) => {
+      const isSelected = (currentSelected === opt.id);
       const btn = document.createElement('button');
-      btn.className = `ip-option-btn ${currentSelected === idx ? 'selected-option' : ''}`;
+      btn.className = `ip-option-btn ${isSelected ? 'selected-option' : ''}`;
+      btn.dataset.optionId = opt.id;
       btn.innerHTML = `
         <div class="ip-option-badge">${letters[idx]}</div>
-        <div class="flex-1">${optText}</div>
+        <div class="flex-1">${opt.text}</div>
       `;
       btn.addEventListener('click', () => {
-        state.mockTest.answers[state.mockTest.currentIndex] = idx;
+        state.mockTest.answers[state.mockTest.currentIndex] = opt.id;
         renderActiveMockTest();
       });
       optionsGrid.appendChild(btn);
@@ -1123,13 +1243,13 @@
     if (state.mockTest.timerInterval) clearInterval(state.mockTest.timerInterval);
     state.mockTest.active = false;
 
-    // Evaluate answers
+    // Evaluate answers using stable option IDs
     let correct = 0;
     const categoryBreakdown = {};
 
     state.mockTest.questions.forEach((q, idx) => {
-      const userAnswer = state.mockTest.answers[idx];
-      const isCorrect = (userAnswer === q.correctAnswer);
+      const userAnswerId = state.mockTest.answers[idx];
+      const isCorrect = (userAnswerId !== undefined && userAnswerId === q.correctOptionId);
       if (isCorrect) correct++;
 
       const catTitle = q.categoryTitle || 'General';
@@ -1141,7 +1261,39 @@
     });
 
     const total = state.mockTest.questions.length;
-    const accuracy = Math.round((correct / total) * 100);
+    const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+    // Persist mock test report to history
+    try {
+      const history = JSON.parse(localStorage.getItem('devpilot_interview_prep_mock_history') || '[]');
+      history.unshift({
+        id: `mock_${Date.now()}`,
+        date: new Date().toISOString(),
+        score: correct,
+        total: total,
+        accuracy: accuracy,
+        timeSpentSeconds: 3600 - Math.max(0, state.mockTest.timeRemaining),
+        breakdown: categoryBreakdown
+      });
+      localStorage.setItem('devpilot_interview_prep_mock_history', JSON.stringify(history.slice(0, 20)));
+    } catch (e) {
+      console.warn('Failed to save mock test history:', e);
+    }
+
+    // Send notification if NotificationService is active
+    try {
+      const ns = typeof window !== 'undefined' ? window.NotificationService : null;
+      if (ns && typeof ns.notify === 'function') {
+        ns.notify({
+          id: `mock_test_${Date.now()}`,
+          type: 'interview_prep',
+          section: 'Interview Prep',
+          title: 'Mock Assessment Completed',
+          message: `Scored ${correct}/${total} (${accuracy}% accuracy).`,
+          url: 'pages/interviewPrep.html'
+        });
+      }
+    } catch (e) {}
 
     const mainContainer = document.getElementById('ipMainContent');
     if (!mainContainer) return;
@@ -1249,10 +1401,92 @@
           </div>
         </div>
       </div>
+
+      <!-- Question-by-Question Detailed Solutions Review -->
+      <div class="mt-8">
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <div>
+            <h3 class="text-lg font-bold text-on-surface" style="font-family: 'Plus Jakarta Sans', system-ui, sans-serif;">
+              Detailed Solutions & Explanations
+            </h3>
+            <p class="text-xs text-on-surface-variant">Step-by-step breakdown of every question and option in this mock test.</p>
+          </div>
+          <button id="ipToggleMockReviewBtn" class="btn-secondary text-xs py-2 px-3.5 flex items-center gap-1.5 font-medium">
+            <span class="material-symbols-outlined text-sm">visibility</span>
+            <span id="ipToggleReviewText">Show Solutions Review</span>
+          </button>
+        </div>
+
+        <div id="ipMockReviewList" class="hidden space-y-4">
+          ${state.mockTest.questions.map((q, idx) => {
+            const userAnsId = state.mockTest.answers[idx];
+            const isQCorrect = (userAnsId !== undefined && userAnsId === q.correctOptionId);
+            const isSkipped = (userAnsId === undefined);
+            const letters = ['A', 'B', 'C', 'D'];
+            const correctOptIdx = q.options.findIndex(o => o.id === q.correctOptionId);
+            const correctLetter = letters[correctOptIdx] || 'A';
+            const correctText = q.options[correctOptIdx] ? q.options[correctOptIdx].text : q.correctText;
+
+            return `
+              <div class="dev-card p-5 border ${isQCorrect ? 'border-emerald-200 dark:border-emerald-900/40' : isSkipped ? 'border-outline-variant' : 'border-red-200 dark:border-red-900/40'}">
+                <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-on-surface">Question ${idx + 1}</span>
+                    <span class="badge badge-neutral text-[11px]">${q.categoryTitle || q.categoryId || 'General'}</span>
+                    <span class="text-xs text-on-surface-variant">${q.topic || ''}</span>
+                  </div>
+                  <span class="badge ${isQCorrect ? 'badge-success' : isSkipped ? 'badge-neutral' : 'badge-warning'} text-[11px]">
+                    ${isQCorrect ? 'Correct (+1)' : isSkipped ? 'Skipped (0)' : 'Incorrect (0)'}
+                  </span>
+                </div>
+                <div class="text-sm font-semibold text-on-surface mb-3">${q.question}</div>
+                <div class="space-y-1.5 mb-3">
+                  ${q.options.map((opt, oIdx) => {
+                    const isUserPick = (userAnsId === opt.id);
+                    const isCorrectOpt = (opt.id === q.correctOptionId);
+                    let optClass = 'bg-surface-container-low text-on-surface-variant border-outline-variant';
+                    if (isCorrectOpt) {
+                      optClass = 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 font-semibold';
+                    } else if (isUserPick && !isCorrectOpt) {
+                      optClass = 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-300 dark:border-red-700 font-medium';
+                    }
+                    return `
+                      <div class="flex items-center gap-2 p-2.5 rounded-lg border text-xs ${optClass}">
+                        <span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] ${isCorrectOpt ? 'bg-emerald-500 text-white' : isUserPick ? 'bg-red-500 text-white' : 'bg-surface-container text-on-surface-variant'}">${letters[oIdx]}</span>
+                        <span class="flex-1">${opt.text}</span>
+                        ${isCorrectOpt ? '<span class="material-symbols-outlined text-sm text-emerald-500 shrink-0">check_circle</span>' : ''}
+                        ${isUserPick && !isCorrectOpt ? '<span class="material-symbols-outlined text-sm text-red-500 shrink-0">cancel</span>' : ''}
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+                <div class="ip-explanation-panel">
+                  <div class="ip-explanation-title text-emerald-500 dark:text-emerald-400">
+                    <span class="material-symbols-outlined text-sm">lightbulb</span>
+                    <span>Explanation (Correct Answer: Option ${correctLetter} — ${correctText})</span>
+                  </div>
+                  <div class="ip-explanation-text text-xs text-on-surface-variant leading-relaxed">${q.explanation}</div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
     `;
 
     document.getElementById('ipRetakeMockBtn').addEventListener('click', startMockTest);
     document.getElementById('ipBackToPrepBtn').addEventListener('click', () => renderMode('categories'));
+
+    const toggleBtn = document.getElementById('ipToggleMockReviewBtn');
+    const reviewList = document.getElementById('ipMockReviewList');
+    const toggleText = document.getElementById('ipToggleReviewText');
+    if (toggleBtn && reviewList && toggleText) {
+      toggleBtn.addEventListener('click', () => {
+        const isHidden = reviewList.classList.contains('hidden');
+        reviewList.classList.toggle('hidden', !isHidden);
+        toggleText.textContent = isHidden ? 'Hide Solutions Review' : 'Show Solutions Review';
+      });
+    }
   }
 
   function abortMockTest() {
@@ -1467,9 +1701,9 @@
           </div>
         `;
 
-        row.querySelector('.ip-chk-box').addEventListener('click', (e) => {
-          e.stopPropagation();
-          const targetBox = e.currentTarget;
+        row.style.cursor = 'pointer';
+        row.addEventListener('click', () => {
+          const targetBox = row.querySelector('.ip-chk-box');
           const label = row.querySelector('.ip-chk-label');
 
           if (!state.checklists[subjKey]) state.checklists[subjKey] = {};

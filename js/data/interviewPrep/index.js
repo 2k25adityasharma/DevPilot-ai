@@ -99,6 +99,14 @@ if (typeof window === 'undefined' && typeof global !== 'undefined') {
             }));
           }
 
+          // Normalize questions with category metadata
+          const normalizedQuestions = (cat.questions || []).map(q => ({
+            ...q,
+            category: q.category || id,
+            categoryId: id,
+            categoryTitle: cat.title || id
+          }));
+
           // Normalize structure
           this.categories[id] = {
             id: id,
@@ -106,11 +114,11 @@ if (typeof window === 'undefined' && typeof global !== 'undefined') {
             icon: cat.icon || 'quiz',
             description: cat.description || '',
             topics: cat.topics || (cat.totalTopics ? Object.keys(cat.topics || {}) : []),
-            questions: cat.questions || [],
+            questions: normalizedQuestions,
             caseStudies: cat.caseStudies || [],
             gdTopics: normalizedGD,
             hrQuestions: normalizedHR,
-            totalQuestions: (cat.questions ? cat.questions.length : 0)
+            totalQuestions: normalizedQuestions.length
           };
         }
       });
@@ -200,9 +208,17 @@ if (typeof window === 'undefined' && typeof global !== 'undefined') {
       this.ensureInitialized();
       const pool = [];
 
+      const fisherYates = (arr) => {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      };
+
       const pickRandom = (arr, n) => {
-        const shuffled = [...arr].sort(() => 0.5 - Math.random());
-        return shuffled.slice(0, n);
+        return fisherYates(arr).slice(0, n);
       };
 
       const getCatQs = (id) => {
@@ -253,7 +269,7 @@ if (typeof window === 'undefined' && typeof global !== 'undefined') {
       }
 
       // Shuffle final pool
-      return pool.sort(() => 0.5 - Math.random()).slice(0, count);
+      return fisherYates(pool).slice(0, count);
     },
 
     /**
@@ -319,12 +335,30 @@ if (typeof window === 'undefined' && typeof global !== 'undefined') {
 
       const totalAvailable = this.getAllQuestions().length;
 
-      Object.values(progressMap).forEach(stat => {
-        if (stat.attempted) {
-          totalAttempted += stat.attempted;
-          totalCorrect += (stat.correct || 0);
-        }
-        if (stat.completed) {
+      // Count attempts ONLY from individual question records ('q:*') to eliminate
+      // double counting with 'topic:*' aggregate keys.
+      const qKeys = Object.keys(progressMap).filter(k => k.startsWith('q:'));
+      if (qKeys.length > 0) {
+        qKeys.forEach(k => {
+          const stat = progressMap[k];
+          if (stat && stat.attempted) {
+            totalAttempted += stat.attempted;
+            totalCorrect += (stat.correct || 0);
+          }
+        });
+      } else {
+        // Fallback for legacy data without q:* keys
+        Object.keys(progressMap).filter(k => k.startsWith('topic:')).forEach(k => {
+          const stat = progressMap[k];
+          if (stat && stat.attempted) {
+            totalAttempted += stat.attempted;
+            totalCorrect += (stat.correct || 0);
+          }
+        });
+      }
+
+      Object.keys(progressMap).filter(k => k.startsWith('topic:')).forEach(k => {
+        if (progressMap[k] && progressMap[k].completed) {
           completedTopicsCount++;
         }
       });
@@ -335,7 +369,7 @@ if (typeof window === 'undefined' && typeof global !== 'undefined') {
         totalAvailable,
         totalAttempted,
         totalCorrect,
-        totalIncorrect: totalAttempted - totalCorrect,
+        totalIncorrect: Math.max(0, totalAttempted - totalCorrect),
         accuracy,
         completedTopicsCount,
         categoriesCount: Object.keys(this.categories).length

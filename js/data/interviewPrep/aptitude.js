@@ -1637,7 +1637,7 @@
       "7:00 PM",
       "4:30 PM"
     ],
-    "correctAnswer": 0,
+    "correctAnswer": 2,
     "explanation": "Rate = 1/15 + 1/20 - 1/30 = (4 + 3 - 2)/60 = 5/60 = 1/12 tank/hr. Time = 12 hours. 7:00 AM + 12 hours = 7:00 PM."
   },
   {

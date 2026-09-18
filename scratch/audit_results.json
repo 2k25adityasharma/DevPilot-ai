@@ -1,0 +1,6002 @@
+{
+  "totalQuestions": 2170,
+  "categoryCounts": {
+    "aptitude": {
+      "title": "Quantitative Aptitude",
+      "count": 200
+    },
+    "english": {
+      "title": "English & Verbal Ability",
+      "count": 100
+    },
+    "logicalReasoning": {
+      "title": "Logical Reasoning",
+      "count": 120
+    },
+    "communication": {
+      "title": "Communication & Group Discussion",
+      "count": 100
+    },
+    "hrBehavioral": {
+      "title": "HR & Behavioral Interview",
+      "count": 10
+    },
+    "programming": {
+      "title": "Programming & Coding Fundamentals",
+      "count": 140
+    },
+    "oop": {
+      "title": "Object-Oriented Programming",
+      "count": 120
+    },
+    "dbms": {
+      "title": "Database Management Systems",
+      "count": 140
+    },
+    "sql": {
+      "title": "SQL (Structured Query Language)",
+      "count": 150
+    },
+    "operatingSystems": {
+      "title": "Operating Systems",
+      "count": 150
+    },
+    "computerNetworks": {
+      "title": "Computer Networks",
+      "count": 160
+    },
+    "computer_organization": {
+      "title": "Computer Organization & Architecture",
+      "count": 120
+    },
+    "software_engineering": {
+      "title": "Software Engineering",
+      "count": 140
+    },
+    "system_design": {
+      "title": "System Design",
+      "count": 20
+    },
+    "web_development": {
+      "title": "Web Development & Frontend Engineering",
+      "count": 140
+    },
+    "git_version_control": {
+      "title": "Git & Version Control",
+      "count": 100
+    },
+    "cloud_devops": {
+      "title": "Cloud Computing & DevOps Fundamentals",
+      "count": 110
+    },
+    "ai_machine_learning": {
+      "title": "Artificial Intelligence & Machine Learning",
+      "count": 150
+    }
+  },
+  "topicCounts": {
+    "aptitude ||| Number System": 10,
+    "aptitude ||| HCF & LCM": 10,
+    "aptitude ||| Simplification": 10,
+    "aptitude ||| Percentages": 10,
+    "aptitude ||| Ratio & Proportion": 10,
+    "aptitude ||| Average": 10,
+    "aptitude ||| Profit, Loss & Discount": 10,
+    "aptitude ||| Simple Interest": 10,
+    "aptitude ||| Compound Interest": 10,
+    "aptitude ||| Time & Work": 10,
+    "aptitude ||| Pipes & Cisterns": 10,
+    "aptitude ||| Time, Speed & Distance": 10,
+    "aptitude ||| Problems on Trains": 10,
+    "aptitude ||| Boats & Streams": 10,
+    "aptitude ||| Mixtures & Alligation": 10,
+    "aptitude ||| Partnership": 10,
+    "aptitude ||| Ages": 10,
+    "aptitude ||| Probability": 10,
+    "aptitude ||| Permutation & Combination": 10,
+    "aptitude ||| Data Interpretation": 10,
+    "english ||| Reading Comprehension": 10,
+    "english ||| Grammar": 10,
+    "english ||| Sentence Correction": 10,
+    "english ||| Error Detection": 10,
+    "english ||| Vocabulary": 10,
+    "english ||| Synonyms & Antonyms": 10,
+    "english ||| Fill in the Blanks": 10,
+    "english ||| Para Jumbles": 10,
+    "english ||| Sentence Completion": 10,
+    "english ||| Cloze Test": 10,
+    "logicalReasoning ||| Number Series": 10,
+    "logicalReasoning ||| Alphabet Series": 10,
+    "logicalReasoning ||| Coding-Decoding": 10,
+    "logicalReasoning ||| Blood Relations": 10,
+    "logicalReasoning ||| Direction Sense": 10,
+    "logicalReasoning ||| Seating Arrangement": 10,
+    "logicalReasoning ||| Puzzles": 10,
+    "logicalReasoning ||| Syllogisms": 10,
+    "logicalReasoning ||| Statement & Conclusions": 10,
+    "logicalReasoning ||| Analogy": 10,
+    "logicalReasoning ||| Classification": 10,
+    "logicalReasoning ||| Data Sufficiency": 10,
+    "communication ||| Group Discussion Fundamentals": 10,
+    "communication ||| GD Opening & Closing": 10,
+    "communication ||| GD Communication Skills": 10,
+    "communication ||| GD Do's & Don'ts": 10,
+    "communication ||| Leadership & Team Behaviour": 10,
+    "communication ||| Extempore": 10,
+    "communication ||| Presentation Skills": 10,
+    "communication ||| Active Listening": 10,
+    "communication ||| Professional Communication": 10,
+    "communication ||| Email & Workplace Communication": 10,
+    "hrBehavioral ||| HR & Behavioral Scenarios": 10,
+    "programming ||| Programming Basics": 10,
+    "programming ||| Variables & Data Types": 10,
+    "programming ||| Operators": 10,
+    "programming ||| Conditions": 10,
+    "programming ||| Loops": 10,
+    "programming ||| Functions": 10,
+    "programming ||| Recursion": 10,
+    "programming ||| Arrays": 10,
+    "programming ||| Strings": 10,
+    "programming ||| Pointers & References": 10,
+    "programming ||| Complexity Analysis": 10,
+    "programming ||| Basic Data Structures": 10,
+    "programming ||| Debugging": 10,
+    "programming ||| Problem-Solving Approach": 10,
+    "oop ||| Classes & Objects": 10,
+    "oop ||| Encapsulation": 10,
+    "oop ||| Abstraction": 10,
+    "oop ||| Inheritance": 10,
+    "oop ||| Polymorphism": 10,
+    "oop ||| Constructors & Destructors": 10,
+    "oop ||| Overloading vs Overriding": 10,
+    "oop ||| Virtual Functions": 10,
+    "oop ||| Interfaces / Abstract Classes": 10,
+    "oop ||| SOLID Fundamentals": 10,
+    "oop ||| Composition vs Inheritance": 10,
+    "oop ||| Common OOP Interview Scenarios": 10,
+    "dbms ||| DBMS Fundamentals": 10,
+    "dbms ||| ER Model": 10,
+    "dbms ||| Keys": 10,
+    "dbms ||| Functional Dependencies": 10,
+    "dbms ||| Normalization": 10,
+    "dbms ||| Transactions": 10,
+    "dbms ||| ACID Properties": 10,
+    "dbms ||| Concurrency Control": 10,
+    "dbms ||| Indexing": 10,
+    "dbms ||| B-Trees / B+ Trees": 10,
+    "dbms ||| Deadlocks": 10,
+    "dbms ||| Database Security": 10,
+    "dbms ||| SQL vs NoSQL": 10,
+    "dbms ||| Relational Databases": 10,
+    "sql ||| SELECT": 10,
+    "sql ||| WHERE": 10,
+    "sql ||| ORDER BY": 10,
+    "sql ||| GROUP BY": 10,
+    "sql ||| HAVING": 10,
+    "sql ||| Aggregate Functions": 10,
+    "sql ||| JOINs": 10,
+    "sql ||| Subqueries": 10,
+    "sql ||| CTEs": 10,
+    "sql ||| Window Functions": 10,
+    "sql ||| CASE": 10,
+    "sql ||| INSERT / UPDATE / DELETE": 10,
+    "sql ||| Constraints": 10,
+    "sql ||| Indexes": 10,
+    "sql ||| Transactions": 10,
+    "operatingSystems ||| OS Fundamentals": 10,
+    "operatingSystems ||| Processes": 10,
+    "operatingSystems ||| Threads": 10,
+    "operatingSystems ||| Process Scheduling": 10,
+    "operatingSystems ||| CPU Scheduling Algorithms": 10,
+    "operatingSystems ||| Synchronization": 10,
+    "operatingSystems ||| Mutex & Semaphore": 10,
+    "operatingSystems ||| Deadlocks": 10,
+    "operatingSystems ||| Memory Management": 10,
+    "operatingSystems ||| Paging": 10,
+    "operatingSystems ||| Segmentation": 10,
+    "operatingSystems ||| Virtual Memory": 10,
+    "operatingSystems ||| Page Replacement": 10,
+    "operatingSystems ||| File Systems": 10,
+    "operatingSystems ||| System Calls": 10,
+    "computerNetworks ||| Networking Fundamentals": 10,
+    "computerNetworks ||| OSI Model": 10,
+    "computerNetworks ||| TCP/IP Model": 10,
+    "computerNetworks ||| TCP": 10,
+    "computerNetworks ||| UDP": 10,
+    "computerNetworks ||| IP Addressing": 10,
+    "computerNetworks ||| Subnetting": 10,
+    "computerNetworks ||| DNS": 10,
+    "computerNetworks ||| DHCP": 10,
+    "computerNetworks ||| HTTP / HTTPS": 10,
+    "computerNetworks ||| TLS": 10,
+    "computerNetworks ||| Routing": 10,
+    "computerNetworks ||| ARP": 10,
+    "computerNetworks ||| NAT": 10,
+    "computerNetworks ||| Firewalls": 10,
+    "computerNetworks ||| Network Security": 10,
+    "computer_organization ||| Number Systems & Binary Arithmetic": 10,
+    "computer_organization ||| Logic Gates & Boolean Algebra": 10,
+    "computer_organization ||| Combinational Circuits": 10,
+    "computer_organization ||| Sequential Circuits": 10,
+    "computer_organization ||| Computer Architecture Types": 10,
+    "computer_organization ||| Instruction Formats & Addressing Modes": 10,
+    "computer_organization ||| CPU Datapath, Control Unit & ALU": 10,
+    "computer_organization ||| Pipelining & Pipeline Hazards": 10,
+    "computer_organization ||| Memory Hierarchy & Cache Memory": 10,
+    "computer_organization ||| Virtual Memory, TLB & Page Tables": 10,
+    "computer_organization ||| I/O Organization, Interrupts & DMA": 10,
+    "computer_organization ||| Secondary Storage & RAID Levels": 10,
+    "software_engineering ||| SDLC Models": 10,
+    "software_engineering ||| Agile Methodology & Scrum Framework": 10,
+    "software_engineering ||| Requirements Engineering & SRS": 10,
+    "software_engineering ||| Software Architecture Patterns": 10,
+    "software_engineering ||| UML Diagrams": 10,
+    "software_engineering ||| Design Principles": 10,
+    "software_engineering ||| Software Testing Fundamentals": 10,
+    "software_engineering ||| Testing Levels": 10,
+    "software_engineering ||| Test Automation & TDD vs BDD": 10,
+    "software_engineering ||| Software Maintenance, Refactoring & Technical Debt": 10,
+    "software_engineering ||| Software Metrics & Quality Assurance": 10,
+    "software_engineering ||| Software Project Estimation & Models": 10,
+    "software_engineering ||| DevOps Culture, CI/CD & Release Management": 10,
+    "software_engineering ||| Code Review Best Practices & Static Analysis": 10,
+    "system_design ||| System Design Fundamentals": 20,
+    "web_development ||| HTML5 Semantics & Web Standards": 10,
+    "web_development ||| Modern CSS": 10,
+    "web_development ||| JavaScript Core Concepts": 10,
+    "web_development ||| Asynchronous JS": 10,
+    "web_development ||| DOM Manipulation & Browser Rendering": 10,
+    "web_development ||| React Core Concepts": 10,
+    "web_development ||| React Hooks": 10,
+    "web_development ||| State Management": 10,
+    "web_development ||| Web Performance & Optimization": 10,
+    "web_development ||| Web Security Fundamentals": 10,
+    "web_development ||| RESTful APIs & Fetch / Axios": 10,
+    "web_development ||| WebSockets & Real-time": 10,
+    "web_development ||| Progressive Web Apps & Service Workers": 10,
+    "web_development ||| TypeScript Fundamentals": 10,
+    "git_version_control ||| Git Architecture & Object Model": 10,
+    "git_version_control ||| Basic Commands": 10,
+    "git_version_control ||| Git Branching & Merging": 10,
+    "git_version_control ||| Git Rebase vs Merge": 10,
+    "git_version_control ||| Undoing Changes": 10,
+    "git_version_control ||| Git Stash & Git Cherry-pick": 10,
+    "git_version_control ||| Remote Repositories & Collaboration": 10,
+    "git_version_control ||| Git Bisect & Debugging Tools": 10,
+    "git_version_control ||| Git Hooks & Workflow Automation": 10,
+    "git_version_control ||| Branching Strategies": 10,
+    "cloud_devops ||| Cloud Service Models": 10,
+    "cloud_devops ||| Cloud Deployment Models": 10,
+    "cloud_devops ||| AWS Core Services": 10,
+    "cloud_devops ||| Containerization & Docker": 10,
+    "cloud_devops ||| Docker Networking & Compose": 10,
+    "cloud_devops ||| Container Orchestration & Kubernetes": 10,
+    "cloud_devops ||| CI/CD Pipeline Design & Automation": 10,
+    "cloud_devops ||| Infrastructure as Code": 10,
+    "cloud_devops ||| Observability, Logging & Monitoring": 10,
+    "cloud_devops ||| Cloud Security & Secrets Management": 10,
+    "cloud_devops ||| SRE Principles": 10,
+    "ai_machine_learning ||| AI vs ML vs Deep Learning": 10,
+    "ai_machine_learning ||| Supervised Learning": 10,
+    "ai_machine_learning ||| Unsupervised Learning": 10,
+    "ai_machine_learning ||| Reinforcement Learning": 10,
+    "ai_machine_learning ||| Model Evaluation Metrics": 10,
+    "ai_machine_learning ||| Bias-Variance & Overfitting": 10,
+    "ai_machine_learning ||| Regularization Techniques": 10,
+    "ai_machine_learning ||| Neural Networks Fundamentals": 10,
+    "ai_machine_learning ||| Optimization Algorithms": 10,
+    "ai_machine_learning ||| CNNs & Computer Vision": 10,
+    "ai_machine_learning ||| RNNs & Sequence Modeling": 10,
+    "ai_machine_learning ||| Transformer & Self-Attention": 10,
+    "ai_machine_learning ||| NLP Fundamentals": 10,
+    "ai_machine_learning ||| LLMs & Generative AI": 10,
+    "ai_machine_learning ||| Ethical AI & MLOps": 10
+  },
+  "structuralIssuesCount": 1390,
+  "structuralIssues": [
+    {
+      "id": "apt-num-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-num-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-num-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-num-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-num-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-num-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-num-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-num-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-num-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-num-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-hcf-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-hcf-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-hcf-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-hcf-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-hcf-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-hcf-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-hcf-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-hcf-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-hcf-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-hcf-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-sim-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-sim-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-sim-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-sim-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-sim-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-sim-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-sim-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-sim-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-sim-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-sim-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-pct-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-pct-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-pct-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-pct-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-pct-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-pct-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-pct-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-pct-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-pct-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-pct-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-rat-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-rat-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-rat-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-rat-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-rat-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-rat-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-rat-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-rat-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-rat-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-rat-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-avg-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-avg-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-avg-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-avg-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-avg-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-avg-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-avg-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-avg-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-avg-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-avg-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-pld-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-pld-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-pld-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-pld-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-pld-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-pld-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-pld-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-pld-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-pld-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-pld-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-si-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-si-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-si-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-si-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-si-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-si-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-si-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-si-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-si-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-si-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-ci-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-ci-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-ci-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-ci-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-ci-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-ci-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-ci-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-ci-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-ci-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-ci-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-tw-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-tw-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-tw-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-tw-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-tw-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-tw-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-tw-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-tw-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-tw-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-tw-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-pc-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-pc-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-pc-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-pc-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-pc-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-pc-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-pc-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-pc-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-pc-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-pc-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-tsd-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-tsd-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-tsd-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-tsd-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-tsd-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-tsd-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-tsd-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-tsd-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-tsd-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-tsd-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-tr-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-tr-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-tr-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-tr-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-tr-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-tr-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-tr-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-tr-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-tr-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-tr-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-bs-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-bs-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-bs-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-bs-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-bs-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-bs-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-bs-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-bs-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-bs-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-bs-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-mix-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-mix-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-mix-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-mix-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-mix-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-mix-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-mix-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-mix-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-mix-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-mix-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-part-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-part-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-part-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-part-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-part-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-part-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-part-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-part-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-part-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-part-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-age-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-age-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-age-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-age-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-age-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-age-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-age-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-age-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-age-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-age-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-prob-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-prob-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-prob-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-prob-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-prob-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-prob-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-prob-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-prob-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-prob-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-prob-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-pnc-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-pnc-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-pnc-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-pnc-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-pnc-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-pnc-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-pnc-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-pnc-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-pnc-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-pnc-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-di-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-di-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-di-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-di-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "apt-di-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-di-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-di-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-di-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "apt-di-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "apt-di-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-rc-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-rc-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-rc-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-rc-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-rc-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-rc-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-rc-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-rc-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-rc-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-rc-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-grm-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-grm-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-grm-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-grm-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-grm-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-grm-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-grm-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-grm-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-grm-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-grm-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-sc-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-sc-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-sc-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-sc-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-sc-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-sc-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-sc-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-sc-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-sc-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-sc-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-ed-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-ed-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-ed-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-ed-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-ed-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-ed-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-ed-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-ed-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-ed-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-ed-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-voc-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-voc-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-voc-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-voc-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-voc-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-voc-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-voc-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-voc-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-voc-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-voc-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-sa-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-sa-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-sa-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-sa-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-sa-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-sa-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-sa-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-sa-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-sa-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-sa-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-fib-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-fib-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-fib-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-fib-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-fib-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-fib-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-fib-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-fib-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-fib-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-fib-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-pj-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-pj-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-pj-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-pj-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-pj-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-pj-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-pj-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-pj-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-pj-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-pj-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-scmp-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-scmp-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-scmp-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-scmp-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-scmp-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-scmp-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-scmp-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-scmp-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-scmp-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-scmp-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-clz-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-clz-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-clz-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-clz-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "eng-clz-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-clz-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-clz-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-clz-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "eng-clz-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "eng-clz-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-ns-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-ns-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-ns-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-ns-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-ns-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-ns-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-ns-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-ns-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-ns-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-ns-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-as-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-as-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-as-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-as-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-as-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-as-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-as-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-as-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-as-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-as-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-cd-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-cd-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-cd-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-cd-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-cd-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-cd-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-cd-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-cd-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-cd-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-cd-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-br-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-br-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-br-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-br-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-br-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-br-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-br-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-br-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-br-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-br-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-ds-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-ds-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-ds-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-ds-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-ds-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-ds-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-ds-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-ds-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-ds-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-ds-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-sa-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-sa-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-sa-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-sa-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-sa-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-sa-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-sa-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-sa-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-sa-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-sa-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-puz-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-puz-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-puz-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-puz-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-puz-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-puz-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-puz-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-puz-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-puz-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-puz-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-syl-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-syl-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-syl-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-syl-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-syl-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-syl-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-syl-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-syl-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-syl-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-syl-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-sc-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-sc-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-sc-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-sc-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-sc-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-sc-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-sc-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-sc-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-sc-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-sc-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-ana-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-ana-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-ana-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-ana-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-ana-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-ana-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-ana-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-ana-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-ana-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-ana-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-cls-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-cls-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-cls-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-cls-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-cls-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-cls-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-cls-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-cls-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-cls-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-cls-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-dsuf-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-dsuf-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-dsuf-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-dsuf-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "lr-dsuf-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-dsuf-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-dsuf-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-dsuf-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "lr-dsuf-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "lr-dsuf-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-gdf-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-gdf-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-gdf-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-gdf-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-gdf-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-gdf-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-gdf-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-gdf-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-gdf-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-gdf-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-goc-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-goc-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-goc-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-goc-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-goc-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-goc-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-goc-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-goc-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-goc-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-goc-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-gcs-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-gcs-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-gcs-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-gcs-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-gcs-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-gcs-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-gcs-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-gcs-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-gcs-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-gcs-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-dd-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-dd-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-dd-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-dd-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-dd-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-dd-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-dd-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-dd-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-dd-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-dd-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-ltb-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-ltb-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-ltb-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-ltb-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-ltb-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-ltb-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-ltb-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-ltb-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-ltb-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-ltb-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-ext-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-ext-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-ext-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-ext-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-ext-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-ext-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-ext-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-ext-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-ext-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-ext-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-prs-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-prs-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-prs-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-prs-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-prs-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-prs-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-prs-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-prs-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-prs-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-prs-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-al-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-al-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-al-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-al-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-al-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-al-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-al-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-al-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-al-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-al-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-pc-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-pc-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-pc-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-pc-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-pc-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-pc-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-pc-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-pc-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-pc-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-pc-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-ewc-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-ewc-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-ewc-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-ewc-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "comm-ewc-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-ewc-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-ewc-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-ewc-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "comm-ewc-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "comm-ewc-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "hr-mcq-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "hr-mcq-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "hr-mcq-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "hr-mcq-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "hr-mcq-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "hr-mcq-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "hr-mcq-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "hr-mcq-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "hr-mcq-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "hr-mcq-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-bsc-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-bsc-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-bsc-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-bsc-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-bsc-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-bsc-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-bsc-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-bsc-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-bsc-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-bsc-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-vdt-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-vdt-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-vdt-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-vdt-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-vdt-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-vdt-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-vdt-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-vdt-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-vdt-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-vdt-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-opr-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-opr-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-opr-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-opr-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-opr-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-opr-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-opr-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-opr-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-opr-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-opr-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-cnd-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-cnd-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-cnd-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-cnd-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-cnd-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-cnd-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-cnd-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-cnd-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-cnd-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-cnd-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-lop-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-lop-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-lop-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-lop-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-lop-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-lop-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-lop-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-lop-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-lop-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-lop-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-fnc-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-fnc-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-fnc-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-fnc-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-fnc-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-fnc-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-fnc-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-fnc-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-fnc-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-fnc-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-rec-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-rec-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-rec-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-rec-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-rec-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-rec-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-rec-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-rec-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-rec-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-rec-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-arr-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-arr-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-arr-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-arr-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-arr-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-arr-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-arr-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-arr-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-arr-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-arr-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-str-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-str-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-str-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-str-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-str-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-str-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-str-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-str-08",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-str-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-str-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-ptr-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-ptr-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-ptr-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-ptr-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-ptr-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-ptr-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-ptr-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-ptr-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-ptr-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-ptr-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-cpx-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-cpx-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-cpx-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-cpx-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-cpx-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-cpx-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-cpx-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-cpx-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-cpx-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-cpx-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-bds-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-bds-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-bds-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-bds-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-bds-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-bds-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-bds-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-bds-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-bds-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-bds-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-dbg-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-dbg-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-dbg-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-dbg-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-dbg-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-dbg-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-dbg-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-dbg-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-dbg-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-dbg-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-psa-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-psa-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-psa-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-psa-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "prog-psa-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-psa-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-psa-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-psa-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "prog-psa-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "prog-psa-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-cls-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-cls-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-cls-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-cls-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-cls-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-cls-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-cls-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-cls-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-cls-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-cls-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-enc-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-enc-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-enc-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-enc-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-enc-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-enc-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-enc-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-enc-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-enc-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-enc-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-abs-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-abs-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-abs-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-abs-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-abs-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-abs-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-abs-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-abs-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-abs-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-abs-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-inh-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-inh-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-inh-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-inh-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-inh-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-inh-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-inh-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-inh-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-inh-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-inh-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-ply-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-ply-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-ply-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-ply-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-ply-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-ply-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-ply-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-ply-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-ply-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-ply-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-cd-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-cd-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-cd-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-cd-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-cd-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-cd-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-cd-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-cd-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-cd-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-cd-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-ovo-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-ovo-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-ovo-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-ovo-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-ovo-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-ovo-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-ovo-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-ovo-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-ovo-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-ovo-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-vf-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-vf-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-vf-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-vf-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-vf-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-vf-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-vf-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-vf-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-vf-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-vf-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-iac-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-iac-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-iac-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-iac-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-iac-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-iac-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-iac-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-iac-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-iac-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-iac-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-sld-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-sld-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-sld-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-sld-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-sld-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-sld-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-sld-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-sld-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-sld-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-sld-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-cvi-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-cvi-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-cvi-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-cvi-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-cvi-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-cvi-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-cvi-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-cvi-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-cvi-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-cvi-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-scn-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-scn-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-scn-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-scn-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "oop-scn-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-scn-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-scn-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-scn-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "oop-scn-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "oop-scn-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-fnd-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-fnd-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-fnd-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-fnd-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-fnd-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-fnd-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-fnd-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-fnd-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-fnd-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-fnd-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-erm-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-erm-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-erm-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-erm-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-erm-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-erm-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-erm-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-erm-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-erm-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-erm-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-key-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-key-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-key-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-key-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-key-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-key-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-key-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-key-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-key-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-key-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-fd-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-fd-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-fd-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-fd-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-fd-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-fd-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-fd-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-fd-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-fd-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-fd-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-nrm-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-nrm-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-nrm-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-nrm-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-nrm-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-nrm-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-nrm-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-nrm-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-nrm-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-nrm-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-txn-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-txn-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-txn-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-txn-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-txn-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-txn-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-txn-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-txn-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-txn-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-txn-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-acd-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-acd-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-acd-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-acd-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-acd-05",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-acd-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-acd-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-acd-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-acd-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-acd-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-cnc-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-cnc-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-cnc-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-cnc-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-cnc-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-cnc-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-cnc-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-cnc-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-cnc-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-cnc-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-idx-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-idx-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-idx-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-idx-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-idx-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-idx-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-idx-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-idx-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-idx-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-idx-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-bt-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-bt-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-bt-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-bt-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-bt-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-bt-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-bt-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-bt-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-bt-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-bt-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-dlk-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-dlk-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-dlk-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-dlk-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-dlk-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-dlk-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-dlk-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-dlk-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-dlk-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-dlk-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-sec-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-sec-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-sec-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-sec-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-sec-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-sec-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-sec-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-sec-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-sec-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-sec-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-nosql-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-nosql-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-nosql-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-nosql-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-nosql-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-nosql-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-nosql-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-nosql-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-nosql-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-nosql-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-rdb-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-rdb-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-rdb-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-rdb-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "dbms-rdb-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-rdb-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-rdb-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-rdb-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "dbms-rdb-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "dbms-rdb-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-sel-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-sel-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-sel-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-sel-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-sel-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-sel-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-sel-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-sel-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-sel-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-sel-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-whr-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-whr-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-whr-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-whr-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-whr-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-whr-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-whr-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-whr-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-whr-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-whr-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-ord-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-ord-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-ord-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-ord-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-ord-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-ord-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-ord-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-ord-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-ord-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-ord-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-grp-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-grp-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-grp-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-grp-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-grp-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-grp-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-grp-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-grp-08",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-grp-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-grp-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-hav-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-hav-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-hav-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-hav-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-hav-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-hav-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-hav-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-hav-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-hav-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-hav-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-agg-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-agg-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-agg-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-agg-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-agg-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-agg-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-agg-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-agg-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-agg-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-agg-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-joi-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-joi-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-joi-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-joi-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-joi-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-joi-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-joi-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-joi-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-joi-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-joi-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-sub-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-sub-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-sub-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-sub-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-sub-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-sub-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-sub-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-sub-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-sub-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-sub-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-cte-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-cte-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-cte-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-cte-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-cte-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-cte-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-cte-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-cte-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-cte-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-cte-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-win-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-win-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-win-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-win-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-win-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-win-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-win-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-win-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-win-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-win-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-cse-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-cse-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-cse-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-cse-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-cse-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-cse-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-cse-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-cse-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-cse-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-cse-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-dml-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-dml-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-dml-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-dml-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-dml-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-dml-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-dml-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-dml-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-dml-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-dml-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-cst-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-cst-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-cst-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-cst-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-cst-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-cst-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-cst-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-cst-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-cst-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-cst-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-idx-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-idx-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-idx-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-idx-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-idx-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-idx-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-idx-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-idx-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-idx-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-idx-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-trx-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-trx-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-trx-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-trx-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "sql-trx-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-trx-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-trx-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-trx-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "sql-trx-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "sql-trx-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-fnd-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-fnd-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-fnd-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-fnd-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-fnd-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-fnd-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-fnd-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-fnd-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-fnd-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-fnd-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-prc-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-prc-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-prc-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-prc-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-prc-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-prc-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-prc-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-prc-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-prc-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-prc-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-thd-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-thd-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-thd-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-thd-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-thd-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-thd-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-thd-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-thd-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-thd-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-thd-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-sch-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-sch-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-sch-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-sch-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-sch-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-sch-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-sch-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-sch-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-sch-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-sch-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-alg-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-alg-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-alg-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-alg-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-alg-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-alg-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-alg-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-alg-08",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-alg-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-alg-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-syn-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-syn-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-syn-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-syn-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-syn-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-syn-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-syn-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-syn-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-syn-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-syn-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-sem-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-sem-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-sem-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-sem-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-sem-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-sem-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-sem-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-sem-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-sem-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-sem-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-dlk-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-dlk-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-dlk-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-dlk-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-dlk-05",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-dlk-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-dlk-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-dlk-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-dlk-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-dlk-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-mm-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-mm-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-mm-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-mm-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-mm-05",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-mm-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-mm-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-mm-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-mm-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-mm-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-pag-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-pag-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-pag-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-pag-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-pag-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-pag-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-pag-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-pag-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-pag-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-pag-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-seg-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-seg-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-seg-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-seg-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-seg-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-seg-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-seg-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-seg-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-seg-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-seg-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-vm-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-vm-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-vm-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-vm-04",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-vm-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-vm-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-vm-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-vm-08",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-vm-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-vm-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-rep-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-rep-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-rep-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-rep-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-rep-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-rep-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-rep-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-rep-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-rep-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-rep-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-fs-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-fs-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-fs-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-fs-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-fs-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-fs-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-fs-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-fs-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-fs-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-fs-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-sys-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-sys-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-sys-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-sys-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "os-sys-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-sys-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-sys-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-sys-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "os-sys-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "os-sys-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-fnd-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-fnd-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-fnd-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-fnd-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-fnd-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-fnd-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-fnd-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-fnd-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-fnd-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-fnd-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-osi-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-osi-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-osi-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-osi-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-osi-05",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-osi-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-osi-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-osi-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-osi-09",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-osi-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-tcpip-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-tcpip-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-tcpip-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-tcpip-04",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-tcpip-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-tcpip-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-tcpip-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-tcpip-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-tcpip-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-tcpip-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-tcp-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-tcp-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-tcp-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-tcp-04",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-tcp-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-tcp-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-tcp-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-tcp-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-tcp-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-tcp-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-udp-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-udp-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-udp-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-udp-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-udp-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-udp-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-udp-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-udp-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-udp-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-udp-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-ip-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-ip-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-ip-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-ip-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-ip-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-ip-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-ip-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-ip-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-ip-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-ip-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-sub-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-sub-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-sub-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-sub-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-sub-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-sub-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-sub-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-sub-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-sub-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-sub-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-dns-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-dns-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-dns-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-dns-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-dns-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-dns-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-dns-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-dns-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-dns-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-dns-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-dhc-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-dhc-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-dhc-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-dhc-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-dhc-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-dhc-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-dhc-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-dhc-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-dhc-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-dhc-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-http-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-http-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-http-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-http-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-http-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-http-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-http-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-http-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-http-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-http-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-tls-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-tls-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-tls-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-tls-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-tls-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-tls-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-tls-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-tls-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-tls-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-tls-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-rtg-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-rtg-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-rtg-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-rtg-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-rtg-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-rtg-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-rtg-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-rtg-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-rtg-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-rtg-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-arp-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-arp-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-arp-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-arp-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-arp-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-arp-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-arp-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-arp-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-arp-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-arp-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-nat-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-nat-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-nat-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-nat-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-nat-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-nat-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-nat-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-nat-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-nat-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-nat-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-fw-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-fw-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-fw-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-fw-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-fw-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-fw-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-fw-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-fw-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-fw-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-fw-10",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-sec-01",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-sec-02",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-sec-03",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-sec-04",
+      "issue": "Invalid difficulty: easy"
+    },
+    {
+      "id": "cn-sec-05",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-sec-06",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-sec-07",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-sec-08",
+      "issue": "Invalid difficulty: medium"
+    },
+    {
+      "id": "cn-sec-09",
+      "issue": "Invalid difficulty: hard"
+    },
+    {
+      "id": "cn-sec-10",
+      "issue": "Invalid difficulty: hard"
+    }
+  ],
+  "duplicateQuestionsCount": 2,
+  "duplicateQuestions": [
+    {
+      "originalId": "cn-sec-07",
+      "duplicateId": "wd_sec_1",
+      "category1": "computerNetworks",
+      "category2": "web_development",
+      "question": "What is Cross-Site Scripting (XSS)?"
+    },
+    {
+      "originalId": "cn-sec-08",
+      "duplicateId": "wd_sec_2",
+      "category1": "computerNetworks",
+      "category2": "web_development",
+      "question": "What is Cross-Site Request Forgery (CSRF)?"
+    }
+  ],
+  "duplicateOptionsCount": 24,
+  "duplicateOptions": [
+    {
+      "id": "apt-sim-04",
+      "optionIndex": 2,
+      "optionText": "√2"
+    },
+    {
+      "id": "apt-sim-07",
+      "optionIndex": 3,
+      "optionText": "2 - √3"
+    },
+    {
+      "id": "apt-sim-09",
+      "optionIndex": 3,
+      "optionText": "-3"
+    },
+    {
+      "id": "prog-opr-02",
+      "optionIndex": 3,
+      "optionText": "-1"
+    },
+    {
+      "id": "prog-opr-06",
+      "optionIndex": 2,
+      "optionText": "(n ^ (n + 1)) == 0"
+    },
+    {
+      "id": "prog-lop-06",
+      "optionIndex": 1,
+      "optionText": "O(N + M)"
+    },
+    {
+      "id": "prog-arr-03",
+      "optionIndex": 2,
+      "optionText": "n + 1"
+    },
+    {
+      "id": "prog-str-08",
+      "optionIndex": 1,
+      "optionText": "O(n * m)"
+    },
+    {
+      "id": "sql-sel-05",
+      "optionIndex": 3,
+      "optionText": "SELECT first_name & ' ' & last_name FROM students;"
+    },
+    {
+      "id": "sql-whr-02",
+      "optionIndex": 2,
+      "optionText": "SELECT * FROM customers WHERE email == NULL;"
+    },
+    {
+      "id": "sql-whr-03",
+      "optionIndex": 1,
+      "optionText": "SELECT * FROM products WHERE title LIKE '%P';"
+    },
+    {
+      "id": "sql-whr-03",
+      "optionIndex": 2,
+      "optionText": "SELECT * FROM products WHERE title LIKE '_P%';"
+    },
+    {
+      "id": "sql-whr-06",
+      "optionIndex": 1,
+      "optionText": "~"
+    },
+    {
+      "id": "sql-whr-06",
+      "optionIndex": 3,
+      "optionText": "=="
+    },
+    {
+      "id": "sql-grp-03",
+      "optionIndex": 3,
+      "optionText": "SELECT region + product, SUM(amount) FROM sales;"
+    },
+    {
+      "id": "os-pag-10",
+      "optionIndex": 3,
+      "optionText": "EAT = t + m"
+    },
+    {
+      "id": "co_lg_2",
+      "optionIndex": 1,
+      "optionText": "A' + B'"
+    },
+    {
+      "id": "co_lg_2",
+      "optionIndex": 2,
+      "optionText": "(A + B)'"
+    },
+    {
+      "id": "co_lg_2",
+      "optionIndex": 3,
+      "optionText": "A + B"
+    },
+    {
+      "id": "co_lg_4",
+      "optionIndex": 3,
+      "optionText": "A . B"
+    },
+    {
+      "id": "co_lg_8",
+      "optionIndex": 1,
+      "optionText": "A' + B' . C' = (A' + B') . (A' + C')"
+    },
+    {
+      "id": "co_lg_8",
+      "optionIndex": 3,
+      "optionText": "A + (B . C)' = A' . B . C"
+    },
+    {
+      "id": "co_pl_2",
+      "optionIndex": 2,
+      "optionText": "k^2"
+    },
+    {
+      "id": "se_met_2",
+      "optionIndex": 3,
+      "optionText": "V(G) = E * N / P"
+    }
+  ],
+  "explanationContradictionsCount": 0,
+  "explanationContradictions": [],
+  "optionAnomaliesCount": 0,
+  "optionAnomalies": []
+}

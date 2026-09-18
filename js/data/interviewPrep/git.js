@@ -404,8 +404,8 @@ window.interviewPrepGit = {
     "difficulty": "Medium",
     "question": "What command safely deletes a local branch that has already been fully merged into your current branch?",
     "options": [
-      "git branch -D <branch>",
-      "git branch -d <branch>",
+      "git branch -D <branch> (force delete)",
+      "git branch -d <branch> (safe delete)",
       "git delete-branch <branch>",
       "git rm -branch <branch>"
     ],
