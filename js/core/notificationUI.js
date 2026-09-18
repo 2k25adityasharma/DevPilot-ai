@@ -178,7 +178,7 @@
           </div>
 
           <!-- Content -->
-          <div class="flex-1 min-w-0 pr-8">
+          <div class="flex-1 min-w-0 pr-1">
             <div class="flex items-center gap-1.5 mb-0.5">
               <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 ${safeSection}
@@ -191,18 +191,6 @@
             </h4>
             ${safeDesc ? `<p class="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-relaxed">${safeDesc}</p>` : ''}
           </div>
-
-          <!-- Individual Delete Button -->
-          <button 
-            type="button"
-            class="notif-delete-btn absolute top-2.5 right-2.5 z-20 w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-error hover:bg-error-container/20 transition-colors cursor-pointer select-none"
-            data-delete-id="${escapeHtml(item.id)}"
-            aria-label="Remove notification"
-            title="Remove notification"
-            onclick="window.NotificationUI && window.NotificationUI.handleDelete(event, this.getAttribute('data-delete-id'))"
-          >
-            <span class="material-symbols-outlined text-[16px] pointer-events-none select-none">close</span>
-          </button>
         </div>
       `;
     }).join('');
