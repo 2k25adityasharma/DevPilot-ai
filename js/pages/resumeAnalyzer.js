@@ -8819,12 +8819,18 @@ function initPillarDetailsToggles(area) {
         btn.setAttribute('aria-expanded', 'false');
         targetEl.style.display = 'none';
         const icon = btn.querySelector ? btn.querySelector('.material-symbols-outlined') : null;
-        if (icon) icon.textContent = 'expand_more';
+        if (icon) {
+          if (window.DevPilotIcons) DevPilotIcons.setIcon(icon, 'expand_more');
+          else icon.textContent = 'expand_more';
+        }
       } else {
         btn.setAttribute('aria-expanded', 'true');
         targetEl.style.display = 'flex';
         const icon = btn.querySelector ? btn.querySelector('.material-symbols-outlined') : null;
-        if (icon) icon.textContent = 'expand_less';
+        if (icon) {
+          if (window.DevPilotIcons) DevPilotIcons.setIcon(icon, 'expand_less');
+          else icon.textContent = 'expand_less';
+        }
       }
     });
   });

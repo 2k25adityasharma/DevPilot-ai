@@ -300,13 +300,19 @@
     if (dom.btnTimerStart) {
       if (activeState.isRunning) {
         if (dom.timerStartText) dom.timerStartText.textContent = 'Pause';
-        if (dom.timerStartIcon) dom.timerStartIcon.textContent = 'pause';
+        if (dom.timerStartIcon) {
+          if (window.DevPilotIcons) DevPilotIcons.setIcon(dom.timerStartIcon, 'pause');
+          else dom.timerStartIcon.textContent = 'pause';
+        }
         dom.btnTimerStart.classList.remove('btn-primary');
         dom.btnTimerStart.classList.add('btn-secondary');
         if (dom.timerCircleContainer) dom.timerCircleContainer.classList.add('is-running');
       } else if (activeState.isPaused) {
         if (dom.timerStartText) dom.timerStartText.textContent = 'Resume';
-        if (dom.timerStartIcon) dom.timerStartIcon.textContent = 'play_arrow';
+        if (dom.timerStartIcon) {
+          if (window.DevPilotIcons) DevPilotIcons.setIcon(dom.timerStartIcon, 'play_arrow');
+          else dom.timerStartIcon.textContent = 'play_arrow';
+        }
         dom.btnTimerStart.classList.add('btn-primary');
         dom.btnTimerStart.classList.remove('btn-secondary');
         if (dom.timerCircleContainer) dom.timerCircleContainer.classList.remove('is-running');
@@ -314,7 +320,10 @@
         let label = 'Start Focus';
         if (activeState.mode !== 'work') label = 'Start Break';
         if (dom.timerStartText) dom.timerStartText.textContent = label;
-        if (dom.timerStartIcon) dom.timerStartIcon.textContent = 'play_arrow';
+        if (dom.timerStartIcon) {
+          if (window.DevPilotIcons) DevPilotIcons.setIcon(dom.timerStartIcon, 'play_arrow');
+          else dom.timerStartIcon.textContent = 'play_arrow';
+        }
         dom.btnTimerStart.classList.add('btn-primary');
         dom.btnTimerStart.classList.remove('btn-secondary');
         if (dom.timerCircleContainer) dom.timerCircleContainer.classList.remove('is-running');

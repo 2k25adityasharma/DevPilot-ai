@@ -6,7 +6,6 @@
   <title>GitHub Analyzer - DevPilot-AI</title>
 
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" id="tailwind-cdn"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
@@ -32,6 +31,7 @@
       setTimeout(reveal, 1200);
     })();
   </script>
+  <script src="../js/core/icons.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased min-h-screen">
 
@@ -41,13 +41,13 @@
   <!-- SideNavBar -->
   <aside class="fixed left-0 top-0 h-full w-[260px] bg-white border-r border-slate-200 flex flex-col py-6 z-50 transform md:translate-x-0" id="sidebar">
     <button aria-label="Toggle Sidebar" class="absolute -right-3.5 top-6 w-7 h-7 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:border-indigo-600 transition-colors z-50 hidden md:flex shadow-sm" id="sidebar-toggle">
-      <span class="material-symbols-outlined text-[18px]" id="sidebar-toggle-icon">chevron_left</span>
+      <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="chevron_left" id="sidebar-toggle-icon"><path d="M561-240 320-481l241-241 43 43-198 198 198 198-43 43Z"/></svg>
     </button>
     <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Brand Logo -->
       <div class="px-6 mb-8 flex items-center gap-3 overflow-hidden">
         <div class="min-w-[32px] w-8 h-8 rounded bg-brand-gradient flex items-center justify-center text-white shrink-0 shadow-sm">
-          <span class="material-symbols-outlined text-xl" style='font-variation-settings: "FILL" 1;'>terminal</span>
+          <svg class="material-symbols-outlined text-xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="terminal" style='font-variation-settings: "FILL" 1;'><path d="M140-160q-24 0-42-18t-18-42v-520q0-24 18-42t42-18h680q24 0 42 18t18 42v520q0 24-18 42t-42 18H140Zm0-60h680v-436H140v436Zm160-72-42-42 103-104-104-104 43-42 146 146-146 146Zm190 4v-60h220v60H490Z"/></svg>
         </div>
         <div class="sidebar-text">
           <h1 class="text-xl font-bold text-indigo-600 tracking-tight leading-none">DevPilot AI</h1>
@@ -57,37 +57,37 @@
       <!-- Navigation Links -->
       <nav class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar px-3 space-y-1">
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="../index.html">
-          <span class="material-symbols-outlined shrink-0">dashboard</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="dashboard"><path d="M510-570v-270h330v270H510ZM120-450v-390h330v390H120Zm390 330v-390h330v390H510Zm-390 0v-270h330v270H120Zm60-390h210v-270H180v270Zm390 330h210v-270H570v270Zm0-450h210v-150H570v150ZM180-180h210v-150H180v150Zm210-330Zm180-120Zm0 180ZM390-330Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Dashboard</span>
           <span class="tooltip-text">Dashboard</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-indigo-50 text-indigo-900 border-l-[3px] border-indigo-600 tooltip relative group" href="github.html">
-          <span class="material-symbols-outlined text-indigo-600 shrink-0" style='font-variation-settings: "FILL" 1;'>analytics</span>
+          <svg class="material-symbols-outlined text-indigo-600 shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="analytics" style='font-variation-settings: "FILL" 1;'><path d="M284-277h60v-205h-60v205Zm332 0h60v-420h-60v420Zm-166 0h60v-118h-60v118Zm0-205h60v-60h-60v60ZM180-120q-24 0-42-18t-18-42v-600q0-24 18-42t42-18h600q24 0 42 18t18 42v600q0 24-18 42t-42 18H180Zm0-60h600v-600H180v600Zm0-600v600-600Z"/></svg>
           <span class="text-sm font-semibold sidebar-text">GitHub Analyzer</span>
           <span class="tooltip-text">GitHub Analyzer</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="chat.html">
-          <span class="material-symbols-outlined shrink-0">smart_toy</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="smart_toy"><path d="M147-376q-45 0-76-31.21T40-483q0-44.58 31.21-75.79Q102.42-590 147-590v-123q0-24 18-42t42-18h166q0-45 31-76t76-31q45 0 76 31.21T587-773h166q24 0 42 18t18 42v123q45 0 76 31.21T920-483q0 44.58-31.21 75.79Q857.58-376 813-376v196q0 24-18 42t-42 18H207q-24 0-42-18t-18-42v-196Zm224.5-111.74q11.5-11.73 11.5-28.5 0-16.76-11.74-28.26-11.73-11.5-28.5-11.5-16.76 0-28.26 11.74-11.5 11.73-11.5 28.5 0 16.76 11.74 28.26 11.73 11.5 28.5 11.5 16.76 0 28.26-11.74Zm274 0q11.5-11.73 11.5-28.5 0-16.76-11.74-28.26-11.73-11.5-28.5-11.5-16.76 0-28.26 11.74-11.5 11.73-11.5 28.5 0 16.76 11.74 28.26 11.73 11.5 28.5 11.5 16.76 0 28.26-11.74ZM312-285h336v-60H312v60ZM207-180h546v-533H207v533Zm273-267Z"/></svg>
           <span class="text-sm font-medium sidebar-text">AI Chat</span>
           <span class="tooltip-text">AI Chat</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="resume.html">
-          <span class="material-symbols-outlined shrink-0">description</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="description"><path d="M319-250h322v-60H319v60Zm0-170h322v-60H319v60ZM220-80q-24 0-42-18t-18-42v-680q0-24 18-42t42-18h361l219 219v521q0 24-18 42t-42 18H220Zm331-554v-186H220v680h520v-494H551ZM220-820v186-186 680-680Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Resume</span>
           <span class="tooltip-text">Resume</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="dsa.html">
-          <span class="material-symbols-outlined shrink-0">alt_route</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="alt_route"><path d="M450-80v-200q0-48-16-79t-49-64l43-43q13 11 27.5 30t24.5 35q17-26 33.5-45t31.5-32q58-47 83.5-113.5T648-766l-90 90-42-42 162-162 162 162-42 42-90-90q5 126-24.5 198.5T585-432q-44 40-59.5 73T510-280v200h-60ZM258-636q-4-18-6.5-52.5T251-765l-89 89-42-42 162-162 162 162-42 42-90-90q-2 38-1 66.5t5 49.5l-58 14Zm84 171q-17-18-37.5-47.5T273-577l59-15q9 25 24 48t28 37l-42 42Z"/></svg>
           <span class="text-sm font-medium sidebar-text">DSA Roadmap</span>
           <span class="tooltip-text">DSA Roadmap</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="roadmaps.html">
-          <span class="material-symbols-outlined shrink-0">map</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="map"><path d="m612-120-263-93-179 71q-17 9-33.5-1T120-173v-558q0-13 7.5-23t19.5-15l202-71 263 92 178-71q17-8 33.5 1.5T840-788v565q0 11-7.5 19T814-192l-202 72Zm-34-75v-505l-196-66v505l196 66Zm60 0 142-47v-512l-142 54v505Zm-458-12 142-54v-505l-142 47v512Zm458-493v505-505Zm-316-66v505-505Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Career Roadmaps</span>
           <span class="tooltip-text">Career Roadmaps</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="interviewPrep.html">
-          <span class="material-symbols-outlined shrink-0">work</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="work"><path d="M140-120q-24 0-42-18t-18-42v-480q0-24 18-42t42-18h180v-100q0-24 18-42t42-18h200q24 0 42 18t18 42v100h180q24 0 42 18t18 42v480q0 24-18 42t-42 18H140Zm0-60h680v-480H140v480Zm240-540h200v-100H380v100ZM140-180v-480 480Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Interview Prep</span>
           <span class="tooltip-text">Interview Prep</span>
         </a>
@@ -99,17 +99,17 @@
           <div class="w-4 h-[1px] bg-slate-200"></div>
         </div>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="notes.html">
-          <span class="material-symbols-outlined shrink-0">edit_note</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="edit_note"><path d="M160-410v-60h300v60H160Zm0-165v-60h470v60H160Zm0-165v-60h470v60H160Zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22q0 11-4.5 22.5T862.09-380L643-160H520Zm300-263-37-37 37 37ZM580-220h38l121-122-18-19-19-18-122 121v38Zm141-141-19-18 37 37-18-19Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Notes</span>
           <span class="tooltip-text">Notes</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="snippets.html">
-          <span class="material-symbols-outlined shrink-0">terminal</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="terminal"><path d="M140-160q-24 0-42-18t-18-42v-520q0-24 18-42t42-18h680q24 0 42 18t18 42v520q0 24-18 42t-42 18H140Zm0-60h680v-436H140v436Zm160-72-42-42 103-104-104-104 43-42 146 146-146 146Zm190 4v-60h220v60H490Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Snippets</span>
           <span class="tooltip-text">Snippets</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="prompts.html">
-          <span class="material-symbols-outlined shrink-0">bolt</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="bolt"><path d="m393-165 279-335H492l36-286-253 366h154l-36 255Zm-73 85 40-280H160l360-520h80l-40 320h240L400-80h-80Zm154-396Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Prompts</span>
           <span class="tooltip-text">Prompts</span>
         </a>
@@ -121,17 +121,17 @@
           <div class="w-4 h-[1px] bg-slate-200"></div>
         </div>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="habits.html">
-          <span class="material-symbols-outlined shrink-0">check_circle</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="check_circle"><path d="m421-298 283-283-46-45-237 237-120-120-45 45 165 166Zm59 218q-82 0-155-31.5t-127.5-86Q143-252 111.5-325T80-480q0-83 31.5-156t86-127Q252-817 325-848.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 82-31.5 155T763-197.5q-54 54.5-127 86T480-80Zm0-60q142 0 241-99.5T820-480q0-142-99-241t-241-99q-141 0-240.5 99T140-480q0 141 99.5 240.5T480-140Zm0-340Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Habits</span>
           <span class="tooltip-text">Habits</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="timer.html">
-          <span class="material-symbols-outlined shrink-0">timer</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="timer"><path d="M360-860v-60h240v60H360Zm90 447h60v-230h-60v230ZM340.5-109.5Q275-138 226-187t-77.5-114.5Q120-367 120-441t28.5-139.5Q177-646 226-695t114.5-77.5Q406-801 480-801q67 0 126 22.5T711-716l51-51 42 42-51 51q36 40 61.5 97T840-441q0 74-28.5 139.5T734-187q-49 49-114.5 77.5T480-81q-74 0-139.5-28.5Zm352-119Q780-316 780-441t-87.5-212.5Q605-741 480-741t-212.5 87.5Q180-566 180-441t87.5 212.5Q355-141 480-141t212.5-87.5ZM480-440Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Timer</span>
           <span class="tooltip-text">Timer</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="settings.html">
-          <span class="material-symbols-outlined shrink-0">settings</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="settings"><path d="m388-80-20-126q-19-7-40-19t-37-25l-118 54-93-164 108-79q-2-9-2.5-20.5T185-480q0-9 .5-20.5T188-521L80-600l93-164 118 54q16-13 37-25t40-18l20-127h184l20 126q19 7 40.5 18.5T669-710l118-54 93 164-108 77q2 10 2.5 21.5t.5 21.5q0 10-.5 21t-2.5 21l108 78-93 164-118-54q-16 13-36.5 25.5T592-206L572-80H388Zm48-60h88l14-112q33-8 62.5-25t53.5-41l106 46 40-72-94-69q4-17 6.5-33.5T715-480q0-17-2-33.5t-7-33.5l94-69-40-72-106 46q-23-26-52-43.5T538-708l-14-112h-88l-14 112q-34 7-63.5 24T306-642l-106-46-40 72 94 69q-4 17-6.5 33.5T245-480q0 17 2.5 33.5T254-413l-94 69 40 72 106-46q24 24 53.5 41t62.5 25l14 112Zm44-210q54 0 92-38t38-92q0-54-38-92t-92-38q-54 0-92 38t-38 92q0 54 38 92t92 38Zm0-130Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Settings</span>
           <span class="tooltip-text">Settings</span>
         </a>
@@ -164,7 +164,7 @@
       <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-200">
         <div class="flex items-center gap-3 min-w-0">
           <button class="mobile-nav-toggle md:hidden" id="mobile-menu-trigger" aria-label="Open Sidebar">
-            <span class="material-symbols-outlined">menu</span>
+            <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="menu"><path d="M120-240v-60h720v60H120Zm0-210v-60h720v60H120Zm0-210v-60h720v60H120Z"/></svg>
           </button>
           <div class="min-w-0">
             <h1 class="page-title text-2xl sm:text-3xl font-extrabold text-slate-900 truncate">GitHub Analyzer</h1>
@@ -177,11 +177,11 @@
           <!-- Username Input Group -->
           <div class="flex items-center gap-2">
             <div class="relative flex-1 sm:w-60 md:w-64">
-              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">person_search</span>
+              <svg class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="person_search"><path d="M440.5-500Q378-500 334-544.06 290-588.13 290-650q0-63 44.06-106.5Q378.13-800 440-800q63 0 106.5 43.5t43.5 106q0 62.5-43.5 106.5t-106 44Zm-.5-60q38 0 64-26.44T530-650q0-38-26-64t-63.5-26q-37.5 0-64 26T350-650.5q0 37.5 26.44 64T440-560ZM898-20 758-160q-23 17-47.5 23.5t-50.07 6.5q-71.01 0-120.72-49.62Q490-229.24 490-300.12t49.62-120.38q49.62-49.5 120.5-49.5t120.38 49.71Q830-370.58 830-299.57q0 25.57-6.5 50.07T800-202L940-62l-42 42ZM738.5-221.5Q770-253 770-300t-31.5-78.5Q707-410 660-410t-78.5 31.5Q550-347 550-300t31.5 78.5Q613-190 660-190t78.5-31.5ZM120-160v-94q0-37 17.5-63t50.5-43q47-23 122.5-43.5T464-419q-8 13-15 28.5T438-360q-78-1-136 18.5T212-306q-14 8-23 21.5t-9 30.5v34h258q11 17 20 31.5t20 28.5H120Zm320-490Zm-2 430Z"/></svg>
               <input type="text" id="github-username-input" placeholder="Enter username or GitHub URL" class="pl-9 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition-all w-full" value=""/>
             </div>
             <button class="btn-primary text-sm py-2 px-4 shrink-0" id="btn-analyze-github">
-              <span class="material-symbols-outlined text-[18px]">search_insights</span>
+              <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="search_insights"><path d="M400.06-300Q508-300 584.5-376.13 661-452.25 661-561q0-107.92-76.5-183.46T400.06-820q-107.94 0-183.5 75.54T141-561q0 108.75 75.56 184.87Q292.12-300 400.06-300ZM371-448v-267h60v267h-60Zm-145 0v-184h60v184h-60Zm290 0v-143h60v143h-60ZM838-80 605-314q-42 35-94.24 54.5Q458.51-240 400-240q-133 0-226-93.5T81-560.7q0-133.71 92.8-226.5Q266.59-880 400.3-880q133.7 0 227.2 93T721-561q0 58.51-19.5 110.76Q682-398 647-356l233 233-42 43Z"/></svg>
               <span>Analyze</span>
             </button>
           </div>
@@ -189,20 +189,20 @@
           <!-- Export Action Buttons Group -->
           <div class="flex items-center gap-2">
             <button class="btn-primary text-sm py-2 px-3.5 shrink-0" id="btn-export-pdf" title="Download PDF Developer Report (.pdf)">
-              <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+              <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="picture_as_pdf"><path d="M331-431h37v-83h48q15.73 0 26.36-10.64Q453-535.28 453-551v-48q0-15.72-10.64-26.36Q431.73-636 416-636h-85v205Zm37-120v-48h48v48h-48Zm129 120h84q15 0 26-10.64 11-10.63 11-26.36v-131q0-15.72-11-26.36Q596-636 581-636h-84v205Zm37-37v-131h47v131h-47Zm133 37h37v-83h50v-37h-50v-48h50v-37h-87v205ZM260-200q-24 0-42-18t-18-42v-560q0-24 18-42t42-18h560q24 0 42 18t18 42v560q0 24-18 42t-42 18H260Zm0-60h560v-560H260v560ZM140-80q-24 0-42-18t-18-42v-620h60v620h620v60H140Zm120-740v560-560Z"/></svg>
               <span class="hidden sm:inline">Export PDF</span>
               <span class="sm:hidden">PDF</span>
             </button>
             <button class="btn-secondary text-sm py-2 px-3 shrink-0" id="btn-export-txt" title="Download Text Report (.txt)">
-              <span class="material-symbols-outlined text-[18px]">description</span>
+              <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="description"><path d="M319-250h322v-60H319v60Zm0-170h322v-60H319v60ZM220-80q-24 0-42-18t-18-42v-680q0-24 18-42t42-18h361l219 219v521q0 24-18 42t-42 18H220Zm331-554v-186H220v680h520v-494H551ZM220-820v186-186 680-680Z"/></svg>
               <span class="hidden sm:inline">TXT</span>
             </button>
             <button class="btn-secondary text-sm py-2 px-3 shrink-0" id="btn-export-json" title="Download Raw JSON Data (.json)">
-              <span class="material-symbols-outlined text-[18px]">data_object</span>
+              <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="data_object"><path d="M570-160v-60h120q21 0 35.5-14.38Q740-248.75 740-270v-100q0-37 22.5-66t57.5-40v-8q-35-10-57.5-39.5T740-590v-100q0-21.25-14.37-35.63Q711.25-740 690-740H570v-60h120q46 0 78 32.08 32 32.09 32 77.92v100q0 21.25 14.38 35.62Q828.75-540 850-540h30v120h-30q-21.25 0-35.62 14.37Q800-391.25 800-370v100q0 45.83-32.08 77.92Q735.83-160 690-160H570Zm-300 0q-46 0-78-32.08-32-32.09-32-77.92v-100q0-21.25-14.37-35.63Q131.25-420 110-420H80v-120h30q21.25 0 35.63-14.38Q160-568.75 160-590v-100q0-45.83 32.08-77.92Q224.17-800 270-800h120v60H270q-21 0-35.5 14.37Q220-711.25 220-690v100q0 37-22.5 66.5T140-484v8q35 11 57.5 40t22.5 66v100q0 21.25 14.38 35.62Q248.75-220 270-220h120v60H270Z"/></svg>
               <span class="hidden sm:inline">JSON</span>
             </button>
             <button class="btn-secondary text-sm py-2 px-3 shrink-0" id="btn-copy-report" title="Copy Text Report to Clipboard">
-              <span class="material-symbols-outlined text-[18px]">content_copy</span>
+              <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="content_copy"><path d="M300-200q-24 0-42-18t-18-42v-560q0-24 18-42t42-18h440q24 0 42 18t18 42v560q0 24-18 42t-42 18H300Zm0-60h440v-560H300v560ZM180-80q-24 0-42-18t-18-42v-620h60v620h500v60H180Zm120-180v-560 560Z"/></svg>
             </button>
           </div>
         </div>
@@ -234,7 +234,7 @@
       <div class="analyzer-state active" id="state-initial">
         <div class="dev-card text-center py-16 px-6 max-w-2xl mx-auto my-6">
           <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
-            <span class="material-symbols-outlined text-3xl">insights</span>
+            <svg class="material-symbols-outlined text-3xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="insights"><path d="M3 20q-.825 0-1.412-.587Q1 18.825 1 18q0-.825.588-1.413Q2.175 16 3 16h.263q.112 0 .237.05l4.55-4.55Q8 11.375 8 11.262V11q0-.825.588-1.413Q9.175 9 10 9t1.413.587Q12 10.175 12 11q0 .05-.05.5l2.55 2.55q.125-.05.238-.05h.524q.113 0 .238.05l3.55-3.55q-.05-.125-.05-.238V10q0-.825.587-1.413Q20.175 8 21 8q.825 0 1.413.587Q23 9.175 23 10q0 .825-.587 1.412Q21.825 12 21 12h-.262q-.113 0-.238-.05l-3.55 3.55q.05.125.05.238V16q0 .825-.587 1.413Q15.825 18 15 18q-.825 0-1.412-.587Q13 16.825 13 16v-.262q0-.113.05-.238l-2.55-2.55q-.125.05-.238.05H10q-.05 0-.5-.05L4.95 17.5q.05.125.05.238V18q0 .825-.588 1.413Q3.825 20 3 20ZM4 9.975l-.625-1.35L2.025 8l1.35-.625L4 6.025l.625 1.35L5.975 8l-1.35.625ZM15 9l-.95-2.05L12 6l2.05-.95L15 3l.95 2.05L18 6l-2.05.95Z"/></svg>
           </div>
           <h2 class="text-2xl font-bold text-slate-900 mb-2">Ready to Analyze Any GitHub Developer</h2>
           <p class="text-sm text-slate-500 max-w-md mx-auto mb-8 leading-relaxed">
@@ -242,11 +242,11 @@
           </p>
           <div class="flex flex-wrap items-center justify-center gap-3">
             <button class="btn-primary text-sm py-2 px-5 sample-user-chip" data-username="torvalds">
-              <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+              <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="play_arrow"><path d="M320-203v-560l440 280-440 280Zm60-280Zm0 171 269-171-269-171v342Z"/></svg>
               <span>Analyze @torvalds (Linux)</span>
             </button>
             <button class="btn-secondary text-sm py-2 px-5 sample-user-chip" data-username="shadcn">
-              <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+              <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="play_arrow"><path d="M320-203v-560l440 280-440 280Zm60-280Zm0 171 269-171-269-171v342Z"/></svg>
               <span>Analyze @shadcn (UI)</span>
             </button>
           </div>
@@ -301,14 +301,14 @@
       <div class="analyzer-state" id="state-error">
         <div class="dev-card text-center py-14 px-6 max-w-xl mx-auto my-6 border-red-200 bg-red-50/20">
           <div class="w-14 h-14 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4">
-            <span class="material-symbols-outlined text-3xl">error</span>
+            <svg class="material-symbols-outlined text-3xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="error"><path d="M503.5-289.48q9.5-9.48 9.5-23.5t-9.48-23.52q-9.48-9.5-23.5-9.5t-23.52 9.48q-9.5 9.48-9.5 23.5t9.48 23.52q9.48 9.5 23.5 9.5t23.52-9.48ZM453-433h60v-253h-60v253Zm27.27 353q-82.74 0-155.5-31.5Q252-143 197.5-197.5t-86-127.34Q80-397.68 80-480.5t31.5-155.66Q143-709 197.5-763t127.34-85.5Q397.68-880 480.5-880t155.66 31.5Q709-817 763-763t85.5 127Q880-563 880-480.27q0 82.74-31.5 155.5Q817-252 763-197.68q-54 54.31-127 86Q563-80 480.27-80Zm.23-60Q622-140 721-239.5t99-241Q820-622 721.19-721T480-820q-141 0-240.5 98.81T140-480q0 141 99.5 240.5t241 99.5Zm-.5-340Z"/></svg>
           </div>
           <h3 class="text-xl font-bold text-slate-900 mb-2">GitHub User Not Found</h3>
           <p class="text-sm text-slate-600 max-w-md mx-auto mb-6" id="error-message-text">
             Could not find the requested user. Please check the spelling and try again.
           </p>
           <button class="btn-primary text-sm py-2 px-5" onclick="document.getElementById('github-username-input').focus()">
-            <span class="material-symbols-outlined text-[18px]">search</span>
+            <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="search"><path d="M796-121 533-384q-30 26-70 40.5T378-329q-108 0-183-75t-75-181q0-106 75-181t182-75q106 0 180.5 75T632-585q0 43-14 83t-42 75l264 262-44 44ZM377-389q81 0 138-57.5T572-585q0-81-57-138.5T377-781q-82 0-139.5 57.5T180-585q0 81 57.5 138.5T377-389Z"/></svg>
             <span>Try Another Username</span>
           </button>
         </div>
@@ -320,7 +320,7 @@
       <div class="analyzer-state" id="state-ratelimit">
         <div class="dev-card text-center py-14 px-6 max-w-xl mx-auto my-6 border-amber-200 bg-amber-50/20">
           <div class="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
-            <span class="material-symbols-outlined text-3xl">hourglass_empty</span>
+            <svg class="material-symbols-outlined text-3xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="hourglass_empty"><path d="M308-140h344v-127q0-72-50-121.5T480-438q-72 0-122 49.5T308-267v127Zm294-432q50-50 50-122v-126H308v126q0 72 50 122t122 50q72 0 122-50ZM160-80v-60h88v-127q0-71 40-129t106-84q-66-27-106-85t-40-129v-126h-88v-60h640v60h-88v126q0 71-40 129t-106 85q66 26 106 84t40 129v127h88v60H160Z"/></svg>
           </div>
           <h3 class="text-xl font-bold text-slate-900 mb-2">GitHub API Rate Limit Reached</h3>
           <p class="text-sm text-slate-600 max-w-md mx-auto mb-2">
@@ -331,7 +331,7 @@
           </p>
           <div class="flex items-center justify-center gap-3">
             <a href="settings.html" class="btn-primary text-sm py-2 px-4">
-              <span class="material-symbols-outlined text-[18px]">key</span>
+              <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="key"><path d="M232-432q-20-20-20-48t20-48q20-20 48-20t48 20q20 20 20 48t-20 48q-20 20-48 20t-48-20Zm48 192q-100 0-170-70T40-480q0-100 70-170t170-70q72 0 126 34t85 103h356l113 113-167 153-88-64-88 64-75-60h-51q-25 60-78.5 98.5T280-240Zm0-60q58 0 107-38.5t63-98.5h114l54 45 88-63 82 62 85-79-51-51H450q-12-56-60-96.5T280-660q-75 0-127.5 52.5T100-480q0 75 52.5 127.5T280-300Z"/></svg>
               <span>Add GitHub Token in Settings</span>
             </a>
           </div>
@@ -347,7 +347,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-6">
           <div class="dev-card flex items-center gap-4 p-5 min-h-[96px] min-w-0">
             <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-              <span class="material-symbols-outlined text-2xl">star</span>
+              <svg class="material-symbols-outlined text-2xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="star"><path d="m323-245 157-94 157 95-42-178 138-120-182-16-71-168-71 167-182 16 138 120-42 178Zm-90 125 65-281L80-590l288-25 112-265 112 265 288 25-218 189 65 281-247-149-247 149Zm247-355Z"/></svg>
             </div>
             <div class="min-w-0 flex-1">
               <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">Total Stars</p>
@@ -357,7 +357,7 @@
 
           <div class="dev-card flex items-center gap-4 p-5 min-h-[96px] min-w-0">
             <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-              <span class="material-symbols-outlined text-2xl">fork_right</span>
+              <svg class="material-symbols-outlined text-2xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="fork_right"><path d="M372-120v-606l-90 90-42-42 162-162 162 162-42 42-90-90v320q30-33 71.5-54T607-481q16 0 38 3t41 8l-90-90 42-42 162 162-162 162-42-42 90-90q-16-5-38-8t-45-3q-57 0-104.5 34T432-290v170h-60Z"/></svg>
             </div>
             <div class="min-w-0 flex-1">
               <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">Total Forks</p>
@@ -367,7 +367,7 @@
 
           <div class="dev-card flex items-center gap-4 p-5 min-h-[96px] min-w-0">
             <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-              <span class="material-symbols-outlined text-2xl">folder</span>
+              <svg class="material-symbols-outlined text-2xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="folder"><path d="M140-160q-24 0-42-18.5T80-220v-520q0-23 18-41.5t42-18.5h281l60 60h339q23 0 41.5 18.5T880-680v460q0 23-18.5 41.5T820-160H140Zm0-60h680v-460H456l-60-60H140v520Zm0 0v-520 520Z"/></svg>
             </div>
             <div class="min-w-0 flex-1">
               <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">Total Repos</p>
@@ -377,7 +377,7 @@
 
           <div class="dev-card flex items-center gap-4 p-5 min-h-[96px] min-w-0">
             <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-              <span class="material-symbols-outlined text-2xl">group</span>
+              <svg class="material-symbols-outlined text-2xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="group"><path d="M38-160v-94q0-35 18-63.5t50-42.5q73-32 131.5-46T358-420q62 0 120 14t131 46q32 14 50.5 42.5T678-254v94H38Zm700 0v-94q0-63-32-103.5T622-423q69 8 130 23.5t99 35.5q33 19 52 47t19 63v94H738ZM250-523q-42-42-42-108t42-108q42-42 108-42t108 42q42 42 42 108t-42 108q-42 42-108 42t-108-42Zm426 0q-42 42-108 42-11 0-24.5-1.5T519-488q24-25 36.5-61.5T568-631q0-45-12.5-79.5T519-774q11-3 24.5-5t24.5-2q66 0 108 42t42 108q0 66-42 108ZM98-220h520v-34q0-16-9.5-31T585-306q-72-32-121-43t-106-11q-57 0-106.5 11T130-306q-14 6-23 21t-9 31v34Zm324.5-346.5Q448-592 448-631t-25.5-64.5Q397-721 358-721t-64.5 25.5Q268-670 268-631t25.5 64.5Q319-541 358-541t64.5-25.5ZM358-220Zm0-411Z"/></svg>
             </div>
             <div class="min-w-0 flex-1">
               <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">Followers</p>
@@ -408,19 +408,19 @@
                     <!-- Metadata row: Location • Organization • Website • Joined Date -->
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-2.5 text-xs text-slate-500">
                       <span class="flex items-center gap-1 shrink-0">
-                        <span class="material-symbols-outlined text-[15px] text-slate-400">location_on</span>
+                        <svg class="material-symbols-outlined text-[15px] text-slate-400" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="location_on"><path d="M529.5-510.5Q550-531 550-560t-20.5-49.5Q509-630 480-630t-49.5 20.5Q410-589 410-560t20.5 49.5Q451-490 480-490t49.5-20.5ZM480-159q133-121 196.5-219.5T740-552q0-118-75.5-193T480-820q-109 0-184.5 75T220-552q0 75 65 173.5T480-159Zm0 79Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Zm0-480Z"/></svg>
                         <span id="user-location">Location</span>
                       </span>
                       <span class="flex items-center gap-1 shrink-0">
-                        <span class="material-symbols-outlined text-[15px] text-slate-400">business</span>
+                        <svg class="material-symbols-outlined text-[15px] text-slate-400" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="business"><path d="M80-120v-720h390v165h410v555H80Zm60-60h105v-105H140v105Zm0-165h105v-105H140v105Zm0-165h105v-105H140v105Zm0-165h105v-105H140v105Zm165 495h105v-105H305v105Zm0-165h105v-105H305v105Zm0-165h105v-105H305v105Zm0-165h105v-105H305v105Zm165 495h350v-435H470v105h80v60h-80v105h80v60h-80v105Zm185-270v-60h60v60h-60Zm0 165v-60h60v60h-60Z"/></svg>
                         <span id="user-company">Company</span>
                       </span>
                       <span class="flex items-center gap-1 shrink-0">
-                        <span class="material-symbols-outlined text-[15px] text-slate-400">link</span>
+                        <svg class="material-symbols-outlined text-[15px] text-slate-400" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="link"><path d="M450-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h170v60H280q-58.33 0-99.17 40.76-40.83 40.77-40.83 99Q140-422 180.83-381q40.84 41 99.17 41h170v60ZM325-450v-60h310v60H325Zm185 170v-60h170q58.33 0 99.17-40.76 40.83-40.77 40.83-99Q820-538 779.17-579q-40.84-41-99.17-41H510v-60h170q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H510Z"/></svg>
                         <a href="#" target="_blank" id="user-blog" class="text-indigo-600 hover:underline truncate max-w-[180px]">Website</a>
                       </span>
                       <span class="flex items-center gap-1 shrink-0">
-                        <span class="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
+                        <svg class="material-symbols-outlined text-[15px] text-slate-400" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="calendar_today"><path d="M180-80q-24 0-42-18t-18-42v-620q0-24 18-42t42-18h65v-60h65v60h340v-60h65v60h65q24 0 42 18t18 42v620q0 24-18 42t-42 18H180Zm0-60h600v-430H180v430Zm0-490h600v-130H180v130Zm0 0v-130 130Z"/></svg>
                         <span id="user-joined">Joined 2022</span>
                       </span>
                     </div>
@@ -428,7 +428,7 @@
                 </div>
 
                 <a href="#" target="_blank" id="user-github-link" class="btn-secondary text-xs py-2 px-3.5 self-start sm:self-auto shrink-0 flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+                  <svg class="material-symbols-outlined text-[16px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="open_in_new"><path d="M180-120q-24 0-42-18t-18-42v-600q0-24 18-42t42-18h279v60H180v600h600v-279h60v279q0 24-18 42t-42 18H180Zm202-219-42-43 398-398H519v-60h321v321h-60v-218L382-339Z"/></svg>
                   <span>GitHub Profile</span>
                 </a>
               </div>
@@ -457,7 +457,7 @@
               <div class="mt-5 pt-4 border-t border-slate-100">
                 <div class="flex items-center justify-between mb-2">
                   <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                    <span class="material-symbols-outlined text-[16px] text-indigo-600">code_blocks</span>
+                    <svg class="material-symbols-outlined text-[16px] text-indigo-600" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="code_blocks"><path d="m379-343 44-44-93-93 92-92-44-44-136 136 137 137Zm202 0 137-137-137-137-44 44 93 93-93 93 44 44ZM180-120q-24 0-42-18t-18-42v-600q0-24 18-42t42-18h600q24 0 42 18t18 42v600q0 24-18 42t-42 18H180Zm0-60h600v-600H180v600Zm0-600v600-600Z"/></svg>
                     <span>Top Languages</span>
                   </span>
                   <span class="text-[11px] text-slate-400" id="profile-lang-summary">Primary: JavaScript</span>
@@ -484,7 +484,7 @@
             <div>
               <div class="flex items-center justify-between mb-2">
                 <h3 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-indigo-600 text-[20px]">military_tech</span>
+                  <svg class="material-symbols-outlined text-indigo-600 text-[20px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="military_tech"><path d="M280-880h400v333q0 23-11.32 42.15Q657.37-485.7 637-474l-141 82 26 97h134l-109 81 42 134-109-81-110 81 42-134-109-81h135.11L463-392l-140-82q-20.37-11.7-31.68-30.85Q280-524 280-547v-333Zm60 60v273q0 7 4.5 13t13.5 11l96 53v-350H340Zm280 0H514v350l88-53q9-5 13.5-11t4.5-13v-273ZM484-637Zm-30-8Zm60 0Z"/></svg>
                   <span>Developer Score</span>
                 </h3>
                 <span class="badge badge-primary text-xs" id="score-rank-tier">Developing</span>
@@ -525,7 +525,7 @@
             <div>
               <div class="flex items-center justify-between mb-4">
                 <h3 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-indigo-600 text-[20px]">donut_small</span>
+                  <svg class="material-symbols-outlined text-indigo-600 text-[20px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="donut_small"><path d="M521-878q143 14 243.03 114.21Q864.07-663.58 878-521H594q-8-26-27.5-44T521-591v-287Zm60 76v174q14 9 27 20.5t21 26.5h173q-25-80-83-138.5T581-802Zm-142-76v287q-35 14-56.5 45.19Q361-514.62 361-477q0 36.08 21.5 65.04Q404-383 439-369.91V-82Q286-96 183.5-209T81-477q0-155 102-270.5T439-878Zm-60 76q-109 30-173.5 121T141-477q0 111 66 199.5T379-157v-174q-37-25-57.5-63T301-477q0-45 20-85t58-66v-174Zm215 363h284q-14 143-114.21 243.03Q663.58-95.93 521-82v-288q26-8 45.5-25.5T594-439Zm35.17 60Q619-365 607.5-352 596-339 581-331v173q80-23 138-82t83-139H629.17ZM301-479Zm328-102Zm0 202Z"/></svg>
                   <span>Languages Breakdown</span>
                 </h3>
                 <span class="text-xs text-slate-400 font-medium">By Repository Count</span>
@@ -549,7 +549,7 @@
             <div class="dev-card p-4 min-w-0 flex flex-col justify-between">
               <div>
                 <h4 class="font-bold text-sm text-slate-900 mb-3 flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-indigo-600 text-[18px]">pie_chart</span>
+                  <svg class="material-symbols-outlined text-indigo-600 text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="pie_chart"><path d="M510-510h309q-11-122-98.5-211.5T510-819v309Zm-60 369v-678q-131 11-220.5 109T140-480q0 132 89.5 230T450-141Zm60 0q123-8 210.5-97.5T819-450H510v309Zm-30-339Zm0 400q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/></svg>
                   <span>Repository Metrics</span>
                 </h4>
                 <div class="grid grid-cols-3 gap-2 text-center text-xs">
@@ -592,7 +592,7 @@
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
             <div class="min-w-0">
               <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <span class="material-symbols-outlined text-indigo-600">inventory_2</span>
+                <svg class="material-symbols-outlined text-indigo-600" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="inventory_2"><path d="M180-80q-24.75 0-42.37-17.63Q120-115.25 120-140v-483q-17-6-28.5-21.39T80-680v-140q0-24.75 17.63-42.38Q115.25-880 140-880h680q24.75 0 42.38 17.62Q880-844.75 880-820v140q0 20.22-11.5 35.61T840-623v483q0 24.75-17.62 42.37Q804.75-80 780-80H180Zm0-540v480h600v-480H180Zm-40-60h680v-140H140v140Zm220 260h240v-60H360v60Zm120 40Z"/></svg>
                 <span>Repositories Directory</span>
               </h3>
               <p class="text-xs text-slate-500 mt-0.5" id="repos-filtered-count">Showing public repositories</p>
@@ -601,7 +601,7 @@
             <!-- Filters: Search, Language & Sort -->
             <div class="flex flex-wrap items-center gap-2.5">
               <div class="relative">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[16px]">search</span>
+                <svg class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[16px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="search"><path d="M796-121 533-384q-30 26-70 40.5T378-329q-108 0-183-75t-75-181q0-106 75-181t182-75q106 0 180.5 75T632-585q0 43-14 83t-42 75l264 262-44 44ZM377-389q81 0 138-57.5T572-585q0-81-57-138.5T377-781q-82 0-139.5 57.5T180-585q0 81 57.5 138.5T377-389Z"/></svg>
                 <input type="text" id="repo-list-search" placeholder="Search repository..." class="pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-all w-44 sm:w-56"/>
               </div>
 
@@ -631,7 +631,7 @@
           <div class="lg:col-span-5 min-w-0">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                <span class="material-symbols-outlined text-indigo-600">history</span>
+                <svg class="material-symbols-outlined text-indigo-600" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="history"><path d="M477-120q-149 0-253-105.5T120-481h60q0 125 86 213t211 88q127 0 215-89t88-216q0-124-89-209.5T477-780q-68 0-127.5 31T246-667h105v60H142v-208h60v106q52-61 123.5-96T477-840q75 0 141 28t115.5 76.5Q783-687 811.5-622T840-482q0 75-28.5 141t-78 115Q684-177 618-148.5T477-120Zm128-197L451-469v-214h60v189l137 134-43 43Z"/></svg>
                 <span>Recent Public Activity</span>
               </h3>
               <span class="badge badge-primary text-[10px]">Real-Time Events</span>
@@ -649,7 +649,7 @@
             <div class="min-w-0">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <span class="material-symbols-outlined text-indigo-600">psychology</span>
+                  <svg class="material-symbols-outlined text-indigo-600" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="psychology"><path d="M240-80v-172q-57-52-88.5-121.5T120-520q0-150 105-255t255-105q125 0 221.5 73.5T827-615l55 218q4 14-5 25.5T853-360h-93v140q0 24.75-17.62 42.37Q724.75-160 700-160H600v80h-60v-140h160v-200h114l-45-180q-24-97-105-158.5T480-820q-125 0-212.5 86.5T180-522.46q0 64.42 26.32 122.39Q232.65-342.09 281-297l19 18v199h-60Zm257-370Zm-48 76h60l3-44q12-2 22.47-8.46Q544.94-432.92 553-441l42 14 28-48-30-24q5-14 5-29t-5-29l30-24-28-48-42 14q-8.33-7.69-19.17-13.85Q523-635 512-638l-3-44h-60l-3 44q-11 3-21.83 9.15Q413.33-622.69 405-615l-42-14-28 48 30 24q-5 14-5 29t5 29l-30 24 28 48 42-14q8.06 8.08 18.53 14.54Q434-420 446-418l3 44Zm-19.5-104.38q-20.5-20.38-20.5-49.5t20.38-49.62q20.38-20.5 49.5-20.5t49.62 20.38q20.5 20.38 20.5 49.5t-20.38 49.62q-20.38 20.5-49.5 20.5t-49.62-20.38Z"/></svg>
                   <span>Developer Insights</span>
                 </h3>
                 <span class="text-xs text-slate-400">Data-Driven Profile Analysis</span>
@@ -664,7 +664,7 @@
             <div class="min-w-0">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <span class="material-symbols-outlined text-indigo-600">tips_and_updates</span>
+                  <svg class="material-symbols-outlined text-indigo-600" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="tips_and_updates"><path d="m22 10-.625-1.375L20 8l1.375-.625L22 6l.625 1.375L24 8l-1.375.625Zm-3-4-.95-2.05L16 3l2.05-.95L19 0l.95 2.05L22 3l-2.05.95ZM9 22q-.825 0-1.412-.587Q7 20.825 7 20h4q0 .825-.587 1.413Q9.825 22 9 22Zm-4-3v-2h8v2Zm.25-3q-1.725-1.025-2.737-2.75Q1.5 11.525 1.5 9.5q0-3.125 2.188-5.312Q5.875 2 9 2q3.125 0 5.312 2.188Q16.5 6.375 16.5 9.5q0 2.025-1.012 3.75-1.013 1.725-2.738 2.75Zm.6-2h6.3q1.125-.8 1.737-1.975.613-1.175.613-2.525 0-2.3-1.6-3.9T9 4Q6.7 4 5.1 5.6T3.5 9.5q0 1.35.613 2.525Q4.725 13.2 5.85 14ZM9 14Z"/></svg>
                   <span>Improvement Recommendations</span>
                 </h3>
                 <span class="text-xs text-slate-400">Actionable Steps</span>
@@ -683,15 +683,15 @@
               </div>
               <div class="flex items-center gap-2">
                 <button class="btn-primary text-xs py-2 px-4 shrink-0" id="btn-banner-export-pdf">
-                  <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+                  <svg class="material-symbols-outlined text-[16px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="picture_as_pdf"><path d="M331-431h37v-83h48q15.73 0 26.36-10.64Q453-535.28 453-551v-48q0-15.72-10.64-26.36Q431.73-636 416-636h-85v205Zm37-120v-48h48v48h-48Zm129 120h84q15 0 26-10.64 11-10.63 11-26.36v-131q0-15.72-11-26.36Q596-636 581-636h-84v205Zm37-37v-131h47v131h-47Zm133 37h37v-83h50v-37h-50v-48h50v-37h-87v205ZM260-200q-24 0-42-18t-18-42v-560q0-24 18-42t42-18h560q24 0 42 18t18 42v560q0 24-18 42t-42 18H260Zm0-60h560v-560H260v560ZM140-80q-24 0-42-18t-18-42v-620h60v620h620v60H140Zm120-740v560-560Z"/></svg>
                   <span>Export PDF Report</span>
                 </button>
                 <button class="btn-secondary text-xs py-2 px-3 shrink-0" id="btn-banner-export-txt">
-                  <span class="material-symbols-outlined text-[16px]">description</span>
+                  <svg class="material-symbols-outlined text-[16px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="description"><path d="M319-250h322v-60H319v60Zm0-170h322v-60H319v60ZM220-80q-24 0-42-18t-18-42v-680q0-24 18-42t42-18h361l219 219v521q0 24-18 42t-42 18H220Zm331-554v-186H220v680h520v-494H551ZM220-820v186-186 680-680Z"/></svg>
                   <span>TXT</span>
                 </button>
                 <button class="btn-secondary text-xs py-2 px-3 shrink-0" id="btn-banner-export-json">
-                  <span class="material-symbols-outlined text-[16px]">data_object</span>
+                  <svg class="material-symbols-outlined text-[16px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="data_object"><path d="M570-160v-60h120q21 0 35.5-14.38Q740-248.75 740-270v-100q0-37 22.5-66t57.5-40v-8q-35-10-57.5-39.5T740-590v-100q0-21.25-14.37-35.63Q711.25-740 690-740H570v-60h120q46 0 78 32.08 32 32.09 32 77.92v100q0 21.25 14.38 35.62Q828.75-540 850-540h30v120h-30q-21.25 0-35.62 14.37Q800-391.25 800-370v100q0 45.83-32.08 77.92Q735.83-160 690-160H570Zm-300 0q-46 0-78-32.08-32-32.09-32-77.92v-100q0-21.25-14.37-35.63Q131.25-420 110-420H80v-120h30q21.25 0 35.63-14.38Q160-568.75 160-590v-100q0-45.83 32.08-77.92Q224.17-800 270-800h120v60H270q-21 0-35.5 14.37Q220-711.25 220-690v100q0 37-22.5 66.5T140-484v8q35 11 57.5 40t22.5 66v100q0 21.25 14.38 35.62Q248.75-220 270-220h120v60H270Z"/></svg>
                   <span>JSON</span>
                 </button>
               </div>

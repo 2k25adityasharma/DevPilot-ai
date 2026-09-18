@@ -24,7 +24,6 @@
       }
     };
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
@@ -51,6 +50,7 @@
       setTimeout(reveal, 1200);
     })();
   </script>
+  <script src="../js/core/icons.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased min-h-screen">
 
@@ -60,13 +60,13 @@
   <!-- SideNavBar -->
   <aside class="fixed left-0 top-0 h-full w-[260px] bg-white border-r border-slate-200 flex flex-col py-6 z-50 transform md:translate-x-0" id="sidebar">
     <button aria-label="Toggle Sidebar" class="absolute -right-3.5 top-6 w-7 h-7 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:border-indigo-600 transition-colors z-50 shadow-sm" id="sidebar-toggle">
-      <span class="material-symbols-outlined text-[18px]" id="sidebar-toggle-icon">chevron_left</span>
+      <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="chevron_left" id="sidebar-toggle-icon"><path d="M561-240 320-481l241-241 43 43-198 198 198 198-43 43Z"/></svg>
     </button>
     <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Brand Logo -->
       <div class="px-6 mb-8 flex items-center gap-3 overflow-hidden">
         <div class="min-w-[32px] w-8 h-8 rounded bg-brand-gradient flex items-center justify-center text-white shrink-0 shadow-sm">
-          <span class="material-symbols-outlined text-xl" style='font-variation-settings: "FILL" 1;'>terminal</span>
+          <svg class="material-symbols-outlined text-xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="terminal" style='font-variation-settings: "FILL" 1;'><path d="M140-160q-24 0-42-18t-18-42v-520q0-24 18-42t42-18h680q24 0 42 18t18 42v520q0 24-18 42t-42 18H140Zm0-60h680v-436H140v436Zm160-72-42-42 103-104-104-104 43-42 146 146-146 146Zm190 4v-60h220v60H490Z"/></svg>
         </div>
         <div class="sidebar-text">
           <h1 class="text-xl font-bold text-indigo-600 tracking-tight leading-none">DevPilot AI</h1>
@@ -76,37 +76,37 @@
       <!-- Navigation Links -->
       <nav class="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar px-3 space-y-1">
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="../index.html">
-          <span class="material-symbols-outlined shrink-0">dashboard</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="dashboard"><path d="M510-570v-270h330v270H510ZM120-450v-390h330v390H120Zm390 330v-390h330v390H510Zm-390 0v-270h330v270H120Zm60-390h210v-270H180v270Zm390 330h210v-270H570v270Zm0-450h210v-150H570v150ZM180-180h210v-150H180v150Zm210-330Zm180-120Zm0 180ZM390-330Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Dashboard</span>
           <span class="tooltip-text">Dashboard</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="github.html">
-          <span class="material-symbols-outlined shrink-0">analytics</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="analytics"><path d="M284-277h60v-205h-60v205Zm332 0h60v-420h-60v420Zm-166 0h60v-118h-60v118Zm0-205h60v-60h-60v60ZM180-120q-24 0-42-18t-18-42v-600q0-24 18-42t42-18h600q24 0 42 18t18 42v600q0 24-18 42t-42 18H180Zm0-60h600v-600H180v600Zm0-600v600-600Z"/></svg>
           <span class="text-sm font-medium sidebar-text">GitHub Analyzer</span>
           <span class="tooltip-text">GitHub Analyzer</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="chat.html">
-          <span class="material-symbols-outlined shrink-0">smart_toy</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="smart_toy"><path d="M147-376q-45 0-76-31.21T40-483q0-44.58 31.21-75.79Q102.42-590 147-590v-123q0-24 18-42t42-18h166q0-45 31-76t76-31q45 0 76 31.21T587-773h166q24 0 42 18t18 42v123q45 0 76 31.21T920-483q0 44.58-31.21 75.79Q857.58-376 813-376v196q0 24-18 42t-42 18H207q-24 0-42-18t-18-42v-196Zm224.5-111.74q11.5-11.73 11.5-28.5 0-16.76-11.74-28.26-11.73-11.5-28.5-11.5-16.76 0-28.26 11.74-11.5 11.73-11.5 28.5 0 16.76 11.74 28.26 11.73 11.5 28.5 11.5 16.76 0 28.26-11.74Zm274 0q11.5-11.73 11.5-28.5 0-16.76-11.74-28.26-11.73-11.5-28.5-11.5-16.76 0-28.26 11.74-11.5 11.73-11.5 28.5 0 16.76 11.74 28.26 11.73 11.5 28.5 11.5 16.76 0 28.26-11.74ZM312-285h336v-60H312v60ZM207-180h546v-533H207v533Zm273-267Z"/></svg>
           <span class="text-sm font-medium sidebar-text">AI Chat</span>
           <span class="tooltip-text">AI Chat</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="resume.html">
-          <span class="material-symbols-outlined shrink-0">description</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="description"><path d="M319-250h322v-60H319v60Zm0-170h322v-60H319v60ZM220-80q-24 0-42-18t-18-42v-680q0-24 18-42t42-18h361l219 219v521q0 24-18 42t-42 18H220Zm331-554v-186H220v680h520v-494H551ZM220-820v186-186 680-680Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Resume</span>
           <span class="tooltip-text">Resume</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-indigo-50 text-indigo-900 border-l-[3px] border-indigo-600 tooltip relative group" href="dsa.html">
-          <span class="material-symbols-outlined text-indigo-600 shrink-0" style='font-variation-settings: "FILL" 1;'>alt_route</span>
+          <svg class="material-symbols-outlined text-indigo-600 shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="alt_route" style='font-variation-settings: "FILL" 1;'><path d="M450-80v-200q0-48-16-79t-49-64l43-43q13 11 27.5 30t24.5 35q17-26 33.5-45t31.5-32q58-47 83.5-113.5T648-766l-90 90-42-42 162-162 162 162-42 42-90-90q5 126-24.5 198.5T585-432q-44 40-59.5 73T510-280v200h-60ZM258-636q-4-18-6.5-52.5T251-765l-89 89-42-42 162-162 162 162-42 42-90-90q-2 38-1 66.5t5 49.5l-58 14Zm84 171q-17-18-37.5-47.5T273-577l59-15q9 25 24 48t28 37l-42 42Z"/></svg>
           <span class="text-sm font-semibold sidebar-text">DSA Roadmap</span>
           <span class="tooltip-text">DSA Roadmap</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="roadmaps.html">
-          <span class="material-symbols-outlined shrink-0">map</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="map"><path d="m612-120-263-93-179 71q-17 9-33.5-1T120-173v-558q0-13 7.5-23t19.5-15l202-71 263 92 178-71q17-8 33.5 1.5T840-788v565q0 11-7.5 19T814-192l-202 72Zm-34-75v-505l-196-66v505l196 66Zm60 0 142-47v-512l-142 54v505Zm-458-12 142-54v-505l-142 47v512Zm458-493v505-505Zm-316-66v505-505Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Career Roadmaps</span>
           <span class="tooltip-text">Career Roadmaps</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="interviewPrep.html">
-          <span class="material-symbols-outlined shrink-0">work</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="work"><path d="M140-120q-24 0-42-18t-18-42v-480q0-24 18-42t42-18h180v-100q0-24 18-42t42-18h200q24 0 42 18t18 42v100h180q24 0 42 18t18 42v480q0 24-18 42t-42 18H140Zm0-60h680v-480H140v480Zm240-540h200v-100H380v100ZM140-180v-480 480Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Interview Prep</span>
           <span class="tooltip-text">Interview Prep</span>
         </a>
@@ -118,17 +118,17 @@
           <div class="w-4 h-[1px] bg-slate-200"></div>
         </div>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="notes.html">
-          <span class="material-symbols-outlined shrink-0">edit_note</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="edit_note"><path d="M160-410v-60h300v60H160Zm0-165v-60h470v60H160Zm0-165v-60h470v60H160Zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22q0 11-4.5 22.5T862.09-380L643-160H520Zm300-263-37-37 37 37ZM580-220h38l121-122-18-19-19-18-122 121v38Zm141-141-19-18 37 37-18-19Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Notes</span>
           <span class="tooltip-text">Notes</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="snippets.html">
-          <span class="material-symbols-outlined shrink-0">terminal</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="terminal"><path d="M140-160q-24 0-42-18t-18-42v-520q0-24 18-42t42-18h680q24 0 42 18t18 42v520q0 24-18 42t-42 18H140Zm0-60h680v-436H140v436Zm160-72-42-42 103-104-104-104 43-42 146 146-146 146Zm190 4v-60h220v60H490Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Snippets</span>
           <span class="tooltip-text">Snippets</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="prompts.html">
-          <span class="material-symbols-outlined shrink-0">bolt</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="bolt"><path d="m393-165 279-335H492l36-286-253 366h154l-36 255Zm-73 85 40-280H160l360-520h80l-40 320h240L400-80h-80Zm154-396Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Prompts</span>
           <span class="tooltip-text">Prompts</span>
         </a>
@@ -140,17 +140,17 @@
           <div class="w-4 h-[1px] bg-slate-200"></div>
         </div>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="habits.html">
-          <span class="material-symbols-outlined shrink-0">check_circle</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="check_circle"><path d="m421-298 283-283-46-45-237 237-120-120-45 45 165 166Zm59 218q-82 0-155-31.5t-127.5-86Q143-252 111.5-325T80-480q0-83 31.5-156t86-127Q252-817 325-848.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 82-31.5 155T763-197.5q-54 54.5-127 86T480-80Zm0-60q142 0 241-99.5T820-480q0-142-99-241t-241-99q-141 0-240.5 99T140-480q0 141 99.5 240.5T480-140Zm0-340Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Habits</span>
           <span class="tooltip-text">Habits</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="timer.html">
-          <span class="material-symbols-outlined shrink-0">timer</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="timer"><path d="M360-860v-60h240v60H360Zm90 447h60v-230h-60v230ZM340.5-109.5Q275-138 226-187t-77.5-114.5Q120-367 120-441t28.5-139.5Q177-646 226-695t114.5-77.5Q406-801 480-801q67 0 126 22.5T711-716l51-51 42 42-51 51q36 40 61.5 97T840-441q0 74-28.5 139.5T734-187q-49 49-114.5 77.5T480-81q-74 0-139.5-28.5Zm352-119Q780-316 780-441t-87.5-212.5Q605-741 480-741t-212.5 87.5Q180-566 180-441t87.5 212.5Q355-141 480-141t212.5-87.5ZM480-440Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Timer</span>
           <span class="tooltip-text">Timer</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors duration-200 border-l-[3px] border-transparent tooltip relative group" href="settings.html">
-          <span class="material-symbols-outlined shrink-0">settings</span>
+          <svg class="material-symbols-outlined shrink-0" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="settings"><path d="m388-80-20-126q-19-7-40-19t-37-25l-118 54-93-164 108-79q-2-9-2.5-20.5T185-480q0-9 .5-20.5T188-521L80-600l93-164 118 54q16-13 37-25t40-18l20-127h184l20 126q19 7 40.5 18.5T669-710l118-54 93 164-108 77q2 10 2.5 21.5t.5 21.5q0 10-.5 21t-2.5 21l108 78-93 164-118-54q-16 13-36.5 25.5T592-206L572-80H388Zm48-60h88l14-112q33-8 62.5-25t53.5-41l106 46 40-72-94-69q4-17 6.5-33.5T715-480q0-17-2-33.5t-7-33.5l94-69-40-72-106 46q-23-26-52-43.5T538-708l-14-112h-88l-14 112q-34 7-63.5 24T306-642l-106-46-40 72 94 69q-4 17-6.5 33.5T245-480q0 17 2.5 33.5T254-413l-94 69 40 72 106-46q24 24 53.5 41t62.5 25l14 112Zm44-210q54 0 92-38t38-92q0-54-38-92t-92-38q-54 0-92 38t-38 92q0 54 38 92t92 38Zm0-130Z"/></svg>
           <span class="text-sm font-medium sidebar-text">Settings</span>
           <span class="tooltip-text">Settings</span>
         </a>
@@ -173,7 +173,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-200">
         <div class="flex items-center gap-3">
           <button class="mobile-nav-toggle md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg" id="mobile-menu-trigger" aria-label="Open Sidebar">
-            <span class="material-symbols-outlined">menu</span>
+            <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="menu"><path d="M120-240v-60h720v60H120Zm0-210v-60h720v60H120Zm0-210v-60h720v60H120Z"/></svg>
           </button>
           <div>
             <h1 class="page-title text-2xl sm:text-3xl font-extrabold text-slate-900">DSA Roadmap</h1>
@@ -185,11 +185,11 @@
         <div class="flex items-center gap-3">
           <div class="dsa-view-switcher" role="tablist" aria-label="DSA Views">
             <button class="dsa-tab-pill active" id="tab-btn-roadmap" role="tab" aria-selected="true">
-              <span class="material-symbols-outlined text-[18px]">alt_route</span>
+              <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="alt_route"><path d="M450-80v-200q0-48-16-79t-49-64l43-43q13 11 27.5 30t24.5 35q17-26 33.5-45t31.5-32q58-47 83.5-113.5T648-766l-90 90-42-42 162-162 162 162-42 42-90-90q5 126-24.5 198.5T585-432q-44 40-59.5 73T510-280v200h-60ZM258-636q-4-18-6.5-52.5T251-765l-89 89-42-42 162-162 162 162-42 42-90-90q-2 38-1 66.5t5 49.5l-58 14Zm84 171q-17-18-37.5-47.5T273-577l59-15q9 25 24 48t28 37l-42 42Z"/></svg>
               <span>Roadmap</span>
             </button>
             <button class="dsa-tab-pill" id="tab-btn-patterns" role="tab" aria-selected="false">
-              <span class="material-symbols-outlined text-[18px]">psychology</span>
+              <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="psychology"><path d="M240-80v-172q-57-52-88.5-121.5T120-520q0-150 105-255t255-105q125 0 221.5 73.5T827-615l55 218q4 14-5 25.5T853-360h-93v140q0 24.75-17.62 42.37Q724.75-160 700-160H600v80h-60v-140h160v-200h114l-45-180q-24-97-105-158.5T480-820q-125 0-212.5 86.5T180-522.46q0 64.42 26.32 122.39Q232.65-342.09 281-297l19 18v199h-60Zm257-370Zm-48 76h60l3-44q12-2 22.47-8.46Q544.94-432.92 553-441l42 14 28-48-30-24q5-14 5-29t-5-29l30-24-28-48-42 14q-8.33-7.69-19.17-13.85Q523-635 512-638l-3-44h-60l-3 44q-11 3-21.83 9.15Q413.33-622.69 405-615l-42-14-28 48 30 24q-5 14-5 29t5 29l-30 24 28 48 42-14q8.06 8.08 18.53 14.54Q434-420 446-418l3 44Zm-19.5-104.38q-20.5-20.38-20.5-49.5t20.38-49.62q20.38-20.5 49.5-20.5t49.62 20.38q20.5 20.38 20.5 49.5t-20.38 49.62q-20.38 20.5-49.5 20.5t-49.62-20.38Z"/></svg>
               <span>Pattern Learning</span>
               <span class="pl-tab-glow-badge">New</span>
             </button>
@@ -204,7 +204,7 @@
         <div class="dsa-hero-header">
           <div class="dsa-hero-title-group">
             <div class="dsa-hero-icon">
-              <span class="material-symbols-outlined">alt_route</span>
+              <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="alt_route"><path d="M450-80v-200q0-48-16-79t-49-64l43-43q13 11 27.5 30t24.5 35q17-26 33.5-45t31.5-32q58-47 83.5-113.5T648-766l-90 90-42-42 162-162 162 162-42 42-90-90q5 126-24.5 198.5T585-432q-44 40-59.5 73T510-280v200h-60ZM258-636q-4-18-6.5-52.5T251-765l-89 89-42-42 162-162 162 162-42 42-90-90q-2 38-1 66.5t5 49.5l-58 14Zm84 171q-17-18-37.5-47.5T273-577l59-15q9 25 24 48t28 37l-42 42Z"/></svg>
             </div>
             <div>
               <div class="dsa-hero-stats-count" id="dsa-total-solved-count">0 / 260</div>
@@ -212,7 +212,7 @@
             </div>
           </div>
           <div class="dsa-hero-pct-badge">
-            <span class="material-symbols-outlined text-[18px]">verified</span>
+            <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="verified"><path d="m346-60-76-130-151-31 17-147-96-112 96-111-17-147 151-31 76-131 134 62 134-62 77 131 150 31-17 147 96 111-96 112 17 147-150 31-77 130-134-62-134 62Zm27-79 107-45 110 45 67-100 117-30-12-119 81-92-81-94 12-119-117-28-69-100-108 45-110-45-67 100-117 28 12 119-81 94 81 92-12 121 117 28 70 100Zm107-341Zm-43 133 227-225-45-41-182 180-95-99-46 45 141 140Z"/></svg>
             <span id="dsa-pct-badge">0%</span>
           </div>
         </div>
@@ -259,19 +259,19 @@
         <div class="flex flex-wrap items-center gap-2 mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800">
           <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Solve Quality:</span>
           <span class="pl-breakdown-chip bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" id="dsa-stat-self">
-            <span class="material-symbols-outlined text-[13px]">verified</span>
+            <svg class="material-symbols-outlined text-[13px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="verified"><path d="m346-60-76-130-151-31 17-147-96-112 96-111-17-147 151-31 76-131 134 62 134-62 77 131 150 31-17 147 96 111-96 112 17 147-150 31-77 130-134-62-134 62Zm27-79 107-45 110 45 67-100 117-30-12-119 81-92-81-94 12-119-117-28-69-100-108 45-110-45-67 100-117 28 12 119-81 94 81 92-12 121 117 28 70 100Zm107-341Zm-43 133 227-225-45-41-182 180-95-99-46 45 141 140Z"/></svg>
             <span id="dsa-count-self">0</span> - Self
           </span>
           <span class="pl-breakdown-chip bg-amber-500/10 text-amber-600 border border-amber-500/20" id="dsa-stat-help30">
-            <span class="material-symbols-outlined text-[13px]">psychology</span>
+            <svg class="material-symbols-outlined text-[13px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="psychology"><path d="M240-80v-172q-57-52-88.5-121.5T120-520q0-150 105-255t255-105q125 0 221.5 73.5T827-615l55 218q4 14-5 25.5T853-360h-93v140q0 24.75-17.62 42.37Q724.75-160 700-160H600v80h-60v-140h160v-200h114l-45-180q-24-97-105-158.5T480-820q-125 0-212.5 86.5T180-522.46q0 64.42 26.32 122.39Q232.65-342.09 281-297l19 18v199h-60Zm257-370Zm-48 76h60l3-44q12-2 22.47-8.46Q544.94-432.92 553-441l42 14 28-48-30-24q5-14 5-29t-5-29l30-24-28-48-42 14q-8.33-7.69-19.17-13.85Q523-635 512-638l-3-44h-60l-3 44q-11 3-21.83 9.15Q413.33-622.69 405-615l-42-14-28 48 30 24q-5 14-5 29t5 29l-30 24 28 48 42-14q8.06 8.08 18.53 14.54Q434-420 446-418l3 44Zm-19.5-104.38q-20.5-20.38-20.5-49.5t20.38-49.62q20.38-20.5 49.5-20.5t49.62 20.38q20.5 20.38 20.5 49.5t-20.38 49.62q-20.38 20.5-49.5 20.5t-49.62-20.38Z"/></svg>
             <span id="dsa-count-help30">0</span> - 30% Help
           </span>
           <span class="pl-breakdown-chip bg-orange-500/10 text-orange-600 border border-orange-500/20" id="dsa-stat-help50">
-            <span class="material-symbols-outlined text-[13px]">smart_toy</span>
+            <svg class="material-symbols-outlined text-[13px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="smart_toy"><path d="M147-376q-45 0-76-31.21T40-483q0-44.58 31.21-75.79Q102.42-590 147-590v-123q0-24 18-42t42-18h166q0-45 31-76t76-31q45 0 76 31.21T587-773h166q24 0 42 18t18 42v123q45 0 76 31.21T920-483q0 44.58-31.21 75.79Q857.58-376 813-376v196q0 24-18 42t-42 18H207q-24 0-42-18t-18-42v-196Zm224.5-111.74q11.5-11.73 11.5-28.5 0-16.76-11.74-28.26-11.73-11.5-28.5-11.5-16.76 0-28.26 11.74-11.5 11.73-11.5 28.5 0 16.76 11.74 28.26 11.73 11.5 28.5 11.5 16.76 0 28.26-11.74Zm274 0q11.5-11.73 11.5-28.5 0-16.76-11.74-28.26-11.73-11.5-28.5-11.5-16.76 0-28.26 11.74-11.5 11.73-11.5 28.5 0 16.76 11.74 28.26 11.73 11.5 28.5 11.5 16.76 0 28.26-11.74ZM312-285h336v-60H312v60ZM207-180h546v-533H207v533Zm273-267Z"/></svg>
             <span id="dsa-count-help50">0</span> - 50% Help
           </span>
           <span class="pl-breakdown-chip bg-rose-500/10 text-rose-600 border border-rose-500/20" id="dsa-stat-cross">
-            <span class="material-symbols-outlined text-[13px]">content_paste_off</span>
+            <svg class="material-symbols-outlined text-[13px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="content_paste_off"><path d="m840-206-60-60v-514h-60v90H355L205-840h177q7-35 34.5-57.5T480-920q36 0 63.5 22.5T578-840h202q26 0 43 17t17 43v574ZM508.5-791.5Q520-803 520-820t-11.5-28.5Q497-860 480-860t-28.5 11.5Q440-837 440-820t11.5 28.5Q463-780 480-780t28.5-11.5ZM694-180 180-694v514h514Zm-514 60q-26 0-43-17t-17-43v-574l-59-59 43-43 752 752-43 43-59-59H180Z"/></svg>
             <span id="dsa-count-cross">0</span> - Copied
           </span>
         </div>
@@ -282,12 +282,12 @@
         <div class="dsa-toolbar-top">
           <!-- Smart Search Box -->
           <div class="dsa-search-wrap" id="dsa-search-wrap">
-            <span class="material-symbols-outlined dsa-search-icon">search</span>
+            <svg class="material-symbols-outlined dsa-search-icon" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="search"><path d="M796-121 533-384q-30 26-70 40.5T378-329q-108 0-183-75t-75-181q0-106 75-181t182-75q106 0 180.5 75T632-585q0 43-14 83t-42 75l264 262-44 44ZM377-389q81 0 138-57.5T572-585q0-81-57-138.5T377-781q-82 0-139.5 57.5T180-585q0 81 57.5 138.5T377-389Z"/></svg>
             <input type="text" id="dsa-search-input" class="dsa-search-input" placeholder="Search by title, #number, pattern, or tag... (e.g. 15, Sliding Window, DP)" autocomplete="off" spellcheck="false"/>
             <div class="dsa-search-right-actions">
               <kbd class="dsa-search-kbd" id="dsa-search-kbd" title="Press Ctrl+K to search">Ctrl K</kbd>
               <button id="dsa-search-clear" class="dsa-search-clear" aria-label="Clear Search (Esc)" title="Clear Search (Esc)">
-                <span class="material-symbols-outlined">close</span>
+                <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="close"><path d="m249-207-42-42 231-231-231-231 42-42 231 231 231-231 42 42-231 231 231 231-42 42-231-231-231 231Z"/></svg>
               </button>
             </div>
           </div>
@@ -311,7 +311,7 @@
           <!-- Reset Button in the last -->
           <div class="dsa-toolbar-actions ml-auto">
             <button id="dsa-btn-reset" class="dsa-reset-btn" aria-label="Reset Progress" title="Reset all solved progress">
-              <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+              <svg class="material-symbols-outlined text-[16px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="restart_alt"><path d="M451-122q-123-10-207-101t-84-216q0-77 35.5-145T295-695l43 43q-56 33-87 90.5T220-439q0 100 66 173t165 84v60Zm60 0v-60q100-12 165-84.5T741-439q0-109-75.5-184.5T481-699h-20l60 60-43 43-133-133 133-133 43 43-60 60h20q134 0 227 93.5T801-439q0 125-83.5 216T511-122Z"/></svg>
               <span>Reset</span>
             </button>
           </div>
@@ -321,7 +321,7 @@
         <div class="dsa-toolbar-bottom">
           <div class="dsa-quick-chips" aria-label="Quick search suggestions">
             <span class="dsa-quick-chips-label">
-              <span class="material-symbols-outlined text-[14px]">bolt</span>
+              <svg class="material-symbols-outlined text-[14px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="bolt"><path d="m393-165 279-335H492l36-286-253 366h154l-36 255Zm-73 85 40-280H160l360-520h80l-40 320h240L400-80h-80Zm154-396Z"/></svg>
               <span>Quick Filters:</span>
             </span>
             <button type="button" class="dsa-chip-btn" data-quick-filter="Two Pointers">Two Pointers</button>
@@ -346,20 +346,20 @@
         <aside class="dsa-nav-sidebar" aria-label="Pattern Roadmap Index">
           <div class="dsa-nav-sidebar-header">
             <h2 class="dsa-nav-sidebar-title">
-              <span class="material-symbols-outlined text-[18px] text-indigo-600">format_list_bulleted</span>
+              <svg class="material-symbols-outlined text-[18px] text-indigo-600" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="format_list_bulleted"><path d="M377-198v-60h463v60H377Zm0-252v-60h463v60H377Zm0-253v-60h463v60H377ZM189-161q-28.05 0-48.02-19Q121-199 121-227.5t19.5-48q19.5-19.5 48-19.5t47.5 19.98q19 19.97 19 48.02 0 27.23-19.39 46.61Q216.23-161 189-161Zm0-252q-28.05 0-48.02-19.5Q121-452 121-480t19.98-47.5Q160.95-547 189-547q27.23 0 46.61 19.5Q255-508 255-480t-19.39 47.5Q216.23-413 189-413Zm-48.5-272.5Q121-705 121-733t19.5-47.5Q160-800 188-800t47.5 19.5Q255-761 255-733t-19.5 47.5Q216-666 188-666t-47.5-19.5Z"/></svg>
               <span>16 Categories</span>
             </h2>
             <span class="dsa-nav-sidebar-badge">260 Qs</span>
           </div>
           <div class="dsa-nav-slider-wrapper">
             <button type="button" class="dsa-nav-arrow dsa-nav-arrow-prev" id="dsa-nav-prev" aria-label="Previous categories" title="Scroll left">
-              <span class="material-symbols-outlined">chevron_left</span>
+              <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="chevron_left"><path d="M561-240 320-481l241-241 43 43-198 198 198 198-43 43Z"/></svg>
             </button>
             <div class="dsa-nav-list custom-scrollbar" id="dsa-sidebar-nav-list">
               <!-- Rendered by js/pages/dsa.js -->
             </div>
             <button type="button" class="dsa-nav-arrow dsa-nav-arrow-next" id="dsa-nav-next" aria-label="Next categories" title="Scroll right">
-              <span class="material-symbols-outlined">chevron_right</span>
+              <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="chevron_right"><path d="M530-481 332-679l43-43 241 241-241 241-43-43 198-198Z"/></svg>
             </button>
           </div>
         </aside>
@@ -373,12 +373,12 @@
           <!-- Empty State -->
           <div id="dsa-empty-state" class="dsa-empty-state hidden">
             <div class="dsa-empty-icon">
-              <span class="material-symbols-outlined">filter_list_off</span>
+              <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="filter_list_off"><path d="M813-61 61-813l43-43 752 752-43 43ZM595-450l-60-60h185v60H595ZM385-660l-60-60h515v60H385Zm15 420v-60h160v60H400ZM240-450v-60h184v60H240ZM120-660v-60h94v60h-94Z"/></svg>
             </div>
             <h3 class="dsa-empty-title">No problems match your filters</h3>
             <p class="dsa-empty-desc">Try clearing your search query or switching difficulty/status filters to view problems.</p>
             <button id="dsa-btn-clear-filters" class="btn-primary text-sm py-2 px-4 inline-flex items-center gap-2">
-              <span class="material-symbols-outlined text-[18px]">restart_alt</span>
+              <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="restart_alt"><path d="M451-122q-123-10-207-101t-84-216q0-77 35.5-145T295-695l43 43q-56 33-87 90.5T220-439q0 100 66 173t165 84v60Zm60 0v-60q100-12 165-84.5T741-439q0-109-75.5-184.5T481-699h-20l60 60-43 43-133-133 133-133 43 43-60 60h20q134 0 227 93.5T801-439q0 125-83.5 216T511-122Z"/></svg>
               <span>Clear Filters</span>
             </button>
           </div>
@@ -397,29 +397,29 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold mb-2">
-                <span class="material-symbols-outlined text-[16px]">psychology</span>
+                <svg class="material-symbols-outlined text-[16px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="psychology"><path d="M240-80v-172q-57-52-88.5-121.5T120-520q0-150 105-255t255-105q125 0 221.5 73.5T827-615l55 218q4 14-5 25.5T853-360h-93v140q0 24.75-17.62 42.37Q724.75-160 700-160H600v80h-60v-140h160v-200h114l-45-180q-24-97-105-158.5T480-820q-125 0-212.5 86.5T180-522.46q0 64.42 26.32 122.39Q232.65-342.09 281-297l19 18v199h-60Zm257-370Zm-48 76h60l3-44q12-2 22.47-8.46Q544.94-432.92 553-441l42 14 28-48-30-24q5-14 5-29t-5-29l30-24-28-48-42 14q-8.33-7.69-19.17-13.85Q523-635 512-638l-3-44h-60l-3 44q-11 3-21.83 9.15Q413.33-622.69 405-615l-42-14-28 48 30 24q-5 14-5 29t5 29l-30 24 28 48 42-14q8.06 8.08 18.53 14.54Q434-420 446-418l3 44Zm-19.5-104.38q-20.5-20.38-20.5-49.5t20.38-49.62q20.38-20.5 49.5-20.5t49.62 20.38q20.5 20.38 20.5 49.5t-20.38 49.62q-20.38 20.5-49.5 20.5t-49.62-20.38Z"/></svg>
                 <span>Recognition Engine</span>
               </div>
               <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">🧠 Pattern Learning</h2>
               <p class="text-slate-600 text-sm mt-1 font-medium">Learn to recognize the right DSA pattern before solving the problem.</p>
               <div class="pl-flow-pills mt-3 flex items-center gap-2 flex-wrap text-xs font-semibold text-slate-500">
                 <span class="pl-flow-step">Problem</span>
-                <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                <svg class="material-symbols-outlined text-[14px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="arrow_forward"><path d="M686-450H160v-60h526L438-758l42-42 320 320-320 320-42-42 248-248Z"/></svg>
                 <span class="pl-flow-step active">Identify Pattern</span>
-                <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                <svg class="material-symbols-outlined text-[14px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="arrow_forward"><path d="M686-450H160v-60h526L438-758l42-42 320 320-320 320-42-42 248-248Z"/></svg>
                 <span class="pl-flow-step">Understand Why</span>
-                <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                <svg class="material-symbols-outlined text-[14px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="arrow_forward"><path d="M686-450H160v-60h526L438-758l42-42 320 320-320 320-42-42 248-248Z"/></svg>
                 <span class="pl-flow-step">Practice</span>
               </div>
             </div>
             <div>
               <button class="pl-btn-arena-hero" id="pl-btn-launch-arena">
-                <span class="material-symbols-outlined text-[20px] text-amber-300">military_tech</span>
+                <svg class="material-symbols-outlined text-[20px] text-amber-300" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="military_tech"><path d="M280-880h400v333q0 23-11.32 42.15Q657.37-485.7 637-474l-141 82 26 97h134l-109 81 42 134-109-81-110 81 42-134-109-81h135.11L463-392l-140-82q-20.37-11.7-31.68-30.85Q280-524 280-547v-333Zm60 60v273q0 7 4.5 13t13.5 11l96 53v-350H340Zm280 0H514v350l88-53q9-5 13.5-11t4.5-13v-273ZM484-637Zm-30-8Zm60 0Z"/></svg>
                 <div class="text-left">
                   <div class="font-bold text-sm leading-tight text-white">🎯 Identify the Pattern Arena</div>
                   <div class="text-[11px] text-indigo-200">Interactive Recognition Gym • 32 Drills</div>
                 </div>
-                <span class="material-symbols-outlined text-white text-[18px]">arrow_forward</span>
+                <svg class="material-symbols-outlined text-white text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="arrow_forward"><path d="M686-450H160v-60h526L438-758l42-42 320 320-320 320-42-42 248-248Z"/></svg>
               </button>
             </div>
           </div>
@@ -429,7 +429,7 @@
         <div class="pl-stats-grid mb-6">
           <div class="pl-stat-card">
             <div class="pl-stat-icon-wrap bg-indigo-50 text-indigo-600">
-              <span class="material-symbols-outlined">menu_book</span>
+              <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="menu_book"><path d="M560-574v-48q33-14 67.5-21t72.5-7q26 0 51 4t49 10v44q-24-9-48.5-13.5T700-610q-38 0-73 9.5T560-574Zm0 220v-49q33-13.5 67.5-20.25T700-430q26 0 51 4t49 10v44q-24-9-48.5-13.5T700-390q-38 0-73 9t-67 27Zm0-110v-48q33-14 67.5-21t72.5-7q26 0 51 4t49 10v44q-24-9-48.5-13.5T700-500q-38 0-73 9.5T560-464ZM248-300q53.57 0 104.28 12.5Q403-275 452-250v-427q-45-30-97.62-46.5Q301.76-740 248-740q-38 0-74.5 9.5T100-707v434q31-14 70.5-20.5T248-300Zm264 50q50-25 98-37.5T712-300q38 0 78.5 6t69.5 16v-429q-34-17-71.82-25-37.82-8-76.18-8-54 0-104.5 16.5T512-677v427Zm-30 90q-51-38-111-58.5T248-239q-36.54 0-71.77 9T106-208q-23.1 11-44.55-3Q40-225 40-251v-463q0-15 7-27.5T68-761q42-20 87.39-29.5 45.4-9.5 92.61-9.5 63 0 122.5 17T482-731q51-35 109.5-52T712-800q46.87 0 91.93 9.5Q849-781 891-761q14 7 21.5 19.5T920-714v463q0 27.89-22.5 42.45Q875-194 853-208q-34-14-69.23-22.5Q748.54-239 712-239q-63 0-121 21t-109 58ZM276-489Z"/></svg>
             </div>
             <div>
               <div class="pl-stat-number" id="pl-stat-learned">0 / 29</div>
@@ -439,7 +439,7 @@
 
           <div class="pl-stat-card">
             <div class="pl-stat-icon-wrap bg-blue-50 text-blue-600">
-              <span class="material-symbols-outlined">code</span>
+              <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="code"><path d="M320-242 80-482l242-242 43 43-199 199 197 197-43 43Zm318 2-43-43 199-199-197-197 43-43 240 240-242 242Z"/></svg>
             </div>
             <div>
               <div class="pl-stat-number" id="pl-stat-practiced">0 / 29</div>
@@ -449,7 +449,7 @@
 
           <div class="pl-stat-card">
             <div class="pl-stat-icon-wrap bg-emerald-50 text-emerald-600">
-              <span class="material-symbols-outlined">verified</span>
+              <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="verified"><path d="m346-60-76-130-151-31 17-147-96-112 96-111-17-147 151-31 76-131 134 62 134-62 77 131 150 31-17 147 96 111-96 112 17 147-150 31-77 130-134-62-134 62Zm27-79 107-45 110 45 67-100 117-30-12-119 81-92-81-94 12-119-117-28-69-100-108 45-110-45-67 100-117 28 12 119-81 94 81 92-12 121 117 28 70 100Zm107-341Zm-43 133 227-225-45-41-182 180-95-99-46 45 141 140Z"/></svg>
             </div>
             <div>
               <div class="pl-stat-number" id="pl-stat-mastered">0 / 29</div>
@@ -459,7 +459,7 @@
 
           <div class="pl-stat-card">
             <div class="pl-stat-icon-wrap bg-amber-50 text-amber-600">
-              <span class="material-symbols-outlined">warning</span>
+              <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="warning"><path d="m40-120 440-760 440 760H40Zm104-60h672L480-760 144-180Zm361.5-65.68q8.5-8.67 8.5-21.5 0-12.82-8.68-21.32-8.67-8.5-21.5-8.5-12.82 0-21.32 8.68-8.5 8.67-8.5 21.5 0 12.82 8.68 21.32 8.67 8.5 21.5 8.5 12.82 0 21.32-8.68ZM454-348h60v-224h-60v224Zm26-122Z"/></svg>
             </div>
             <div>
               <div class="pl-stat-number text-amber-600" id="pl-stat-weak">0</div>
@@ -471,7 +471,7 @@
         <!-- Weak Patterns Notice Banner -->
         <div class="pl-weak-section hidden mb-6" id="pl-weak-section">
           <div class="flex items-center gap-2 mb-2">
-            <span class="material-symbols-outlined text-amber-500 text-[18px]">warning</span>
+            <svg class="material-symbols-outlined text-amber-500 text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="warning"><path d="m40-120 440-760 440 760H40Zm104-60h672L480-760 144-180Zm361.5-65.68q8.5-8.67 8.5-21.5 0-12.82-8.68-21.32-8.67-8.5-21.5-8.5-12.82 0-21.32 8.68-8.5 8.67-8.5 21.5 0 12.82 8.68 21.32 8.67 8.5 21.5 8.5 12.82 0 21.32-8.68ZM454-348h60v-224h-60v224Zm26-122Z"/></svg>
             <h4 class="text-sm font-bold text-slate-900">Patterns Needing Reinforcement</h4>
           </div>
           <p class="text-xs text-slate-600 mb-3">You had quiz accuracy &lt; 60% on these patterns. Practice recognizing their cues:</p>
@@ -487,11 +487,11 @@
             <div class="dsa-toolbar-top">
               <!-- Smart Search Box -->
               <div class="dsa-search-wrap" id="pl-search-wrap">
-                <span class="material-symbols-outlined dsa-search-icon">search</span>
+                <svg class="material-symbols-outlined dsa-search-icon" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="search"><path d="M796-121 533-384q-30 26-70 40.5T378-329q-108 0-183-75t-75-181q0-106 75-181t182-75q106 0 180.5 75T632-585q0 43-14 83t-42 75l264 262-44 44ZM377-389q81 0 138-57.5T572-585q0-81-57-138.5T377-781q-82 0-139.5 57.5T180-585q0 81 57.5 138.5T377-389Z"/></svg>
                 <input type="text" id="pl-catalog-search" class="dsa-search-input" placeholder="Search patterns by name, keyword, or signal... (e.g. Subarray, Top K, Palindrome)" autocomplete="off" spellcheck="false"/>
                 <div class="dsa-search-right-actions">
                   <button id="pl-catalog-search-clear" class="dsa-search-clear" aria-label="Clear Search (Esc)" title="Clear Search (Esc)">
-                    <span class="material-symbols-outlined">close</span>
+                    <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="close"><path d="m249-207-42-42 231-231-231-231 42-42 231 231 231-231 42 42-231 231 231 231-42 42-231-231-231 231Z"/></svg>
                   </button>
                 </div>
               </div>
@@ -508,7 +508,7 @@
               <!-- Reset Button in the last -->
               <div class="dsa-toolbar-actions ml-auto">
                 <button id="pl-btn-reset" class="dsa-reset-btn" aria-label="Reset Pattern Learning Progress" title="Reset all pattern learning progress">
-                  <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+                  <svg class="material-symbols-outlined text-[16px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="restart_alt"><path d="M451-122q-123-10-207-101t-84-216q0-77 35.5-145T295-695l43 43q-56 33-87 90.5T220-439q0 100 66 173t165 84v60Zm60 0v-60q100-12 165-84.5T741-439q0-109-75.5-184.5T481-699h-20l60 60-43 43-133-133 133-133 43 43-60 60h20q134 0 227 93.5T801-439q0 125-83.5 216T511-122Z"/></svg>
                   <span>Reset</span>
                 </button>
               </div>
@@ -518,7 +518,7 @@
             <div class="dsa-toolbar-bottom">
               <div class="dsa-quick-chips" aria-label="Quick pattern suggestions" id="pl-quick-chips">
                 <span class="dsa-quick-chips-label">
-                  <span class="material-symbols-outlined text-[14px]">bolt</span>
+                  <svg class="material-symbols-outlined text-[14px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="bolt"><path d="m393-165 279-335H492l36-286-253 366h154l-36 255Zm-73 85 40-280H160l360-520h80l-40 320h240L400-80h-80Zm154-396Z"/></svg>
                   <span>Quick Filters:</span>
                 </span>
                 <button type="button" class="dsa-chip-btn active" data-pl-quick-filter="all">All</button>
@@ -549,7 +549,7 @@
           <!-- Empty State -->
           <div id="pl-catalog-empty" class="dsa-empty-state hidden mt-8">
             <div class="dsa-empty-icon">
-              <span class="material-symbols-outlined">search_off</span>
+              <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="search_off"><path d="M136-136q-56-56-56-134t56-134q56-56 134-56t134 56q56 56 56 134t-56 134q-56 56-134 56t-134-56Zm700 16L573-383q-14 11-31.5 21.5T508-344q-5-14-11-28.5T483-399q54-21 91.5-69.5T612-584q0-81-57-138.5T417-780q-82 0-139.5 57.5T220-584q0 17 3.5 35.5T232-517q-13 2-29 6.5T174-500q-7-18-10.5-40t-3.5-44q0-107 75-181.5T417-840q106 0 180.5 75T672-584q0 43-15 85t-41 73l264 262-44 44Zm-635-56 69-69 68 68 23-23-69-69 71-71-23-23-70 70-70-70-23 23 70 70-70 70 24 24Z"/></svg>
             </div>
             <h3 class="dsa-empty-title">No patterns match your search</h3>
             <p class="dsa-empty-desc">Try clearing your search query or choosing 'All Categories' to view patterns.</p>
@@ -563,7 +563,7 @@
           <!-- Back button -->
           <div class="mb-4">
             <button class="pl-btn-back" id="pl-btn-back-catalog">
-              <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+              <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="arrow_back"><path d="m274-450 248 248-42 42-320-320 320-320 42 42-248 248h526v60H274Z"/></svg>
               <span>Back to Pattern Catalog</span>
             </button>
           </div>
@@ -587,7 +587,7 @@
   <div class="modal-backdrop hidden" id="dsa-reset-modal" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title">
     <div class="modal-card pl-modal-card max-w-md p-6 text-center">
       <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center border border-rose-200 shadow-sm">
-        <span class="material-symbols-outlined text-[28px]">warning</span>
+        <svg class="material-symbols-outlined text-[28px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="warning"><path d="m40-120 440-760 440 760H40Zm104-60h672L480-760 144-180Zm361.5-65.68q8.5-8.67 8.5-21.5 0-12.82-8.68-21.32-8.67-8.5-21.5-8.5-12.82 0-21.32 8.68-8.5 8.67-8.5 21.5 0 12.82 8.68 21.32 8.67 8.5 21.5 8.5 12.82 0 21.32-8.68ZM454-348h60v-224h-60v224Zm26-122Z"/></svg>
       </div>
       <h3 class="pl-modal-title text-lg font-bold text-slate-900 mb-2" id="reset-modal-title">Reset DSA Progress?</h3>
       <p class="pl-modal-subtitle text-sm text-slate-500 mb-6 leading-relaxed">
@@ -598,7 +598,7 @@
           Cancel
         </button>
         <button id="dsa-btn-confirm-reset" class="btn-primary text-sm py-2 px-5 bg-rose-600 hover:bg-rose-700 border-rose-600 text-white font-medium shadow-sm flex items-center gap-1.5 rounded-lg">
-          <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+          <svg class="material-symbols-outlined text-[16px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="restart_alt"><path d="M451-122q-123-10-207-101t-84-216q0-77 35.5-145T295-695l43 43q-56 33-87 90.5T220-439q0 100 66 173t165 84v60Zm60 0v-60q100-12 165-84.5T741-439q0-109-75.5-184.5T481-699h-20l60 60-43 43-133-133 133-133 43 43-60 60h20q134 0 227 93.5T801-439q0 125-83.5 216T511-122Z"/></svg>
           <span>Yes, Reset All</span>
         </button>
       </div>
@@ -609,7 +609,7 @@
   <div class="modal-backdrop hidden" id="pl-reset-modal" role="dialog" aria-modal="true" aria-labelledby="pl-reset-modal-title">
     <div class="modal-card pl-modal-card max-w-md p-6 text-center">
       <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center border border-rose-200 shadow-sm">
-        <span class="material-symbols-outlined text-[28px]">warning</span>
+        <svg class="material-symbols-outlined text-[28px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="warning"><path d="m40-120 440-760 440 760H40Zm104-60h672L480-760 144-180Zm361.5-65.68q8.5-8.67 8.5-21.5 0-12.82-8.68-21.32-8.67-8.5-21.5-8.5-12.82 0-21.32 8.68-8.5 8.67-8.5 21.5 0 12.82 8.68 21.32 8.67 8.5 21.5 8.5 12.82 0 21.32-8.68ZM454-348h60v-224h-60v224Zm26-122Z"/></svg>
       </div>
       <h3 class="pl-modal-title text-lg font-bold text-slate-900 mb-2" id="pl-reset-modal-title">Reset Pattern Learning?</h3>
       <p class="pl-modal-subtitle text-sm text-slate-500 mb-6 leading-relaxed">
@@ -620,7 +620,7 @@
           Cancel
         </button>
         <button id="pl-btn-confirm-reset" class="btn-primary text-sm py-2 px-5 bg-rose-600 hover:bg-rose-700 border-rose-600 text-white font-medium shadow-sm flex items-center gap-1.5 rounded-lg">
-          <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+          <svg class="material-symbols-outlined text-[16px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="restart_alt"><path d="M451-122q-123-10-207-101t-84-216q0-77 35.5-145T295-695l43 43q-56 33-87 90.5T220-439q0 100 66 173t165 84v60Zm60 0v-60q100-12 165-84.5T741-439q0-109-75.5-184.5T481-699h-20l60 60-43 43-133-133 133-133 43 43-60 60h20q134 0 227 93.5T801-439q0 125-83.5 216T511-122Z"/></svg>
           <span>Yes, Reset All</span>
         </button>
       </div>
@@ -636,7 +636,7 @@
           <h3 class="pl-modal-title text-lg font-bold text-slate-900 leading-snug mt-0.5" id="pl-solve-modal-title">Problem Title</h3>
         </div>
         <button id="pl-solve-modal-close" class="pl-modal-close-btn p-1 text-slate-400 hover:text-slate-700 transition-colors" aria-label="Close dialog">
-          <span class="material-symbols-outlined text-[20px]">close</span>
+          <svg class="material-symbols-outlined text-[20px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="close"><path d="m249-207-42-42 231-231-231-231 42-42 231 231 231-231 42 42-231 231 231 231-42 42-231-231-231 231Z"/></svg>
         </button>
       </div>
       <p class="pl-modal-subtitle text-xs text-slate-500 mb-5 leading-relaxed">
@@ -647,7 +647,7 @@
         <!-- Option 1: 100% Self / Full Tumne Kiya -->
         <button class="pl-solve-opt-btn" data-solve-type="self">
           <div class="pl-solve-opt-icon pl-icon-self">
-            <span class="material-symbols-outlined text-[18px]">verified</span>
+            <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="verified"><path d="m346-60-76-130-151-31 17-147-96-112 96-111-17-147 151-31 76-131 134 62 134-62 77 131 150 31-17 147 96 111-96 112 17 147-150 31-77 130-134-62-134 62Zm27-79 107-45 110 45 67-100 117-30-12-119 81-92-81-94 12-119-117-28-69-100-108 45-110-45-67 100-117 28 12 119-81 94 81 92-12 121 117 28 70 100Zm107-341Zm-43 133 227-225-45-41-182 180-95-99-46 45 141 140Z"/></svg>
           </div>
           <div class="pl-solve-opt-content flex-1 min-w-0">
             <div class="pl-solve-opt-header flex items-center justify-between gap-2">
@@ -661,7 +661,7 @@
         <!-- Option 2: ~30% AI / Hints Help -->
         <button class="pl-solve-opt-btn" data-solve-type="help30">
           <div class="pl-solve-opt-icon pl-icon-help30">
-            <span class="material-symbols-outlined text-[18px]">psychology</span>
+            <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="psychology"><path d="M240-80v-172q-57-52-88.5-121.5T120-520q0-150 105-255t255-105q125 0 221.5 73.5T827-615l55 218q4 14-5 25.5T853-360h-93v140q0 24.75-17.62 42.37Q724.75-160 700-160H600v80h-60v-140h160v-200h114l-45-180q-24-97-105-158.5T480-820q-125 0-212.5 86.5T180-522.46q0 64.42 26.32 122.39Q232.65-342.09 281-297l19 18v199h-60Zm257-370Zm-48 76h60l3-44q12-2 22.47-8.46Q544.94-432.92 553-441l42 14 28-48-30-24q5-14 5-29t-5-29l30-24-28-48-42 14q-8.33-7.69-19.17-13.85Q523-635 512-638l-3-44h-60l-3 44q-11 3-21.83 9.15Q413.33-622.69 405-615l-42-14-28 48 30 24q-5 14-5 29t5 29l-30 24 28 48 42-14q8.06 8.08 18.53 14.54Q434-420 446-418l3 44Zm-19.5-104.38q-20.5-20.38-20.5-49.5t20.38-49.62q20.38-20.5 49.5-20.5t49.62 20.38q20.5 20.38 20.5 49.5t-20.38 49.62q-20.38 20.5-49.5 20.5t-49.62-20.38Z"/></svg>
           </div>
           <div class="pl-solve-opt-content flex-1 min-w-0">
             <div class="pl-solve-opt-header flex items-center justify-between gap-2">
@@ -675,7 +675,7 @@
         <!-- Option 3: ~50% AI / Editorial Help -->
         <button class="pl-solve-opt-btn" data-solve-type="help50">
           <div class="pl-solve-opt-icon pl-icon-help50">
-            <span class="material-symbols-outlined text-[18px]">smart_toy</span>
+            <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="smart_toy"><path d="M147-376q-45 0-76-31.21T40-483q0-44.58 31.21-75.79Q102.42-590 147-590v-123q0-24 18-42t42-18h166q0-45 31-76t76-31q45 0 76 31.21T587-773h166q24 0 42 18t18 42v123q45 0 76 31.21T920-483q0 44.58-31.21 75.79Q857.58-376 813-376v196q0 24-18 42t-42 18H207q-24 0-42-18t-18-42v-196Zm224.5-111.74q11.5-11.73 11.5-28.5 0-16.76-11.74-28.26-11.73-11.5-28.5-11.5-16.76 0-28.26 11.74-11.5 11.73-11.5 28.5 0 16.76 11.74 28.26 11.73 11.5 28.5 11.5 16.76 0 28.26-11.74Zm274 0q11.5-11.73 11.5-28.5 0-16.76-11.74-28.26-11.73-11.5-28.5-11.5-16.76 0-28.26 11.74-11.5 11.73-11.5 28.5 0 16.76 11.74 28.26 11.73 11.5 28.5 11.5 16.76 0 28.26-11.74ZM312-285h336v-60H312v60ZM207-180h546v-533H207v533Zm273-267Z"/></svg>
           </div>
           <div class="pl-solve-opt-content flex-1 min-w-0">
             <div class="pl-solve-opt-header flex items-center justify-between gap-2">
@@ -689,7 +689,7 @@
         <!-- Option 4: Copy / Paste / Direct Solution (Cross ✗) -->
         <button class="pl-solve-opt-btn" data-solve-type="cross">
           <div class="pl-solve-opt-icon pl-icon-cross">
-            <span class="material-symbols-outlined text-[18px]">content_paste_off</span>
+            <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="content_paste_off"><path d="m840-206-60-60v-514h-60v90H355L205-840h177q7-35 34.5-57.5T480-920q36 0 63.5 22.5T578-840h202q26 0 43 17t17 43v574ZM508.5-791.5Q520-803 520-820t-11.5-28.5Q497-860 480-860t-28.5 11.5Q440-837 440-820t11.5 28.5Q463-780 480-780t28.5-11.5ZM694-180 180-694v514h514Zm-514 60q-26 0-43-17t-17-43v-574l-59-59 43-43 752 752-43 43-59-59H180Z"/></svg>
           </div>
           <div class="pl-solve-opt-content flex-1 min-w-0">
             <div class="pl-solve-opt-header flex items-center justify-between gap-2">
@@ -703,7 +703,7 @@
 
       <div class="flex items-center justify-between pt-3 border-t border-slate-200">
         <button id="pl-solve-modal-clear" class="text-xs text-slate-500 hover:text-rose-600 transition-colors font-medium flex items-center gap-1">
-          <span class="material-symbols-outlined text-[14px]">undo</span>
+          <svg class="material-symbols-outlined text-[14px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="undo"><path d="M259-200v-60h310q70 0 120.5-46.5T740-422q0-69-50.5-115.5T569-584H274l114 114-42 42-186-186 186-186 42 42-114 114h294q95 0 163.5 64T800-422q0 94-68.5 158T568-200H259Z"/></svg>
           <span>Reset to Unattempted</span>
         </button>
         <button id="pl-solve-modal-cancel" class="pl-btn-modal-cancel text-xs py-1.5 px-4 font-medium rounded-lg">
@@ -717,7 +717,7 @@
   <div class="modal-backdrop hidden" id="pl-locked-modal" role="dialog" aria-modal="true" aria-labelledby="pl-locked-modal-title">
     <div class="modal-card pl-modal-card max-w-md p-6 text-center">
       <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-200 shadow-sm">
-        <span class="material-symbols-outlined text-[28px]">lock</span>
+        <svg class="material-symbols-outlined text-[28px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="lock"><path d="M220-80q-24.75 0-42.37-17.63Q160-115.25 160-140v-434q0-24.75 17.63-42.38Q195.25-634 220-634h70v-96q0-78.85 55.61-134.42Q401.21-920 480.11-920q78.89 0 134.39 55.58Q670-808.85 670-730v96h70q24.75 0 42.38 17.62Q800-598.75 800-574v434q0 24.75-17.62 42.37Q764.75-80 740-80H220Zm0-60h520v-434H220v434Zm314.5-162.03Q557-324.06 557-355q0-30-22.67-54.5t-54.5-24.5q-31.83 0-54.33 24.5t-22.5 55q0 30.5 22.67 52.5t54.5 22q31.83 0 54.33-22.03ZM350-634h260v-96q0-54.17-37.88-92.08-37.88-37.92-92-37.92T388-822.08q-38 37.91-38 92.08v96ZM220-140v-434 434Z"/></svg>
       </div>
       <span class="text-xs font-bold uppercase tracking-wider text-indigo-600" id="pl-locked-modal-step">Step 2 of 10</span>
       <h3 class="pl-modal-title text-lg font-bold text-slate-900 mt-1 mb-2" id="pl-locked-modal-title">Question is Locked</h3>
@@ -729,7 +729,7 @@
           Close
         </button>
         <button id="pl-btn-locked-goto" class="btn-primary text-xs py-2 px-5 font-medium flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+          <svg class="material-symbols-outlined text-[16px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="arrow_back"><path d="m274-450 248 248-42 42-320-320 320-320 42 42-248 248h526v60H274Z"/></svg>
           <span id="pl-locked-goto-text">Go to Previous Problem</span>
         </button>
       </div>
@@ -740,7 +740,7 @@
   <div class="modal-backdrop hidden" id="pl-excessive-help-modal" role="dialog" aria-modal="true" aria-labelledby="pl-excessive-help-title">
     <div class="modal-card pl-modal-card max-w-md p-6 text-center">
       <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200 shadow-sm animate-pulse">
-        <span class="material-symbols-outlined text-[28px]">warning</span>
+        <svg class="material-symbols-outlined text-[28px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="warning"><path d="m40-120 440-760 440 760H40Zm104-60h672L480-760 144-180Zm361.5-65.68q8.5-8.67 8.5-21.5 0-12.82-8.68-21.32-8.67-8.5-21.5-8.5-12.82 0-21.32 8.68-8.5 8.67-8.5 21.5 0 12.82 8.68 21.32 8.67 8.5 21.5 8.5 12.82 0 21.32-8.68ZM454-348h60v-224h-60v224Zm26-122Z"/></svg>
       </div>
       <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Pattern Mastery Alert</span>
       <h3 class="pl-modal-title text-lg font-bold text-slate-900 mt-1 mb-2" id="pl-excessive-help-title">Pattern Flagged as Weak</h3>
@@ -749,14 +749,14 @@
       </p>
       <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 text-left mb-6">
         <strong class="flex items-center gap-1 font-semibold mb-1">
-          <span class="material-symbols-outlined text-[14px]">lightbulb</span>
+          <svg class="material-symbols-outlined text-[14px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="lightbulb"><path d="M422.5-103.5Q399-127 399-161h162q0 34-23.5 57.5T480-80q-34 0-57.5-23.5ZM318-223v-60h324v60H318Zm5-121q-66-43-104.5-107.5T180-597q0-122 89-211t211-89q122 0 211 89t89 211q0 81-38 145.5T637-344H323Zm22-60h271q48-32 76-83t28-110q0-99-70.5-169.5T480-837q-99 0-169.5 70.5T240-597q0 59 28 110t77 83Zm135 0Z"/></svg>
           Mastery Recommendation:
         </strong>
         Re-read the <em>Core Idea & Intuitive Mental Model</em> and try solving problems 100% independently (Full tumne kiya) to conquer technical interview patterns.
       </div>
       <div class="flex items-center justify-center gap-3">
         <button id="pl-btn-excessive-review" class="btn-secondary text-xs py-2 px-4 font-medium flex items-center gap-1.5 rounded-lg">
-          <span class="material-symbols-outlined text-[16px]">menu_book</span>
+          <svg class="material-symbols-outlined text-[16px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="menu_book"><path d="M560-574v-48q33-14 67.5-21t72.5-7q26 0 51 4t49 10v44q-24-9-48.5-13.5T700-610q-38 0-73 9.5T560-574Zm0 220v-49q33-13.5 67.5-20.25T700-430q26 0 51 4t49 10v44q-24-9-48.5-13.5T700-390q-38 0-73 9t-67 27Zm0-110v-48q33-14 67.5-21t72.5-7q26 0 51 4t49 10v44q-24-9-48.5-13.5T700-500q-38 0-73 9.5T560-464ZM248-300q53.57 0 104.28 12.5Q403-275 452-250v-427q-45-30-97.62-46.5Q301.76-740 248-740q-38 0-74.5 9.5T100-707v434q31-14 70.5-20.5T248-300Zm264 50q50-25 98-37.5T712-300q38 0 78.5 6t69.5 16v-429q-34-17-71.82-25-37.82-8-76.18-8-54 0-104.5 16.5T512-677v427Zm-30 90q-51-38-111-58.5T248-239q-36.54 0-71.77 9T106-208q-23.1 11-44.55-3Q40-225 40-251v-463q0-15 7-27.5T68-761q42-20 87.39-29.5 45.4-9.5 92.61-9.5 63 0 122.5 17T482-731q51-35 109.5-52T712-800q46.87 0 91.93 9.5Q849-781 891-761q14 7 21.5 19.5T920-714v463q0 27.89-22.5 42.45Q875-194 853-208q-34-14-69.23-22.5Q748.54-239 712-239q-63 0-121 21t-109 58ZM276-489Z"/></svg>
           <span>Review Pattern Guide</span>
         </button>
         <button id="pl-btn-excessive-dismiss" class="btn-primary text-xs py-2 px-4 font-medium rounded-lg">
@@ -770,7 +770,7 @@
   <div class="modal-backdrop hidden" id="pl-arena-modal" role="dialog" aria-modal="true" aria-labelledby="arena-modal-title">
     <div class="modal-card max-w-2xl p-6 relative">
       <button class="absolute top-4 right-4 text-slate-400 hover:text-slate-600" id="pl-arena-close" aria-label="Close Arena">
-        <span class="material-symbols-outlined">close</span>
+        <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="close"><path d="m249-207-42-42 231-231-231-231 42-42 231 231 231-231 42 42-231 231 231 231-42 42-231-231-231 231Z"/></svg>
       </button>
       <div id="pl-arena-content">
         <!-- Rendered by dsaPatterns.js -->
@@ -780,7 +780,7 @@
 
   <!-- Floating Jump-to-Section Up Button -->
   <button id="dsa-scroll-to-section-btn" class="dsa-scroll-up-btn" aria-label="Jump to Category Options" title="Jump to Category Options">
-    <span class="material-symbols-outlined">arrow_upward</span>
+    <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="arrow_upward"><path d="M450-160v-526L202-438l-42-42 320-320 320 320-42 42-248-248v526h-60Z"/></svg>
   </button>
 
   <script src="../js/core/utils.js"></script>

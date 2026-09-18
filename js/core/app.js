@@ -31,7 +31,13 @@ function initSidebar() {
   const isCollapsed = localStorage.getItem('devpilot-sidebar-collapsed') === 'true';
   if (isCollapsed) {
     htmlDoc.classList.add('sidebar-collapsed');
-    if (sidebarToggleIcon) sidebarToggleIcon.textContent = 'chevron_right';
+    if (sidebarToggleIcon) {
+      if (window.DevPilotIcons) {
+        window.DevPilotIcons.setIcon(sidebarToggleIcon, 'chevron_right');
+      } else {
+        sidebarToggleIcon.textContent = 'chevron_right';
+      }
+    }
   }
 
   function toggleSidebar() {
@@ -40,7 +46,11 @@ function initSidebar() {
     localStorage.setItem('devpilot-sidebar-collapsed', collapsed);
 
     if (sidebarToggleIcon) {
-      sidebarToggleIcon.textContent = collapsed ? 'chevron_right' : 'chevron_left';
+      if (window.DevPilotIcons) {
+        window.DevPilotIcons.setIcon(sidebarToggleIcon, collapsed ? 'chevron_right' : 'chevron_left');
+      } else {
+        sidebarToggleIcon.textContent = collapsed ? 'chevron_right' : 'chevron_left';
+      }
     }
 
     document.querySelectorAll('.sidebar-collapsed-only').forEach(el => {

@@ -116,10 +116,16 @@ function initPasswordToggles() {
       if (input) {
         if (input.type === 'password') {
           input.type = 'text';
-          if (icon) icon.textContent = 'visibility_off';
+          if (icon) {
+            if (window.DevPilotIcons) DevPilotIcons.setIcon(icon, 'visibility_off');
+            else icon.textContent = 'visibility_off';
+          }
         } else {
           input.type = 'password';
-          if (icon) icon.textContent = 'visibility';
+          if (icon) {
+            if (window.DevPilotIcons) DevPilotIcons.setIcon(icon, 'visibility');
+            else icon.textContent = 'visibility';
+          }
         }
       }
     });

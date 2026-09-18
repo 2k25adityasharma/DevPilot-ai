@@ -478,12 +478,18 @@ window.copyPromptDirect = function(id, btnElement) {
 
     btnElement.classList.add('copied');
     if (textSpan) textSpan.textContent = 'Copied!';
-    if (iconSpan) iconSpan.textContent = 'check';
+    if (iconSpan) {
+      if (window.DevPilotIcons) DevPilotIcons.setIcon(iconSpan, 'check');
+      else iconSpan.textContent = 'check';
+    }
 
     setTimeout(() => {
       btnElement.classList.remove('copied');
       if (textSpan) textSpan.textContent = originalText;
-      if (iconSpan) iconSpan.textContent = 'content_copy';
+      if (iconSpan) {
+        if (window.DevPilotIcons) DevPilotIcons.setIcon(iconSpan, 'content_copy');
+        else iconSpan.textContent = 'content_copy';
+      }
     }, 2000);
   }
 };
@@ -582,12 +588,18 @@ function initDetailsModal() {
       const textSpan = copyBtn.querySelector('.copy-text');
       const iconSpan = copyBtn.querySelector('.material-symbols-outlined');
       if (textSpan) textSpan.textContent = 'Copied!';
-      if (iconSpan) iconSpan.textContent = 'check';
+      if (iconSpan) {
+        if (window.DevPilotIcons) DevPilotIcons.setIcon(iconSpan, 'check');
+        else iconSpan.textContent = 'check';
+      }
 
       setTimeout(() => {
         copyBtn.classList.remove('copied');
         if (textSpan) textSpan.textContent = 'Copy Prompt';
-        if (iconSpan) iconSpan.textContent = 'content_copy';
+        if (iconSpan) {
+          if (window.DevPilotIcons) DevPilotIcons.setIcon(iconSpan, 'content_copy');
+          else iconSpan.textContent = 'content_copy';
+        }
       }, 2000);
     });
   }

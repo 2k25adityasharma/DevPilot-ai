@@ -1038,7 +1038,11 @@
         }
 
         if (toggleIcon) {
-          toggleIcon.textContent = state.isRunning ? 'pause' : 'play_arrow';
+          if (window.DevPilotIcons) {
+            window.DevPilotIcons.setIcon(toggleIcon, state.isRunning ? 'pause' : 'play_arrow');
+          } else {
+            toggleIcon.textContent = state.isRunning ? 'pause' : 'play_arrow';
+          }
         }
         if (toggleText) {
           toggleText.textContent = state.isRunning ? 'Pause' : 'Resume';

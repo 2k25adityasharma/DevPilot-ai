@@ -948,15 +948,24 @@
 
     if (state && state.isRunning) {
       if (textEl) textEl.textContent = 'Pause Focus Session';
-      if (icon) icon.textContent = 'pause';
+      if (icon) {
+        if (window.DevPilotIcons) DevPilotIcons.setIcon(icon, 'pause');
+        else icon.textContent = 'pause';
+      }
       btn.classList.add('opacity-95');
     } else if (state && state.isPaused) {
       if (textEl) textEl.textContent = 'Resume Focus Session';
-      if (icon) icon.textContent = 'play_arrow';
+      if (icon) {
+        if (window.DevPilotIcons) DevPilotIcons.setIcon(icon, 'play_arrow');
+        else icon.textContent = 'play_arrow';
+      }
       btn.classList.remove('opacity-95');
     } else {
       if (textEl) textEl.textContent = 'Start Focus Session';
-      if (icon) icon.textContent = 'timer';
+      if (icon) {
+        if (window.DevPilotIcons) DevPilotIcons.setIcon(icon, 'timer');
+        else icon.textContent = 'timer';
+      }
       btn.classList.remove('opacity-95');
     }
   }
