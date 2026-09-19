@@ -6,6 +6,109 @@
   <title>Consistency & Habit Tracker - DevPilot-AI</title>
 
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" id="tailwind-cdn"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca'
+            },
+            "error-container": "#ffdad6",
+            "on-primary-container": "#fffbff",
+            "surface-variant": "#e4e1ed",
+            "tertiary-container": "#b55d00",
+            "surface-container": "#efecf8",
+            "primary": "#4648d4",
+            "on-tertiary": "#ffffff",
+            "on-tertiary-fixed-variant": "#703700",
+            "tertiary-fixed": "#ffdcc5",
+            "background": "#fcf8ff",
+            "error": "#ba1a1a",
+            "on-primary-fixed-variant": "#2f2ebe",
+            "outline-variant": "#c7c4d7",
+            "surface-container-highest": "#e4e1ed",
+            "surface-bright": "#fcf8ff",
+            "surface-container-low": "#f5f2fe",
+            "primary-container": "#6063ee",
+            "secondary-container": "#e3e1ed",
+            "surface-dim": "#dbd8e4",
+            "secondary-fixed-dim": "#c7c5d1",
+            "surface-tint": "#494bd6",
+            "on-error-container": "#93000a",
+            "on-tertiary-fixed": "#301400",
+            "secondary-fixed": "#e3e1ed",
+            "tertiary-fixed-dim": "#ffb783",
+            "outline": "#767586",
+            "secondary": "#5d5d67",
+            "on-secondary": "#ffffff",
+            "on-error": "#ffffff",
+            "on-surface-variant": "#464554",
+            "on-secondary-container": "#64636d",
+            "tertiary": "#904900",
+            "on-primary-fixed": "#07006c",
+            "surface-container-high": "#e9e6f3",
+            "surface-container-lowest": "#ffffff",
+            "on-tertiary-container": "#fffbff",
+            "on-surface": "#1b1b23",
+            "on-secondary-fixed-variant": "#46464f",
+            "primary-fixed-dim": "#c0c1ff",
+            "inverse-surface": "#303038",
+            "primary-fixed": "#e1e0ff",
+            "on-secondary-fixed": "#1a1b23",
+            "inverse-primary": "#c0c1ff",
+            "surface": "#fcf8ff",
+            "on-background": "#1b1b23",
+            "on-primary": "#ffffff",
+            "inverse-on-surface": "#f2effb"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "container-padding": "32px",
+            "gutter": "24px",
+            "stack-sm": "8px",
+            "stack-lg": "24px",
+            "stack-md": "16px",
+            "navbar-height": "72px",
+            "sidebar-width": "260px",
+            "sidebar-collapsed-width": "72px"
+          },
+          fontFamily: {
+            "stats-lg": ["Plus Jakarta Sans"],
+            "label-sm": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "title-md": ["Plus Jakarta Sans"],
+            "label-md": ["Inter"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "headline-xl": ["Plus Jakarta Sans"],
+            "body-lg": ["Inter"]
+          },
+          fontSize: {
+            "stats-lg": ["36px", { "lineHeight": "44px", "fontWeight": "700" }],
+            "label-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "title-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "headline-lg-mobile": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+          }
+        }
+      }
+    };
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -34,7 +137,7 @@
   </script>
   <script src="../js/core/icons.js"></script>
 </head>
-<body class="bg-slate-50 text-slate-900 antialiased min-h-screen">
+<body class="font-body-md bg-background text-on-surface antialiased min-h-screen">
 
   <!-- Mobile Overlay -->
   <div class="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm hidden md:hidden" id="mobile-overlay"></div>
@@ -151,14 +254,14 @@
   <main class="md:ml-[260px] min-h-screen p-6 sm:p-8" id="main-content">
     
     <!-- Page Header Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-200">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-outline-variant">
       <div class="flex items-center gap-3">
         <button class="mobile-nav-toggle md:hidden" id="mobile-menu-trigger" aria-label="Open Sidebar">
           <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="menu"><path d="M120-240v-60h720v60H120Zm0-210v-60h720v60H120Zm0-210v-60h720v60H120Z"/></svg>
         </button>
         <div>
-          <h1 class="page-title text-2xl sm:text-3xl font-extrabold text-slate-900">Consistency & Habit Tracker</h1>
-          <p class="page-subtitle text-slate-500 text-sm mt-0.5">Build daily momentum with DSA practice, code commits, and focused learning.</p>
+          <h1 class="page-title font-headline-xl text-headline-xl text-on-surface">Consistency & Habit Tracker</h1>
+          <p class="page-subtitle font-body-lg text-body-lg text-on-surface-variant mt-0.5">Build daily momentum with DSA practice, code commits, and focused learning.</p>
         </div>
       </div>
 
@@ -170,7 +273,7 @@
         </div>
 
         <!-- Inactive / Archived Habits Toggle -->
-        <button class="px-3 py-2 text-xs font-semibold text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors shadow-sm flex items-center gap-1.5" id="btn-view-archived" title="View Inactive Habits">
+        <button class="px-3 py-2 text-xs font-semibold text-on-surface-variant bg-surface hover:bg-surface-container border border-outline-variant rounded-xl transition-colors shadow-sm flex items-center gap-1.5" id="btn-view-archived" title="View Inactive Habits">
           <svg class="material-symbols-outlined text-[16px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="inventory_2"><path d="M180-80q-24.75 0-42.37-17.63Q120-115.25 120-140v-483q-17-6-28.5-21.39T80-680v-140q0-24.75 17.63-42.38Q115.25-880 140-880h680q24.75 0 42.38 17.62Q880-844.75 880-820v140q0 20.22-11.5 35.61T840-623v483q0 24.75-17.62 42.37Q804.75-80 780-80H180Zm0-540v480h600v-480H180Zm-40-60h680v-140H140v140Zm220 260h240v-60H360v60Zm120 40Z"/></svg>
           <span>Archived (<span id="archived-habits-count">0</span>)</span>
         </button>
@@ -193,21 +296,21 @@
         <div class="dev-card">
           <div class="flex items-center justify-between mb-4">
             <div>
-              <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h2 class="font-title-md text-title-md text-on-surface flex items-center gap-2">
                 <span>Developer Habit</span>
-                <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-2 py-0.5 bg-slate-100 rounded-md" id="today-date-badge">Today</span>
+                <span class="text-[11px] font-semibold text-outline uppercase tracking-wider px-2 py-0.5 bg-slate-100 rounded-md" id="today-date-badge">Today</span>
               </h2>
-              <p class="text-[11px] text-slate-500 font-medium">Repeated routines you want to maintain.</p>
-              <p class="text-xs text-slate-400 mt-0.5" id="habits-completed-text">0 of 0 Completed</p>
+              <p class="text-[11px] text-on-surface-variant font-medium">Repeated routines you want to maintain.</p>
+              <p class="text-xs text-outline mt-0.5" id="habits-completed-text">0 of 0 Completed</p>
               <!-- Streak rule hint: updated dynamically by renderTodayProgress() -->
-              <p class="text-[11px] text-slate-400 mt-1" id="streak-rule-hint">Complete ≥75% of habits daily to build your streak</p>
+              <p class="text-[11px] text-outline mt-1" id="streak-rule-hint">Complete ≥75% of habits daily to build your streak</p>
             </div>
             <div class="flex items-center gap-3">
               <div class="text-right">
                 <span class="text-sm font-bold text-indigo-600" id="habits-pct-text">0%</span>
                 <!-- Streak eligibility indicator -->
                 <div class="flex items-center gap-1 mt-0.5 justify-end">
-                  <span class="text-[10px] text-slate-400 font-medium">Streak needs</span>
+                  <span class="text-[10px] text-outline font-medium">Streak needs</span>
                   <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">≥75%</span>
                 </div>
               </div>
@@ -234,13 +337,13 @@
         <div class="dev-card">
           <div class="flex items-center justify-between mb-4">
             <div>
-              <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <h2 class="font-title-md text-title-md text-on-surface flex items-center gap-2">
                 <svg class="material-symbols-outlined text-amber-500 text-xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="track_changes"><path d="M324-111.5Q251-143 197-197t-85.5-127Q80-397 80-480t31.5-156Q143-709 197-763t127-85.5Q397-880 480-880h30v326q22 9 36 29t14 45q0 33-23.5 56.5T480-400q-33 0-56.5-23.5T400-480q0-25 14-45t36-29v-104q-65 11-107.5 60.5T300-480q0 75 52.5 127.5T480-300q75 0 127.5-52.5T660-480q0-41-16-75t-44-59l43-43q35 33 56 78.5t21 98.5q0 100-70 170t-170 70q-100 0-170-70t-70-170q0-93 60-160.5T450-719v-100q-131 11-220.5 108T140-480q0 142 99 241t241 99q142 0 241-99t99-241q0-74-28.5-137T713-727l43-43q57 55 90.5 129.5T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80q-83 0-156-31.5Z"/></svg>
                 <span>Daily Goals</span>
                 <span class="text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md" id="daily-goals-date-badge">Today</span>
               </h2>
               <p class="text-[11px] text-amber-700/80 font-medium">Specific measurable targets for today.</p>
-              <p class="text-xs text-slate-400 mt-0.5" id="daily-goals-completed-text">0 of 0 Completed</p>
+              <p class="text-xs text-outline mt-0.5" id="daily-goals-completed-text">0 of 0 Completed</p>
             </div>
             <div class="flex items-center gap-3">
               <span class="text-sm font-bold text-amber-600" id="daily-goals-pct-text">0%</span>
@@ -270,27 +373,27 @@
         <!-- Weekly Momentum Card -->
         <div class="dev-card">
           <div class="flex items-center justify-between mb-2">
-            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <h3 class="font-title-md text-title-md text-on-surface flex items-center gap-2">
               <svg class="material-symbols-outlined text-indigo-600" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="military_tech"><path d="M280-880h400v333q0 23-11.32 42.15Q657.37-485.7 637-474l-141 82 26 97h134l-109 81 42 134-109-81-110 81 42-134-109-81h135.11L463-392l-140-82q-20.37-11.7-31.68-30.85Q280-524 280-547v-333Zm60 60v273q0 7 4.5 13t13.5 11l96 53v-350H340Zm280 0H514v350l88-53q9-5 13.5-11t4.5-13v-273ZM484-637Zm-30-8Zm60 0Z"/></svg>
               Weekly Momentum
             </h3>
-            <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-50 text-slate-700 border border-slate-200" id="momentum-comparison-chip">Baseline week</span>
+            <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-50 text-on-surface-variant border border-outline-variant" id="momentum-comparison-chip">Baseline week</span>
           </div>
-          <p class="text-xs text-slate-600 leading-relaxed mb-4" id="momentum-message-text">
+          <p class="text-xs text-on-surface-variant leading-relaxed mb-4" id="momentum-message-text">
             Track your habits to build weekly momentum.
           </p>
 
-          <div class="grid grid-cols-3 gap-2 text-center pt-2 border-t border-slate-100">
+          <div class="grid grid-cols-3 gap-2 text-center pt-2 border-t border-outline-variant/60">
             <div class="p-2 bg-slate-50 rounded-lg">
-              <p class="text-xs text-slate-400 font-semibold uppercase">Total Days</p>
-              <p class="text-lg font-bold text-slate-900 mt-0.5" id="stat-total-days">0</p>
+              <p class="font-label-sm text-label-sm text-outline font-semibold uppercase">Total Days</p>
+              <p class="font-title-md text-title-md text-on-surface mt-0.5" id="stat-total-days">0</p>
             </div>
             <div class="p-2 bg-slate-50 rounded-lg">
-              <p class="text-xs text-slate-400 font-semibold uppercase">Best Streak</p>
+              <p class="font-label-sm text-label-sm text-outline font-semibold uppercase">Best Streak</p>
               <p class="text-lg font-bold text-emerald-600 mt-0.5" id="stat-best-streak">0d</p>
             </div>
             <div class="p-2 bg-slate-50 rounded-lg">
-              <p class="text-xs text-slate-400 font-semibold uppercase">Completion</p>
+              <p class="font-label-sm text-label-sm text-outline font-semibold uppercase">Completion</p>
               <p class="text-lg font-bold text-indigo-600 mt-0.5" id="stat-completion-pct">0%</p>
             </div>
           </div>
@@ -299,11 +402,11 @@
         <!-- 6-Month Activity Heatmap Card -->
         <div class="dev-card relative heatmap-card">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <h3 class="font-title-md text-title-md text-on-surface flex items-center gap-2">
               <svg class="material-symbols-outlined text-indigo-600" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="calendar_month"><path d="M180-80q-24 0-42-18t-18-42v-620q0-24 18-42t42-18h65v-60h65v60h340v-60h65v60h65q24 0 42 18t18 42v620q0 24-18 42t-42 18H180Zm0-60h600v-430H180v430Zm0-490h600v-130H180v130Zm0 0v-130 130Zm300 230q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-188.5-11.5Q280-423 280-440t11.5-28.5Q303-480 320-480t28.5 11.5Q360-457 360-440t-11.5 28.5Q337-400 320-400t-28.5-11.5ZM640-400q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-188.5-11.5Q280-263 280-280t11.5-28.5Q303-320 320-320t28.5 11.5Q360-297 360-280t-11.5 28.5Q337-240 320-240t-28.5-11.5ZM640-240q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z"/></svg>
               Consistency Heatmap
             </h3>
-            <span class="text-xs text-slate-400">Past 6 Months (26 Weeks)</span>
+            <span class="text-xs text-outline">Past 6 Months (26 Weeks)</span>
           </div>
 
           <!-- Heatmap Container -->
@@ -317,14 +420,14 @@
           <div class="heatmap-tooltip" id="heatmap-tooltip"></div>
 
           <!-- Legend & Hint -->
-          <div class="flex items-center justify-between mt-3 text-[11px] text-slate-400 flex-wrap gap-2">
-            <span class="text-[11px] text-slate-500 flex items-center gap-1">
+          <div class="flex items-center justify-between mt-3 text-[11px] text-outline flex-wrap gap-2">
+            <span class="text-[11px] text-on-surface-variant flex items-center gap-1">
               <svg class="material-symbols-outlined text-[14px] text-indigo-500" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="touch_app"><path d="M445-80q-29 0-56-12t-45-35L127-403l21-23q14-15 34.5-18.5T221-438l99 53v-365q0-12.75 8.68-21.38 8.67-8.62 21.5-8.62 12.82 0 21.32 8.62 8.5 8.63 8.5 21.38v465l-144-77 156 198q10 12 23.76 18 13.76 6 29.24 6h205q38 0 64-26t26-64v-170q0-25.5-17.25-42.75T680-460H460v-60h219.65q50.14 0 85.25 35 35.1 35 35.1 85v170q0 63-43.5 106.5T650-80H445ZM203-665q-11.07-18.75-17.04-40.49-5.96-21.74-5.96-44.76 0-70.75 49.5-120.25T350-920q71 0 120.5 49.74t49.5 120.3q0 22.96-5.96 44.62Q508.07-683.68 497-665l-52-30q7-12 11-26t4-29.48Q460-796 427.88-828q-32.12-32-78-32T272-827.92q-32 32.09-32 77.92 0 15 4 29t11 26l-52 30Zm285 335Z"/></svg>
               <span>Click any day cell to view history</span>
             </span>
             <div class="flex items-center gap-1.5">
               <span>Less</span>
-              <span class="w-2.5 h-2.5 rounded-sm heatmap-l0 border border-slate-200"></span>
+              <span class="w-2.5 h-2.5 rounded-sm heatmap-l0 border border-outline-variant"></span>
               <span class="w-2.5 h-2.5 rounded-sm heatmap-l1"></span>
               <span class="w-2.5 h-2.5 rounded-sm heatmap-l2"></span>
               <span class="w-2.5 h-2.5 rounded-sm heatmap-l3"></span>
@@ -334,7 +437,7 @@
           </div>
 
           <!-- Interactive Day History / Activity Breakdown -->
-          <div id="heatmap-day-history" class="heatmap-day-history mt-4 pt-3.5 border-t border-slate-100">
+          <div id="heatmap-day-history" class="heatmap-day-history mt-4 pt-3.5 border-t border-outline-variant/60">
             <!-- Rendered dynamically by js/pages/habit.js -->
           </div>
         </div>
@@ -342,11 +445,11 @@
         <!-- Habit Insights Card -->
         <div class="dev-card">
           <div class="flex items-center justify-between mb-3">
-            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <h3 class="font-title-md text-title-md text-on-surface flex items-center gap-2">
               <svg class="material-symbols-outlined text-indigo-600" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="insights"><path d="M3 20q-.825 0-1.412-.587Q1 18.825 1 18q0-.825.588-1.413Q2.175 16 3 16h.263q.112 0 .237.05l4.55-4.55Q8 11.375 8 11.262V11q0-.825.588-1.413Q9.175 9 10 9t1.413.587Q12 10.175 12 11q0 .05-.05.5l2.55 2.55q.125-.05.238-.05h.524q.113 0 .238.05l3.55-3.55q-.05-.125-.05-.238V10q0-.825.587-1.413Q20.175 8 21 8q.825 0 1.413.587Q23 9.175 23 10q0 .825-.587 1.412Q21.825 12 21 12h-.262q-.113 0-.238-.05l-3.55 3.55q.05.125.05.238V16q0 .825-.587 1.413Q15.825 18 15 18q-.825 0-1.412-.587Q13 16.825 13 16v-.262q0-.113.05-.238l-2.55-2.55q-.125.05-.238.05H10q-.05 0-.5-.05L4.95 17.5q.05.125.05.238V18q0 .825-.588 1.413Q3.825 20 3 20ZM4 9.975l-.625-1.35L2.025 8l1.35-.625L4 6.025l.625 1.35L5.975 8l-1.35.625ZM15 9l-.95-2.05L12 6l2.05-.95L15 3l.95 2.05L18 6l-2.05.95Z"/></svg>
               Habit Insights
             </h3>
-            <span class="text-xs text-slate-400">Historical Analysis</span>
+            <span class="text-xs text-outline">Historical Analysis</span>
           </div>
 
           <div class="grid grid-cols-2 gap-3" id="habit-insights-container">
@@ -371,11 +474,11 @@
             <svg class="material-symbols-outlined text-xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="add_task"><path d="M480-80q-85 0-158-30.5T195-195q-54-54-84.5-127T80-480q0-84 30.5-157T195-764q54-54 127-85t158-31q75 0 140 24t117 66l-43 43q-44-35-98-54t-116-19q-145 0-242.5 97.5T140-480q0 145 97.5 242.5T480-140q37 0 71.5-7t66.5-21l45 46q-41 20-87 31t-96 11Zm290-90v-120H650v-60h120v-120h60v120h120v60H830v120h-60ZM421-298 256-464l45-45 120 120 414-414 46 45-460 460Z"/></svg>
           </div>
           <div>
-            <h3 class="text-base font-bold text-slate-900">Create New Developer Habit</h3>
-            <p class="text-xs text-slate-500">Track daily consistency with streak and analytics</p>
+            <h3 class="font-title-md text-title-md text-on-surface">Create New Developer Habit</h3>
+            <p class="text-xs text-on-surface-variant">Track daily consistency with streak and analytics</p>
           </div>
         </div>
-        <button class="text-slate-400 hover:text-slate-600 p-1 rounded-lg" id="btn-close-add-habit">
+        <button class="text-outline hover:text-on-surface-variant p-1 rounded-lg" id="btn-close-add-habit">
           <svg class="material-symbols-outlined text-xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="close"><path d="m249-207-42-42 231-231-231-231 42-42 231 231 231-231 42 42-231 231 231 231-42 42-231-231-231 231Z"/></svg>
         </button>
       </div>
@@ -383,34 +486,34 @@
       <form id="form-add-habit" class="space-y-4">
         <!-- Title Input -->
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="habit-title-input">Habit Title (Repeated Routine) *</label>
-          <input type="text" id="habit-title-input" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors" placeholder="e.g. Solve DSA every day" maxlength="80" required/>
-          <p class="text-[11px] text-slate-400 mt-1">Repeated routine you want to maintain consistently.</p>
+          <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1" for="habit-title-input">Habit Title (Repeated Routine) *</label>
+          <input type="text" id="habit-title-input" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-outline-variant rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-surface transition-colors" placeholder="e.g. Solve DSA every day" maxlength="80" required/>
+          <p class="text-[11px] text-outline mt-1">Repeated routine you want to maintain consistently.</p>
         </div>
 
         <!-- Description Input -->
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="habit-desc-input">Description (Optional)</label>
-          <input type="text" id="habit-desc-input" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors" placeholder="e.g. Focus on sliding window or graph patterns" maxlength="120"/>
+          <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1" for="habit-desc-input">Description (Optional)</label>
+          <input type="text" id="habit-desc-input" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-outline-variant rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-surface transition-colors" placeholder="e.g. Focus on sliding window or graph patterns" maxlength="120"/>
         </div>
 
         <!-- Category Input & Quick Chips -->
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="habit-category-input">Category</label>
-          <input type="text" id="habit-category-input" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors mb-2" placeholder="e.g. DSA, WebDev, DevOps, Focus" value="DSA"/>
+          <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1" for="habit-category-input">Category</label>
+          <input type="text" id="habit-category-input" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-outline-variant rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-surface transition-colors mb-2" placeholder="e.g. DSA, WebDev, DevOps, Focus" value="DSA"/>
           <div class="flex flex-wrap gap-1.5" id="habit-category-chips">
-            <button type="button" class="px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors" data-cat="DSA">DSA</button>
-            <button type="button" class="px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors" data-cat="WebDev">WebDev</button>
-            <button type="button" class="px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors" data-cat="DevOps">DevOps</button>
-            <button type="button" class="px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors" data-cat="System Design">System Design</button>
-            <button type="button" class="px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors" data-cat="Focus">Focus</button>
-            <button type="button" class="px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors" data-cat="Core CS">Core CS</button>
+            <button type="button" class="px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 text-on-surface-variant hover:bg-slate-200 transition-colors" data-cat="DSA">DSA</button>
+            <button type="button" class="px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 text-on-surface-variant hover:bg-slate-200 transition-colors" data-cat="WebDev">WebDev</button>
+            <button type="button" class="px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 text-on-surface-variant hover:bg-slate-200 transition-colors" data-cat="DevOps">DevOps</button>
+            <button type="button" class="px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 text-on-surface-variant hover:bg-slate-200 transition-colors" data-cat="System Design">System Design</button>
+            <button type="button" class="px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 text-on-surface-variant hover:bg-slate-200 transition-colors" data-cat="Focus">Focus</button>
+            <button type="button" class="px-2.5 py-1 text-xs font-medium rounded-md bg-slate-100 text-on-surface-variant hover:bg-slate-200 transition-colors" data-cat="Core CS">Core CS</button>
           </div>
         </div>
 
         <!-- Frequency Selector -->
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Target Frequency</label>
+          <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Target Frequency</label>
           <div class="flex items-center gap-2 mb-3">
             <button type="button" class="freq-chip active" data-freq="daily">Daily</button>
             <button type="button" class="freq-chip" data-freq="weekdays">Weekdays (Mon-Fri)</button>
@@ -418,7 +521,7 @@
           </div>
 
           <!-- Custom Days Selector -->
-          <div class="hidden p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between" id="habit-custom-days-row">
+          <div class="hidden p-3 bg-slate-50 border border-outline-variant rounded-lg flex items-center justify-between" id="habit-custom-days-row">
             <button type="button" class="day-selector-btn" data-day="0">S</button>
             <button type="button" class="day-selector-btn active" data-day="1">M</button>
             <button type="button" class="day-selector-btn active" data-day="2">T</button>
@@ -431,13 +534,13 @@
 
         <!-- Optional Reminder Time -->
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="habit-reminder-input">Optional Reminder Time</label>
-          <input type="time" id="habit-reminder-input" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors"/>
+          <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1" for="habit-reminder-input">Optional Reminder Time</label>
+          <input type="time" id="habit-reminder-input" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-outline-variant rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-surface transition-colors"/>
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-          <button type="button" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" id="btn-cancel-add-habit">Cancel</button>
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-outline-variant/60">
+          <button type="button" class="px-4 py-2 text-xs font-semibold text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" id="btn-cancel-add-habit">Cancel</button>
           <button type="submit" class="btn-primary text-xs py-2 px-4 shadow-sm">Save Habit</button>
         </div>
       </form>
@@ -455,11 +558,11 @@
             <svg class="material-symbols-outlined text-xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="edit"><path d="M180-180h44l472-471-44-44-472 471v44Zm-60 60v-128l575-574q8-8 19-12.5t23-4.5q11 0 22 4.5t20 12.5l44 44q9 9 13 20t4 22q0 11-4.5 22.5T823-694L248-120H120Zm659-617-41-41 41 41Zm-105 64-22-22 44 44-22-22Z"/></svg>
           </div>
           <div>
-            <h3 class="text-base font-bold text-slate-900">Edit Developer Habit</h3>
-            <p class="text-xs text-slate-500">Update schedule, category, or reminder</p>
+            <h3 class="font-title-md text-title-md text-on-surface">Edit Developer Habit</h3>
+            <p class="text-xs text-on-surface-variant">Update schedule, category, or reminder</p>
           </div>
         </div>
-        <button class="text-slate-400 hover:text-slate-600 p-1 rounded-lg" id="btn-close-edit-habit">
+        <button class="text-outline hover:text-on-surface-variant p-1 rounded-lg" id="btn-close-edit-habit">
           <svg class="material-symbols-outlined text-xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="close"><path d="m249-207-42-42 231-231-231-231 42-42 231 231 231-231 42 42-231 231 231 231-42 42-231-231-231 231Z"/></svg>
         </button>
       </div>
@@ -467,24 +570,24 @@
       <form id="form-edit-habit" class="space-y-4">
         <input type="hidden" id="edit-habit-id"/>
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="edit-habit-title-input">Habit Title *</label>
-          <input type="text" id="edit-habit-title-input" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors" required maxlength="80"/>
+          <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1" for="edit-habit-title-input">Habit Title *</label>
+          <input type="text" id="edit-habit-title-input" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-outline-variant rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-surface transition-colors" required maxlength="80"/>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="edit-habit-category-input">Category</label>
-          <input type="text" id="edit-habit-category-input" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors"/>
+          <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1" for="edit-habit-category-input">Category</label>
+          <input type="text" id="edit-habit-category-input" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-outline-variant rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-surface transition-colors"/>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Target Frequency</label>
+          <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Target Frequency</label>
           <div class="flex items-center gap-2 mb-3">
             <button type="button" class="freq-chip edit-freq-chip" data-freq="daily">Daily</button>
             <button type="button" class="freq-chip edit-freq-chip" data-freq="weekdays">Weekdays (Mon-Fri)</button>
             <button type="button" class="freq-chip edit-freq-chip" data-freq="custom">Custom Days</button>
           </div>
 
-          <div class="hidden p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between" id="edit-habit-custom-days-row">
+          <div class="hidden p-3 bg-slate-50 border border-outline-variant rounded-lg flex items-center justify-between" id="edit-habit-custom-days-row">
             <button type="button" class="day-selector-btn edit-day-btn" data-day="0">S</button>
             <button type="button" class="day-selector-btn edit-day-btn" data-day="1">M</button>
             <button type="button" class="day-selector-btn edit-day-btn" data-day="2">T</button>
@@ -496,12 +599,12 @@
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="edit-habit-reminder-input">Optional Reminder Time</label>
-          <input type="time" id="edit-habit-reminder-input" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors"/>
+          <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1" for="edit-habit-reminder-input">Optional Reminder Time</label>
+          <input type="time" id="edit-habit-reminder-input" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-outline-variant rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-surface transition-colors"/>
         </div>
 
-        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-          <button type="button" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" id="btn-cancel-edit-habit">Cancel</button>
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-outline-variant/60">
+          <button type="button" class="px-4 py-2 text-xs font-semibold text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" id="btn-cancel-edit-habit">Cancel</button>
           <button type="submit" class="btn-primary text-xs py-2 px-4 shadow-sm">Save Changes</button>
         </div>
       </form>
@@ -519,35 +622,35 @@
             <svg class="material-symbols-outlined text-xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="track_changes"><path d="M324-111.5Q251-143 197-197t-85.5-127Q80-397 80-480t31.5-156Q143-709 197-763t127-85.5Q397-880 480-880h30v326q22 9 36 29t14 45q0 33-23.5 56.5T480-400q-33 0-56.5-23.5T400-480q0-25 14-45t36-29v-104q-65 11-107.5 60.5T300-480q0 75 52.5 127.5T480-300q75 0 127.5-52.5T660-480q0-41-16-75t-44-59l43-43q35 33 56 78.5t21 98.5q0 100-70 170t-170 70q-100 0-170-70t-70-170q0-93 60-160.5T450-719v-100q-131 11-220.5 108T140-480q0 142 99 241t241 99q142 0 241-99t99-241q0-74-28.5-137T713-727l43-43q57 55 90.5 129.5T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80q-83 0-156-31.5Z"/></svg>
           </div>
           <div>
-            <h3 class="text-base font-bold text-slate-900">Set Today's Daily Goal</h3>
-            <p class="text-xs text-slate-500">Numeric target for today (e.g. 3 LeetCode problems)</p>
+            <h3 class="font-title-md text-title-md text-on-surface">Set Today's Daily Goal</h3>
+            <p class="text-xs text-on-surface-variant">Numeric target for today (e.g. 3 LeetCode problems)</p>
           </div>
         </div>
-        <button class="text-slate-400 hover:text-slate-600 p-1 rounded-lg" id="btn-close-add-daily-goal">
+        <button class="text-outline hover:text-on-surface-variant p-1 rounded-lg" id="btn-close-add-daily-goal">
           <svg class="material-symbols-outlined text-xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="close"><path d="m249-207-42-42 231-231-231-231 42-42 231 231 231-231 42 42-231 231 231 231-42 42-231-231-231 231Z"/></svg>
         </button>
       </div>
 
       <form id="form-add-daily-goal" class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="daily-goal-title-input">Daily Goal Title (Target for Today) *</label>
-          <input type="text" id="daily-goal-title-input" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-amber-600 focus:bg-white transition-colors" placeholder="e.g. Solve 3 DSA Questions today" required maxlength="70"/>
-          <p class="text-[11px] text-slate-400 mt-1">Specific measurable target you want to accomplish today.</p>
+          <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1" for="daily-goal-title-input">Daily Goal Title (Target for Today) *</label>
+          <input type="text" id="daily-goal-title-input" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-outline-variant rounded-lg focus:outline-none focus:border-amber-600 focus:bg-surface transition-colors" placeholder="e.g. Solve 3 DSA Questions today" required maxlength="70"/>
+          <p class="text-[11px] text-outline mt-1">Specific measurable target you want to accomplish today.</p>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="daily-goal-target-input">Target Count</label>
-            <input type="number" id="daily-goal-target-input" min="1" max="50" value="3" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-amber-600 focus:bg-white transition-colors" required/>
+            <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1" for="daily-goal-target-input">Target Count</label>
+            <input type="number" id="daily-goal-target-input" min="1" max="50" value="3" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-outline-variant rounded-lg focus:outline-none focus:border-amber-600 focus:bg-surface transition-colors" required/>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="daily-goal-category-input">Category</label>
-            <input type="text" id="daily-goal-category-input" value="DSA" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-amber-600 focus:bg-white transition-colors"/>
+            <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1" for="daily-goal-category-input">Category</label>
+            <input type="text" id="daily-goal-category-input" value="DSA" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-outline-variant rounded-lg focus:outline-none focus:border-amber-600 focus:bg-surface transition-colors"/>
           </div>
         </div>
 
-        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-          <button type="button" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" id="btn-cancel-add-daily-goal">Cancel</button>
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-outline-variant/60">
+          <button type="button" class="px-4 py-2 text-xs font-semibold text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" id="btn-cancel-add-daily-goal">Cancel</button>
           <button type="submit" class="btn-primary bg-amber-600 hover:bg-amber-700 text-xs py-2 px-4 shadow-sm border-transparent">Set Goal</button>
         </div>
       </form>
@@ -564,8 +667,8 @@
           <svg class="material-symbols-outlined text-2xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="settings"><path d="m388-80-20-126q-19-7-40-19t-37-25l-118 54-93-164 108-79q-2-9-2.5-20.5T185-480q0-9 .5-20.5T188-521L80-600l93-164 118 54q16-13 37-25t40-18l20-127h184l20 126q19 7 40.5 18.5T669-710l118-54 93 164-108 77q2 10 2.5 21.5t.5 21.5q0 10-.5 21t-2.5 21l108 78-93 164-118-54q-16 13-36.5 25.5T592-206L572-80H388Zm48-60h88l14-112q33-8 62.5-25t53.5-41l106 46 40-72-94-69q4-17 6.5-33.5T715-480q0-17-2-33.5t-7-33.5l94-69-40-72-106 46q-23-26-52-43.5T538-708l-14-112h-88l-14 112q-34 7-63.5 24T306-642l-106-46-40 72 94 69q-4 17-6.5 33.5T245-480q0 17 2.5 33.5T254-413l-94 69 40 72 106-46q24 24 53.5 41t62.5 25l14 112Zm44-210q54 0 92-38t38-92q0-54-38-92t-92-38q-54 0-92 38t-38 92q0 54 38 92t92 38Zm0-130Z"/></svg>
         </div>
         <div>
-          <h3 class="text-base font-bold text-slate-900" id="delete-habit-title">Manage Habit</h3>
-          <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+          <h3 class="font-title-md text-title-md text-on-surface" id="delete-habit-title">Manage Habit</h3>
+          <p class="text-xs text-on-surface-variant mt-1 leading-relaxed">
             Edit details, pause habit tracking, or remove permanently.
           </p>
         </div>
@@ -573,12 +676,12 @@
 
       <div class="space-y-3 mb-5">
         <!-- Edit Habit Option -->
-        <div class="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl cursor-pointer transition-colors" id="btn-action-edit-habit">
+        <div class="p-3 bg-slate-50 hover:bg-surface-container border border-outline-variant rounded-xl cursor-pointer transition-colors" id="btn-action-edit-habit">
           <div class="flex items-center gap-2 mb-1">
             <svg class="material-symbols-outlined text-indigo-600 text-lg" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="edit"><path d="M180-180h44l472-471-44-44-472 471v44Zm-60 60v-128l575-574q8-8 19-12.5t23-4.5q11 0 22 4.5t20 12.5l44 44q9 9 13 20t4 22q0 11-4.5 22.5T823-694L248-120H120Zm659-617-41-41 41 41Zm-105 64-22-22 44 44-22-22Z"/></svg>
-            <span class="text-xs font-bold text-slate-900">Edit Habit Details</span>
+            <span class="text-xs font-bold text-on-surface">Edit Habit Details</span>
           </div>
-          <p class="text-[11px] text-slate-500 leading-normal">
+          <p class="text-[11px] text-on-surface-variant leading-normal">
             Modify title, category, schedule, or reminder time.
           </p>
         </div>
@@ -607,7 +710,7 @@
       </div>
 
       <div class="flex justify-end">
-        <button type="button" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" id="btn-cancel-delete">Cancel</button>
+        <button type="button" class="px-4 py-2 text-xs font-semibold text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" id="btn-cancel-delete">Cancel</button>
       </div>
     </div>
   </div>
@@ -619,15 +722,15 @@
     <div class="modal-container p-6 max-w-lg">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
+          <div class="w-8 h-8 rounded-lg bg-slate-100 text-on-surface-variant flex items-center justify-center">
             <svg class="material-symbols-outlined text-xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="inventory_2"><path d="M180-80q-24.75 0-42.37-17.63Q120-115.25 120-140v-483q-17-6-28.5-21.39T80-680v-140q0-24.75 17.63-42.38Q115.25-880 140-880h680q24.75 0 42.38 17.62Q880-844.75 880-820v140q0 20.22-11.5 35.61T840-623v483q0 24.75-17.62 42.37Q804.75-80 780-80H180Zm0-540v480h600v-480H180Zm-40-60h680v-140H140v140Zm220 260h240v-60H360v60Zm120 40Z"/></svg>
           </div>
           <div>
-            <h3 class="text-base font-bold text-slate-900">Archived Habits</h3>
-            <p class="text-xs text-slate-500">Deactivated habits whose historical analytics are preserved</p>
+            <h3 class="font-title-md text-title-md text-on-surface">Archived Habits</h3>
+            <p class="text-xs text-on-surface-variant">Deactivated habits whose historical analytics are preserved</p>
           </div>
         </div>
-        <button class="text-slate-400 hover:text-slate-600 p-1 rounded-lg" id="btn-close-inactive-modal">
+        <button class="text-outline hover:text-on-surface-variant p-1 rounded-lg" id="btn-close-inactive-modal">
           <svg class="material-symbols-outlined text-xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="close"><path d="m249-207-42-42 231-231-231-231 42-42 231 231 231-231 42 42-231 231 231 231-42 42-231-231-231 231Z"/></svg>
         </button>
       </div>
@@ -636,8 +739,8 @@
         <!-- Rendered by js/pages/habit.js -->
       </div>
 
-      <div class="flex justify-end pt-3 border-t border-slate-100">
-        <button type="button" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" id="btn-dismiss-inactive">Close</button>
+      <div class="flex justify-end pt-3 border-t border-outline-variant/60">
+        <button type="button" class="px-4 py-2 text-xs font-semibold text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" id="btn-dismiss-inactive">Close</button>
       </div>
     </div>
   </div>
@@ -653,45 +756,45 @@
             <svg class="material-symbols-outlined text-xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="manage_accounts"><path d="M292-527q-42-42-42-108t42-108q42-42 108-42t108 42q42 42 42 108t-42 108q-42 42-108 42t-108-42ZM80-164v-94q0-35 17.5-63t50.5-43q72-32 133.5-46T400-424h23q-6 14-9 27.5t-5 32.5h-9q-58 0-113.5 12.5T172-310q-16 8-24 22.5t-8 29.5v34h269q5 18 12 32.5t17 27.5H80Zm587 44-10-66q-17-5-34.5-14.5T593-222l-55 12-25-42 47-44q-2-9-2-25t2-25l-47-44 25-42 55 12q12-12 29.5-21.5T657-456l10-66h54l10 66q17 5 34.5 14.5T795-420l55-12 25 42-47 44q2 9 2 25t-2 25l47 44-25 42-55-12q-12 12-29.5 21.5T731-186l-10 66h-54Zm85-143q22-22 22-58t-22-58q-22-22-58-22t-58 22q-22 22-22 58t22 58q22 22 58 22t58-22ZM464.5-570.5Q490-596 490-635t-25.5-64.5Q439-725 400-725t-64.5 25.5Q310-674 310-635t25.5 64.5Q361-545 400-545t64.5-25.5ZM400-635Zm9 411Z"/></svg>
           </div>
           <div>
-            <h3 class="text-base font-bold text-slate-900">Developer Account & Sync</h3>
-            <p class="text-xs text-slate-500">Manage user isolation and cloud database</p>
+            <h3 class="font-title-md text-title-md text-on-surface">Developer Account & Sync</h3>
+            <p class="text-xs text-on-surface-variant">Manage user isolation and cloud database</p>
           </div>
         </div>
-        <button class="text-slate-400 hover:text-slate-600 p-1 rounded-lg" id="btn-close-auth-modal">
+        <button class="text-outline hover:text-on-surface-variant p-1 rounded-lg" id="btn-close-auth-modal">
           <svg class="material-symbols-outlined text-xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="close"><path d="m249-207-42-42 231-231-231-231 42-42 231 231 231-231 42 42-231 231 231 231-42 42-231-231-231 231Z"/></svg>
         </button>
       </div>
 
       <!-- Current Session Info -->
-      <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl mb-4">
-        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Active Session</p>
-        <p class="text-sm font-bold text-slate-800 mt-0.5" id="active-user-fullname">Aditya Sharma</p>
-        <p class="text-xs text-slate-500 font-mono mt-0.5" id="active-user-email">aditya@devpilot.ai</p>
+      <div class="p-3 bg-slate-50 border border-outline-variant rounded-xl mb-4">
+        <p class="text-[11px] font-semibold text-outline uppercase tracking-wider">Active Session</p>
+        <p class="text-sm font-bold text-on-surface mt-0.5" id="active-user-fullname">Aditya Sharma</p>
+        <p class="text-xs text-on-surface-variant font-mono mt-0.5" id="active-user-email">aditya@devpilot.ai</p>
       </div>
 
       <!-- Quick Switch Between Accounts -->
       <div class="mb-4">
-        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">Switch User Account (Test User Isolation)</label>
+        <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Switch User Account (Test User Isolation)</label>
         <div class="space-y-1.5" id="known-accounts-list">
           <!-- Rendered dynamically -->
         </div>
       </div>
 
       <!-- New Account Sign Up / Login Form -->
-      <form id="form-auth-login" class="space-y-3 pt-3 border-t border-slate-100">
-        <p class="text-xs font-semibold text-slate-700">Or Log In with Custom Account:</p>
+      <form id="form-auth-login" class="space-y-3 pt-3 border-t border-outline-variant/60">
+        <p class="text-xs font-semibold text-on-surface-variant">Or Log In with Custom Account:</p>
         <div>
-          <input type="email" id="auth-email-input" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white" placeholder="email@developer.dev" required/>
+          <input type="email" id="auth-email-input" class="w-full px-3 py-2 text-xs bg-slate-50 border border-outline-variant rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-surface" placeholder="email@developer.dev" required/>
         </div>
         <div class="flex items-center gap-2">
-          <input type="text" id="auth-fullname-input" class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white" placeholder="Full Name (optional)"/>
+          <input type="text" id="auth-fullname-input" class="w-full px-3 py-2 text-xs bg-slate-50 border border-outline-variant rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-surface" placeholder="Full Name (optional)"/>
           <button type="submit" class="btn-primary text-xs py-2 px-3 whitespace-nowrap">Switch / Login</button>
         </div>
       </form>
 
-      <div class="flex justify-between items-center pt-4 mt-4 border-t border-slate-100">
+      <div class="flex justify-between items-center pt-4 mt-4 border-t border-outline-variant/60">
         <button type="button" class="text-xs text-rose-600 font-semibold hover:underline" id="btn-auth-signout">Sign Out</button>
-        <button type="button" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" id="btn-dismiss-auth">Done</button>
+        <button type="button" class="px-4 py-2 text-xs font-semibold text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" id="btn-dismiss-auth">Done</button>
       </div>
     </div>
   </div>

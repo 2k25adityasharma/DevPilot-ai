@@ -417,17 +417,17 @@ function renderPrompts() {
                 </span>
               ` : ''}
             </div>
-            <button class="btn-favorite-star text-slate-400 hover:text-amber-500 transition-colors ${isSaved ? 'text-amber-500' : ''}" title="${isSaved ? 'Remove from Saved' : 'Save Prompt'}" onclick="togglePromptFavorite('${p.id}')">
+            <button class="btn-favorite-star text-outline hover:text-amber-500 transition-colors ${isSaved ? 'text-amber-500' : ''}" title="${isSaved ? 'Remove from Saved' : 'Save Prompt'}" onclick="togglePromptFavorite('${p.id}')">
               <span class="material-symbols-outlined text-[20px]" style="${isSaved ? 'font-variation-settings: \\"FILL\\" 1;' : ''}">star</span>
             </button>
           </div>
 
           <!-- Subcategory & Title -->
-          <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">${escapeHtml(p.subcategory || p.category)}</div>
-          <h3 class="font-bold text-base text-slate-900 leading-snug mb-1 hover:text-indigo-600 cursor-pointer transition-colors" onclick="openPromptDetails('${p.id}')">
+          <div class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-1">${escapeHtml(p.subcategory || p.category)}</div>
+          <h3 class="font-title-md text-title-md text-on-surface leading-snug mb-1 hover:text-indigo-600 cursor-pointer transition-colors" onclick="openPromptDetails('${p.id}')">
             ${escapeHtml(p.title)}
           </h3>
-          <p class="text-xs text-slate-600 line-clamp-2 mb-3">${escapeHtml(p.description)}</p>
+          <p class="text-xs text-on-surface-variant line-clamp-2 mb-3">${escapeHtml(p.description)}</p>
 
           <!-- Prompt Preview Box -->
           <div class="prompt-preview-box cursor-pointer" onclick="openPromptDetails('${p.id}')" title="Click to view details & customize variables">
@@ -798,17 +798,17 @@ function renderRelatedPrompts(currentPrompt) {
     : allPrompts.filter(p => p.id !== currentPrompt.id && p.category === currentPrompt.category).slice(0, 4);
 
   if (related.length === 0) {
-    container.innerHTML = `<p class="text-xs text-slate-400">No related prompts found.</p>`;
+    container.innerHTML = `<p class="text-xs text-outline">No related prompts found.</p>`;
     return;
   }
 
   container.innerHTML = related.map(rel => `
     <div class="related-prompt-card" onclick="openPromptDetails('${rel.id}')">
       <div class="flex items-center justify-between mb-1">
-        <span class="text-[10px] font-bold text-slate-400 uppercase">${escapeHtml(rel.category)}</span>
+        <span class="text-[10px] font-bold text-outline uppercase">${escapeHtml(rel.category)}</span>
         <span class="text-[10px] text-indigo-600 font-semibold">${escapeHtml(rel.subcategory || '')}</span>
       </div>
-      <div class="text-xs font-bold text-slate-800 line-clamp-1">${escapeHtml(rel.title)}</div>
+      <div class="text-xs font-bold text-on-surface line-clamp-1">${escapeHtml(rel.title)}</div>
     </div>
   `).join('');
 }

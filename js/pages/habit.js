@@ -355,7 +355,7 @@
         hintEl.className = 'text-[11px] font-semibold text-amber-500 mt-1';
       } else {
         hintEl.textContent = `Complete ≥${threshold}% of habits daily to build your streak`;
-        hintEl.className = 'text-[11px] text-slate-400 mt-1';
+        hintEl.className = 'text-[11px] text-outline mt-1';
       }
     }
   }
@@ -372,9 +372,9 @@
     if (activeHabits.length === 0) {
       dom.habitsListContainer.innerHTML = `
         <div class="text-center py-10 px-4 bg-slate-50/70 border border-dashed border-slate-200 rounded-xl">
-          <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">task_alt</span>
-          <p class="font-bold text-sm text-slate-700">No active habits yet</p>
-          <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+          <span class="material-symbols-outlined text-4xl text-outline mb-2">task_alt</span>
+          <p class="font-bold text-sm text-on-surface-variant">No active habits yet</p>
+          <p class="text-xs text-outline mt-1 max-w-sm mx-auto">
             Click "+ Add Habit" to create your first trackable daily habit.
           </p>
           <button class="btn-primary text-xs py-2 px-4 mt-4 inline-flex items-center gap-1.5" onclick="window.openAddHabitModal()">
@@ -394,16 +394,16 @@
       let frequencyBadge = '';
       const freq = habit.target_frequency || habit.targetFrequency || 'daily';
       if (freq === 'weekdays') {
-        frequencyBadge = '<span class="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">Weekdays</span>';
+        frequencyBadge = '<span class="text-[10px] text-outline bg-slate-100 px-1.5 py-0.5 rounded">Weekdays</span>';
       } else if (freq === 'custom') {
-        frequencyBadge = '<span class="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">Custom</span>';
+        frequencyBadge = '<span class="text-[10px] text-outline bg-slate-100 px-1.5 py-0.5 rounded">Custom</span>';
       }
 
       let reminderBadge = '';
       const reminder = habit.reminder_time || habit.reminderTime;
       if (reminder) {
         reminderBadge = `
-          <span class="text-[11px] text-slate-400 flex items-center gap-0.5">
+          <span class="text-[11px] text-outline flex items-center gap-0.5">
             <span class="material-symbols-outlined text-[13px]">alarm</span>
             ${escapeHtml(reminder)}
           </span>
@@ -419,7 +419,7 @@
           </span>
         `;
       } else {
-        streakBadge = `<span class="text-xs text-slate-400">0d streak</span>`;
+        streakBadge = `<span class="text-xs text-outline">0d streak</span>`;
       }
 
       let atRiskChip = '';
@@ -433,7 +433,7 @@
       }
 
       const restDayNotice = !isScheduled
-        ? `<span class="text-[11px] font-medium text-slate-400 italic">(Rest day)</span>`
+        ? `<span class="text-[11px] font-medium text-outline italic">(Rest day)</span>`
         : '';
 
       return `
@@ -449,7 +449,7 @@
             </button>
             <div class="cursor-pointer select-none flex-1 min-w-0" onclick="window.toggleHabit('${habit.id}')">
               <div class="flex items-center gap-2 flex-wrap">
-                <p class="habit-title font-semibold text-sm truncate text-slate-800">${escapeHtml(habit.title)}</p>
+                <p class="habit-title font-semibold text-sm truncate text-on-surface">${escapeHtml(habit.title)}</p>
                 ${restDayNotice}
                 ${atRiskChip}
               </div>
@@ -457,15 +457,15 @@
                 <span class="category-pill">${escapeHtml(habit.category || 'General')}</span>
                 ${frequencyBadge}
                 ${reminderBadge}
-                <span class="text-slate-300">•</span>
+                <span class="text-outline">•</span>
                 ${streakBadge}
-                <span class="text-slate-300">•</span>
-                <span class="text-[11px] text-slate-400">Best: ${stats.bestStreak}d</span>
+                <span class="text-outline">•</span>
+                <span class="text-[11px] text-outline">Best: ${stats.bestStreak}d</span>
               </div>
             </div>
           </div>
           <button 
-            class="text-slate-400 hover:text-indigo-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors flex items-center justify-center shrink-0" 
+            class="text-outline hover:text-indigo-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors flex items-center justify-center shrink-0" 
             title="Manage Habit" 
             onclick="window.promptManageHabit('${habit.id}')"
             aria-label="Manage habit"
@@ -492,8 +492,8 @@
     if (dailyGoals.length === 0) {
       dom.dailyGoalsContainer.innerHTML = `
         <div class="text-center py-6 px-4 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
-          <p class="text-xs text-slate-500 font-medium">No daily goals set for today.</p>
-          <p class="text-[11px] text-slate-400 mt-0.5">Set quantitative targets like "3 DSA Questions" or "2 LeetCode Mediums".</p>
+          <p class="text-xs text-on-surface-variant font-medium">No daily goals set for today.</p>
+          <p class="text-[11px] text-outline mt-0.5">Set quantitative targets like "3 DSA Questions" or "2 LeetCode Mediums".</p>
           <button class="text-xs font-semibold text-amber-600 hover:text-amber-700 mt-2 inline-flex items-center gap-1" onclick="window.openAddDailyGoalModal()">
             <span class="material-symbols-outlined text-[14px]">add</span>
             <span>Add Today's Goal</span>
@@ -512,15 +512,15 @@
           <div class="flex items-center justify-between gap-2 mb-2">
             <div class="flex items-center gap-2 min-w-0">
               <button 
-                class="w-5 h-5 rounded flex items-center justify-center text-xs transition-colors shrink-0 ${isCompleted ? 'bg-emerald-600 text-white' : 'border border-slate-300 text-slate-400 hover:border-emerald-600 hover:text-emerald-600'}"
+                class="w-5 h-5 rounded flex items-center justify-center text-xs transition-colors shrink-0 ${isCompleted ? 'bg-emerald-600 text-white' : 'border border-slate-300 text-outline hover:border-emerald-600 hover:text-emerald-600'}"
                 onclick="window.toggleDailyGoalComplete('${goal.id}')"
                 title="${isCompleted ? 'Mark Incomplete' : 'Mark Complete'}"
               >
                 <span class="material-symbols-outlined text-[14px]">check</span>
               </button>
               <div class="min-w-0">
-                <p class="daily-goal-title font-semibold text-sm truncate text-slate-800">${escapeHtml(goal.title)}</p>
-                <div class="flex items-center gap-2 text-[11px] text-slate-400">
+                <p class="daily-goal-title font-semibold text-sm truncate text-on-surface">${escapeHtml(goal.title)}</p>
+                <div class="flex items-center gap-2 text-[11px] text-outline">
                   <span class="category-pill text-[10px] py-0">${escapeHtml(goal.category || 'General')}</span>
                   <span>Target: ${goal.target}</span>
                 </div>
@@ -530,25 +530,25 @@
             <!-- Numeric Counter & Controls -->
             <div class="flex items-center gap-1.5 shrink-0">
               <button 
-                class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold transition-colors disabled:opacity-40" 
+                class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 text-on-surface-variant flex items-center justify-center text-xs font-bold transition-colors disabled:opacity-40" 
                 onclick="window.adjustDailyGoal('${goal.id}', -1)"
                 ${goal.progress <= 0 ? 'disabled' : ''}
                 title="Decrement Progress"
               >
                 -
               </button>
-              <span class="font-bold text-xs px-2 py-0.5 rounded bg-slate-50 border border-slate-200 min-w-[40px] text-center ${isCompleted ? 'text-emerald-700 font-extrabold' : 'text-slate-800'}">
+              <span class="font-bold text-xs px-2 py-0.5 rounded bg-slate-50 border border-slate-200 min-w-[40px] text-center ${isCompleted ? 'text-emerald-700 font-extrabold' : 'text-on-surface'}">
                 ${goal.progress || 0} / ${goal.target}
               </span>
               <button 
-                class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold transition-colors" 
+                class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 text-on-surface-variant flex items-center justify-center text-xs font-bold transition-colors" 
                 onclick="window.adjustDailyGoal('${goal.id}', 1)"
                 title="Increment Progress"
               >
                 +
               </button>
               <button 
-                class="text-slate-300 hover:text-rose-600 p-1 rounded transition-colors ml-1" 
+                class="text-outline hover:text-rose-600 p-1 rounded transition-colors ml-1" 
                 title="Delete Goal" 
                 onclick="window.deleteDailyGoal('${goal.id}')"
               >
@@ -674,17 +674,17 @@
           <div class="flex items-start gap-3 p-3 rounded-xl border ${s.bg} cursor-pointer hover:opacity-90 transition-opacity group suggestion-add-card" data-suggestion-index="${idx}" title="Click to add this goal">
             <span class="material-symbols-outlined text-xl ${s.color} shrink-0 mt-0.5" style='font-variation-settings: "FILL" 1;'>${s.icon}</span>
             <div class="min-w-0 flex-1 pointer-events-none">
-              <p class="text-xs font-bold text-slate-800 leading-snug">${escapeHtml(s.title)}</p>
-              <p class="text-[11px] text-slate-500 mt-0.5">${escapeHtml(s.subtitle)}</p>
+              <p class="text-xs font-bold text-on-surface leading-snug">${escapeHtml(s.title)}</p>
+              <p class="text-[11px] text-on-surface-variant mt-0.5">${escapeHtml(s.subtitle)}</p>
             </div>
-            <span class="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-indigo-600 shrink-0 transition-colors pointer-events-none">add_circle</span>
+            <span class="material-symbols-outlined text-[16px] text-outline group-hover:text-indigo-600 shrink-0 transition-colors pointer-events-none">add_circle</span>
           </div>
         `).join('')
-        : `<p class="text-xs text-slate-400 text-center py-2">Add your first habit to get personalized goal suggestions.</p>`;
+        : `<p class="text-xs text-outline text-center py-2">Add your first habit to get personalized goal suggestions.</p>`;
 
       dom.weeklyGoalsContainer.innerHTML = `
         <div class="space-y-2">
-          <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1 mb-3">
+          <p class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider flex items-center gap-1 mb-3">
             <span class="material-symbols-outlined text-[14px] text-indigo-500">auto_awesome</span>
             Suggested for you — tap to add
           </p>
@@ -721,14 +721,14 @@
               <span class="material-symbols-outlined text-lg ${isCompleted ? 'text-emerald-600' : 'text-indigo-600'}">
                 ${isCompleted ? 'check_circle' : 'flag'}
               </span>
-              <p class="font-semibold text-sm text-slate-800">${escapeHtml(goal.title)}</p>
+              <p class="font-semibold text-sm text-on-surface">${escapeHtml(goal.title)}</p>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-xs font-bold ${isCompleted ? 'text-emerald-700' : 'text-slate-600'}">
+              <span class="text-xs font-bold ${isCompleted ? 'text-emerald-700' : 'text-on-surface-variant'}">
                 ${progress.current} / ${progress.target}
               </span>
               <button 
-                class="text-slate-300 hover:text-rose-600 p-1 rounded transition-colors" 
+                class="text-outline hover:text-rose-600 p-1 rounded transition-colors" 
                 title="Remove Goal" 
                 onclick="window.removeWeeklyGoal('${goal.id}')"
               >
@@ -744,7 +744,7 @@
             ></div>
           </div>
 
-          <div class="flex items-center justify-between text-[11px] text-slate-400">
+          <div class="flex items-center justify-between text-[11px] text-outline">
             <span>${progress.pct}% completed</span>
             ${isCompleted ? '<span class="font-bold text-emerald-600 flex items-center gap-0.5"><span class="material-symbols-outlined text-[13px]">celebration</span> Target reached!</span>' : '<span>In progress</span>'}
           </div>
@@ -766,7 +766,7 @@
       } else if (momentum.diffPct < 0) {
         dom.momentumComparisonChip.className = 'text-xs font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200';
       } else {
-        dom.momentumComparisonChip.className = 'text-xs font-bold px-2 py-0.5 rounded-full bg-slate-50 text-slate-700 border border-slate-200';
+        dom.momentumComparisonChip.className = 'text-xs font-bold px-2 py-0.5 rounded-full bg-slate-50 text-on-surface-variant border border-slate-200';
       }
     }
 
@@ -913,9 +913,9 @@
         const pct = parseInt(cell.getAttribute('data-pct'), 10) || 0;
         let content = `<div class="font-semibold text-slate-100">${dateStr}</div>`;
         if (total > 0) {
-          content += `<div class="text-[11px] text-slate-300 mt-0.5">${completed} of ${total} completed</div><div class="text-[11px] text-indigo-300">${habitsTotal} habits • ${goalsTotal} daily goals</div><div class="text-[11px] text-slate-300">${pct}% completion</div>`;
+          content += `<div class="text-[11px] text-outline mt-0.5">${completed} of ${total} completed</div><div class="text-[11px] text-indigo-300">${habitsTotal} habits • ${goalsTotal} daily goals</div><div class="text-[11px] text-outline">${pct}% completion</div>`;
         } else {
-          content += `<div class="text-[11px] text-slate-300 mt-0.5">No tracked tasks</div>`;
+          content += `<div class="text-[11px] text-outline mt-0.5">No tracked tasks</div>`;
         }
         content += `<div class="mt-1 text-[9px] text-indigo-300/80 font-medium">Click to inspect day history</div>`;
 
@@ -987,7 +987,7 @@
     const completedCount = day ? day.completed : 0;
     const pct = day ? day.pct : 0;
 
-    let badgeClass = 'bg-slate-100 text-slate-600 border border-slate-200';
+    let badgeClass = 'bg-slate-100 text-on-surface-variant border border-slate-200';
     let badgeText = `${completedCount} of ${totalScheduled} completed (${pct}%)`;
 
     if (totalScheduled > 0 && completedCount === totalScheduled) {
@@ -996,7 +996,7 @@
     } else if (completedCount > 0) {
       badgeClass = 'bg-indigo-50 text-indigo-700 border border-indigo-200';
     } else if (isFuture) {
-      badgeClass = 'bg-slate-50 text-slate-400 border border-slate-200';
+      badgeClass = 'bg-slate-50 text-outline border border-slate-200';
       badgeText = 'Upcoming';
     }
 
@@ -1005,14 +1005,14 @@
     if (isFuture) {
       listContent = `
         <div class="py-2.5 px-3 rounded-lg bg-slate-50/70 border border-dashed border-slate-200 text-center">
-          <p class="text-xs text-slate-400 italic">Future date — habit tracking has not occurred yet.</p>
+          <p class="text-xs text-outline italic">Future date — habit tracking has not occurred yet.</p>
         </div>
       `;
     } else if (completedList.length === 0 && missedList.length === 0 && goalsForDate.length === 0) {
       listContent = `
         <div class="py-3 px-3 rounded-lg bg-slate-50/70 border border-dashed border-slate-200 text-center">
-          <p class="text-xs text-slate-500 font-medium">No activity recorded for this day.</p>
-          <p class="text-[11px] text-slate-400 mt-0.5">Click any other square in the heatmap above to inspect consistency history.</p>
+          <p class="text-xs text-on-surface-variant font-medium">No activity recorded for this day.</p>
+          <p class="text-[11px] text-outline mt-0.5">Click any other square in the heatmap above to inspect consistency history.</p>
         </div>
       `;
     } else {
@@ -1024,10 +1024,10 @@
           <div class="heatmap-history-item flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-emerald-50/60 border border-emerald-100 text-xs">
             <div class="flex items-center gap-2 min-w-0">
               <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
-              <span class="font-medium text-slate-800 truncate">${escapeHtml(h.title)}</span>
+              <span class="font-medium text-on-surface truncate">${escapeHtml(h.title)}</span>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
-              <span class="text-[10px] text-slate-500 bg-white/90 px-1.5 py-0.5 rounded border border-slate-100 font-medium">${escapeHtml(h.category || 'General')}</span>
+              <span class="text-[10px] text-on-surface-variant bg-white/90 px-1.5 py-0.5 rounded border border-slate-100 font-medium">${escapeHtml(h.category || 'General')}</span>
               <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-100/90 px-1.5 py-0.5 rounded">Completed</span>
             </div>
           </div>
@@ -1040,12 +1040,12 @@
         itemsHtml.push(`
           <div class="heatmap-history-item flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-slate-50/80 border border-slate-200/70 text-xs">
             <div class="flex items-center gap-2 min-w-0">
-              <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-[11px] shrink-0">○</span>
-              <span class="${isPending ? 'font-medium text-slate-700' : 'text-slate-500'} truncate">${escapeHtml(h.title)}</span>
+              <span class="w-4 h-4 rounded-full bg-slate-200 text-on-surface-variant flex items-center justify-center text-[11px] shrink-0">○</span>
+              <span class="${isPending ? 'font-medium text-on-surface-variant' : 'text-on-surface-variant'} truncate">${escapeHtml(h.title)}</span>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
-              <span class="text-[10px] text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-100 font-medium">${escapeHtml(h.category || 'General')}</span>
-              <span class="text-[10px] font-medium ${isPending ? 'text-amber-700 bg-amber-50 border border-amber-200' : 'text-slate-500 bg-slate-100'} px-1.5 py-0.5 rounded">
+              <span class="text-[10px] text-outline bg-white px-1.5 py-0.5 rounded border border-slate-100 font-medium">${escapeHtml(h.category || 'General')}</span>
+              <span class="text-[10px] font-medium ${isPending ? 'text-amber-700 bg-amber-50 border border-amber-200' : 'text-on-surface-variant bg-slate-100'} px-1.5 py-0.5 rounded">
                 ${isPending ? 'Pending' : 'Missed'}
               </span>
             </div>
@@ -1059,11 +1059,11 @@
         itemsHtml.push(`
           <div class="heatmap-history-item flex items-center justify-between py-1.5 px-2.5 rounded-lg ${isGoalCompleted ? 'bg-indigo-50/60 border border-indigo-100' : 'bg-slate-50/80 border border-slate-200/70'} text-xs">
             <div class="flex items-center gap-2 min-w-0">
-              <span class="w-4 h-4 rounded-full ${isGoalCompleted ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-500'} flex items-center justify-center text-[10px] font-bold shrink-0">🎯</span>
-              <span class="font-medium ${isGoalCompleted ? 'text-indigo-950' : 'text-slate-700'} truncate">${escapeHtml(g.title)}</span>
+              <span class="w-4 h-4 rounded-full ${isGoalCompleted ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-on-surface-variant'} flex items-center justify-center text-[10px] font-bold shrink-0">🎯</span>
+              <span class="font-medium ${isGoalCompleted ? 'text-indigo-950' : 'text-on-surface-variant'} truncate">${escapeHtml(g.title)}</span>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
-              <span class="text-[10px] font-semibold ${isGoalCompleted ? 'text-indigo-700 bg-indigo-100' : 'text-slate-500 bg-slate-100'} px-1.5 py-0.5 rounded">
+              <span class="text-[10px] font-semibold ${isGoalCompleted ? 'text-indigo-700 bg-indigo-100' : 'text-on-surface-variant bg-slate-100'} px-1.5 py-0.5 rounded">
                 ${isGoalCompleted ? 'Goal Achieved' : 'In Progress'}
               </span>
             </div>
@@ -1082,7 +1082,7 @@
       <div class="flex items-center justify-between mb-2.5 flex-wrap gap-2">
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-indigo-600 text-base">event_available</span>
-          <span class="text-xs font-bold text-slate-800">${formattedDate}</span>
+          <span class="text-xs font-bold text-on-surface">${formattedDate}</span>
           ${dayTag ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">${dayTag}</span>` : ''}
         </div>
         <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ${badgeClass}">
@@ -1106,8 +1106,8 @@
     if (!insights.mostConsistent && insights.totalCheckmarks === 0) {
       dom.habitInsightsContainer.innerHTML = `
         <div class="insight-metric-card col-span-2 text-center py-6">
-          <span class="material-symbols-outlined text-3xl text-slate-300 mb-2">insights</span>
-          <p class="text-xs font-semibold text-slate-500">No data yet. Complete some habits to see insights.</p>
+          <span class="material-symbols-outlined text-3xl text-outline mb-2">insights</span>
+          <p class="text-xs font-semibold text-on-surface-variant">No data yet. Complete some habits to see insights.</p>
         </div>
       `;
       return;
@@ -1125,7 +1125,7 @@
             <span class="material-symbols-outlined text-[15px]">priority_high</span>
             Needs Attention
           </p>
-          <p class="text-sm font-bold text-slate-800 mt-1 truncate" title="${escapeHtml(insights.needsAttention.title)}">${escapeHtml(insights.needsAttention.title)}</p>
+          <p class="text-sm font-bold text-on-surface mt-1 truncate" title="${escapeHtml(insights.needsAttention.title)}">${escapeHtml(insights.needsAttention.title)}</p>
           <p class="text-xs text-amber-600 font-semibold mt-0.5">${insights.needsAttention.rate}% completion</p>
         </div>
       `;
@@ -1150,7 +1150,7 @@
           <span class="material-symbols-outlined text-[15px]">verified</span>
           Most Consistent
         </p>
-        <p class="text-sm font-bold text-slate-800 mt-1 truncate" title="${mostConsistentTitle}">${mostConsistentTitle}</p>
+        <p class="text-sm font-bold text-on-surface mt-1 truncate" title="${mostConsistentTitle}">${mostConsistentTitle}</p>
         <p class="text-xs text-emerald-600 font-semibold mt-0.5">${mostConsistentRate} completion</p>
       </div>
 
@@ -1161,26 +1161,26 @@
           <span class="material-symbols-outlined text-[15px]">event_available</span>
           Best Day
         </p>
-        <p class="text-sm font-bold text-slate-800 mt-1">${insights.bestDay.name}</p>
+        <p class="text-sm font-bold text-on-surface mt-1">${insights.bestDay.name}</p>
         <p class="text-xs text-indigo-600 font-semibold mt-0.5">${insights.bestDay.rate}% avg completion</p>
       </div>
 
       <div class="insight-metric-card">
-        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+        <p class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
           <span class="material-symbols-outlined text-[15px]">event_busy</span>
           Weakest Day
         </p>
-        <p class="text-sm font-bold text-slate-800 mt-1">${insights.weakestDay.name}</p>
-        <p class="text-xs text-slate-500 font-semibold mt-0.5">${insights.weakestDay.rate}% avg completion</p>
+        <p class="text-sm font-bold text-on-surface mt-1">${insights.weakestDay.name}</p>
+        <p class="text-xs text-on-surface-variant font-semibold mt-0.5">${insights.weakestDay.rate}% avg completion</p>
       </div>
 
       <div class="insight-metric-card col-span-2 flex items-center justify-between">
         <div>
-          <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Average Daily Completion</p>
-          <p class="text-base font-bold text-slate-800 mt-0.5">${insights.averageCompletionPct}%</p>
+          <p class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">Average Daily Completion</p>
+          <p class="text-base font-bold text-on-surface mt-0.5">${insights.averageCompletionPct}%</p>
         </div>
         <div class="text-right">
-          <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Checkmarks</p>
+          <p class="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">Total Checkmarks</p>
           <p class="text-base font-bold text-indigo-600 mt-0.5">${insights.totalCheckmarks} logged</p>
         </div>
       </div>
@@ -1595,7 +1595,7 @@
     const inactive = habits.filter(h => h.active === false);
     if (inactive.length === 0) {
       dom.inactiveHabitsList.innerHTML = `
-        <div class="text-center py-8 text-slate-400">
+        <div class="text-center py-8 text-outline">
           <span class="material-symbols-outlined text-3xl mb-1">check_circle</span>
           <p class="text-xs">No archived habits. All habits are currently active.</p>
         </div>
@@ -1609,8 +1609,8 @@
       return `
         <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
           <div>
-            <p class="text-sm font-semibold text-slate-800">${escapeHtml(habit.title)}</p>
-            <p class="text-[11px] text-slate-400 mt-0.5">${escapeHtml(habit.category || 'General')} • ${totalCompleted} total completions</p>
+            <p class="text-sm font-semibold text-on-surface">${escapeHtml(habit.title)}</p>
+            <p class="text-[11px] text-outline mt-0.5">${escapeHtml(habit.category || 'General')} • ${totalCompleted} total completions</p>
           </div>
           <div class="flex items-center gap-2">
             <button 
@@ -1620,7 +1620,7 @@
               Restore
             </button>
             <button 
-              class="text-slate-400 hover:text-rose-600 p-1 rounded"
+              class="text-outline hover:text-rose-600 p-1 rounded"
               title="Delete permanently"
               onclick="window.deleteHabitFromArchive('${habit.id}')"
             >
@@ -1666,15 +1666,15 @@
           onclick="window.switchUserAccount('${u.id}')"
         >
           <div class="flex items-center gap-2.5">
-            <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isActive ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-700'}">
+            <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isActive ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-on-surface-variant'}">
               ${u.avatar || u.fullName.charAt(0)}
             </span>
             <div>
-              <p class="text-xs font-bold text-slate-800">${escapeHtml(u.fullName)}</p>
-              <p class="text-[10px] text-slate-400 font-mono">${escapeHtml(u.email)}</p>
+              <p class="text-xs font-bold text-on-surface">${escapeHtml(u.fullName)}</p>
+              <p class="text-[10px] text-outline font-mono">${escapeHtml(u.email)}</p>
             </div>
           </div>
-          ${isActive ? '<span class="text-[10px] font-bold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded">Active</span>' : '<span class="text-[10px] text-slate-400">Switch</span>'}
+          ${isActive ? '<span class="text-[10px] font-bold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded">Active</span>' : '<span class="text-[10px] text-outline">Switch</span>'}
         </div>
       `;
     }).join('');

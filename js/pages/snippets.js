@@ -352,11 +352,11 @@ function renderSnippets() {
           </div>
 
           <!-- Title & Subcategory -->
-          <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">${escapeHtml(s.subcategory || s.category)}</div>
-          <h3 class="font-bold text-base text-slate-900 leading-snug mb-1 hover:text-indigo-600 cursor-pointer transition-colors" onclick="openSnippetDetails('${s.id}')">
+          <div class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-1">${escapeHtml(s.subcategory || s.category)}</div>
+          <h3 class="font-title-md text-title-md text-on-surface leading-snug mb-1 hover:text-indigo-600 cursor-pointer transition-colors" onclick="openSnippetDetails('${s.id}')">
             ${escapeHtml(s.title)}
           </h3>
-          <p class="text-xs text-slate-600 line-clamp-2 mb-3">${escapeHtml(s.description)}</p>
+          <p class="text-xs text-on-surface-variant line-clamp-2 mb-3">${escapeHtml(s.description)}</p>
 
           <!-- Code Preview Box -->
           <div class="snippet-code-preview">
@@ -621,17 +621,17 @@ function renderRelatedSnippets(currentSnippet) {
     : allSnippets.filter(s => s.id !== currentSnippet.id && s.category === currentSnippet.category).slice(0, 4);
 
   if (related.length === 0) {
-    container.innerHTML = `<p class="text-xs text-slate-400">No related snippets found.</p>`;
+    container.innerHTML = `<p class="text-xs text-outline">No related snippets found.</p>`;
     return;
   }
 
   container.innerHTML = related.map(rel => `
     <div class="related-snippet-chip" onclick="openSnippetDetails('${rel.id}')">
       <div class="flex items-center justify-between mb-1">
-        <span class="text-[10px] font-bold text-slate-400 uppercase">${escapeHtml(rel.language)}</span>
+        <span class="text-[10px] font-bold text-outline uppercase">${escapeHtml(rel.language)}</span>
         <span class="text-[10px] text-indigo-600 font-semibold">${escapeHtml(rel.subcategory || '')}</span>
       </div>
-      <div class="text-xs font-bold text-slate-800 line-clamp-1">${escapeHtml(rel.title)}</div>
+      <div class="text-xs font-bold text-on-surface line-clamp-1">${escapeHtml(rel.title)}</div>
     </div>
   `).join('');
 }

@@ -453,7 +453,7 @@
                 <span class="dsa-lc-num">#${lcNum}</span>
                 <div class="dsa-question-info">
                   <div class="dsa-question-title-wrap">
-                    <span class="dsa-question-title font-medium text-slate-800" title="${escapeHtml(q.title)}">${titleHtml}</span>
+                    <span class="dsa-question-title font-medium text-on-surface" title="${escapeHtml(q.title)}">${titleHtml}</span>
                     ${isReviewed ? `<span class="inline-flex items-center text-amber-500 ml-1.5" title="In Review (★)"><span class="material-symbols-outlined text-[15px]">star</span></span>` : ''}
                   </div>
                   <div class="dsa-question-tags">

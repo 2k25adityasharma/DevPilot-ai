@@ -710,7 +710,7 @@
               <span class="pl-mastery-badge mastery-${mastery.toLowerCase().replace(/\s+/g, '-')} text-sm px-3 py-1">${mastery}</span>
               <span class="font-bold text-sm text-indigo-600 font-mono">${masteryScore}%</span>
             </div>
-            <span class="pl-study-solved-stat text-xs text-slate-500 mt-2">${solvedStats.solved} / ${solvedStats.total || 10} Practice Problems Solved</span>
+            <span class="pl-study-solved-stat text-xs text-on-surface-variant mt-2">${solvedStats.solved} / ${solvedStats.total || 10} Practice Problems Solved</span>
           </div>
         </div>
       </div>
@@ -752,12 +752,12 @@
           <span class="material-symbols-outlined text-indigo-600">radar</span>
           <span>2. Problem Recognition Signals & Trigger Keywords</span>
         </h3>
-        <p class="text-sm text-slate-600 mb-3">When reading LeetCode problem statements, look for these explicit cues:</p>
+        <p class="text-sm text-on-surface-variant mb-3">When reading LeetCode problem statements, look for these explicit cues:</p>
         <div class="pl-signals-grid">
           ${(pat.recognitionSignals || []).map(sig => `
             <div class="pl-signal-item">
               <span class="material-symbols-outlined text-indigo-600 text-[18px]">bolt</span>
-              <span class="font-medium text-slate-800 text-sm">${escapeHtml(sig)}</span>
+              <span class="font-medium text-on-surface text-sm">${escapeHtml(sig)}</span>
             </div>
           `).join('')}
         </div>
@@ -771,7 +771,7 @@
         </h3>
         <div class="pl-mental-model-box">
           <span class="material-symbols-outlined text-indigo-600 text-2xl shrink-0">lightbulb</span>
-          <div class="text-slate-800 text-sm leading-relaxed">
+          <div class="text-on-surface text-sm leading-relaxed">
             ${escapeHtml(pat.coreIdea || '')}
           </div>
         </div>
@@ -815,7 +815,7 @@
           </div>
         </div>
 
-        <h4 class="text-sm font-bold text-slate-900 mb-2 flex items-center gap-2">
+        <h4 class="font-title-md text-title-md text-on-surface mb-2 flex items-center gap-2">
           <span class="material-symbols-outlined text-amber-500 text-[18px]">warning</span>
           <span>Common Mistakes & Gotchas to Avoid:</span>
         </h4>
@@ -823,7 +823,7 @@
           ${(pat.pitfalls || []).map(p => `
             <li class="pl-pitfall-item">
               <span class="material-symbols-outlined text-red-500 text-[16px] shrink-0">close</span>
-              <span class="text-sm text-slate-700">${escapeHtml(p)}</span>
+              <span class="text-sm text-on-surface-variant">${escapeHtml(p)}</span>
             </li>
           `).join('')}
         </ul>
@@ -852,14 +852,14 @@
           <span class="material-symbols-outlined text-indigo-600">footprint</span>
           <span>7. Concrete Walkthrough Trace</span>
         </h3>
-        <p class="text-sm font-semibold text-slate-800 mb-3">${escapeHtml(pat.walkthrough ? pat.walkthrough.problem : 'Canonical Example')}</p>
+        <p class="text-sm font-semibold text-on-surface mb-3">${escapeHtml(pat.walkthrough ? pat.walkthrough.problem : 'Canonical Example')}</p>
         <div class="pl-trace-steps-container">
           ${((pat.walkthrough && pat.walkthrough.steps) || []).map(s => `
             <div class="pl-trace-step-item">
               <div class="pl-trace-step-num">Step ${s.step}</div>
               <div class="pl-trace-step-content">
                 <div class="pl-trace-step-state font-mono text-xs text-indigo-700 bg-indigo-50 px-2 py-1 rounded inline-block mb-1">${escapeHtml(s.state)}</div>
-                <div class="pl-trace-step-action text-sm text-slate-700">${escapeHtml(s.action)}</div>
+                <div class="pl-trace-step-action text-sm text-on-surface-variant">${escapeHtml(s.action)}</div>
               </div>
             </div>
           `).join('')}
@@ -872,7 +872,7 @@
           <span class="material-symbols-outlined text-indigo-600">quiz</span>
           <span>8. Pattern Recognition Quiz (${(pat.quizzes || []).length} Scenarios)</span>
         </h3>
-        <p class="text-sm text-slate-600 mb-4">Select the most optimal pattern for each problem scenario to reinforce pattern identification:</p>
+        <p class="text-sm text-on-surface-variant mb-4">Select the most optimal pattern for each problem scenario to reinforce pattern identification:</p>
         <div class="pl-quiz-list">
           ${(pat.quizzes || []).map((q, qIndex) => `
             <div class="pl-quiz-card" id="quiz-card-${pat.id}-${qIndex}">
@@ -889,7 +889,7 @@
               </div>
               <div class="pl-quiz-feedback hidden" id="quiz-feedback-${pat.id}-${qIndex}">
                 <div class="pl-feedback-header"></div>
-                <p class="pl-feedback-expl text-sm text-slate-700 mt-1"></p>
+                <p class="pl-feedback-expl text-sm text-on-surface-variant mt-1"></p>
               </div>
             </div>
           `).join('')}
@@ -904,7 +904,7 @@
               <span class="material-symbols-outlined text-indigo-600">checklist</span>
               <span>9. Practice Problems (10 Curated Problems)</span>
             </h3>
-            <p class="text-xs text-slate-500">Sequential Mastery (1 → 10): <strong>5 Easy • 3 Medium • 2 Hard</strong>. ≥2 assisted or copied solves flags pattern as Weak.</p>
+            <p class="text-xs text-on-surface-variant">Sequential Mastery (1 → 10): <strong>5 Easy • 3 Medium • 2 Hard</strong>. ≥2 assisted or copied solves flags pattern as Weak.</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
             <span class="pl-breakdown-chip bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" title="Solved 100% on your own (Full tumne kiya)">
@@ -986,7 +986,7 @@
    */
   function renderPracticeQuestionsList(questions) {
     if (!questions || questions.length === 0) {
-      return `<p class="text-sm text-slate-500 py-4 text-center">No questions found for this pattern.</p>`;
+      return `<p class="text-sm text-on-surface-variant py-4 text-center">No questions found for this pattern.</p>`;
     }
 
     const evaluations = patternStats.evaluations || {};
@@ -1022,12 +1022,12 @@
                 </span>
               </button>
               <span class="pl-seq-badge pl-seq-badge-locked">#${currentNum}</span>
-              <span class="dsa-lc-num text-slate-400">#${lcNum}</span>
+              <span class="dsa-lc-num text-outline">#${lcNum}</span>
               <div class="dsa-question-info">
                 <div class="dsa-question-title-wrap">
-                  <span class="dsa-question-title text-slate-400 dark:text-slate-500" title="${escapeHtml(q.title)}">${escapeHtml(q.title)}</span>
+                  <span class="dsa-question-title text-outline dark:text-on-surface-variant" title="${escapeHtml(q.title)}">${escapeHtml(q.title)}</span>
                 </div>
-                ${signals ? `<div class="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5"><span class="material-symbols-outlined text-[12px]">radar</span><span>${escapeHtml(signals)}</span></div>` : ''}
+                ${signals ? `<div class="text-[11px] text-outline flex items-center gap-1 mt-0.5"><span class="material-symbols-outlined text-[12px]">radar</span><span>${escapeHtml(signals)}</span></div>` : ''}
               </div>
             </div>
             <div class="dsa-question-right">
@@ -1126,9 +1126,9 @@
             <span class="dsa-lc-num">#${lcNum}</span>
             <div class="dsa-question-info">
               <div class="dsa-question-title-wrap">
-                <span class="dsa-question-title font-medium text-slate-800" title="${escapeHtml(q.title)}">${escapeHtml(q.title)}</span>
+                <span class="dsa-question-title font-medium text-on-surface" title="${escapeHtml(q.title)}">${escapeHtml(q.title)}</span>
               </div>
-              ${signals ? `<div class="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5"><span class="material-symbols-outlined text-[12px] text-indigo-500">radar</span><span>${escapeHtml(signals)}</span></div>` : ''}
+              ${signals ? `<div class="text-[11px] text-on-surface-variant flex items-center gap-1 mt-0.5"><span class="material-symbols-outlined text-[12px] text-indigo-500">radar</span><span>${escapeHtml(signals)}</span></div>` : ''}
             </div>
           </div>
           <div class="dsa-question-right">
@@ -1258,7 +1258,7 @@
         <h4 class="pl-arena-qtitle">${escapeHtml(drill.title)}</h4>
         <p class="pl-arena-qsnippet">${escapeHtml(drill.snippet)}</p>
         <div class="pl-arena-constraints">
-          <span class="material-symbols-outlined text-[14px] text-slate-500">lock</span>
+          <span class="material-symbols-outlined text-[14px] text-on-surface-variant">lock</span>
           <span>Constraints: ${escapeHtml(drill.constraints)}</span>
         </div>
       </div>
@@ -1348,21 +1348,21 @@
         <div class="pl-arena-summary-trophy">
           <span class="material-symbols-outlined text-4xl text-amber-500">military_tech</span>
         </div>
-        <h3 class="text-xl font-extrabold text-slate-900 mt-3">Training Arena Complete!</h3>
-        <p class="text-sm text-slate-600 mt-1">You identified patterns across real-world problem scenarios.</p>
+        <h3 class="font-title-md text-title-md text-on-surface mt-3">Training Arena Complete!</h3>
+        <p class="text-sm text-on-surface-variant mt-1">You identified patterns across real-world problem scenarios.</p>
 
         <div class="pl-arena-summary-stats mt-6">
           <div class="pl-summary-stat-box">
             <span class="text-2xl font-black text-indigo-600">${arenaScore.correct} / ${arenaScore.total}</span>
-            <span class="text-xs text-slate-500 mt-1">Correct Choices</span>
+            <span class="text-xs text-on-surface-variant mt-1">Correct Choices</span>
           </div>
           <div class="pl-summary-stat-box">
             <span class="text-2xl font-black text-emerald-600">${accuracy}%</span>
-            <span class="text-xs text-slate-500 mt-1">Accuracy</span>
+            <span class="text-xs text-on-surface-variant mt-1">Accuracy</span>
           </div>
           <div class="pl-summary-stat-box">
             <span class="text-2xl font-black text-amber-600">${arenaScore.streak}</span>
-            <span class="text-xs text-slate-500 mt-1">Best Streak</span>
+            <span class="text-xs text-on-surface-variant mt-1">Best Streak</span>
           </div>
         </div>
 

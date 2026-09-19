@@ -7,6 +7,109 @@
   <meta name="description" content="Build ATS-friendly developer resumes with 10 professional templates and get detailed resume analysis in the DevPilot AI workspace."/>
 
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" id="tailwind-cdn"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca'
+            },
+            "error-container": "#ffdad6",
+            "on-primary-container": "#fffbff",
+            "surface-variant": "#e4e1ed",
+            "tertiary-container": "#b55d00",
+            "surface-container": "#efecf8",
+            "primary": "#4648d4",
+            "on-tertiary": "#ffffff",
+            "on-tertiary-fixed-variant": "#703700",
+            "tertiary-fixed": "#ffdcc5",
+            "background": "#fcf8ff",
+            "error": "#ba1a1a",
+            "on-primary-fixed-variant": "#2f2ebe",
+            "outline-variant": "#c7c4d7",
+            "surface-container-highest": "#e4e1ed",
+            "surface-bright": "#fcf8ff",
+            "surface-container-low": "#f5f2fe",
+            "primary-container": "#6063ee",
+            "secondary-container": "#e3e1ed",
+            "surface-dim": "#dbd8e4",
+            "secondary-fixed-dim": "#c7c5d1",
+            "surface-tint": "#494bd6",
+            "on-error-container": "#93000a",
+            "on-tertiary-fixed": "#301400",
+            "secondary-fixed": "#e3e1ed",
+            "tertiary-fixed-dim": "#ffb783",
+            "outline": "#767586",
+            "secondary": "#5d5d67",
+            "on-secondary": "#ffffff",
+            "on-error": "#ffffff",
+            "on-surface-variant": "#464554",
+            "on-secondary-container": "#64636d",
+            "tertiary": "#904900",
+            "on-primary-fixed": "#07006c",
+            "surface-container-high": "#e9e6f3",
+            "surface-container-lowest": "#ffffff",
+            "on-tertiary-container": "#fffbff",
+            "on-surface": "#1b1b23",
+            "on-secondary-fixed-variant": "#46464f",
+            "primary-fixed-dim": "#c0c1ff",
+            "inverse-surface": "#303038",
+            "primary-fixed": "#e1e0ff",
+            "on-secondary-fixed": "#1a1b23",
+            "inverse-primary": "#c0c1ff",
+            "surface": "#fcf8ff",
+            "on-background": "#1b1b23",
+            "on-primary": "#ffffff",
+            "inverse-on-surface": "#f2effb"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "container-padding": "32px",
+            "gutter": "24px",
+            "stack-sm": "8px",
+            "stack-lg": "24px",
+            "stack-md": "16px",
+            "navbar-height": "72px",
+            "sidebar-width": "260px",
+            "sidebar-collapsed-width": "72px"
+          },
+          fontFamily: {
+            "stats-lg": ["Plus Jakarta Sans"],
+            "label-sm": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "title-md": ["Plus Jakarta Sans"],
+            "label-md": ["Inter"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "headline-xl": ["Plus Jakarta Sans"],
+            "body-lg": ["Inter"]
+          },
+          fontSize: {
+            "stats-lg": ["36px", { "lineHeight": "44px", "fontWeight": "700" }],
+            "label-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "title-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "headline-lg-mobile": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+          }
+        }
+      }
+    };
+  </script>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
@@ -46,7 +149,7 @@
   </script>
   <script src="../js/core/icons.js"></script>
 </head>
-<body class="bg-slate-50 text-slate-900 antialiased min-h-screen">
+<body class="font-body-md bg-background text-on-surface antialiased min-h-screen">
 
   <!-- Mobile Overlay -->
   <div class="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm hidden md:hidden" id="mobile-overlay"></div>
@@ -174,8 +277,8 @@
             <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="menu"><path d="M120-240v-60h720v60H120Zm0-210v-60h720v60H120Zm0-210v-60h720v60H120Z"/></svg>
           </button>
           <div>
-            <h1 class="page-title">Resume Workspace</h1>
-            <p class="page-subtitle">Create a professional developer resume or analyze your existing resume.</p>
+            <h1 class="page-title font-headline-xl text-headline-xl text-on-surface">Resume Workspace</h1>
+            <p class="page-subtitle font-body-lg text-body-lg text-on-surface-variant">Create a professional developer resume or analyze your existing resume.</p>
           </div>
         </div>
       </div>
@@ -297,7 +400,7 @@
           </button>
           <div class="builder-topbar-title">
             <svg class="material-symbols-outlined text-indigo-600 text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="edit_document" style='font-variation-settings: "FILL" 1;'><path d="M560-80v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22q0 11-4.5 22.5T902.09-300L683-80H560Zm300-263-37-37 37 37ZM620-140h38l121-122-18-19-19-18-122 121v38ZM220-80q-24 0-42-18t-18-42v-680q0-24 18-42t42-18h340l240 240v116h-60v-76H520v-220H220v680h280v60H220Zm290-400Zm251 199-19-18 37 37-18-19Z"/></svg>
-            <span class="font-semibold text-slate-800 text-sm hidden sm:inline">Resume Builder</span>
+            <span class="font-semibold text-on-surface text-sm hidden sm:inline">Resume Builder</span>
           </div>
         </div>
 
@@ -305,7 +408,7 @@
           <button class="btn-secondary btn-sm" id="btn-template-picker" title="Change template">
             <svg class="material-symbols-outlined text-[16px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="layers"><path d="M480-130 120-410l50-37 310 241 310-241 50 37-360 280Zm0-152L120-562l360-280 360 280-360 280Zm0-301Zm0 225 262-204-262-204-262 204 262 204Z"/></svg>
             <span id="active-template-label" class="hidden sm:inline">Classic ATS</span>
-            <svg class="material-symbols-outlined text-[16px] text-slate-400" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
+            <svg class="material-symbols-outlined text-[16px] text-outline" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
           </button>
         </div>
 
@@ -355,7 +458,7 @@
                 <svg class="material-symbols-outlined text-indigo-600 text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="person" style='font-variation-settings: "FILL" 1;'><path d="M372-523q-42-42-42-108t42-108q42-42 108-42t108 42q42 42 42 108t-42 108q-42 42-108 42t-108-42ZM160-160v-94q0-38 19-65t49-41q67-30 128.5-45T480-420q62 0 123 15.5T731-360q31 14 50 41t19 65v94H160Zm60-60h520v-34q0-16-9.5-30.5T707-306q-64-31-117-42.5T480-360q-57 0-111 11.5T252-306q-14 7-23 21.5t-9 30.5v34Zm324.5-346.5Q570-592 570-631t-25.5-64.5Q519-721 480-721t-64.5 25.5Q390-670 390-631t25.5 64.5Q441-541 480-541t64.5-25.5ZM480-631Zm0 411Z"/></svg>
                 Personal Information
               </span>
-              <svg class="material-symbols-outlined text-slate-400 accordion-chevron" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
+              <svg class="material-symbols-outlined text-outline accordion-chevron" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
             </div>
             <div class="accordion-content">
               <div class="acc-grid-2">
@@ -402,7 +505,7 @@
                 <svg class="material-symbols-outlined text-indigo-600 text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="chat_bubble" style='font-variation-settings: "FILL" 1;'><path d="M80-80v-740q0-24 18-42t42-18h680q24 0 42 18t18 42v520q0 24-18 42t-42 18H240L80-80Zm134-220h606v-520H140v600l74-80Zm-74 0v-520 520Z"/></svg>
                 Professional Summary
               </span>
-              <svg class="material-symbols-outlined text-slate-400 accordion-chevron" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
+              <svg class="material-symbols-outlined text-outline accordion-chevron" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
             </div>
             <div class="accordion-content">
               <div class="form-group">
@@ -423,7 +526,7 @@
                 <svg class="material-symbols-outlined text-indigo-600 text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="code" style='font-variation-settings: "FILL" 1;'><path d="M320-242 80-482l242-242 43 43-199 199 197 197-43 43Zm318 2-43-43 199-199-197-197 43-43 240 240-242 242Z"/></svg>
                 Technical Skills
               </span>
-              <svg class="material-symbols-outlined text-slate-400 accordion-chevron" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
+              <svg class="material-symbols-outlined text-outline accordion-chevron" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
             </div>
             <div class="accordion-content">
               <div class="form-group">
@@ -457,7 +560,7 @@
                 <svg class="material-symbols-outlined text-indigo-600 text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="work" style='font-variation-settings: "FILL" 1;'><path d="M140-120q-24 0-42-18t-18-42v-480q0-24 18-42t42-18h180v-100q0-24 18-42t42-18h200q24 0 42 18t18 42v100h180q24 0 42 18t18 42v480q0 24-18 42t-42 18H140Zm0-60h680v-480H140v480Zm240-540h200v-100H380v100ZM140-180v-480 480Z"/></svg>
                 Experience / Internships
               </span>
-              <svg class="material-symbols-outlined text-slate-400 accordion-chevron" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
+              <svg class="material-symbols-outlined text-outline accordion-chevron" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
             </div>
             <div class="accordion-content">
               <div id="experience-list"></div>
@@ -475,7 +578,7 @@
                 <svg class="material-symbols-outlined text-indigo-600 text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="rocket_launch" style='font-variation-settings: "FILL" 1;'><path d="m187-551 106 45q18-36 38.5-71t43.5-67l-79-16-109 109Zm154 81 133 133q57-26 107-59t81-64q81-81 119-166t41-192q-107 3-192 41T464-658q-31 31-64 81t-59 107Zm209-145.5q0-29.5 20-49.5t49.5-20q29.5 0 49.5 20t20 49.5q0 29.5-20 49.5t-49.5 20q-29.5 0-49.5-20t-20-49.5Zm5 432.5 109-109-16-79q-32 23-67 43.5T510-289l45 106Zm326-694q9 136-34 248T705-418l-2 2-2 2 22 110q3 15-1.5 29T706-250L535-78l-85-198-170-170-198-85 172-171q11-11 25-15.5t29-1.5l110 22q1-1 2-1.5t2-1.5q99-99 211-142.5T881-877ZM149-325q35-35 85.5-35.5T320-326q35 35 34.5 85.5T319-155q-26 26-80.5 43T75-80q15-109 31.5-164t42.5-81Zm42 43q-14 15-25 47t-19 82q50-8 82-19t47-25q19-17 19.5-42.5T278-284q-19-18-44.5-17.5T191-282Z"/></svg>
                 Projects
               </span>
-              <svg class="material-symbols-outlined text-slate-400 accordion-chevron" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
+              <svg class="material-symbols-outlined text-outline accordion-chevron" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
             </div>
             <div class="accordion-content">
               <div id="projects-list"></div>
@@ -493,7 +596,7 @@
                 <svg class="material-symbols-outlined text-indigo-600 text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="school" style='font-variation-settings: "FILL" 1;'><path d="M479-120 189-279v-240L40-600l439-240 441 240v317h-60v-282l-91 46v240L479-120Zm0-308 315-172-315-169-313 169 313 172Zm0 240 230-127v-168L479-360 249-485v170l230 127Zm1-240Zm-1 74Zm0 0Z"/></svg>
                 Education
               </span>
-              <svg class="material-symbols-outlined text-slate-400 accordion-chevron" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
+              <svg class="material-symbols-outlined text-outline accordion-chevron" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
             </div>
             <div class="accordion-content">
               <div id="education-list"></div>
@@ -512,7 +615,7 @@
                 Achievements
                 <span class="badge badge-neutral" style="font-size:10px; padding: 2px 6px;">Optional</span>
               </span>
-              <svg class="material-symbols-outlined text-slate-400 accordion-chevron" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
+              <svg class="material-symbols-outlined text-outline accordion-chevron" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
             </div>
             <div class="accordion-content">
               <div id="achievements-list"></div>
@@ -531,7 +634,7 @@
                 Certifications
                 <span class="badge badge-neutral" style="font-size:10px; padding: 2px 6px;">Optional</span>
               </span>
-              <svg class="material-symbols-outlined text-slate-400 accordion-chevron" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
+              <svg class="material-symbols-outlined text-outline accordion-chevron" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="expand_more"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></svg>
             </div>
             <div class="accordion-content">
               <div id="certifications-list"></div>
@@ -550,10 +653,10 @@
             <span class="preview-panel-label">
               <svg class="material-symbols-outlined text-[14px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="visibility"><path d="M600.5-379.5Q650-429 650-500t-49.5-120.5Q551-670 480-670t-120.5 49.5Q310-571 310-500t49.5 120.5Q409-330 480-330t120.5-49.5Zm-200-41Q368-453 368-500t32.5-79.5Q433-612 480-612t79.5 32.5Q592-547 592-500t-32.5 79.5Q527-388 480-388t-79.5-32.5ZM216-283Q98-366 40-500q58-134 176-217t264-83q146 0 264 83t176 217q-58 134-176 217t-264 83q-146 0-264-83Zm264-217Zm222.5 174.5Q804-391 857-500q-53-109-154.5-174.5T480-740q-121 0-222.5 65.5T102-500q54 109 155.5 174.5T480-260q121 0 222.5-65.5Z"/></svg>
               Live Preview
-              <span class="text-[11px] font-normal text-slate-400 hidden sm:inline">• A4 Proportions</span>
+              <span class="text-[11px] font-normal text-outline hidden sm:inline">• A4 Proportions</span>
             </span>
             <div class="flex items-center gap-2">
-              <span class="text-[11px] text-slate-500 font-medium md:hidden flex items-center gap-1">
+              <span class="text-[11px] text-on-surface-variant font-medium md:hidden flex items-center gap-1">
                 <svg class="material-symbols-outlined text-[13px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="swipe"><path d="M470-80q-21.88 0-41.94-8T392-112L184-320l15-22q11-16 28.5-22.5T264-366l96 26v-340q0-12.75 8.68-21.38 8.67-8.62 21.5-8.62 12.82 0 21.32 8.62 8.5 8.63 8.5 21.38v420l-124-33 139.18 139.18Q442-147 451.13-143.5q9.13 3.5 18.87 3.5h170q42 0 71-29t29-71v-180q0-12.75 8.68-21.38 8.67-8.62 21.5-8.62 12.82 0 21.32 8.62 8.5 8.63 8.5 21.38v180q0 66-47 113T640-80H470Zm17-290v-170q0-12.75 8.68-21.38 8.67-8.62 21.5-8.62 12.82 0 21.32 8.62 8.5 8.63 8.5 21.38v170h-60Zm126 0v-130q0-12.75 8.68-21.38 8.67-8.62 21.5-8.62 12.82 0 21.32 8.62 8.5 8.63 8.5 21.38v130h-60Zm-46 105Zm313-435H700v-40h133q-75-65-164.5-102.5T480-880q-99 0-188.5 37.5T127-740h133v40H80v-180h40v93q78-62 169-97.5T480-920q100 0 191 35.5T840-787v-93h40v180Z"/></svg>
                 Scroll
               </span>
@@ -586,7 +689,7 @@
           </button>
           <div class="builder-topbar-title">
             <svg class="material-symbols-outlined text-indigo-600 text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="manage_search" style='font-variation-settings: "FILL" 1;'><path d="M80-200v-60h400v60H80Zm0-210v-60h200v60H80Zm0-210v-60h200v60H80Zm758 420L678-360q-26 20-56 30t-62 10q-83 0-141.5-58.5T360-520q0-83 58.5-141.5T560-720q83 0 141.5 58.5T760-520q0 32-10 62t-30 56l160 160-42 42ZM559.76-380Q618-380 659-420.76q41-40.77 41-99Q700-578 659.24-619q-40.77-41-99-41Q502-660 461-619.24q-41 40.77-41 99Q420-462 460.76-421q40.77 41 99 41Z"/></svg>
-            <span class="font-semibold text-slate-800 text-sm hidden sm:inline">Resume Analyzer</span>
+            <span class="font-semibold text-on-surface text-sm hidden sm:inline">Resume Analyzer</span>
           </div>
         </div>
         <div class="builder-topbar-right">
@@ -725,7 +828,7 @@
           <div class="reset-option-header">
             <div class="reset-option-title-wrap">
               <h3 class="reset-option-title">
-                <svg class="material-symbols-outlined text-slate-600 text-[20px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="history"><path d="M477-120q-149 0-253-105.5T120-481h60q0 125 86 213t211 88q127 0 215-89t88-216q0-124-89-209.5T477-780q-68 0-127.5 31T246-667h105v60H142v-208h60v106q52-61 123.5-96T477-840q75 0 141 28t115.5 76.5Q783-687 811.5-622T840-482q0 75-28.5 141t-78 115Q684-177 618-148.5T477-120Zm128-197L451-469v-214h60v189l137 134-43 43Z"/></svg>
+                <svg class="material-symbols-outlined text-on-surface-variant text-[20px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="history"><path d="M477-120q-149 0-253-105.5T120-481h60q0 125 86 213t211 88q127 0 215-89t88-216q0-124-89-209.5T477-780q-68 0-127.5 31T246-667h105v60H142v-208h60v106q52-61 123.5-96T477-840q75 0 141 28t115.5 76.5Q783-687 811.5-622T840-482q0 75-28.5 141t-78 115Q684-177 618-148.5T477-120Zm128-197L451-469v-214h60v189l137 134-43 43Z"/></svg>
                 Revert to Last Saved Draft
               </h3>
             </div>
@@ -743,7 +846,7 @@
         <div class="reset-option-card">
           <div class="reset-option-header">
             <div class="reset-option-title-wrap">
-              <h3 class="reset-option-title text-slate-700">
+              <h3 class="reset-option-title text-on-surface-variant">
                 <svg class="material-symbols-outlined text-rose-500 text-[20px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="delete_sweep"><path d="M600-230v-60h145v60H600Zm0-368v-60h280v60H600Zm0 184v-60h235v60H600ZM125-675H80v-60h170v-45h135v45h170v60h-45v415q0 24-18 42t-42 18H185q-24 0-42-18t-18-42v-415Zm60 0v415h265v-415H185Zm0 0v415-415Z"/></svg>
                 Clear All Fields (Blank Canvas)
               </h3>

@@ -6,6 +6,109 @@
   <title>AI Coding Assistant - DevPilot-AI</title>
 
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" id="tailwind-cdn"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca'
+            },
+            "error-container": "#ffdad6",
+            "on-primary-container": "#fffbff",
+            "surface-variant": "#e4e1ed",
+            "tertiary-container": "#b55d00",
+            "surface-container": "#efecf8",
+            "primary": "#4648d4",
+            "on-tertiary": "#ffffff",
+            "on-tertiary-fixed-variant": "#703700",
+            "tertiary-fixed": "#ffdcc5",
+            "background": "#fcf8ff",
+            "error": "#ba1a1a",
+            "on-primary-fixed-variant": "#2f2ebe",
+            "outline-variant": "#c7c4d7",
+            "surface-container-highest": "#e4e1ed",
+            "surface-bright": "#fcf8ff",
+            "surface-container-low": "#f5f2fe",
+            "primary-container": "#6063ee",
+            "secondary-container": "#e3e1ed",
+            "surface-dim": "#dbd8e4",
+            "secondary-fixed-dim": "#c7c5d1",
+            "surface-tint": "#494bd6",
+            "on-error-container": "#93000a",
+            "on-tertiary-fixed": "#301400",
+            "secondary-fixed": "#e3e1ed",
+            "tertiary-fixed-dim": "#ffb783",
+            "outline": "#767586",
+            "secondary": "#5d5d67",
+            "on-secondary": "#ffffff",
+            "on-error": "#ffffff",
+            "on-surface-variant": "#464554",
+            "on-secondary-container": "#64636d",
+            "tertiary": "#904900",
+            "on-primary-fixed": "#07006c",
+            "surface-container-high": "#e9e6f3",
+            "surface-container-lowest": "#ffffff",
+            "on-tertiary-container": "#fffbff",
+            "on-surface": "#1b1b23",
+            "on-secondary-fixed-variant": "#46464f",
+            "primary-fixed-dim": "#c0c1ff",
+            "inverse-surface": "#303038",
+            "primary-fixed": "#e1e0ff",
+            "on-secondary-fixed": "#1a1b23",
+            "inverse-primary": "#c0c1ff",
+            "surface": "#fcf8ff",
+            "on-background": "#1b1b23",
+            "on-primary": "#ffffff",
+            "inverse-on-surface": "#f2effb"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "container-padding": "32px",
+            "gutter": "24px",
+            "stack-sm": "8px",
+            "stack-lg": "24px",
+            "stack-md": "16px",
+            "navbar-height": "72px",
+            "sidebar-width": "260px",
+            "sidebar-collapsed-width": "72px"
+          },
+          fontFamily: {
+            "stats-lg": ["Plus Jakarta Sans"],
+            "label-sm": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "title-md": ["Plus Jakarta Sans"],
+            "label-md": ["Inter"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "headline-xl": ["Plus Jakarta Sans"],
+            "body-lg": ["Inter"]
+          },
+          fontSize: {
+            "stats-lg": ["36px", { "lineHeight": "44px", "fontWeight": "700" }],
+            "label-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "title-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "headline-lg-mobile": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+          }
+        }
+      }
+    };
+  </script>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
@@ -33,7 +136,7 @@
   </script>
   <script src="../js/core/icons.js"></script>
 </head>
-<body class="bg-slate-50 text-slate-900 antialiased min-h-screen">
+<body class="font-body-md bg-background text-on-surface antialiased min-h-screen">
 
   <!-- Mobile Overlay -->
   <div class="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm hidden md:hidden" id="mobile-overlay"></div>
@@ -150,21 +253,21 @@
   <main class="md:ml-[260px] min-h-screen p-4 sm:p-6 lg:p-8 flex flex-col" id="main-content">
     
     <!-- Page Header Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-4 border-b border-slate-200">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-4 border-b border-outline-variant">
       <div class="flex items-center gap-3">
         <button class="mobile-nav-toggle md:hidden" id="mobile-menu-trigger" aria-label="Open Sidebar">
           <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="menu"><path d="M120-240v-60h720v60H120Zm0-210v-60h720v60H120Zm0-210v-60h720v60H120Z"/></svg>
         </button>
         <div>
-          <h1 class="page-title text-2xl sm:text-3xl font-extrabold text-slate-900">AI Coding Assistant</h1>
-          <p class="page-subtitle text-slate-500 text-sm mt-0.5">Solve algorithmic problems, refactor code, and generate unit tests.</p>
+          <h1 class="page-title font-headline-xl text-headline-xl text-on-surface">AI Coding Assistant</h1>
+          <p class="page-subtitle font-body-lg text-body-lg text-on-surface-variant mt-0.5">Solve algorithmic problems, refactor code, and generate unit tests.</p>
         </div>
       </div>
 
       <div class="flex items-center gap-3">
-        <div class="flex items-center gap-2 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
+        <div class="flex items-center gap-2 bg-surface border border-outline-variant px-3 py-1.5 rounded-lg shadow-sm">
           <svg class="material-symbols-outlined text-indigo-600 text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="neurology"><path d="M385-120q-51 0-86.5-38T258-244q-59-5-98.5-49.5T120-402q0-22 5.5-42.5T142-484q-11-18-16.5-38t-5.5-43q0-60 41.5-103t98.5-50q2-51 38.5-86.5T386-840q29 0 51.5 10.5T480-799q20-20 42-30.5t51-10.5q50 0 86 35.5t39 86.5q58 5 100 48.5T840-565q0 23-6 43.5T817-483q11 20 17 42t6 43q0 64-39.5 106.5T702-244q-5 48-41 86t-86 38q-30 0-52-10t-43-30q-21 20-43 30t-52 10Zm125-600v480q0 25 19.5 42.5T576-180q26 0 45-23t21-47q-23-8-43-21.5T565-305q-8-11-6-22.5t13-19.5q11-8 22.5-6t19.5 13q13 18 32 27.5t42 9.5q38 0 65-26t27-69q0-9-2-18.5t-4-19.5q-18 13-39.5 19.5T690-410q-13 0-21.5-8.5T660-440q0-13 8.5-21.5T690-470q38 0 64-28t26-67q0-38-28-65t-64-29q-10 24-28.5 42.5T617-589q-12 5-23-.5T579-607q-4-12 1-23.5t17-15.5q18-6 29.5-24t11.5-41q0-29-19-49t-45-20q-26 0-45 17.5T510-720Zm-60 480v-480q0-25-18.5-42.5T386-780q-26 0-45.5 20T321-711q0 23 11 40.5t29 23.5q12 4 17.5 15.5T380-609q-5 12-16.5 18t-23.5 1q-24-8-42-26.5T270-659q-35 3-62.5 29.5T180-565q0 39 26 67t64 28q13 0 21.5 8.5T300-440q0 13-8.5 21.5T270-410q-23 0-44.5-7T186-436q-3 8-4.5 17t-1.5 18q0 43 26.5 70.5T271-303q22 0 41.5-10t32.5-27q8-10 20-12.5t22 5.5q10 8 12.5 20t-5.5 22q-14 20-33.5 33.5T318-250q2 24 21 47t46 23q27 0 46-17.5t19-42.5Zm30-240Z"/></svg>
-          <select id="chat-model-select" class="text-xs font-semibold text-slate-800 bg-transparent border-none outline-none cursor-pointer focus:ring-0">
+          <select id="chat-model-select" class="text-xs font-semibold text-on-surface bg-transparent border-none outline-none cursor-pointer focus:ring-0">
             <option value="GPT-4o">GPT-4o (Omni)</option>
             <option value="Claude 3.5 Sonnet">Claude 3.5 Sonnet</option>
             <option value="Gemini 1.5 Pro">Gemini 1.5 Pro</option>
@@ -204,7 +307,7 @@
         </div>
 
         <div class="chat-input-wrapper">
-          <button class="p-2 text-slate-400 hover:text-indigo-600 rounded-lg hover:bg-slate-100 transition-colors" title="Attach Code Snippet">
+          <button class="p-2 text-outline hover:text-indigo-600 rounded-lg hover:bg-surface-container transition-colors" title="Attach Code Snippet">
             <svg class="material-symbols-outlined text-[20px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="attach_file"><path d="M728-326q0 103-72.18 174.5-72.17 71.5-175 71.5Q378-80 305.5-151.5T233-326v-380q0-72.5 51.5-123.25T408-880q72 0 123.5 50.75T583-706v360q0 42-30 72t-72.5 30q-42.5 0-72.5-29.67-30-29.68-30-72.33v-370h60v370q0 17 12.5 29.5t30.64 12.5q18.14 0 30-12.5T523-346v-360q0-48-33.5-81t-81.71-33q-48.21 0-81.5 33.06T293-706v380q0 78 54.97 132T481-140q77.92 0 132.46-54Q668-248 668-326v-390h60v390Z"/></svg>
           </button>
           <textarea id="chat-input" class="chat-textarea custom-scrollbar" placeholder="Ask a question, paste code to debug, or describe an algorithm..." rows="1"></textarea>

@@ -415,7 +415,7 @@
               <span>Thought Process (How a Developer Should Think)</span>
             </h3>
             <div class="dp-section-content bg-slate-50 p-4 rounded-lg border border-slate-200">
-              <p class="italic text-slate-700">${escapeHtml(exp.thoughtProcess)}</p>
+              <p class="italic text-on-surface-variant">${escapeHtml(exp.thoughtProcess)}</p>
             </div>
           </section>
 
@@ -456,8 +456,8 @@ ${escapeHtml(exp.algorithm)}
               <span class="dp-sec-num">9</span>
               <span>Example Walkthrough & Trace Table</span>
             </h3>
-            <p class="text-sm font-semibold text-slate-700 mb-2">Input: <span class="font-mono text-indigo-600">${escapeHtml((exp.walkthrough && exp.walkthrough.input) || 'Canonical input')}</span></p>
-            <p class="text-xs text-slate-500 mb-3">${escapeHtml((exp.walkthrough && exp.walkthrough.description) || '')}</p>
+            <p class="text-sm font-semibold text-on-surface-variant mb-2">Input: <span class="font-mono text-indigo-600">${escapeHtml((exp.walkthrough && exp.walkthrough.input) || 'Canonical input')}</span></p>
+            <p class="text-xs text-on-surface-variant mb-3">${escapeHtml((exp.walkthrough && exp.walkthrough.description) || '')}</p>
             ${walkthroughTableHtml}
           </section>
 
@@ -560,7 +560,7 @@ ${escapeHtml(exp.algorithm)}
             </div>
             <span class="dp-notes-status" id="dp-notes-save-status">Saved</span>
           </div>
-          <p class="text-xs text-slate-500 mb-2">Reflect on what you learned: "What mistake did I make?", "What pattern did I recognize?", "Key formula to remember":</p>
+          <p class="text-xs text-on-surface-variant mb-2">Reflect on what you learned: "What mistake did I make?", "What pattern did I recognize?", "Key formula to remember":</p>
           <textarea class="dp-notes-textarea" id="dp-notes-input" placeholder="Type personal notes, tricks, or edge cases to remember for this question...">${escapeHtml(userNotes)}</textarea>
         </div>
 
@@ -571,7 +571,7 @@ ${escapeHtml(exp.algorithm)}
             <span>Previous Problem</span>
           </button>
 
-          <span class="text-xs font-semibold text-slate-500" id="dp-nav-count">
+          <span class="text-xs font-semibold text-on-surface-variant" id="dp-nav-count">
             Problem ${currentContextIndex + 1} of ${currentContextList.length}
           </span>
 
@@ -880,8 +880,8 @@ ${escapeHtml(exp.algorithm)}
             <span class="material-symbols-outlined text-[16px]">history_edu</span>
             <span>Personal Revision Hub</span>
           </div>
-          <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">📌 Revision Mode</h2>
-          <p class="text-slate-600 text-sm mt-1">Review flagged problems, re-attempt ~30% and ~50% assisted solves to reach 100% Self Mastery, and reinforce weak patterns.</p>
+          <h2 class="text-2xl sm:text-3xl font-black text-on-surface tracking-tight">📌 Revision Mode</h2>
+          <p class="text-on-surface-variant text-sm mt-1">Review flagged problems, re-attempt ~30% and ~50% assisted solves to reach 100% Self Mastery, and reinforce weak patterns.</p>
         </div>
 
         <!-- 6 Revision Stats Cards -->
@@ -999,13 +999,13 @@ ${escapeHtml(exp.algorithm)}
             return `
               <div class="dsa-question-row cursor-pointer hover:bg-slate-50 transition-colors" data-open-detail="${q.id}">
                 <div class="dsa-question-left">
-                  <span class="material-symbols-outlined text-[18px] cursor-pointer ${isStarred ? 'text-amber-500' : 'text-slate-300'}" data-toggle-star="${q.id}" title="${isStarred ? 'Remove from Review' : 'Mark for Review'}">
+                  <span class="material-symbols-outlined text-[18px] cursor-pointer ${isStarred ? 'text-amber-500' : 'text-outline'}" data-toggle-star="${q.id}" title="${isStarred ? 'Remove from Review' : 'Mark for Review'}">
                     ${isStarred ? 'star' : 'star_border'}
                   </span>
                   <span class="dsa-lc-num">#${q.leetcodeNumber}</span>
                   <div class="dsa-question-info">
                     <div class="dsa-question-title-wrap">
-                      <span class="dsa-question-title font-semibold text-slate-800">${escapeHtml(q.title)}</span>
+                      <span class="dsa-question-title font-semibold text-on-surface">${escapeHtml(q.title)}</span>
                     </div>
                     <div class="dsa-question-tags">
                       <span class="dsa-tag-ds">
@@ -1037,9 +1037,9 @@ ${escapeHtml(exp.algorithm)}
             `;
           }).join('') : `
             <div class="text-center py-12">
-              <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">checklist_rtl</span>
-              <h3 class="text-base font-bold text-slate-700">No Revision Problems Found</h3>
-              <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+              <span class="material-symbols-outlined text-4xl text-outline mb-2">checklist_rtl</span>
+              <h3 class="text-base font-bold text-on-surface-variant">No Revision Problems Found</h3>
+              <p class="text-xs text-on-surface-variant mt-1 max-w-sm mx-auto">
                 Problems marked with '☆ Review Later' or solved with ~30% and ~50% help automatically appear here for practice!
               </p>
             </div>

@@ -338,7 +338,7 @@
           ` : `
             <div class="mb-3 flex justify-between text-xs text-on-surface-variant">
               <span>Status</span>
-              <span class="font-medium text-slate-400">Not attempted yet</span>
+              <span class="font-medium text-outline">Not attempted yet</span>
             </div>
           `}
 
@@ -399,7 +399,11 @@
       <div class="ip-topic-list" id="ipTopicList"></div>
     `;
 
-    document.getElementById('ipBackToCats').addEventListener('click', () => renderMode(state.currentMode));
+    const backMode = (state.currentMode === 'technical') ? 'technical' : 'categories';
+    document.getElementById('ipBackToCats').addEventListener('click', () => {
+      state.currentMode = backMode;
+      renderMode(backMode);
+    });
     document.getElementById('ipShuffleAllTopicBtn').addEventListener('click', () => startCategoryQuiz(cat.id));
 
     const list = document.getElementById('ipTopicList');
@@ -415,7 +419,7 @@
       item.innerHTML = `
         <div class="flex items-center gap-3 min-w-0">
           <div class="w-8 h-8 rounded-lg bg-surface-container text-primary flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-base">quiz</span>
+            <span class="material-symbols-outlined text-base">${cat.icon || 'quiz'}</span>
           </div>
           <div class="min-w-0">
             <div class="ip-topic-name text-sm font-semibold text-on-surface truncate">${topicName}</div>
@@ -503,7 +507,7 @@
     const cat = window.interviewPrepRegistry.getCategory(categoryId);
     if (!cat) return;
 
-    const topicQuestions = cat.questions.filter(q => q.topic && q.topic.toLowerCase() === topicName.toLowerCase()).slice(0, 10);
+    const topicQuestions = cat.questions.filter(q => q.topic && q.topic.toLowerCase() === topicName.toLowerCase());
     if (topicQuestions.length === 0) {
       alert('No questions available for this topic.');
       return;
@@ -528,13 +532,13 @@
     const cat = window.interviewPrepRegistry.getCategory(categoryId);
     if (!cat || !cat.questions || cat.questions.length === 0) return;
 
-    // Pick 20 random questions from category using Fisher-Yates
+    // Pick up to 30 random questions from category using Fisher-Yates
     const pool = [...cat.questions];
     for (let i = pool.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [pool[i], pool[j]] = [pool[j], pool[i]];
     }
-    const selected = pool.slice(0, 20);
+    const selected = pool.slice(0, Math.min(pool.length, 30));
 
     state.activeCategory = cat;
     state.activeTopic = 'All Topics (Mixed)';

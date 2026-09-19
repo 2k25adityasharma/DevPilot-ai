@@ -403,10 +403,10 @@
 
     if (todaySessions.length === 0) {
       dom.sessionsHistoryList.innerHTML = `
-        <div class="text-center py-7 text-slate-400 bg-slate-50/70 border border-dashed border-slate-200 rounded-xl">
-          <span class="material-symbols-outlined text-3xl mb-1 text-slate-400">hourglass_empty</span>
-          <p class="text-xs font-semibold text-slate-600">No focus intervals completed yet today.</p>
-          <p class="text-[11px] text-slate-400 mt-1">Type your focus task above and hit "Start Focus" to log real sessions!</p>
+        <div class="text-center py-7 text-outline bg-slate-50/70 border border-dashed border-slate-200 rounded-xl">
+          <span class="material-symbols-outlined text-3xl mb-1 text-outline">hourglass_empty</span>
+          <p class="text-xs font-semibold text-on-surface-variant">No focus intervals completed yet today.</p>
+          <p class="text-[11px] text-outline mt-1">Type your focus task above and hit "Start Focus" to log real sessions!</p>
         </div>
       `;
       return;
@@ -432,15 +432,15 @@
           <div class="flex items-center gap-2.5 flex-1 min-w-0">
             <span class="material-symbols-outlined text-emerald-600 text-lg shrink-0">check_circle</span>
             <div class="truncate">
-              <p class="text-xs font-bold text-slate-800 truncate">${escapeHtml(session.task || 'Deep Work Focus')}</p>
-              <p class="text-[11px] text-slate-400 mt-0.5">${durSubtitle} • ${timeStr}</p>
+              <p class="text-xs font-bold text-on-surface truncate">${escapeHtml(session.task || 'Deep Work Focus')}</p>
+              <p class="text-[11px] text-outline mt-0.5">${durSubtitle} • ${timeStr}</p>
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <span class="text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
               ${durationBadge}
             </span>
-            <button type="button" class="btn-delete-single-session text-slate-300 hover:text-rose-500 p-0.5 rounded transition-colors" data-id="${session.id}" title="Delete this session">
+            <button type="button" class="btn-delete-single-session text-outline hover:text-rose-500 p-0.5 rounded transition-colors" data-id="${session.id}" title="Delete this session">
               <span class="material-symbols-outlined text-[16px]">close</span>
             </button>
           </div>

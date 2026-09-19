@@ -6,6 +6,109 @@
   <title>Workspace Settings - DevPilot-AI</title>
 
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" id="tailwind-cdn"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca'
+            },
+            "error-container": "#ffdad6",
+            "on-primary-container": "#fffbff",
+            "surface-variant": "#e4e1ed",
+            "tertiary-container": "#b55d00",
+            "surface-container": "#efecf8",
+            "primary": "#4648d4",
+            "on-tertiary": "#ffffff",
+            "on-tertiary-fixed-variant": "#703700",
+            "tertiary-fixed": "#ffdcc5",
+            "background": "#fcf8ff",
+            "error": "#ba1a1a",
+            "on-primary-fixed-variant": "#2f2ebe",
+            "outline-variant": "#c7c4d7",
+            "surface-container-highest": "#e4e1ed",
+            "surface-bright": "#fcf8ff",
+            "surface-container-low": "#f5f2fe",
+            "primary-container": "#6063ee",
+            "secondary-container": "#e3e1ed",
+            "surface-dim": "#dbd8e4",
+            "secondary-fixed-dim": "#c7c5d1",
+            "surface-tint": "#494bd6",
+            "on-error-container": "#93000a",
+            "on-tertiary-fixed": "#301400",
+            "secondary-fixed": "#e3e1ed",
+            "tertiary-fixed-dim": "#ffb783",
+            "outline": "#767586",
+            "secondary": "#5d5d67",
+            "on-secondary": "#ffffff",
+            "on-error": "#ffffff",
+            "on-surface-variant": "#464554",
+            "on-secondary-container": "#64636d",
+            "tertiary": "#904900",
+            "on-primary-fixed": "#07006c",
+            "surface-container-high": "#e9e6f3",
+            "surface-container-lowest": "#ffffff",
+            "on-tertiary-container": "#fffbff",
+            "on-surface": "#1b1b23",
+            "on-secondary-fixed-variant": "#46464f",
+            "primary-fixed-dim": "#c0c1ff",
+            "inverse-surface": "#303038",
+            "primary-fixed": "#e1e0ff",
+            "on-secondary-fixed": "#1a1b23",
+            "inverse-primary": "#c0c1ff",
+            "surface": "#fcf8ff",
+            "on-background": "#1b1b23",
+            "on-primary": "#ffffff",
+            "inverse-on-surface": "#f2effb"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "container-padding": "32px",
+            "gutter": "24px",
+            "stack-sm": "8px",
+            "stack-lg": "24px",
+            "stack-md": "16px",
+            "navbar-height": "72px",
+            "sidebar-width": "260px",
+            "sidebar-collapsed-width": "72px"
+          },
+          fontFamily: {
+            "stats-lg": ["Plus Jakarta Sans"],
+            "label-sm": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "title-md": ["Plus Jakarta Sans"],
+            "label-md": ["Inter"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "headline-xl": ["Plus Jakarta Sans"],
+            "body-lg": ["Inter"]
+          },
+          fontSize: {
+            "stats-lg": ["36px", { "lineHeight": "44px", "fontWeight": "700" }],
+            "label-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "title-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "headline-lg-mobile": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+          }
+        }
+      }
+    };
+  </script>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
@@ -33,7 +136,7 @@
   </script>
   <script src="../js/core/icons.js"></script>
 </head>
-<body class="bg-slate-50 text-slate-900 antialiased min-h-screen">
+<body class="font-body-md bg-background text-on-surface antialiased min-h-screen">
 
   <!-- Mobile Overlay -->
   <div class="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm hidden md:hidden" id="mobile-overlay"></div>
@@ -150,14 +253,14 @@
   <main class="md:ml-[260px] min-h-screen p-6 sm:p-8" id="main-content">
     
     <!-- Page Header Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-200">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-outline-variant">
       <div class="flex items-center gap-3">
         <button class="mobile-nav-toggle md:hidden" id="mobile-menu-trigger" aria-label="Open Sidebar">
           <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="menu"><path d="M120-240v-60h720v60H120Zm0-210v-60h720v60H120Zm0-210v-60h720v60H120Z"/></svg>
         </button>
         <div>
-          <h1 class="page-title text-2xl sm:text-3xl font-extrabold text-slate-900">Workspace Settings</h1>
-          <p class="page-subtitle text-slate-500 text-sm mt-0.5">Manage developer profiles, API keys, AI model integrations, and UI preferences.</p>
+          <h1 class="page-title font-headline-xl text-headline-xl text-on-surface">Workspace Settings</h1>
+          <p class="page-subtitle font-body-lg text-body-lg text-on-surface-variant mt-0.5">Manage developer profiles, API keys, AI model integrations, and UI preferences.</p>
         </div>
       </div>
 
@@ -197,8 +300,8 @@
         
         <!-- Tab 1: Profile Preferences -->
         <div class="settings-section active" id="tab-profile">
-          <h3 class="text-lg font-bold text-slate-900 mb-1">Developer Profile</h3>
-          <p class="text-xs text-slate-500 mb-6">This information syncs with your generated CV and workspace greeting.</p>
+          <h3 class="font-title-md text-title-md text-on-surface mb-1">Developer Profile</h3>
+          <p class="text-xs text-on-surface-variant mb-6">This information syncs with your generated CV and workspace greeting.</p>
 
           <div class="space-y-4 max-w-xl">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -221,7 +324,7 @@
                 <label class="form-label" for="set-github-username">GitHub Username</label>
                 <div class="flex items-center gap-2">
                   <input type="text" id="set-github-username" class="form-input flex-1" placeholder="e.g. 2k25adityasharma"/>
-                  <a id="link-github-profile" href="https://github.com/2k25adityasharma" target="_blank" rel="noopener noreferrer" class="btn-icon inline-flex items-center justify-center p-2 rounded-lg border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-colors" title="View Profile on GitHub">
+                  <a id="link-github-profile" href="https://github.com/2k25adityasharma" target="_blank" rel="noopener noreferrer" class="btn-icon inline-flex items-center justify-center p-2 rounded-lg border border-outline-variant text-on-surface-variant hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-colors" title="View Profile on GitHub">
                     <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="open_in_new"><path d="M180-120q-24 0-42-18t-18-42v-600q0-24 18-42t42-18h279v60H180v600h600v-279h60v279q0 24-18 42t-42 18H180Zm202-219-42-43 398-398H519v-60h321v321h-60v-218L382-339Z"/></svg>
                   </a>
                 </div>
@@ -237,8 +340,8 @@
 
         <!-- Tab 2: API Keys & Auth -->
         <div class="settings-section" id="tab-apikeys">
-          <h3 class="text-lg font-bold text-slate-900 mb-1">API Key Integrations</h3>
-          <p class="text-xs text-slate-500 mb-6">Your keys are saved securely in local browser storage and never transmitted to third parties.</p>
+          <h3 class="font-title-md text-title-md text-on-surface mb-1">API Key Integrations</h3>
+          <p class="text-xs text-on-surface-variant mb-6">Your keys are saved securely in local browser storage and never transmitted to third parties.</p>
 
           <div class="space-y-4 max-w-xl">
             <div class="form-group">
@@ -285,14 +388,14 @@
 
         <!-- Tab 3: UI & Theme Customization -->
         <div class="settings-section" id="tab-ui">
-          <h3 class="text-lg font-bold text-slate-900 mb-1">UI & Theme Preferences</h3>
-          <p class="text-xs text-slate-500 mb-6">Customize the look and density of your DevPilot workspace.</p>
+          <h3 class="font-title-md text-title-md text-on-surface mb-1">UI & Theme Preferences</h3>
+          <p class="text-xs text-on-surface-variant mb-6">Customize the look and density of your DevPilot workspace.</p>
 
           <div class="space-y-5 max-w-xl">
-            <div class="flex items-center justify-between py-3 border-b border-slate-100">
+            <div class="flex items-center justify-between py-3 border-b border-outline-variant/60">
               <div>
-                <p class="font-semibold text-sm text-slate-900">Compact Density Mode</p>
-                <p class="text-xs text-slate-500">Reduces padding to display more information on smaller screens.</p>
+                <p class="font-semibold text-sm text-on-surface">Compact Density Mode</p>
+                <p class="text-xs text-on-surface-variant">Reduces padding to display more information on smaller screens.</p>
               </div>
               <label class="toggle-switch">
                 <input type="checkbox" id="set-compact-mode"/>
@@ -313,14 +416,14 @@
 
         <!-- Tab 4: Notification Preferences -->
         <div class="settings-section" id="tab-notifications">
-          <h3 class="text-lg font-bold text-slate-900 mb-1">Notification Preferences</h3>
-          <p class="text-xs text-slate-500 mb-6">Control how and when DevPilot notifies you of focus cycles and milestones.</p>
+          <h3 class="font-title-md text-title-md text-on-surface mb-1">Notification Preferences</h3>
+          <p class="text-xs text-on-surface-variant mb-6">Control how and when DevPilot notifies you of focus cycles and milestones.</p>
 
           <div class="space-y-4 max-w-xl">
-            <div class="flex items-center justify-between py-3 border-b border-slate-100">
+            <div class="flex items-center justify-between py-3 border-b border-outline-variant/60">
               <div>
-                <p class="font-semibold text-sm text-slate-900">Focus Timer Alerts</p>
-                <p class="text-xs text-slate-500">Play chime and show toast when a Pomodoro focus or break round ends.</p>
+                <p class="font-semibold text-sm text-on-surface">Focus Timer Alerts</p>
+                <p class="text-xs text-on-surface-variant">Play chime and show toast when a Pomodoro focus or break round ends.</p>
               </div>
               <label class="toggle-switch">
                 <input type="checkbox" id="set-focus-alerts" checked/>
@@ -328,10 +431,10 @@
               </label>
             </div>
 
-            <div class="flex items-center justify-between py-3 border-b border-slate-100">
+            <div class="flex items-center justify-between py-3 border-b border-outline-variant/60">
               <div>
-                <p class="font-semibold text-sm text-slate-900">Daily Streak Reminders</p>
-                <p class="text-xs text-slate-500">Alert me if LeetCode or GitHub commit goals are pending before midnight.</p>
+                <p class="font-semibold text-sm text-on-surface">Daily Streak Reminders</p>
+                <p class="text-xs text-on-surface-variant">Alert me if LeetCode or GitHub commit goals are pending before midnight.</p>
               </div>
               <label class="toggle-switch">
                 <input type="checkbox" id="set-streak-alerts" checked/>
@@ -341,8 +444,8 @@
 
             <div class="flex items-center justify-between py-3">
               <div>
-                <p class="font-semibold text-sm text-slate-900">UI Interaction Sound Effects</p>
-                <p class="text-xs text-slate-500">Play subtle click feedback when copying code and completing tasks.</p>
+                <p class="font-semibold text-sm text-on-surface">UI Interaction Sound Effects</p>
+                <p class="text-xs text-on-surface-variant">Play subtle click feedback when copying code and completing tasks.</p>
               </div>
               <label class="toggle-switch">
                 <input type="checkbox" id="set-sound-effects" checked/>
@@ -353,7 +456,7 @@
         </div>
 
         <!-- Bottom Save Button inside Card -->
-        <div class="pt-6 mt-6 border-t border-slate-100 flex justify-end">
+        <div class="pt-6 mt-6 border-t border-outline-variant/60 flex justify-end">
           <button class="btn-primary text-sm py-2 px-6 btn-save-settings">
             <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="save"><path d="M840-683v503q0 24-18 42t-42 18H180q-24 0-42-18t-18-42v-600q0-24 18-42t42-18h503l157 157Zm-60 27L656-780H180v600h600v-476ZM553.5-275.26q30.5-30.27 30.5-73.5 0-43.24-30.26-73.74-30.27-30.5-73.5-30.5-43.24 0-73.74 30.26-30.5 30.27-30.5 73.5 0 43.24 30.26 73.74 30.27 30.5 73.5 30.5 43.24 0 73.74-30.26ZM233-584h358v-143H233v143Zm-53-72v476-600 124Z"/></svg>
             <span>Save Settings</span>

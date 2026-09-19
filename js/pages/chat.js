@@ -56,7 +56,7 @@ function renderCodeBlock(snippet, index) {
           <span class="code-dot code-dot-green"></span>
         </div>
         <span>${snippet.language || 'javascript'}</span>
-        <button class="flex items-center gap-1 text-slate-300 hover:text-white transition-colors" onclick="copyCodeFromChat(${index})">
+        <button class="flex items-center gap-1 text-outline hover:text-white transition-colors" onclick="copyCodeFromChat(${index})">
           <span class="material-symbols-outlined text-[14px]">content_copy</span>
           <span>Copy</span>
         </button>

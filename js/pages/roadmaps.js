@@ -353,9 +353,9 @@
     if (filteredRoles.length === 0) {
       grid.innerHTML = `
         <div class="col-span-full py-16 text-center">
-          <span class="material-symbols-outlined text-5xl text-slate-300 dark:text-slate-600 mb-3">search_off</span>
-          <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-300">No career roadmaps found</h3>
-          <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
+          <span class="material-symbols-outlined text-5xl text-outline dark:text-on-surface-variant mb-3">search_off</span>
+          <h3 class="text-lg font-semibold text-on-surface-variant dark:text-outline">No career roadmaps found</h3>
+          <p class="text-sm text-on-surface-variant dark:text-outline mt-1 max-w-md mx-auto">
             Try adjusting your search query, clearing filters, or exploring another category.
           </p>
           <button id="btn-clear-all-filters" class="btn-secondary mt-4 text-xs py-2 px-4 inline-flex items-center gap-2">
@@ -448,22 +448,22 @@
             </div>
 
             <!-- Role Title & Tagline -->
-            <h3 class="text-base font-bold text-slate-900 dark:text-white tracking-tight mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+            <h3 class="font-title-md text-title-md text-on-surface dark:text-white tracking-tight mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
               ${escHtml(role.title)}
             </h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-4">
+            <p class="text-xs text-on-surface-variant dark:text-outline line-clamp-2 leading-relaxed mb-4">
               ${escHtml(role.tagline || role.description)}
             </p>
 
             <!-- Featured Tech Chips -->
             <div class="flex flex-wrap gap-1.5 mb-5">
               ${(role.featuredTech || []).slice(0, 4).map(tech => `
-                <span class="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-on-surface-variant dark:text-outline">
                   ${escHtml(tech)}
                 </span>
               `).join('')}
               ${(role.featuredTech || []).length > 4 ? `
-                <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-50 dark:bg-slate-800/60 text-slate-400">
+                <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-50 dark:bg-slate-800/60 text-outline">
                   +${role.featuredTech.length - 4}
                 </span>
               ` : ''}
@@ -472,7 +472,7 @@
 
           <!-- Footer: Progress Bar & Action Button -->
           <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80">
-            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
+            <div class="flex items-center justify-between text-xs text-on-surface-variant dark:text-outline mb-2">
               <span class="font-medium">${roleProg.total} Skills</span>
               <span class="font-semibold ${roleProg.percent > 0 ? 'text-indigo-600 dark:text-indigo-400' : ''}">
                 ${roleProg.percent}% Complete
@@ -500,11 +500,11 @@
               </a>
             ` : isCardLocked ? `
               <div class="space-y-1.5">
-                <div class="text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-1 line-clamp-1">
+                <div class="text-[11px] text-outline dark:text-on-surface-variant flex items-center gap-1 line-clamp-1">
                   <span class="material-symbols-outlined text-xs">lock</span>
                   <span>Complete or change active path to enter</span>
                 </div>
-                <button class="w-full py-2 px-3 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all btn-open-locked-card" data-role-id="${role.id}">
+                <button class="w-full py-2 px-3 rounded-lg text-xs font-semibold text-center flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-slate-800 text-on-surface-variant dark:text-outline hover:bg-slate-200 dark:hover:bg-slate-700 transition-all btn-open-locked-card" data-role-id="${role.id}">
                   <span>View Locked Path</span>
                   <span class="material-symbols-outlined text-sm">visibility</span>
                 </button>
@@ -570,7 +570,7 @@
 
     detailContainer.innerHTML = `
       <div class="mb-6">
-        <a href="#" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-indigo-600 transition-colors py-1 px-2.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800">
+        <a href="#" class="inline-flex items-center gap-1.5 text-xs font-semibold text-on-surface-variant hover:text-indigo-600 transition-colors py-1 px-2.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800">
           <span class="material-symbols-outlined text-base">arrow_back</span>
           <span>Back to All Roadmaps</span>
         </a>
@@ -581,19 +581,19 @@
           <span class="material-symbols-outlined text-3xl">lock</span>
         </div>
 
-        <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">
+        <h2 class="font-headline-xl text-headline-xl text-on-surface dark:text-white tracking-tight mb-2">
           ${escHtml(targetRole ? targetRole.title : 'This Career')} is Locked
         </h2>
 
-        <p class="text-sm text-slate-600 dark:text-slate-300 max-w-lg mx-auto leading-relaxed mb-6">
+        <p class="text-sm text-on-surface-variant dark:text-outline max-w-lg mx-auto leading-relaxed mb-6">
           You are currently committed to your active career path:
           <strong class="text-indigo-600 dark:text-indigo-400">${escHtml(activeRole ? activeRole.title : 'Active Career')}</strong>
           (${activeProg.percent}% completed).
         </p>
 
         <div class="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-800 max-w-md mx-auto text-left mb-6">
-          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Why is this locked?</div>
-          <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+          <div class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-2">Why is this locked?</div>
+          <p class="text-xs text-on-surface-variant dark:text-outline leading-relaxed">
             DevPilot AI enforces focused progression so you master one discipline deeply before switching. You can change your active career path anytime without losing your saved progress.
           </p>
         </div>
@@ -663,7 +663,7 @@
     if (!roadmap) {
       detailContainer.innerHTML = `
         <div class="p-8 text-center">
-          <p class="text-sm text-slate-500">Roadmap content is being finalized for this role.</p>
+          <p class="text-sm text-on-surface-variant">Roadmap content is being finalized for this role.</p>
           <a href="#" class="btn-secondary mt-4 inline-block">Back to All Roles</a>
         </div>
       `;
@@ -697,12 +697,12 @@
       <div class="mb-6">
         <div class="flex items-center justify-between gap-4 mb-4">
           <div class="flex items-center gap-2">
-            <a href="#" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors py-1.5 px-2.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800">
+            <a href="#" class="inline-flex items-center gap-1.5 text-xs font-semibold text-on-surface-variant dark:text-outline hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors py-1.5 px-2.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800">
               <span class="material-symbols-outlined text-base">arrow_back</span>
               <span>All Career Roadmaps</span>
             </a>
-            <span class="text-slate-300 dark:text-slate-700">/</span>
-            <span class="text-xs font-medium text-slate-600 dark:text-slate-300">${escHtml(role.title)}</span>
+            <span class="text-outline dark:text-on-surface-variant">/</span>
+            <span class="text-xs font-medium text-on-surface-variant dark:text-outline">${escHtml(role.title)}</span>
           </div>
 
           <!-- Roadmap Settings Menu -->
@@ -764,12 +764,12 @@
                 <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${diffClass}">
                   ${role.difficulty}
                 </span>
-                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1">
-                  <span class="material-symbols-outlined text-sm text-slate-400">schedule</span>
+                <span class="text-xs text-on-surface-variant dark:text-outline font-medium flex items-center gap-1">
+                  <span class="material-symbols-outlined text-sm text-outline">schedule</span>
                   Approx. ${role.estimatedWeeks || 24} Weeks
                 </span>
-                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1">
-                  <span class="material-symbols-outlined text-sm text-slate-400">school</span>
+                <span class="text-xs text-on-surface-variant dark:text-outline font-medium flex items-center gap-1">
+                  <span class="material-symbols-outlined text-sm text-outline">school</span>
                   5 Career Levels
                 </span>
                 <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
@@ -778,10 +778,10 @@
                 </span>
               </div>
 
-              <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
+              <h1 class="text-2xl sm:text-3xl font-extrabold text-on-surface dark:text-white tracking-tight leading-tight">
                 ${escHtml(role.title)}
               </h1>
-              <p class="text-sm text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed max-w-3xl">
+              <p class="text-sm text-on-surface-variant dark:text-outline mt-1.5 leading-relaxed max-w-3xl">
                 ${escHtml(roadmap.description || role.description)}
               </p>
             </div>
@@ -790,18 +790,18 @@
             <div class="shrink-0 bg-slate-50 dark:bg-slate-900/60 p-5 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center gap-5 min-w-[240px]">
               <div class="relative w-16 h-16 flex items-center justify-center shrink-0">
                 <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                  <path class="text-slate-200 dark:text-slate-700" stroke-width="3.5" stroke="currentColor" fill="none"
+                  <path class="text-slate-200 dark:text-on-surface-variant" stroke-width="3.5" stroke="currentColor" fill="none"
                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                   <path class="${isPaused ? 'text-amber-500' : 'text-indigo-600 dark:text-indigo-500'} transition-all duration-700" stroke-dasharray="${percent}, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none"
                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                 </svg>
-                <span class="absolute text-sm font-bold text-slate-800 dark:text-white">${percent}%</span>
+                <span class="absolute text-sm font-bold text-on-surface dark:text-white">${percent}%</span>
               </div>
 
               <div>
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Roadmap Progress</span>
-                <div class="text-lg font-extrabold text-slate-900 dark:text-white mt-0.5">
-                  ${completed} <span class="text-xs font-normal text-slate-400">/ ${total} Skills</span>
+                <span class="font-label-sm text-label-sm text-outline uppercase tracking-wider block">Roadmap Progress</span>
+                <div class="text-lg font-extrabold text-on-surface dark:text-white mt-0.5">
+                  ${completed} <span class="text-xs font-normal text-outline">/ ${total} Skills</span>
                 </div>
                 <span class="text-[11px] font-medium text-indigo-600 dark:text-indigo-400">
                   ${total - completed === 0 ? 'All skills mastered!' : `${total - completed} skills remaining`}
@@ -823,7 +823,7 @@
               <div class="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
                 You Are Here • Level ${hereInfo.currentLevelNum}: ${escHtml(hereInfo.currentLevelName)}
               </div>
-              <div class="text-sm font-bold text-slate-900 dark:text-white">
+              <div class="font-title-md text-title-md text-on-surface dark:text-white">
                 Current: ${hereInfo.currentSkill ? escHtml(hereInfo.currentSkill.title) : 'All topics complete'}
               </div>
             </div>
@@ -831,14 +831,14 @@
 
           <div class="flex flex-wrap items-center gap-3">
             ${hereInfo.nextSkill ? `
-              <div class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 bg-white/70 dark:bg-slate-800/70 py-1.5 px-3 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
-                <span class="text-slate-400 font-medium">Next:</span>
+              <div class="flex items-center gap-1.5 text-xs text-on-surface-variant dark:text-outline bg-white/70 dark:bg-slate-800/70 py-1.5 px-3 rounded-lg border border-slate-200/60 dark:border-slate-700/60">
+                <span class="text-outline font-medium">Next:</span>
                 <span class="font-semibold text-indigo-600 dark:text-indigo-400">${escHtml(hereInfo.nextSkill.title)}</span>
               </div>
             ` : ''}
 
             ${hereInfo.nextLockedMilestone ? `
-              <div class="flex items-center gap-1.5 text-xs text-slate-400 bg-white/40 dark:bg-slate-900/40 py-1.5 px-3 rounded-lg border border-slate-200/40 dark:border-slate-800/40">
+              <div class="flex items-center gap-1.5 text-xs text-outline bg-white/40 dark:bg-slate-900/40 py-1.5 px-3 rounded-lg border border-slate-200/40 dark:border-slate-800/40">
                 <span class="material-symbols-outlined text-xs">lock</span>
                 <span>Locked: ${escHtml(hereInfo.nextLockedMilestone.title)}</span>
               </div>
@@ -864,14 +864,14 @@
               </div>
               <div>
                 <div class="flex items-center gap-2">
-                  <h3 class="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+                  <h3 class="text-lg font-title-md text-title-md text-on-surface dark:text-white tracking-tight">
                     Level ${level.levelNum} — ${escHtml(level.name)}
                   </h3>
-                  <span class="text-xs font-semibold text-slate-400 px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
+                  <span class="text-xs font-semibold text-outline px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                     ${level.skills.length} ${level.skills.length === 1 ? 'Topic' : 'Topics'}
                   </span>
                 </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                <p class="text-xs text-on-surface-variant dark:text-outline mt-0.5">
                   ${escHtml(level.description)}
                 </p>
               </div>
@@ -908,7 +908,7 @@
                   <div class="skill-card status-${status} group btn-inspect-skill" data-skill-id="${skill.id}">
                     <div>
                       <div class="flex items-start justify-between gap-3 mb-2">
-                        <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                        <span class="text-[10px] font-semibold text-outline dark:text-on-surface-variant uppercase tracking-wider">
                           ${escHtml(skill.category)}
                         </span>
                         
@@ -922,24 +922,24 @@
                         </div>
                       </div>
 
-                      <h4 class="text-sm font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors mb-1.5">
+                      <h4 class="font-title-md text-title-md text-on-surface dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors mb-1.5">
                         ${escHtml(skill.title)}
                       </h4>
 
-                      <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-3">
+                      <p class="text-xs text-on-surface-variant dark:text-outline line-clamp-2 leading-relaxed mb-3">
                         ${escHtml(skill.whyItMatters || skill.description || '')}
                       </p>
                     </div>
 
                     <!-- Card footer: Technologies & AI pill -->
                     <div class="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
-                      <div class="flex items-center gap-1.5 text-[11px] text-slate-400">
+                      <div class="flex items-center gap-1.5 text-[11px] text-outline">
                         <span class="material-symbols-outlined text-xs">schedule</span>
                         <span>${skill.estimatedTime || '1-2 weeks'}</span>
                       </div>
 
                       ${status === 'locked' ? `
-                        <span class="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
+                        <span class="text-[10px] font-semibold text-outline flex items-center gap-1">
                           <span class="material-symbols-outlined text-xs">lock</span>
                           <span>Preview Available</span>
                         </span>
@@ -966,10 +966,10 @@
               <span class="material-symbols-outlined text-xs">rocket_launch</span>
               <span>PRACTICAL MILESTONE ROADMAP</span>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            <h3 class="font-title-md text-title-md text-on-surface dark:text-white tracking-tight">
               3 Progressive Industry Projects
             </h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <p class="text-xs text-on-surface-variant dark:text-outline mt-1">
               Milestone projects validate real engineering ability. Each project unlocks sequentially as you complete its required prerequisite levels.
             </p>
           </div>
@@ -996,7 +996,7 @@
                         <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${diffClass}">
                           ${projectType}
                         </span>
-                        <span class="text-xs font-semibold text-slate-400">Project 0${idx + 1}</span>
+                        <span class="text-xs font-semibold text-outline">Project 0${idx + 1}</span>
                       </div>
                       ${projectLockInfo.isUnlocked ? `
                         <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
@@ -1004,7 +1004,7 @@
                           <span>Unlocked</span>
                         </span>
                       ` : `
-                        <span class="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                        <span class="text-[10px] font-bold text-outline flex items-center gap-1">
                           <span class="material-symbols-outlined text-xs">lock</span>
                           <span>Locked</span>
                         </span>
@@ -1019,21 +1019,21 @@
                     ` : ''}
 
                     <!-- Project Title & Overview -->
-                    <h4 class="text-base font-bold text-slate-900 dark:text-white mb-2 leading-snug">
+                    <h4 class="font-title-md text-title-md text-on-surface dark:text-white mb-2 leading-snug">
                       ${escHtml(proj.title)}
                     </h4>
-                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+                    <p class="text-xs text-on-surface-variant dark:text-outline leading-relaxed mb-4">
                       ${escHtml(proj.description || proj.objective || '')}
                     </p>
 
                     <!-- Key Deliverables -->
                     ${proj.deliverables && proj.deliverables.length > 0 ? `
                       <div class="mb-4">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
+                        <span class="text-[10px] font-bold text-outline uppercase tracking-wider block mb-1.5 flex items-center gap-1">
                           <span class="material-symbols-outlined text-xs text-indigo-500">check_circle</span>
                           Core Deliverables
                         </span>
-                        <ul class="space-y-1.5 text-xs text-slate-700 dark:text-slate-200">
+                        <ul class="space-y-1.5 text-xs text-on-surface-variant dark:text-slate-200">
                           ${proj.deliverables.map(d => `
                             <li class="flex items-start gap-1.5">
                               <span class="material-symbols-outlined text-xs text-indigo-500 mt-0.5 shrink-0">arrow_right</span>
@@ -1047,11 +1047,11 @@
                     <!-- Engineering Requirements -->
                     ${proj.requirements && proj.requirements.length > 0 ? `
                       <div class="mb-4 bg-slate-100/70 dark:bg-slate-800/70 p-3 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
-                        <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
+                        <span class="text-[10px] font-bold text-on-surface-variant dark:text-outline uppercase tracking-wider block mb-1.5 flex items-center gap-1">
                           <span class="material-symbols-outlined text-xs text-indigo-500">code</span>
                           Engineering Criteria
                         </span>
-                        <ul class="space-y-1 text-[11px] text-slate-600 dark:text-slate-300">
+                        <ul class="space-y-1 text-[11px] text-on-surface-variant dark:text-outline">
                           ${proj.requirements.map(r => `
                             <li class="flex items-start gap-1.5">
                               <span class="material-symbols-outlined text-[11px] text-indigo-400 mt-0.5 shrink-0">check</span>
@@ -1066,7 +1066,7 @@
                   <!-- Technologies Footer -->
                   <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-1 mt-2">
                     ${(proj.technologies || []).map(t => `
-                      <span class="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700/50">
+                      <span class="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-on-surface-variant dark:text-outline border border-slate-200/50 dark:border-slate-700/50">
                         ${escHtml(t)}
                       </span>
                     `).join('')}
@@ -1139,20 +1139,20 @@
               <span class="material-symbols-outlined text-xs">verified</span>
               <span>CAREER READINESS VERIFICATION</span>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            <h3 class="font-title-md text-title-md text-on-surface dark:text-white tracking-tight">
               Job-Ready Launch Checklist
             </h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <p class="text-xs text-on-surface-variant dark:text-outline mt-1">
               Complete these 9 verification categories to validate your technical mastery, projects, resume, and interview readiness before applying.
             </p>
           </div>
 
           <div class="flex flex-col items-start sm:items-end gap-1.5 shrink-0">
             <div class="flex items-center gap-2">
-              <span id="checklist-progress-text" class="text-xs font-bold text-slate-700 dark:text-slate-200">
+              <span id="checklist-progress-text" class="text-xs font-bold text-on-surface-variant dark:text-slate-200">
                 ${checkedItemsCount} of ${totalItemsCount} items (${overallChecklistPct}%)
               </span>
-              <span class="text-[10px] font-semibold text-slate-400 px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
+              <span class="text-[10px] font-semibold text-outline px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800">
                 Saves Automatically
               </span>
             </div>
@@ -1174,7 +1174,7 @@
                   <div class="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-200/60 dark:border-slate-800">
                     <div class="flex items-center gap-2">
                       <span class="material-symbols-outlined text-indigo-500 text-base">${cfg.icon}</span>
-                      <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                      <h4 class="text-xs font-bold text-on-surface dark:text-slate-200 uppercase tracking-wider">
                         ${cfg.label}
                       </h4>
                     </div>
@@ -1202,7 +1202,7 @@
                               data-item-id="${itemId}" 
                               ${isChecked ? 'checked' : ''}
                             />
-                            <span class="text-xs text-slate-700 dark:text-slate-300 leading-snug group-hover:text-slate-900 dark:group-hover:text-white transition-colors ${isChecked ? 'line-through text-slate-400 dark:text-slate-500' : ''}">
+                            <span class="text-xs text-on-surface-variant dark:text-outline leading-snug group-hover:text-on-surface dark:group-hover:text-white transition-colors ${isChecked ? 'line-through text-outline dark:text-on-surface-variant' : ''}">
                               ${escHtml(itemLabel)}
                             </span>
                           </label>
@@ -1242,9 +1242,9 @@
         const labelText = box.nextElementSibling;
         if (labelText) {
           if (box.checked) {
-            labelText.classList.add('line-through', 'text-slate-400', 'dark:text-slate-500');
+            labelText.classList.add('line-through', 'text-outline', 'dark:text-on-surface-variant');
           } else {
-            labelText.classList.remove('line-through', 'text-slate-400', 'dark:text-slate-500');
+            labelText.classList.remove('line-through', 'text-outline', 'dark:text-on-surface-variant');
           }
         }
 
@@ -1377,24 +1377,24 @@
             <span class="text-xs font-semibold px-2 py-0.5 rounded ${importanceClass}">
               ${targetSkill.importance}
             </span>
-            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-on-surface-variant dark:text-outline">
               ${targetSkill.difficulty || 'Intermediate'}
             </span>
-            <span class="text-xs text-slate-400 flex items-center gap-1">
+            <span class="text-xs text-outline flex items-center gap-1">
               <span class="material-symbols-outlined text-sm">schedule</span>
               ${targetSkill.estimatedTime || '1-2 weeks'}
             </span>
           </div>
 
-          <h3 class="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          <h3 class="font-title-md text-title-md text-on-surface dark:text-white tracking-tight">
             ${escHtml(targetSkill.title)}
           </h3>
-          <span class="text-xs text-slate-500 dark:text-slate-400">
+          <span class="text-xs text-on-surface-variant dark:text-outline">
             Category: ${escHtml(targetSkill.category)}
           </span>
         </div>
 
-        <button id="btn-close-skill-modal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0" aria-label="Close modal">
+        <button id="btn-close-skill-modal" class="text-outline hover:text-on-surface-variant dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0" aria-label="Close modal">
           <span class="material-symbols-outlined text-xl">close</span>
         </button>
       </div>
@@ -1422,8 +1422,8 @@
       ` : `
         <div class="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-800 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Current Status</span>
-            <span class="text-sm font-bold capitalize ${currentStatus === 'completed' ? 'text-emerald-600' : currentStatus === 'in-progress' ? 'text-blue-600' : 'text-slate-700 dark:text-slate-200'}">
+            <span class="text-[10px] font-bold text-outline uppercase tracking-wider block">Current Status</span>
+            <span class="text-sm font-bold capitalize ${currentStatus === 'completed' ? 'text-emerald-600' : currentStatus === 'in-progress' ? 'text-blue-600' : 'text-on-surface-variant dark:text-slate-200'}">
               ${currentStatus}
             </span>
           </div>
@@ -1453,31 +1453,31 @@
 
       <!-- Prerequisites -->
       <div class="mb-5">
-        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+        <h4 class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-2 flex items-center gap-1">
           <span class="material-symbols-outlined text-sm">account_tree</span>
           Prerequisites
         </h4>
         ${prereqNodes.length > 0 ? `
           <div class="flex flex-wrap gap-2">
             ${prereqNodes.map(p => `
-              <button class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md border ${p.isMet ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/50' : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700 cursor-pointer btn-jump-to-prereq'}" data-prereq-id="${p.id}">
-                <span class="material-symbols-outlined text-xs ${p.isMet ? 'text-emerald-600' : 'text-slate-400'}">${p.isMet ? 'check_circle' : 'lock'}</span>
+              <button class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md border ${p.isMet ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/50' : 'bg-slate-100 text-on-surface-variant border-slate-200 dark:bg-slate-800 dark:text-outline dark:border-slate-700 cursor-pointer btn-jump-to-prereq'}" data-prereq-id="${p.id}">
+                <span class="material-symbols-outlined text-xs ${p.isMet ? 'text-emerald-600' : 'text-outline'}">${p.isMet ? 'check_circle' : 'lock'}</span>
                 <span>${escHtml(p.title)}</span>
               </button>
             `).join('')}
           </div>
         ` : `
-          <p class="text-xs text-slate-500 italic">No previous prerequisites required. Safe to begin immediately.</p>
+          <p class="text-xs text-on-surface-variant italic">No previous prerequisites required. Safe to begin immediately.</p>
         `}
       </div>
 
       <!-- What to Learn -->
       <div class="mb-5">
-        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+        <h4 class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-2 flex items-center gap-1">
           <span class="material-symbols-outlined text-sm">checklist</span>
           What to Learn
         </h4>
-        <ul class="space-y-1.5 text-xs text-slate-700 dark:text-slate-200">
+        <ul class="space-y-1.5 text-xs text-on-surface-variant dark:text-slate-200">
           ${(targetSkill.whatToLearn || []).map(item => `
             <li class="flex items-start gap-2">
               <span class="material-symbols-outlined text-sm text-indigo-500 mt-0.5 shrink-0">arrow_right</span>
@@ -1502,11 +1502,11 @@
 
       <!-- Why It Matters -->
       <div class="mb-5 bg-slate-50 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800">
-        <h4 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+        <h4 class="text-xs font-bold text-on-surface-variant dark:text-outline uppercase tracking-wider mb-1 flex items-center gap-1">
           <span class="material-symbols-outlined text-sm text-indigo-500">lightbulb</span>
           Why It Matters in Production
         </h4>
-        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+        <p class="text-xs text-on-surface-variant dark:text-outline leading-relaxed">
           ${escHtml(targetSkill.whyItMatters || 'Essential knowledge applied routinely in professional codebases.')}
         </p>
       </div>
@@ -1514,11 +1514,11 @@
       <!-- Hands-On Practice Task -->
       ${targetSkill.handsOnTask || targetSkill.practice ? `
         <div class="mb-5">
-          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+          <h4 class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-1.5 flex items-center gap-1">
             <span class="material-symbols-outlined text-sm">terminal</span>
             Hands-On Practice Task
           </h4>
-          <div class="text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 p-3.5 rounded-xl font-mono leading-relaxed border border-slate-200/60 dark:border-slate-700">
+          <div class="text-xs text-on-surface-variant dark:text-slate-200 bg-slate-100 dark:bg-slate-800 p-3.5 rounded-xl font-mono leading-relaxed border border-slate-200/60 dark:border-slate-700">
             ${escHtml(targetSkill.handsOnTask || targetSkill.practice)}
           </div>
         </div>
@@ -1527,7 +1527,7 @@
       <!-- Curated Resources -->
       ${targetSkill.resources && targetSkill.resources.length > 0 ? `
         <div class="mb-2">
-          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+          <h4 class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-2 flex items-center gap-1">
             <span class="material-symbols-outlined text-sm">library_books</span>
             Curated Resources & Documentation
           </h4>
@@ -1535,14 +1535,14 @@
             ${targetSkill.resources.map(res => `
               <a href="${res.url}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/60 hover:bg-white dark:hover:bg-slate-800 transition-colors group">
                 <div class="flex items-center gap-2">
-                  <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                  <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-on-surface-variant dark:text-outline">
                     ${escHtml(res.type || 'link')}
                   </span>
-                  <span class="text-xs font-medium text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  <span class="text-xs font-medium text-on-surface dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                     ${escHtml(res.title)}
                   </span>
                 </div>
-                <span class="material-symbols-outlined text-sm text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                <span class="material-symbols-outlined text-sm text-outline group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                   open_in_new
                 </span>
               </a>
@@ -1651,20 +1651,20 @@
           </div>
           <div>
             <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Career Path</span>
-            <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">${escHtml(role.title)}</h3>
+            <h3 class="font-headline-xl text-headline-xl text-on-surface dark:text-white tracking-tight">${escHtml(role.title)}</h3>
           </div>
         </div>
 
-        <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-5">
+        <p class="text-sm text-on-surface-variant dark:text-outline leading-relaxed mb-5">
           ${escHtml(role.tagline || role.description)}
         </p>
 
         <div class="mb-5 bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
-          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5 flex items-center gap-1">
+          <h4 class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-2.5 flex items-center gap-1">
             <span class="material-symbols-outlined text-sm text-emerald-500">checklist</span>
             What You Will Master:
           </h4>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700 dark:text-slate-200">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-on-surface-variant dark:text-slate-200">
             ${(role.featuredTech || []).concat(['Git & GitHub', 'System Architecture', 'Testing & QA', 'Deployment', 'Industry Capstone']).slice(0, 10).map(item => `
               <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
@@ -1678,13 +1678,13 @@
           <div class="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wide mb-1">Estimated Learning Sequence:</div>
           <div class="text-xs font-semibold text-indigo-900 dark:text-indigo-200 flex flex-wrap items-center gap-1">
             <span>Foundation</span>
-            <span class="text-slate-400">→</span>
+            <span class="text-outline">→</span>
             <span>Core Skills</span>
-            <span class="text-slate-400">→</span>
+            <span class="text-outline">→</span>
             <span>Advanced Architecture</span>
-            <span class="text-slate-400">→</span>
+            <span class="text-outline">→</span>
             <span>Production Projects</span>
-            <span class="text-slate-400">→</span>
+            <span class="text-outline">→</span>
             <span>Job Ready</span>
           </div>
         </div>
@@ -1712,16 +1712,16 @@
           <div class="step-indicator-dot">3. Confirmation</div>
         </div>
 
-        <h3 class="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-1">
+        <h3 class="font-title-md text-title-md text-on-surface dark:text-white tracking-tight mb-1">
           Commitment Questions
         </h3>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mb-5">
+        <p class="text-xs text-on-surface-variant dark:text-outline mb-5">
           These answers personalize your roadmap and track your intention.
         </p>
 
         <!-- Question 1 -->
         <div class="mb-5">
-          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+          <label class="block text-xs font-bold text-on-surface-variant dark:text-outline uppercase tracking-wider mb-2">
             1. What do you want to achieve with this roadmap?
           </label>
           <div class="space-y-2">
@@ -1734,7 +1734,7 @@
             ].map(opt => `
               <div class="choice-card-option ${wizardAnswers.goal === opt ? 'selected' : ''}" data-type="goal" data-value="${opt}">
                 <div class="custom-radio-circle"></div>
-                <span class="text-xs font-medium text-slate-800 dark:text-slate-200">${opt}</span>
+                <span class="text-xs font-medium text-on-surface dark:text-slate-200">${opt}</span>
               </div>
             `).join('')}
           </div>
@@ -1742,7 +1742,7 @@
 
         <!-- Question 2 -->
         <div class="mb-5">
-          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+          <label class="block text-xs font-bold text-on-surface-variant dark:text-outline uppercase tracking-wider mb-2">
             2. How familiar are you with this field?
           </label>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -1754,7 +1754,7 @@
             ].map(opt => `
               <div class="choice-card-option ${wizardAnswers.experienceLevel === opt ? 'selected' : ''}" data-type="experienceLevel" data-value="${opt}">
                 <div class="custom-radio-circle"></div>
-                <span class="text-xs font-medium text-slate-800 dark:text-slate-200">${opt}</span>
+                <span class="text-xs font-medium text-on-surface dark:text-slate-200">${opt}</span>
               </div>
             `).join('')}
           </div>
@@ -1762,7 +1762,7 @@
 
         <!-- Question 3 -->
         <div class="mb-6">
-          <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+          <label class="block text-xs font-bold text-on-surface-variant dark:text-outline uppercase tracking-wider mb-2">
             3. Are you ready to follow this roadmap in sequence?
           </label>
           <div class="space-y-2">
@@ -1772,7 +1772,7 @@
             ].map(opt => `
               <div class="choice-card-option ${wizardAnswers.sequenceConsent === opt.val ? 'selected' : ''}" data-type="sequenceConsent" data-value="${opt.val}">
                 <div class="custom-radio-circle"></div>
-                <span class="text-xs font-medium text-slate-800 dark:text-slate-200">${opt.label}</span>
+                <span class="text-xs font-medium text-on-surface dark:text-slate-200">${opt.label}</span>
               </div>
             `).join('')}
           </div>
@@ -1802,27 +1802,27 @@
           <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block mb-1">
             You're about to start:
           </span>
-          <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">
+          <h3 class="font-headline-xl text-headline-xl text-on-surface dark:text-white tracking-tight mb-2">
             ${role.title.toUpperCase()} ROADMAP
           </h3>
-          <p class="text-xs text-slate-500 dark:text-slate-400">
+          <p class="text-xs text-on-surface-variant dark:text-outline">
             This structured path will guide you through:
           </p>
         </div>
 
         <!-- Vertical Flow Tree -->
         <div class="max-w-xs mx-auto mb-6 bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
-          <div class="space-y-2 text-center text-xs font-bold text-slate-700 dark:text-slate-200">
+          <div class="space-y-2 text-center text-xs font-bold text-on-surface-variant dark:text-slate-200">
             <div class="py-1 px-3 bg-white dark:bg-slate-800 rounded-md shadow-xs">Foundation</div>
-            <div class="text-slate-400 text-[10px]">↓</div>
+            <div class="text-outline text-[10px]">↓</div>
             <div class="py-1 px-3 bg-white dark:bg-slate-800 rounded-md shadow-xs">Core Concepts</div>
-            <div class="text-slate-400 text-[10px]">↓</div>
+            <div class="text-outline text-[10px]">↓</div>
             <div class="py-1 px-3 bg-white dark:bg-slate-800 rounded-md shadow-xs">Advanced Architecture</div>
-            <div class="text-slate-400 text-[10px]">↓</div>
+            <div class="text-outline text-[10px]">↓</div>
             <div class="py-1 px-3 bg-white dark:bg-slate-800 rounded-md shadow-xs">Testing & Performance</div>
-            <div class="text-slate-400 text-[10px]">↓</div>
+            <div class="text-outline text-[10px]">↓</div>
             <div class="py-1 px-3 bg-white dark:bg-slate-800 rounded-md shadow-xs">3 Milestone Projects</div>
-            <div class="text-slate-400 text-[10px]">↓</div>
+            <div class="text-outline text-[10px]">↓</div>
             <div class="py-1 px-3 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 rounded-md border border-emerald-200 dark:border-emerald-800">Job Ready Verification</div>
           </div>
         </div>
@@ -1948,17 +1948,17 @@
         <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center mx-auto mb-3 shadow-xs">
           <span class="material-symbols-outlined text-2xl">lock</span>
         </div>
-        <h3 class="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+        <h3 class="font-title-md text-title-md text-on-surface dark:text-white tracking-tight">
           ${escHtml(targetRole ? targetRole.title : 'Career')} is Locked
         </h3>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">
+        <p class="text-xs text-on-surface-variant dark:text-outline mt-1 max-w-sm mx-auto leading-relaxed">
           You are currently committed to:
           <strong class="text-indigo-600 dark:text-indigo-400">${escHtml(activeRole ? activeRole.title : 'Active Roadmap')}</strong>
           (${activeProg.percent}% completed).
         </p>
       </div>
 
-      <div class="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-800 mb-5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+      <div class="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-800 mb-5 text-xs text-on-surface-variant dark:text-outline leading-relaxed">
         To build real engineering expertise, DevPilot AI keeps you focused on one roadmap at a time. Complete your active path, or switch careers deliberately in Roadmap Settings.
       </div>
 
@@ -2010,33 +2010,33 @@
             <span class="material-symbols-outlined text-xl">swap_horiz</span>
           </div>
           <div>
-            <h3 class="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            <h3 class="font-title-md text-title-md text-on-surface dark:text-white tracking-tight">
               Change Your Active Career?
             </h3>
-            <span class="text-xs text-slate-500 dark:text-slate-400">
+            <span class="text-xs text-on-surface-variant dark:text-outline">
               Current Path: <strong>${escHtml(currentRole.title)}</strong>
             </span>
           </div>
         </div>
-        <button id="btn-close-change-modal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg" aria-label="Close">
+        <button id="btn-close-change-modal" class="text-outline hover:text-on-surface-variant dark:hover:text-slate-200 p-1.5 rounded-lg" aria-label="Close">
           <span class="material-symbols-outlined text-xl">close</span>
         </button>
       </div>
 
       <div class="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-800 mb-5">
-        <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Current Progress Preserved:</div>
-        <div class="flex items-center gap-4 text-xs text-slate-700 dark:text-slate-200 font-semibold mb-3">
+        <div class="font-label-sm text-label-sm text-outline uppercase tracking-wider mb-2">Current Progress Preserved:</div>
+        <div class="flex items-center gap-4 text-xs text-on-surface-variant dark:text-slate-200 font-semibold mb-3">
           <span>${currentProgress.percent}% of the roadmap</span>
           <span>•</span>
           <span>${currentProgress.completed} skills mastered</span>
         </div>
-        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+        <p class="text-xs text-on-surface-variant dark:text-outline leading-relaxed">
           Changing your career will <strong>NOT</strong> delete your existing ${escHtml(currentRole.title)} progress. It will simply move another career into your active roadmap. You can switch back anytime and your progress will be restored.
         </p>
       </div>
 
       <div class="mb-6">
-        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+        <label class="block text-xs font-bold text-on-surface-variant dark:text-outline uppercase tracking-wider mb-2">
           Why are you changing?
         </label>
         <div class="space-y-2">
@@ -2050,7 +2050,7 @@
           ].map((reason, idx) => `
             <div class="choice-card-option ${idx === 1 ? 'selected' : ''} change-reason-option" data-reason="${reason}">
               <div class="custom-radio-circle"></div>
-              <span class="text-xs font-medium text-slate-800 dark:text-slate-200">${reason}</span>
+              <span class="text-xs font-medium text-on-surface dark:text-slate-200">${reason}</span>
             </div>
           `).join('')}
         </div>

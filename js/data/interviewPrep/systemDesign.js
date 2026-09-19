@@ -1,13 +1,13 @@
 // js/data/interviewPrep/systemDesign.js
 // Complete Question Bank & Case Studies for System Design
-// 20 High-Yield MCQs + 10 Complete End-to-End System Design Case Studies
+// 30 High-Yield MCQs + 10 Complete End-to-End System Design Case Studies
 
 window.interviewPrepSystemDesign = {
   id: 'system_design',
   title: 'System Design',
   icon: 'schema',
   description: 'Master architectural scaling, caching, databases, load balancers, messaging, and 10 production case studies.',
-  totalQuestions: 20,
+  totalQuestions: 30,
   topics: [
     'System Design Fundamentals'
   ],
@@ -19,11 +19,11 @@ window.interviewPrepSystemDesign = {
     "question": "What is the difference between Vertical Scaling (Scale Up) and Horizontal Scaling (Scale Out)?",
     "options": [
       "Vertical adds more servers; Horizontal adds RAM to one server",
-      "Vertical adds more power (CPU, RAM, NVMe) to an existing single machine; Horizontal adds more machines to a distributed cluster",
       "Horizontal scaling is only for databases",
+      "Vertical adds more power (CPU, RAM, NVMe) to an existing single machine; Horizontal adds more machines to a distributed cluster",
       "Vertical scaling has no physical limit"
     ],
-    "correctAnswer": 1,
+    "correctAnswer": 2,
     "explanation": "Vertical scaling upgrades hardware resources of a single server (constrained by hardware limits and creates single point of failure). Horizontal scaling distributes load across multiple machines in a network, providing high availability and near-infinite scale."
   },
   {
@@ -46,12 +46,12 @@ window.interviewPrepSystemDesign = {
     "difficulty": "Easy",
     "question": "What is a Load Balancer and at which OSI layers does it typically operate?",
     "options": [
-      "A database query optimizer running at Layer 2",
       "A device or software distributing incoming network traffic across multiple backend servers, operating primarily at Layer 4 (Transport - TCP/UDP) or Layer 7 (Application - HTTP/HTTPS)",
+      "A database query optimizer running at Layer 2",
       "A hardware firewall operating only at Layer 1",
       "A cache replacement mechanism"
     ],
-    "correctAnswer": 1,
+    "correctAnswer": 0,
     "explanation": "Load balancers distribute user requests across server pools. L4 load balancers make routing decisions based on IP address and TCP/UDP ports. L7 load balancers inspect application data (HTTP headers, URLs, cookies) for content-based routing."
   },
   {
@@ -61,11 +61,11 @@ window.interviewPrepSystemDesign = {
     "question": "What is the primary difference between SQL (Relational) and NoSQL databases in system design?",
     "options": [
       "SQL databases cannot store text",
-      "SQL databases have structured schemas, ACID transactions, and support relational joins; NoSQL databases offer flexible schemas, horizontal scaling, and optimize for specific data models (key-value, document, column, graph)",
       "NoSQL databases do not support clustering",
-      "SQL is always faster for massive distributed reads"
+      "SQL is always faster for massive distributed reads",
+      "SQL databases have structured schemas, ACID transactions, and support relational joins; NoSQL databases offer flexible schemas, horizontal scaling, and optimize for specific data models (key-value, document, column, graph)"
     ],
-    "correctAnswer": 1,
+    "correctAnswer": 3,
     "explanation": "SQL databases (PostgreSQL, MySQL) excel at complex relational queries and strong ACID guarantees. NoSQL databases (MongoDB, Cassandra, DynamoDB) trade relational joins for schema flexibility, horizontal partitioning, and high-throughput distributed operations."
   },
   {
@@ -89,11 +89,11 @@ window.interviewPrepSystemDesign = {
     "question": "What problem does \"Consistent Hashing\" solve in distributed caching and database sharding?",
     "options": [
       "It encrypts user passwords across nodes",
-      "When nodes are added or removed from a cluster, it ensures that only K/N keys need to be remapped on average (where K is keys and N is servers), preventing mass cache invalidation",
       "It forces all cache queries to run synchronously",
+      "When nodes are added or removed from a cluster, it ensures that only K/N keys need to be remapped on average (where K is keys and N is servers), preventing mass cache invalidation",
       "It guarantees zero latency on queries"
     ],
-    "correctAnswer": 1,
+    "correctAnswer": 2,
     "explanation": "Traditional hash mod N (`hash(key) % N`) causes almost all keys to be reshuffled whenever a server joins or leaves. Consistent hashing maps keys and servers onto a circular ring (hash ring), minimizing data movement when nodes scale."
   },
   {
@@ -102,12 +102,12 @@ window.interviewPrepSystemDesign = {
     "difficulty": "Medium",
     "question": "What is the difference between Write-Through and Write-Back caching strategies?",
     "options": [
-      "Write-through is for hard drives; write-back is for RAM",
       "Write-Through writes synchronously to both cache and backing DB before confirming success; Write-Back writes immediately to cache and acknowledges, writing to DB asynchronously in batches",
+      "Write-through is for hard drives; write-back is for RAM",
       "Write-back guarantees zero risk of data loss on crash",
       "Write-through has the lowest write latency"
     ],
-    "correctAnswer": 1,
+    "correctAnswer": 0,
     "explanation": "Write-Through ensures strong data consistency and durability at the cost of higher write latency. Write-Back offers ultra-fast write latency but risks data loss if the cache server crashes before flushing dirty pages to the database."
   },
   {
@@ -117,11 +117,11 @@ window.interviewPrepSystemDesign = {
     "question": "What does the PACELC Theorem add to the traditional CAP Theorem?",
     "options": [
       "It includes cloud pricing into architectural analysis",
-      "It states that IF there is a partition (P), trade off Availability (A) and Consistency (C); ELSE (E), trade off Latency (L) and Consistency (C)",
       "It replaces network partitions with fiber cables",
-      "It proves all systems can be both available and consistent"
+      "It proves all systems can be both available and consistent",
+      "It states that IF there is a partition (P), trade off Availability (A) and Consistency (C); ELSE (E), trade off Latency (L) and Consistency (C)"
     ],
-    "correctAnswer": 1,
+    "correctAnswer": 3,
     "explanation": "Daniel Abadi's PACELC theorem extends CAP: Even when the system runs normally without partitions (Else), there is an unavoidable fundamental trade-off between Latency (L) and Consistency (C) across distributed replicas."
   },
   {
@@ -145,11 +145,11 @@ window.interviewPrepSystemDesign = {
     "question": "What is the \"Thundering Herd Problem\" (Cache Stampede) and how is it mitigated?",
     "options": [
       "A network virus overloading switches",
-      "When a popular cached item expires, hundreds of concurrent requests experience a cache miss simultaneously and hammer the database; mitigated using mutex locks (probabilistic early expiration or singleflight)",
       "Database disk failure during heavy traffic",
+      "When a popular cached item expires, hundreds of concurrent requests experience a cache miss simultaneously and hammer the database; mitigated using mutex locks (probabilistic early expiration or singleflight)",
       "Too many developers deploying code simultaneously"
     ],
-    "correctAnswer": 1,
+    "correctAnswer": 2,
     "explanation": "Cache stampede occurs when a high-traffic cache key expires, causing massive concurrent queries to hit the database at once. It is prevented using distributed mutex locks, cache warming, or probabilistic early background recomputation (XFetch)."
   },
   {
@@ -158,12 +158,12 @@ window.interviewPrepSystemDesign = {
     "difficulty": "Medium",
     "question": "How does a \"Token Bucket\" rate limiter work?",
     "options": [
-      "It measures the number of open TCP sockets",
       "Tokens are continuously added to a bucket at a fixed rate up to a max capacity; each incoming request consumes a token; if bucket is empty, request is dropped or throttled",
+      "It measures the number of open TCP sockets",
       "It logs every request timestamp in an unbounded array",
       "It resets request counters at the beginning of each hour"
     ],
-    "correctAnswer": 1,
+    "correctAnswer": 0,
     "explanation": "The Token Bucket algorithm adds tokens at a constant rate `r` up to capacity `b`. It accommodates temporary bursts of traffic (up to `b` requests instantly) while maintaining an average rate constraint."
   },
   {
@@ -173,11 +173,11 @@ window.interviewPrepSystemDesign = {
     "question": "What is the difference between Polling, Long Polling, WebSockets, and Server-Sent Events (SSE)?",
     "options": [
       "They are identical protocols",
-      "Polling periodically queries the server; Long Polling holds HTTP connection open until data arrives; WebSockets provide full-duplex bi-directional TCP communication; SSE provides mono-directional server-to-client streaming over HTTP",
       "WebSockets can only send plain text",
-      "SSE requires opening a new TCP connection per event"
+      "SSE requires opening a new TCP connection per event",
+      "Polling periodically queries the server; Long Polling holds HTTP connection open until data arrives; WebSockets provide full-duplex bi-directional TCP communication; SSE provides mono-directional server-to-client streaming over HTTP"
     ],
-    "correctAnswer": 1,
+    "correctAnswer": 3,
     "explanation": "Polling wastes HTTP requests. Long Polling reduces latency by holding requests open until an update occurs. WebSockets establish persistent, full-duplex, low-overhead communication. SSE offers lightweight, unidirectional server-to-client streaming over HTTP."
   },
   {
@@ -201,11 +201,11 @@ window.interviewPrepSystemDesign = {
     "question": "What is a \"Circuit Breaker\" pattern in microservices?",
     "options": [
       "An electrical fuse in data center racks",
-      "A design pattern that monitors external calls; if failures cross a threshold, it trips open to fail fast immediately without calling the unhealthy dependency, giving it time to recover before testing with half-open requests",
       "A firewall rule blocking DDoS attacks",
+      "A design pattern that monitors external calls; if failures cross a threshold, it trips open to fail fast immediately without calling the unhealthy dependency, giving it time to recover before testing with half-open requests",
       "A database transaction rollback"
     ],
-    "correctAnswer": 1,
+    "correctAnswer": 2,
     "explanation": "Michael Nygard's Circuit Breaker wraps risky calls. In Closed state, requests pass through. If errors exceed a threshold, it switches to Open (failing fast immediately without overloading the downstream service). After a timeout, Half-Open lets limited requests through to verify recovery."
   },
   {
@@ -214,12 +214,12 @@ window.interviewPrepSystemDesign = {
     "difficulty": "Hard",
     "question": "What is the difference between Message Queues (RabbitMQ) and Distributed Event Logs (Apache Kafka)?",
     "options": [
-      "RabbitMQ is for databases; Kafka is for caches",
       "RabbitMQ is a smart-broker/dumb-consumer message queue that tracks message consumption and removes messages upon ACK; Kafka is an append-only distributed commit log where consumers manage their own offset and messages persist long-term",
+      "RabbitMQ is for databases; Kafka is for caches",
       "Kafka cannot scale horizontally",
       "RabbitMQ stores messages forever on disk"
     ],
-    "correctAnswer": 1,
+    "correctAnswer": 0,
     "explanation": "RabbitMQ distributes discrete work tasks to workers, deleting messages after acknowledgment. Kafka is a partitioned distributed event log: messages are immutable, stored for days/weeks, and multiple consumer groups independently replay or read streams at their own pace."
   },
   {
@@ -229,11 +229,11 @@ window.interviewPrepSystemDesign = {
     "question": "What is a \"Bloom Filter\" and why is it used in high-scale distributed systems?",
     "options": [
       "A graphical image filter in UI rendering",
-      "A space-efficient probabilistic data structure used to test set membership, returning either \"definitely not in set\" or \"probably in set\" with zero false negatives",
       "A sorting algorithm for distributed arrays",
-      "A cryptographic hashing function for passwords"
+      "A cryptographic hashing function for passwords",
+      "A space-efficient probabilistic data structure used to test set membership, returning either \"definitely not in set\" or \"probably in set\" with zero false negatives"
     ],
-    "correctAnswer": 1,
+    "correctAnswer": 3,
     "explanation": "Bloom filters use bit arrays and multiple hash functions. They answer membership queries in O(k) time and negligible RAM. If it returns False, the item is guaranteed absent (avoiding expensive disk/network lookups). It has a small tunable false positive rate, but never false negatives."
   },
   {
@@ -257,11 +257,11 @@ window.interviewPrepSystemDesign = {
     "question": "What is the difference between \"Strong Consistency\" and \"Eventual Consistency\"?",
     "options": [
       "Strong consistency means data is encrypted; Eventual means unencrypted",
-      "Strong Consistency guarantees all subsequent reads across all replicas return the latest write immediately; Eventual Consistency guarantees that if no new updates occur, all replicas will eventually converge to identical state",
       "Eventual consistency never updates secondary replicas",
+      "Strong Consistency guarantees all subsequent reads across all replicas return the latest write immediately; Eventual Consistency guarantees that if no new updates occur, all replicas will eventually converge to identical state",
       "Strong consistency requires no network connections"
     ],
-    "correctAnswer": 1,
+    "correctAnswer": 2,
     "explanation": "Strong consistency (CP) requires cross-node synchronization before confirming writes, incurring higher latency. Eventual consistency (AP) confirms writes locally and propagates updates asynchronously, offering high availability and low latency at the expense of temporary stale reads."
   },
   {
@@ -270,12 +270,12 @@ window.interviewPrepSystemDesign = {
     "difficulty": "Hard",
     "question": "In designing a distributed ID generator (e.g. Twitter Snowflake), why is relying on database auto-increment IDs inadequate?",
     "options": [
-      "Database IDs only go up to 100",
       "Single database auto-increment creates a single point of failure and write bottleneck, while multiple databases with offsets become messy to scale horizontally and don't provide k-sorted ordering across distributed nodes",
+      "Database IDs only go up to 100",
       "Database IDs cannot be stored in 64-bit integers",
       "Auto-increment IDs cannot be indexed"
     ],
-    "correctAnswer": 1,
+    "correctAnswer": 0,
     "explanation": "At scale, a single DB auto-increment cannot handle hundreds of thousands of IDs/sec. Snowflake generates 64-bit globally unique, roughly time-sorted IDs autonomously without coordination using: Epoch Timestamp + Machine/DataCenter ID + Sequence Number."
   },
   {
@@ -285,12 +285,152 @@ window.interviewPrepSystemDesign = {
     "question": "What is \"Write-Behind\" (Write-Back) caching failure mode and how do modern systems protect against data loss?",
     "options": [
       "Cache writes are rejected if RAM is full",
-      "Because data is acknowledged to the client before being written to persistent storage, a node crash can lose data; modern systems use battery-backed RAM, NVMe write-ahead logging (WAL), or replicated cache nodes",
       "The database crashes whenever cache is updated",
-      "Clients must retry every write twice"
+      "Clients must retry every write twice",
+      "Because data is acknowledged to the client before being written to persistent storage, a node crash can lose data; modern systems use battery-backed RAM, NVMe write-ahead logging (WAL), or replicated cache nodes"
+    ],
+    "correctAnswer": 3,
+    "explanation": "Write-Behind caches acknowledge writes before committing to disk. If the cache machine loses power, dirty uncommitted updates are lost. Systems mitigate this using redundant replicated cache clusters (Redis Sentinel/Cluster) and persistent fast append logs on NVMe."
+  },
+  {
+    "id": "sd_mcq_21",
+    "topic": "System Design Fundamentals",
+    "difficulty": "Hard",
+    "question": "How does the Raft consensus algorithm guarantee consistency and prevent split-brain scenarios in a distributed cluster?",
+    "options": [
+      "By electing a single Leader via majority quorum (N/2 + 1) votes, replicating log entries linearly to followers, and committing entries only after a majority acknowledges",
+      "By having every node execute writes without a leader and resolving conflicts via last-write-wins timestamps",
+      "By storing all cluster state on a shared NFS mount",
+      "By using random exponential backoff without heartbeats"
+    ],
+    "correctAnswer": 0,
+    "explanation": "Raft breaks consensus into three sub-problems: Leader Election, Log Replication, and Safety. A leader must win votes from a strict majority quorum ((N/2) + 1 nodes). Because any two majorities must overlap by at least one node, split-brain (two concurrent leaders) is mathematically impossible."
+  },
+  {
+    "id": "sd_mcq_22",
+    "topic": "System Design Fundamentals",
+    "difficulty": "Medium",
+    "question": "What is the architectural difference between a Forward Proxy and a Reverse Proxy?",
+    "options": [
+      "Forward proxies handle HTTP traffic; Reverse proxies only handle WebSocket connections",
+      "Forward proxies route database queries; Reverse proxies route Redis cache calls",
+      "A Forward Proxy sits in front of clients to regulate/cache outbound requests to external servers; a Reverse Proxy sits in front of backend servers to intercept, load balance, terminate SSL, and protect internal services",
+      "A Reverse Proxy is only used for hardware firewalls"
+    ],
+    "correctAnswer": 2,
+    "explanation": "A Forward Proxy acts on behalf of clients (e.g., enterprise egress proxy filtering employee web browsing). A Reverse Proxy (e.g., Nginx, Envoy, Cloudflare) acts on behalf of backend origin servers, hiding backend IP addresses and providing centralized SSL termination, caching, and rate limiting."
+  },
+  {
+    "id": "sd_mcq_23",
+    "topic": "System Design Fundamentals",
+    "difficulty": "Hard",
+    "question": "Why are Idempotency Keys critical in distributed payment processing systems, and how are they typically implemented?",
+    "options": [
+      "They compress credit card numbers to save database disk space",
+      "They encrypt payloads with AES-256 for PCI-DSS compliance",
+      "They speed up database indexes by hashing customer names",
+      "Clients pass a unique UUID idempotency key per transaction; the server atomically stores the key in Redis/DB with an execution lock, returning the cached original result if a network retry with the same key arrives"
+    ],
+    "correctAnswer": 3,
+    "explanation": "Network timeouts often leave clients uncertain if a charge succeeded. If a client retries a POST /charges request, an Idempotency Key ensures the payment is executed exactly once. The server records the key with status IN_PROGRESS or COMPLETED; duplicate submissions return the original response without re-executing the charge."
+  },
+  {
+    "id": "sd_mcq_24",
+    "topic": "System Design Fundamentals",
+    "difficulty": "Hard",
+    "question": "Why do modern microservice architectures generally prefer the Saga Pattern over Two-Phase Commit (2PC) for distributed transactions?",
+    "options": [
+      "2PC is a synchronous blocking protocol where coordinator failure holds distributed row locks and causes cascading unavailability, while Sagas decompose transactions into local sub-transactions with asynchronous compensating rollbacks",
+      "2PC does not support SQL databases",
+      "Saga pattern eliminates the need for database logging",
+      "Sagas guarantee absolute ACID isolation across microservices without compensation logic"
+    ],
+    "correctAnswer": 0,
+    "explanation": "2PC requires all participant nodes to hold database locks during the Prepare and Commit phases; if one node hangs or the coordinator fails, locks are held indefinitely, destroying system availability. Sagas use either Choreography (event-driven) or Orchestration to execute local ACID transactions; if a step fails, explicit compensating transactions reverse previous steps."
+  },
+  {
+    "id": "sd_mcq_25",
+    "topic": "System Design Fundamentals",
+    "difficulty": "Medium",
+    "question": "Why do relational database engines (PostgreSQL, MySQL InnoDB) use B+ Trees instead of Hash Indexes as their default primary index structure?",
+    "options": [
+      "Hash indexes take more memory than B+ Trees",
+      "B+ Trees store all records in random disk sectors",
+      "B+ Trees maintain sorted order across all leaf nodes connected via pointers, allowing efficient range queries (BETWEEN, <, >, ORDER BY) and predictable O(log N) disk block lookups, whereas Hash indexes only support exact equality (=) lookups",
+      "Hash indexes cannot handle string data types"
+    ],
+    "correctAnswer": 2,
+    "explanation": "Hash indexes offer O(1) point lookups but cannot evaluate range scans (WHERE created_at >= '2025-01-01') or sorting (ORDER BY id). B+ Trees keep keys sorted in leaf pages linked as a doubly-linked list. Their high fan-out (hundreds of keys per 16KB disk page) minimizes disk I/O depth to 3-4 levels for billions of rows."
+  },
+  {
+    "id": "sd_mcq_26",
+    "topic": "System Design Fundamentals",
+    "difficulty": "Hard",
+    "question": "How does the Gossip Protocol (Epidemic Algorithm) maintain cluster membership and state in decentralized systems like Apache Cassandra?",
+    "options": [
+      "Nodes send periodic heartbeats only to a centralized master ZooKeeper node",
+      "Each node periodically selects a few random peer nodes and exchanges cluster state, propagating membership, heartbeats, and node failure detection exponentially across the entire network in O(log N) rounds without any central coordinator",
+      "Nodes broadcast UDP packets to all IP addresses on the local subnet simultaneously",
+      "Nodes write their status to a shared cloud storage bucket every minute"
     ],
     "correctAnswer": 1,
-    "explanation": "Write-Behind caches acknowledge writes before committing to disk. If the cache machine loses power, dirty uncommitted updates are lost. Systems mitigate this using redundant replicated cache clusters (Redis Sentinel/Cluster) and persistent fast append logs on NVMe."
+    "explanation": "Inspired by the spread of biological epidemics, each Cassandra node periodically picks random peers and trades Scuttlebutt/Gossip digests. State disseminates through the cluster in logarithmic time O(log N). This achieves high fault tolerance with zero single points of failure."
+  },
+  {
+    "id": "sd_mcq_27",
+    "topic": "System Design Fundamentals",
+    "difficulty": "Medium",
+    "question": "What is the primary role of a Write-Ahead Log (WAL) in database storage engines like PostgreSQL and MySQL InnoDB?",
+    "options": [
+      "To generate audit reports for database administrators",
+      "To ensure Durability and Atomicity by persisting sequential write records to non-volatile disk before modifying dirty data pages in memory buffer pools, enabling crash recovery via REDO/UNDO",
+      "To replicate SQL query strings to secondary standby servers",
+      "To compress cold archive data before deletion"
+    ],
+    "correctAnswer": 1,
+    "explanation": "Writing random 8KB/16KB data pages directly to disk on every transaction is prohibitively slow. The database engine appends minimal binary delta changes sequentially to the WAL and fsyncs to disk. If the server abruptly crashes, recovery reads the WAL to REDO committed changes and UNDO uncommitted transactions (ARIES algorithm)."
+  },
+  {
+    "id": "sd_mcq_28",
+    "topic": "System Design Fundamentals",
+    "difficulty": "Hard",
+    "question": "What is the operational distinction between Geo-DNS routing and Anycast BGP routing for global web services?",
+    "options": [
+      "Geo-DNS resolves domain names to regional IP addresses based on client resolver location (subject to DNS caching and recursive resolver inaccuracies), while Anycast announces a single identical IP address from multiple global data centers via BGP, with Internet routers naturally routing packets to the nearest PoP",
+      "Geo-DNS is hardware; Anycast is software",
+      "Anycast requires users to install special client VPN certificates",
+      "Geo-DNS cannot be used with HTTPS websites"
+    ],
+    "correctAnswer": 0,
+    "explanation": "Geo-DNS uses DNS servers to return different IP addresses based on the geographic IP of the client's DNS resolver (which can be inaccurate with centralized resolvers like 8.8.8.8 and suffers from slow TTL propagation). Anycast announces the same IP address from hundreds of edge points via Border Gateway Protocol (BGP); Internet routers dynamically send packets along the shortest network path."
+  },
+  {
+    "id": "sd_mcq_29",
+    "topic": "System Design Fundamentals",
+    "difficulty": "Hard",
+    "question": "What are the trade-offs between Least Recently Used (LRU) and Least Frequently Used (LFU) cache eviction policies, and how does ARC improve upon them?",
+    "options": [
+      "LRU only evicts on database restarts; LFU evicts after 24 hours",
+      "LRU is susceptible to cache pollution from sequential one-off table scans (flushing hot items); LFU tracks access frequency but struggles with stale items whose frequency remains artificially high; ARC (Adaptive Replacement Cache) dynamically tunes between recency and frequency using dual queues",
+      "LFU requires zero memory overhead compared to LRU",
+      "ARC is only supported on hardware memory controllers"
+    ],
+    "correctAnswer": 1,
+    "explanation": "LRU evicts items that haven't been read recently (vulnerable when a batch job scans millions of cold keys once, evicting the hot working set). LFU counts total accesses (but an item popular last week may linger in cache forever). ARC dynamically balances between an LRU queue and an LFU queue based on workload hit rates."
+  },
+  {
+    "id": "sd_mcq_30",
+    "topic": "System Design Fundamentals",
+    "difficulty": "Hard",
+    "question": "In masterless distributed storage systems (e.g., DynamoDB, Riak), what purpose do Vector Clocks serve?",
+    "options": [
+      "Synchronizing server hardware clocks to nanosecond precision via atomic clocks",
+      "Generating mathematical vectors for cosine similarity in machine learning searches",
+      "Measuring network packet flight time across global undersea cables",
+      "Tracking causal relationships between updates across distributed nodes to determine whether two versions are causally ordered (one succeeded the other) or concurrent (conflicting sibling versions requiring client/semantic reconciliation)"
+    ],
+    "correctAnswer": 3,
+    "explanation": "Physical timestamps (Wall Clocks / NTP) are unreliable in distributed systems due to clock drift. A Vector Clock is an array of [node_id, counter] tuples. If version A's clock dominates version B across all nodes, A causally happened after B. If neither dominates, a concurrent write conflict occurred, prompting application-level merging (like shopping cart item union)."
   }
 ],
   caseStudies: [
@@ -813,8 +953,3 @@ window.interviewPrepSystemDesign = {
   }
 ]
 };
-
-
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = window.interviewPrepSystemDesign;
-}

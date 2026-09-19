@@ -6,6 +6,109 @@
   <title>Pomodoro Focus Timer - DevPilot-AI</title>
 
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries" id="tailwind-cdn"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca'
+            },
+            "error-container": "#ffdad6",
+            "on-primary-container": "#fffbff",
+            "surface-variant": "#e4e1ed",
+            "tertiary-container": "#b55d00",
+            "surface-container": "#efecf8",
+            "primary": "#4648d4",
+            "on-tertiary": "#ffffff",
+            "on-tertiary-fixed-variant": "#703700",
+            "tertiary-fixed": "#ffdcc5",
+            "background": "#fcf8ff",
+            "error": "#ba1a1a",
+            "on-primary-fixed-variant": "#2f2ebe",
+            "outline-variant": "#c7c4d7",
+            "surface-container-highest": "#e4e1ed",
+            "surface-bright": "#fcf8ff",
+            "surface-container-low": "#f5f2fe",
+            "primary-container": "#6063ee",
+            "secondary-container": "#e3e1ed",
+            "surface-dim": "#dbd8e4",
+            "secondary-fixed-dim": "#c7c5d1",
+            "surface-tint": "#494bd6",
+            "on-error-container": "#93000a",
+            "on-tertiary-fixed": "#301400",
+            "secondary-fixed": "#e3e1ed",
+            "tertiary-fixed-dim": "#ffb783",
+            "outline": "#767586",
+            "secondary": "#5d5d67",
+            "on-secondary": "#ffffff",
+            "on-error": "#ffffff",
+            "on-surface-variant": "#464554",
+            "on-secondary-container": "#64636d",
+            "tertiary": "#904900",
+            "on-primary-fixed": "#07006c",
+            "surface-container-high": "#e9e6f3",
+            "surface-container-lowest": "#ffffff",
+            "on-tertiary-container": "#fffbff",
+            "on-surface": "#1b1b23",
+            "on-secondary-fixed-variant": "#46464f",
+            "primary-fixed-dim": "#c0c1ff",
+            "inverse-surface": "#303038",
+            "primary-fixed": "#e1e0ff",
+            "on-secondary-fixed": "#1a1b23",
+            "inverse-primary": "#c0c1ff",
+            "surface": "#fcf8ff",
+            "on-background": "#1b1b23",
+            "on-primary": "#ffffff",
+            "inverse-on-surface": "#f2effb"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "container-padding": "32px",
+            "gutter": "24px",
+            "stack-sm": "8px",
+            "stack-lg": "24px",
+            "stack-md": "16px",
+            "navbar-height": "72px",
+            "sidebar-width": "260px",
+            "sidebar-collapsed-width": "72px"
+          },
+          fontFamily: {
+            "stats-lg": ["Plus Jakarta Sans"],
+            "label-sm": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "title-md": ["Plus Jakarta Sans"],
+            "label-md": ["Inter"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "headline-xl": ["Plus Jakarta Sans"],
+            "body-lg": ["Inter"]
+          },
+          fontSize: {
+            "stats-lg": ["36px", { "lineHeight": "44px", "fontWeight": "700" }],
+            "label-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "title-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "headline-lg-mobile": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+          }
+        }
+      }
+    };
+  </script>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
@@ -33,7 +136,7 @@
   </script>
   <script src="../js/core/icons.js"></script>
 </head>
-<body class="bg-slate-50 text-slate-900 antialiased min-h-screen timer-page" data-page="timer">
+<body class="font-body-md bg-background text-on-surface antialiased min-h-screen timer-page" data-page="timer">
 
   <!-- Mobile Overlay -->
   <div class="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm hidden md:hidden" id="mobile-overlay"></div>
@@ -150,14 +253,14 @@
   <main class="md:ml-[260px] min-h-screen p-6 sm:p-8" id="main-content">
     
     <!-- Page Header Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-200" id="page-header-bar">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-outline-variant" id="page-header-bar">
       <div class="flex items-center gap-3">
         <button class="mobile-nav-toggle md:hidden" id="mobile-menu-trigger" aria-label="Open Sidebar">
           <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="menu"><path d="M120-240v-60h720v60H120Zm0-210v-60h720v60H120Zm0-210v-60h720v60H120Z"/></svg>
         </button>
         <div>
-          <h1 class="page-title text-2xl sm:text-3xl font-extrabold text-slate-900">Pomodoro Focus Timer</h1>
-          <p class="page-subtitle text-slate-500 text-sm mt-0.5">Maintain deep cognitive focus using structured intervals and active rests.</p>
+          <h1 class="page-title font-headline-xl text-headline-xl text-on-surface">Pomodoro Focus Timer</h1>
+          <p class="page-subtitle font-body-lg text-body-lg text-on-surface-variant mt-0.5">Maintain deep cognitive focus using structured intervals and active rests.</p>
         </div>
       </div>
 
@@ -169,25 +272,25 @@
         </button>
 
         <!-- Focus Mode Toggle Button -->
-        <button class="px-3 py-2 text-xs font-semibold text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors shadow-sm flex items-center gap-1.5" id="btn-focus-mode" title="Toggle Fullscreen Focus Mode (F)">
+        <button class="px-3 py-2 text-xs font-semibold text-on-surface-variant bg-surface hover:bg-surface-container border border-outline-variant rounded-xl transition-colors shadow-sm flex items-center gap-1.5" id="btn-focus-mode" title="Toggle Fullscreen Focus Mode (F)">
           <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="fullscreen"><path d="M120-120v-193h60v133h133v60H120Zm527 0v-60h133v-133h60v193H647ZM120-647v-193h193v60H180v133h-60Zm660 0v-133H647v-60h193v193h-60Z"/></svg>
           <span class="hidden sm:inline">Focus Mode</span>
         </button>
 
         <!-- Keyboard Shortcuts Button -->
-        <button class="p-2 text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors shadow-sm flex items-center justify-center" id="btn-shortcuts" title="Keyboard Shortcuts">
+        <button class="p-2 text-on-surface-variant bg-surface hover:bg-surface-container border border-outline-variant rounded-xl transition-colors shadow-sm flex items-center justify-center" id="btn-shortcuts" title="Keyboard Shortcuts">
           <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="keyboard"><path d="M140-200q-24 0-42-18.5T80-260v-440q0-24 18-42t42-18h680q24 0 42 18t18 42v440q0 23-18 41.5T820-200H140Zm0-60h680v-440H140v440Zm160-65h360v-60H300v60Zm-97-125h60v-60h-60v60Zm124 0h60v-60h-60v60Zm123 0h60v-60h-60v60Zm124 0h60v-60h-60v60Zm123 0h60v-60h-60v60ZM203-575h60v-60h-60v60Zm124 0h60v-60h-60v60Zm123 0h60v-60h-60v60Zm124 0h60v-60h-60v60Zm123 0h60v-60h-60v60ZM140-260v-440 440Z"/></svg>
         </button>
 
         <!-- Settings Button -->
-        <button class="p-2 text-slate-600 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors shadow-sm flex items-center justify-center" id="btn-timer-settings" title="Timer Settings">
+        <button class="p-2 text-on-surface-variant bg-surface hover:bg-surface-container border border-outline-variant rounded-xl transition-colors shadow-sm flex items-center justify-center" id="btn-timer-settings" title="Timer Settings">
           <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="tune"><path d="M427-120v-225h60v83h353v60H487v82h-60Zm-307-82v-60h247v60H120Zm187-166v-82H120v-60h187v-84h60v226h-60Zm120-82v-60h413v60H427Zm166-165v-225h60v82h187v60H653v83h-60Zm-473-83v-60h413v60H120Z"/></svg>
         </button>
 
         <!-- Today Rounds Counter Badge -->
-        <div class="flex items-center gap-2 px-3.5 py-1.5 bg-white border border-slate-200 rounded-xl shadow-sm">
+        <div class="flex items-center gap-2 px-3.5 py-1.5 bg-surface border border-outline-variant rounded-xl shadow-sm">
           <svg class="material-symbols-outlined text-indigo-600 text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="verified"><path d="m346-60-76-130-151-31 17-147-96-112 96-111-17-147 151-31 76-131 134 62 134-62 77 131 150 31-17 147 96 111-96 112 17 147-150 31-77 130-134-62-134 62Zm27-79 107-45 110 45 67-100 117-30-12-119 81-92-81-94 12-119-117-28-69-100-108 45-110-45-67 100-117 28 12 119-81 94 81 92-12 121 117 28 70 100Zm107-341Zm-43 133 227-225-45-41-182 180-95-99-46 45 141 140Z"/></svg>
-          <span class="text-xs font-semibold text-slate-700">Rounds Today: <strong class="text-indigo-600" id="completed-rounds-count">0</strong></span>
+          <span class="text-xs font-semibold text-on-surface-variant">Rounds Today: <strong class="text-indigo-600" id="completed-rounds-count">0</strong></span>
         </div>
       </div>
     </div>
@@ -199,13 +302,13 @@
       <div class="dev-card p-4" id="task-card">
         <div class="flex items-center gap-2 mb-2">
           <svg class="material-symbols-outlined text-indigo-600 text-lg" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="target"><path d="M324-111.5Q251-143 197-197t-85.5-127Q80-397 80-480t31.5-156Q143-709 197-763t127-85.5Q397-880 480-880t156 31.5Q709-817 763-763t85.5 127Q880-563 880-480t-31.5 156Q817-251 763-197t-127 85.5Q563-80 480-80t-156-31.5ZM721-239q99-99 99-241t-99-241q-99-99-241-99t-241 99q-99 99-99 241t99 241q99 99 241 99t241-99Zm-411-71q-70-70-70-170t70-170q70-70 170-70t170 70q70 70 70 170t-70 170q-70 70-170 70t-170-70Zm297.5-42.5Q660-405 660-480t-52.5-127.5Q555-660 480-660t-127.5 52.5Q300-555 300-480t52.5 127.5Q405-300 480-300t127.5-52.5Zm-184-71Q400-447 400-480t23.5-56.5Q447-560 480-560t56.5 23.5Q560-513 560-480t-23.5 56.5Q513-400 480-400t-56.5-23.5Z"/></svg>
-          <label for="task-input" class="text-xs font-bold text-slate-700 uppercase tracking-wider">What are you focusing on?</label>
+          <label for="task-input" class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">What are you focusing on?</label>
         </div>
         <div class="flex items-center gap-2">
           <input 
             type="text" 
             id="task-input" 
-            class="flex-1 px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white transition-colors" 
+            class="flex-1 px-3.5 py-2 text-sm bg-slate-50 border border-outline-variant rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-surface transition-colors" 
             placeholder="e.g. Solve 3 LeetCode problems, Implement auth middleware..." 
             maxlength="80"
           />
@@ -263,7 +366,7 @@
         <!-- Dedicated Focus Mode Active Task Label (Visible only in Focus Mode) -->
         <div class="focus-mode-task-pill hidden mb-6" id="focus-mode-task-pill">
           <svg class="material-symbols-outlined text-[16px] text-indigo-600" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="target"><path d="M324-111.5Q251-143 197-197t-85.5-127Q80-397 80-480t31.5-156Q143-709 197-763t127-85.5Q397-880 480-880t156 31.5Q709-817 763-763t85.5 127Q880-563 880-480t-31.5 156Q817-251 763-197t-127 85.5Q563-80 480-80t-156-31.5ZM721-239q99-99 99-241t-99-241q-99-99-241-99t-241 99q-99 99-99 241t99 241q99 99 241 99t241-99Zm-411-71q-70-70-70-170t70-170q70-70 170-70t170 70q70 70 70 170t-70 170q-70 70-170 70t-170-70Zm297.5-42.5Q660-405 660-480t-52.5-127.5Q555-660 480-660t-127.5 52.5Q300-555 300-480t52.5 127.5Q405-300 480-300t127.5-52.5Zm-184-71Q400-447 400-480t23.5-56.5Q447-560 480-560t56.5 23.5Q560-513 560-480t-23.5 56.5Q513-400 480-400t-56.5-23.5Z"/></svg>
-          <span class="font-semibold text-sm text-slate-700" id="focus-mode-task-text">Deep Work Focus</span>
+          <span class="font-semibold text-sm text-on-surface-variant" id="focus-mode-task-text">Deep Work Focus</span>
         </div>
 
         <!-- Action Controls -->
@@ -280,7 +383,7 @@
             <svg class="material-symbols-outlined text-[20px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="restart_alt"><path d="M451-122q-123-10-207-101t-84-216q0-77 35.5-145T295-695l43 43q-56 33-87 90.5T220-439q0 100 66 173t165 84v60Zm60 0v-60q100-12 165-84.5T741-439q0-109-75.5-184.5T481-699h-20l60 60-43 43-133-133 133-133 43 43-60 60h20q134 0 227 93.5T801-439q0 125-83.5 216T511-122Z"/></svg>
             <span>Reset</span>
           </button>
-          <button class="px-4 py-3 text-sm font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors border border-slate-200 flex items-center gap-1" id="btn-timer-skip" title="Skip to Next Phase (S)">
+          <button class="px-4 py-3 text-sm font-semibold text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-xl transition-colors border border-outline-variant flex items-center gap-1" id="btn-timer-skip" title="Skip to Next Phase (S)">
             <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="skip_next"><path d="M680-240v-480h60v480h-60Zm-460 0v-480l346 240-346 240Zm60-240Zm0 125 181-125-181-125v250Z"/></svg>
             <span>Skip</span>
           </button>
@@ -292,9 +395,9 @@
         </div>
 
         <!-- Enhanced Cycle Progress Indicators -->
-        <div class="mt-8 pt-6 border-t border-slate-100" id="timer-cycle-section">
+        <div class="mt-8 pt-6 border-t border-outline-variant/60" id="timer-cycle-section">
           <div class="flex items-center justify-between mb-3">
-            <span class="cycle-header-label text-xs font-semibold text-slate-500 uppercase tracking-wider">Pomodoro Cycle Progress</span>
+            <span class="cycle-header-label text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Pomodoro Cycle Progress</span>
             <span class="text-xs font-bold text-indigo-600" id="cycle-fraction-text">Session 1 of 4</span>
           </div>
           <div class="flex items-center justify-center gap-2 flex-wrap" id="rounds-indicators">
@@ -307,28 +410,28 @@
       <!-- Section 2: Today's Focus Statistics -->
       <div class="dev-card p-6" id="focus-stats-section">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+          <h3 class="font-title-md text-title-md text-on-surface flex items-center gap-2">
             <svg class="material-symbols-outlined text-indigo-600" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="monitoring"><path d="M120-120v-76l60-60v136h-60Zm165 0v-236l60-60v296h-60Zm165 0v-296l60 61v235h-60Zm165 0v-235l60-60v295h-60Zm165 0v-396l60-60v456h-60ZM120-356v-85l280-278 160 160 280-281v85L560-474 400-634 120-356Z"/></svg>
             <span>Today's Focus Statistics</span>
           </h3>
-          <span class="text-xs text-slate-400">Real Logged Time</span>
+          <span class="text-xs text-outline">Real Logged Time</span>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div class="stat-metric-card text-center">
-            <p class="text-xs text-slate-400 font-semibold uppercase">Sessions Today</p>
-            <p class="text-2xl font-extrabold text-slate-900 mt-1" id="stat-today-sessions">0</p>
+            <p class="font-label-sm text-label-sm text-outline font-semibold uppercase">Sessions Today</p>
+            <p class="font-stats-lg text-stats-lg text-on-surface mt-1" id="stat-today-sessions">0</p>
           </div>
           <div class="stat-metric-card text-center">
-            <p class="text-xs text-slate-400 font-semibold uppercase">Focused Today</p>
+            <p class="font-label-sm text-label-sm text-outline font-semibold uppercase">Focused Today</p>
             <p class="text-2xl font-extrabold text-indigo-600 mt-1"><span id="stat-today-minutes">0</span>m</p>
           </div>
           <div class="stat-metric-card text-center">
-            <p class="text-xs text-slate-400 font-semibold uppercase">Current Cycle</p>
+            <p class="font-label-sm text-label-sm text-outline font-semibold uppercase">Current Cycle</p>
             <p class="text-2xl font-extrabold text-amber-600 mt-1" id="stat-cycle-position">1 / 4</p>
           </div>
           <div class="stat-metric-card text-center">
-            <p class="text-xs text-slate-400 font-semibold uppercase">This Week</p>
+            <p class="font-label-sm text-label-sm text-outline font-semibold uppercase">This Week</p>
             <p class="text-2xl font-extrabold text-emerald-600 mt-1" id="stat-week-sessions">0</p>
           </div>
         </div>
@@ -338,13 +441,13 @@
       <div class="dev-card p-6" id="focus-history-section">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <h3 class="font-title-md text-title-md text-on-surface flex items-center gap-2">
               <svg class="material-symbols-outlined text-indigo-600" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="history"><path d="M477-120q-149 0-253-105.5T120-481h60q0 125 86 213t211 88q127 0 215-89t88-216q0-124-89-209.5T477-780q-68 0-127.5 31T246-667h105v60H142v-208h60v106q52-61 123.5-96T477-840q75 0 141 28t115.5 76.5Q783-687 811.5-622T840-482q0 75-28.5 141t-78 115Q684-177 618-148.5T477-120Zm128-197L451-469v-214h60v189l137 134-43 43Z"/></svg>
               <span>Today's Sessions</span>
             </h3>
-            <p class="text-xs text-slate-500 mt-0.5">Record of focus intervals completed today</p>
+            <p class="text-xs text-on-surface-variant mt-0.5">Record of focus intervals completed today</p>
           </div>
-          <button class="text-xs font-semibold text-slate-400 hover:text-rose-600 transition-colors" id="btn-clear-history">
+          <button class="text-xs font-semibold text-outline hover:text-rose-600 transition-colors" id="btn-clear-history">
             Clear Today
           </button>
         </div>
@@ -382,11 +485,11 @@
             <svg class="material-symbols-outlined text-xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="tune"><path d="M427-120v-225h60v83h353v60H487v82h-60Zm-307-82v-60h247v60H120Zm187-166v-82H120v-60h187v-84h60v226h-60Zm120-82v-60h413v60H427Zm166-165v-225h60v82h187v60H653v83h-60Zm-473-83v-60h413v60H120Z"/></svg>
           </div>
           <div>
-            <h3 class="text-base font-bold text-slate-900">Timer Settings</h3>
-            <p class="text-xs text-slate-500">Configure durations and notification preferences</p>
+            <h3 class="font-title-md text-title-md text-on-surface">Timer Settings</h3>
+            <p class="text-xs text-on-surface-variant">Configure durations and notification preferences</p>
           </div>
         </div>
-        <button class="text-slate-400 hover:text-slate-600 p-1 rounded-lg" id="btn-close-settings">
+        <button class="text-outline hover:text-on-surface-variant p-1 rounded-lg" id="btn-close-settings">
           <svg class="material-symbols-outlined text-xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="close"><path d="m249-207-42-42 231-231-231-231 42-42 231 231 231-231 42 42-231 231 231 231-42 42-231-231-231 231Z"/></svg>
         </button>
       </div>
@@ -395,23 +498,23 @@
         <!-- Durations -->
         <div class="grid grid-cols-3 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="setting-focus-dur">Focus (min)</label>
-            <input type="number" id="setting-focus-dur" min="1" max="90" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white" value="25" required/>
+            <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1" for="setting-focus-dur">Focus (min)</label>
+            <input type="number" id="setting-focus-dur" min="1" max="90" class="w-full px-3 py-2 text-sm bg-slate-50 border border-outline-variant rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-surface" value="25" required/>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="setting-short-dur">Short Break</label>
-            <input type="number" id="setting-short-dur" min="1" max="30" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white" value="5" required/>
+            <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1" for="setting-short-dur">Short Break</label>
+            <input type="number" id="setting-short-dur" min="1" max="30" class="w-full px-3 py-2 text-sm bg-slate-50 border border-outline-variant rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-surface" value="5" required/>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="setting-long-dur">Long Break</label>
-            <input type="number" id="setting-long-dur" min="1" max="60" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white" value="15" required/>
+            <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1" for="setting-long-dur">Long Break</label>
+            <input type="number" id="setting-long-dur" min="1" max="60" class="w-full px-3 py-2 text-sm bg-slate-50 border border-outline-variant rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-surface" value="15" required/>
           </div>
         </div>
 
         <!-- Cycles before long break -->
         <div>
-          <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1" for="setting-cycles">Sessions Before Long Break</label>
-          <select id="setting-cycles" class="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-white">
+          <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1" for="setting-cycles">Sessions Before Long Break</label>
+          <select id="setting-cycles" class="w-full px-3 py-2 text-sm bg-slate-50 border border-outline-variant rounded-lg focus:outline-none focus:border-indigo-600 focus:bg-surface">
             <option value="2">2 sessions</option>
             <option value="3">3 sessions</option>
             <option value="4" selected>4 sessions (Standard Pomodoro)</option>
@@ -420,23 +523,23 @@
         </div>
 
         <!-- Toggles -->
-        <div class="space-y-2.5 pt-2 border-t border-slate-100">
+        <div class="space-y-2.5 pt-2 border-t border-outline-variant/60">
           <label class="flex items-center justify-between cursor-pointer">
-            <span class="text-xs font-medium text-slate-700">Audio Chime Alert</span>
+            <span class="text-xs font-medium text-on-surface-variant">Audio Chime Alert</span>
             <input type="checkbox" id="setting-sound" class="habit-checkbox" checked/>
           </label>
           <label class="flex items-center justify-between cursor-pointer">
-            <span class="text-xs font-medium text-slate-700">Desktop Browser Notifications</span>
+            <span class="text-xs font-medium text-on-surface-variant">Desktop Browser Notifications</span>
             <input type="checkbox" id="setting-notifications" class="habit-checkbox"/>
           </label>
           <label class="flex items-center justify-between cursor-pointer">
-            <span class="text-xs font-medium text-slate-700">Auto-Start Next Session</span>
+            <span class="text-xs font-medium text-on-surface-variant">Auto-Start Next Session</span>
             <input type="checkbox" id="setting-autostart" class="habit-checkbox"/>
           </label>
         </div>
 
-        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-          <button type="button" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" id="btn-cancel-settings">Cancel</button>
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-outline-variant/60">
+          <button type="button" class="px-4 py-2 text-xs font-semibold text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" id="btn-cancel-settings">Cancel</button>
           <button type="submit" class="btn-primary text-xs py-2 px-4 shadow-sm">Save Preferences</button>
         </div>
       </form>
@@ -452,8 +555,8 @@
         <svg class="material-symbols-outlined text-3xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="celebration"><path d="m80-80 186-520 337 333L80-80Zm101-101 314-112-203-204-111 316Zm376-264-34-34 240-240q32-32 81-32.5t81 31.5l17 17-34 34-19-19q-19-19-44-19.5T800-688L557-445ZM398-600l-34-34 30-30q23-23 21.5-52.5T394-766l-28-28 34-34 26 26q35 35 34.5 87.5T425-627l-27 27Zm81 77-34-34 152-152q19-19 18.5-48.5T596-806l-61-61 34-34 63 63q31 32 32 80.5T633-677L479-523Zm158 159-34-34 47-47q35-35 84-36t84 34l51 51-34 34-52-52q-23-23-48-23t-48 23l-50 50ZM181-181Z"/></svg>
       </div>
 
-      <h3 class="text-lg font-bold text-slate-900 mb-1" id="completed-modal-title">Focus Session Complete!</h3>
-      <p class="text-xs text-slate-600 mb-5 leading-relaxed" id="completed-modal-msg">
+      <h3 class="font-title-md text-title-md text-on-surface mb-1" id="completed-modal-title">Focus Session Complete!</h3>
+      <p class="text-xs text-on-surface-variant mb-5 leading-relaxed" id="completed-modal-msg">
         Great work! Time for a well-deserved break to let your subconscious consolidate learning.
       </p>
 
@@ -477,41 +580,41 @@
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-2">
           <svg class="material-symbols-outlined text-indigo-600 text-lg" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="keyboard"><path d="M140-200q-24 0-42-18.5T80-260v-440q0-24 18-42t42-18h680q24 0 42 18t18 42v440q0 23-18 41.5T820-200H140Zm0-60h680v-440H140v440Zm160-65h360v-60H300v60Zm-97-125h60v-60h-60v60Zm124 0h60v-60h-60v60Zm123 0h60v-60h-60v60Zm124 0h60v-60h-60v60Zm123 0h60v-60h-60v60ZM203-575h60v-60h-60v60Zm124 0h60v-60h-60v60Zm123 0h60v-60h-60v60Zm124 0h60v-60h-60v60Zm123 0h60v-60h-60v60ZM140-260v-440 440Z"/></svg>
-          <h3 class="text-base font-bold text-slate-900">Keyboard Shortcuts</h3>
+          <h3 class="font-title-md text-title-md text-on-surface">Keyboard Shortcuts</h3>
         </div>
-        <button class="text-slate-400 hover:text-slate-600 p-1 rounded" id="btn-close-shortcuts">
+        <button class="text-outline hover:text-on-surface-variant p-1 rounded" id="btn-close-shortcuts">
           <svg class="material-symbols-outlined text-xl" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="close"><path d="m249-207-42-42 231-231-231-231 42-42 231 231 231-231 42 42-231 231 231 231-42 42-231-231-231 231Z"/></svg>
         </button>
       </div>
 
       <div class="space-y-2 text-xs">
-        <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-          <span class="text-slate-600">Start / Pause Timer</span>
-          <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded font-mono font-bold text-slate-700">Space</kbd>
+        <div class="flex items-center justify-between py-1.5 border-b border-outline-variant/60">
+          <span class="text-on-surface-variant">Start / Pause Timer</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 border border-outline-variant rounded font-mono font-bold text-on-surface-variant">Space</kbd>
         </div>
-        <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-          <span class="text-slate-600">Reset Timer</span>
-          <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded font-mono font-bold text-slate-700">R</kbd>
+        <div class="flex items-center justify-between py-1.5 border-b border-outline-variant/60">
+          <span class="text-on-surface-variant">Reset Timer</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 border border-outline-variant rounded font-mono font-bold text-on-surface-variant">R</kbd>
         </div>
-        <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-          <span class="text-slate-600">Skip Current Phase</span>
-          <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded font-mono font-bold text-slate-700">S</kbd>
+        <div class="flex items-center justify-between py-1.5 border-b border-outline-variant/60">
+          <span class="text-on-surface-variant">Skip Current Phase</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 border border-outline-variant rounded font-mono font-bold text-on-surface-variant">S</kbd>
         </div>
-        <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-          <span class="text-slate-600">Deep Work Mode</span>
-          <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded font-mono font-bold text-slate-700">1</kbd>
+        <div class="flex items-center justify-between py-1.5 border-b border-outline-variant/60">
+          <span class="text-on-surface-variant">Deep Work Mode</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 border border-outline-variant rounded font-mono font-bold text-on-surface-variant">1</kbd>
         </div>
-        <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-          <span class="text-slate-600">Short Break</span>
-          <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded font-mono font-bold text-slate-700">2</kbd>
+        <div class="flex items-center justify-between py-1.5 border-b border-outline-variant/60">
+          <span class="text-on-surface-variant">Short Break</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 border border-outline-variant rounded font-mono font-bold text-on-surface-variant">2</kbd>
         </div>
-        <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-          <span class="text-slate-600">Long Break</span>
-          <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded font-mono font-bold text-slate-700">3</kbd>
+        <div class="flex items-center justify-between py-1.5 border-b border-outline-variant/60">
+          <span class="text-on-surface-variant">Long Break</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 border border-outline-variant rounded font-mono font-bold text-on-surface-variant">3</kbd>
         </div>
         <div class="flex items-center justify-between py-1.5">
-          <span class="text-slate-600">Toggle Focus Mode</span>
-          <kbd class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded font-mono font-bold text-slate-700">F</kbd>
+          <span class="text-on-surface-variant">Toggle Focus Mode</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 border border-outline-variant rounded font-mono font-bold text-on-surface-variant">F</kbd>
         </div>
       </div>
     </div>

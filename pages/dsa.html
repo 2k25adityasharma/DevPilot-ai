@@ -18,7 +18,92 @@
               500: '#6366f1',
               600: '#4f46e5',
               700: '#4338ca'
-            }
+            },
+            "error-container": "#ffdad6",
+            "on-primary-container": "#fffbff",
+            "surface-variant": "#e4e1ed",
+            "tertiary-container": "#b55d00",
+            "surface-container": "#efecf8",
+            "primary": "#4648d4",
+            "on-tertiary": "#ffffff",
+            "on-tertiary-fixed-variant": "#703700",
+            "tertiary-fixed": "#ffdcc5",
+            "background": "#fcf8ff",
+            "error": "#ba1a1a",
+            "on-primary-fixed-variant": "#2f2ebe",
+            "outline-variant": "#c7c4d7",
+            "surface-container-highest": "#e4e1ed",
+            "surface-bright": "#fcf8ff",
+            "surface-container-low": "#f5f2fe",
+            "primary-container": "#6063ee",
+            "secondary-container": "#e3e1ed",
+            "surface-dim": "#dbd8e4",
+            "secondary-fixed-dim": "#c7c5d1",
+            "surface-tint": "#494bd6",
+            "on-error-container": "#93000a",
+            "on-tertiary-fixed": "#301400",
+            "secondary-fixed": "#e3e1ed",
+            "tertiary-fixed-dim": "#ffb783",
+            "outline": "#767586",
+            "secondary": "#5d5d67",
+            "on-secondary": "#ffffff",
+            "on-error": "#ffffff",
+            "on-surface-variant": "#464554",
+            "on-secondary-container": "#64636d",
+            "tertiary": "#904900",
+            "on-primary-fixed": "#07006c",
+            "surface-container-high": "#e9e6f3",
+            "surface-container-lowest": "#ffffff",
+            "on-tertiary-container": "#fffbff",
+            "on-surface": "#1b1b23",
+            "on-secondary-fixed-variant": "#46464f",
+            "primary-fixed-dim": "#c0c1ff",
+            "inverse-surface": "#303038",
+            "primary-fixed": "#e1e0ff",
+            "on-secondary-fixed": "#1a1b23",
+            "inverse-primary": "#c0c1ff",
+            "surface": "#fcf8ff",
+            "on-background": "#1b1b23",
+            "on-primary": "#ffffff",
+            "inverse-on-surface": "#f2effb"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "container-padding": "32px",
+            "gutter": "24px",
+            "stack-sm": "8px",
+            "stack-lg": "24px",
+            "stack-md": "16px",
+            "navbar-height": "72px",
+            "sidebar-width": "260px",
+            "sidebar-collapsed-width": "72px"
+          },
+          fontFamily: {
+            "stats-lg": ["Plus Jakarta Sans"],
+            "label-sm": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "title-md": ["Plus Jakarta Sans"],
+            "label-md": ["Inter"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "headline-xl": ["Plus Jakarta Sans"],
+            "body-lg": ["Inter"]
+          },
+          fontSize: {
+            "stats-lg": ["36px", { "lineHeight": "44px", "fontWeight": "700" }],
+            "label-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "title-md": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "label-md": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+            "headline-lg-mobile": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
           }
         }
       }
@@ -52,7 +137,7 @@
   </script>
   <script src="../js/core/icons.js"></script>
 </head>
-<body class="bg-slate-50 text-slate-900 antialiased min-h-screen">
+<body class="font-body-md bg-background text-on-surface antialiased min-h-screen">
 
   <!-- Mobile Overlay -->
   <div class="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm hidden md:hidden" id="mobile-overlay"></div>
@@ -170,14 +255,14 @@
     <div class="dsa-page-container">
 
       <!-- Page Header Bar -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-200">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-outline-variant">
         <div class="flex items-center gap-3">
-          <button class="mobile-nav-toggle md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg" id="mobile-menu-trigger" aria-label="Open Sidebar">
+          <button class="mobile-nav-toggle md:hidden p-2 text-on-surface-variant hover:bg-surface-container rounded-lg" id="mobile-menu-trigger" aria-label="Open Sidebar">
             <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="menu"><path d="M120-240v-60h720v60H120Zm0-210v-60h720v60H120Zm0-210v-60h720v60H120Z"/></svg>
           </button>
           <div>
-            <h1 class="page-title text-2xl sm:text-3xl font-extrabold text-slate-900">DSA Roadmap</h1>
-            <p class="page-subtitle text-slate-500 text-sm mt-0.5">Master Data Structures & Algorithms with 16 pattern-based problem sets.</p>
+            <h1 class="page-title font-headline-xl text-headline-xl text-on-surface">DSA Roadmap</h1>
+            <p class="page-subtitle font-body-lg text-body-lg text-on-surface-variant mt-0.5">Master Data Structures & Algorithms with 16 pattern-based problem sets.</p>
           </div>
         </div>
 
@@ -256,8 +341,8 @@
         </div>
 
         <!-- Honesty Evaluation Breakdown Chips -->
-        <div class="flex flex-wrap items-center gap-2 mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800">
-          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Solve Quality:</span>
+        <div class="flex flex-wrap items-center gap-2 mt-4 pt-3.5 border-t border-outline-variant/60 dark:border-slate-800">
+          <span class="font-label-sm text-label-sm text-outline uppercase tracking-wider mr-1">Solve Quality:</span>
           <span class="pl-breakdown-chip bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" id="dsa-stat-self">
             <svg class="material-symbols-outlined text-[13px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="verified"><path d="m346-60-76-130-151-31 17-147-96-112 96-111-17-147 151-31 76-131 134 62 134-62 77 131 150 31-17 147 96 111-96 112 17 147-150 31-77 130-134-62-134 62Zm27-79 107-45 110 45 67-100 117-30-12-119 81-92-81-94 12-119-117-28-69-100-108 45-110-45-67 100-117 28 12 119-81 94 81 92-12 121 117 28 70 100Zm107-341Zm-43 133 227-225-45-41-182 180-95-99-46 45 141 140Z"/></svg>
             <span id="dsa-count-self">0</span> - Self
@@ -400,9 +485,9 @@
                 <svg class="material-symbols-outlined text-[16px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="psychology"><path d="M240-80v-172q-57-52-88.5-121.5T120-520q0-150 105-255t255-105q125 0 221.5 73.5T827-615l55 218q4 14-5 25.5T853-360h-93v140q0 24.75-17.62 42.37Q724.75-160 700-160H600v80h-60v-140h160v-200h114l-45-180q-24-97-105-158.5T480-820q-125 0-212.5 86.5T180-522.46q0 64.42 26.32 122.39Q232.65-342.09 281-297l19 18v199h-60Zm257-370Zm-48 76h60l3-44q12-2 22.47-8.46Q544.94-432.92 553-441l42 14 28-48-30-24q5-14 5-29t-5-29l30-24-28-48-42 14q-8.33-7.69-19.17-13.85Q523-635 512-638l-3-44h-60l-3 44q-11 3-21.83 9.15Q413.33-622.69 405-615l-42-14-28 48 30 24q-5 14-5 29t5 29l-30 24 28 48 42-14q8.06 8.08 18.53 14.54Q434-420 446-418l3 44Zm-19.5-104.38q-20.5-20.38-20.5-49.5t20.38-49.62q20.38-20.5 49.5-20.5t49.62 20.38q20.5 20.38 20.5 49.5t-20.38 49.62q-20.38 20.5-49.5 20.5t-49.62-20.38Z"/></svg>
                 <span>Recognition Engine</span>
               </div>
-              <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">🧠 Pattern Learning</h2>
-              <p class="text-slate-600 text-sm mt-1 font-medium">Learn to recognize the right DSA pattern before solving the problem.</p>
-              <div class="pl-flow-pills mt-3 flex items-center gap-2 flex-wrap text-xs font-semibold text-slate-500">
+              <h2 class="text-2xl sm:text-3xl font-black text-on-surface tracking-tight">🧠 Pattern Learning</h2>
+              <p class="text-on-surface-variant text-sm mt-1 font-medium">Learn to recognize the right DSA pattern before solving the problem.</p>
+              <div class="pl-flow-pills mt-3 flex items-center gap-2 flex-wrap text-xs font-semibold text-on-surface-variant">
                 <span class="pl-flow-step">Problem</span>
                 <svg class="material-symbols-outlined text-[14px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="arrow_forward"><path d="M686-450H160v-60h526L438-758l42-42 320 320-320 320-42-42 248-248Z"/></svg>
                 <span class="pl-flow-step active">Identify Pattern</span>
@@ -472,9 +557,9 @@
         <div class="pl-weak-section hidden mb-6" id="pl-weak-section">
           <div class="flex items-center gap-2 mb-2">
             <svg class="material-symbols-outlined text-amber-500 text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="warning"><path d="m40-120 440-760 440 760H40Zm104-60h672L480-760 144-180Zm361.5-65.68q8.5-8.67 8.5-21.5 0-12.82-8.68-21.32-8.67-8.5-21.5-8.5-12.82 0-21.32 8.68-8.5 8.67-8.5 21.5 0 12.82 8.68 21.32 8.67 8.5 21.5 8.5 12.82 0 21.32-8.68ZM454-348h60v-224h-60v224Zm26-122Z"/></svg>
-            <h4 class="text-sm font-bold text-slate-900">Patterns Needing Reinforcement</h4>
+            <h4 class="text-sm font-bold text-on-surface">Patterns Needing Reinforcement</h4>
           </div>
-          <p class="text-xs text-slate-600 mb-3">You had quiz accuracy &lt; 60% on these patterns. Practice recognizing their cues:</p>
+          <p class="text-xs text-on-surface-variant mb-3">You had quiz accuracy &lt; 60% on these patterns. Practice recognizing their cues:</p>
           <div class="flex items-center gap-2 flex-wrap" id="pl-weak-chips"></div>
         </div>
 
@@ -536,7 +621,7 @@
             </div>
 
             <!-- Category Chips Track (for full 16 categories) -->
-            <div class="pl-category-chips-track custom-scrollbar mt-3 pt-3 border-t border-slate-100" id="pl-category-chips">
+            <div class="pl-category-chips-track custom-scrollbar mt-3 pt-3 border-t border-outline-variant/60" id="pl-category-chips">
               <!-- Rendered dynamically -->
             </div>
           </div>
@@ -589,8 +674,8 @@
       <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center border border-rose-200 shadow-sm">
         <svg class="material-symbols-outlined text-[28px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="warning"><path d="m40-120 440-760 440 760H40Zm104-60h672L480-760 144-180Zm361.5-65.68q8.5-8.67 8.5-21.5 0-12.82-8.68-21.32-8.67-8.5-21.5-8.5-12.82 0-21.32 8.68-8.5 8.67-8.5 21.5 0 12.82 8.68 21.32 8.67 8.5 21.5 8.5 12.82 0 21.32-8.68ZM454-348h60v-224h-60v224Zm26-122Z"/></svg>
       </div>
-      <h3 class="pl-modal-title text-lg font-bold text-slate-900 mb-2" id="reset-modal-title">Reset DSA Progress?</h3>
-      <p class="pl-modal-subtitle text-sm text-slate-500 mb-6 leading-relaxed">
+      <h3 class="pl-modal-title font-title-md text-title-md text-on-surface mb-2" id="reset-modal-title">Reset DSA Progress?</h3>
+      <p class="pl-modal-subtitle text-sm text-on-surface-variant mb-6 leading-relaxed">
         Are you sure you want to reset your DSA progress? All solved problems and statistics will be cleared. This action cannot be undone.
       </p>
       <div class="flex items-center justify-center gap-3">
@@ -611,8 +696,8 @@
       <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center border border-rose-200 shadow-sm">
         <svg class="material-symbols-outlined text-[28px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="warning"><path d="m40-120 440-760 440 760H40Zm104-60h672L480-760 144-180Zm361.5-65.68q8.5-8.67 8.5-21.5 0-12.82-8.68-21.32-8.67-8.5-21.5-8.5-12.82 0-21.32 8.68-8.5 8.67-8.5 21.5 0 12.82 8.68 21.32 8.67 8.5 21.5 8.5 12.82 0 21.32-8.68ZM454-348h60v-224h-60v224Zm26-122Z"/></svg>
       </div>
-      <h3 class="pl-modal-title text-lg font-bold text-slate-900 mb-2" id="pl-reset-modal-title">Reset Pattern Learning?</h3>
-      <p class="pl-modal-subtitle text-sm text-slate-500 mb-6 leading-relaxed">
+      <h3 class="pl-modal-title font-title-md text-title-md text-on-surface mb-2" id="pl-reset-modal-title">Reset Pattern Learning?</h3>
+      <p class="pl-modal-subtitle text-sm text-on-surface-variant mb-6 leading-relaxed">
         Are you sure you want to reset your Pattern Learning progress? All viewed patterns, quiz scores, and practice tracking will be cleared. This action cannot be undone.
       </p>
       <div class="flex items-center justify-center gap-3">
@@ -633,13 +718,13 @@
       <div class="flex items-start justify-between mb-3">
         <div>
           <span class="pl-modal-lcnum font-mono text-xs font-bold uppercase tracking-wider text-indigo-600" id="pl-solve-modal-lcnum">#1</span>
-          <h3 class="pl-modal-title text-lg font-bold text-slate-900 leading-snug mt-0.5" id="pl-solve-modal-title">Problem Title</h3>
+          <h3 class="pl-modal-title font-title-md text-title-md text-on-surface leading-snug mt-0.5" id="pl-solve-modal-title">Problem Title</h3>
         </div>
-        <button id="pl-solve-modal-close" class="pl-modal-close-btn p-1 text-slate-400 hover:text-slate-700 transition-colors" aria-label="Close dialog">
+        <button id="pl-solve-modal-close" class="pl-modal-close-btn p-1 text-outline hover:text-on-surface-variant transition-colors" aria-label="Close dialog">
           <svg class="material-symbols-outlined text-[20px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="close"><path d="m249-207-42-42 231-231-231-231 42-42 231 231 231-231 42 42-231 231 231 231-42 42-231-231-231 231Z"/></svg>
         </button>
       </div>
-      <p class="pl-modal-subtitle text-xs text-slate-500 mb-5 leading-relaxed">
+      <p class="pl-modal-subtitle text-xs text-on-surface-variant mb-5 leading-relaxed">
         How did you solve this problem? Rate honestly to track genuine algorithmic intuition. If you rely on help or copy-paste on more than 4 problems in a pattern, it will be flagged as Weak:
       </p>
 
@@ -651,10 +736,10 @@
           </div>
           <div class="pl-solve-opt-content flex-1 min-w-0">
             <div class="pl-solve-opt-header flex items-center justify-between gap-2">
-              <span class="pl-solve-opt-title text-sm font-bold text-slate-800">100% Solved on my own</span>
+              <span class="pl-solve-opt-title text-sm font-bold text-on-surface">100% Solved on my own</span>
               <span class="pl-solve-opt-badge pl-badge-self">Full Self</span>
             </div>
-            <p class="pl-solve-opt-desc text-xs text-slate-500 mt-1">Full tumne kiya — solved independently without hints, AI, or editorial</p>
+            <p class="pl-solve-opt-desc text-xs text-on-surface-variant mt-1">Full tumne kiya — solved independently without hints, AI, or editorial</p>
           </div>
         </button>
 
@@ -665,10 +750,10 @@
           </div>
           <div class="pl-solve-opt-content flex-1 min-w-0">
             <div class="pl-solve-opt-header flex items-center justify-between gap-2">
-              <span class="pl-solve-opt-title text-sm font-bold text-slate-800">~30% Help from AI / Hints</span>
+              <span class="pl-solve-opt-title text-sm font-bold text-on-surface">~30% Help from AI / Hints</span>
               <span class="pl-solve-opt-badge pl-badge-help30">Light Assist</span>
             </div>
-            <p class="pl-solve-opt-desc text-xs text-slate-500 mt-1">Understood the core pattern, needed hints, minor syntax, or debugging</p>
+            <p class="pl-solve-opt-desc text-xs text-on-surface-variant mt-1">Understood the core pattern, needed hints, minor syntax, or debugging</p>
           </div>
         </button>
 
@@ -679,10 +764,10 @@
           </div>
           <div class="pl-solve-opt-content flex-1 min-w-0">
             <div class="pl-solve-opt-header flex items-center justify-between gap-2">
-              <span class="pl-solve-opt-title text-sm font-bold text-slate-800">~50% Help from AI / Editorial</span>
+              <span class="pl-solve-opt-title text-sm font-bold text-on-surface">~50% Help from AI / Editorial</span>
               <span class="pl-solve-opt-badge pl-badge-help50">Moderate Assist</span>
             </div>
-            <p class="pl-solve-opt-desc text-xs text-slate-500 mt-1">Needed detailed explanation of data structures or algorithm steps</p>
+            <p class="pl-solve-opt-desc text-xs text-on-surface-variant mt-1">Needed detailed explanation of data structures or algorithm steps</p>
           </div>
         </button>
 
@@ -693,16 +778,16 @@
           </div>
           <div class="pl-solve-opt-content flex-1 min-w-0">
             <div class="pl-solve-opt-header flex items-center justify-between gap-2">
-              <span class="pl-solve-opt-title text-sm font-bold text-slate-800">Copy / Paste / Direct Solution</span>
+              <span class="pl-solve-opt-title text-sm font-bold text-on-surface">Copy / Paste / Direct Solution</span>
               <span class="pl-solve-opt-badge pl-badge-cross">Cross ✗</span>
             </div>
-            <p class="pl-solve-opt-desc text-xs text-slate-500 mt-1">Copied code directly from AI or editorial / could not formulate approach</p>
+            <p class="pl-solve-opt-desc text-xs text-on-surface-variant mt-1">Copied code directly from AI or editorial / could not formulate approach</p>
           </div>
         </button>
       </div>
 
-      <div class="flex items-center justify-between pt-3 border-t border-slate-200">
-        <button id="pl-solve-modal-clear" class="text-xs text-slate-500 hover:text-rose-600 transition-colors font-medium flex items-center gap-1">
+      <div class="flex items-center justify-between pt-3 border-t border-outline-variant">
+        <button id="pl-solve-modal-clear" class="text-xs text-on-surface-variant hover:text-rose-600 transition-colors font-medium flex items-center gap-1">
           <svg class="material-symbols-outlined text-[14px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="undo"><path d="M259-200v-60h310q70 0 120.5-46.5T740-422q0-69-50.5-115.5T569-584H274l114 114-42 42-186-186 186-186 42 42-114 114h294q95 0 163.5 64T800-422q0 94-68.5 158T568-200H259Z"/></svg>
           <span>Reset to Unattempted</span>
         </button>
@@ -720,8 +805,8 @@
         <svg class="material-symbols-outlined text-[28px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="lock"><path d="M220-80q-24.75 0-42.37-17.63Q160-115.25 160-140v-434q0-24.75 17.63-42.38Q195.25-634 220-634h70v-96q0-78.85 55.61-134.42Q401.21-920 480.11-920q78.89 0 134.39 55.58Q670-808.85 670-730v96h70q24.75 0 42.38 17.62Q800-598.75 800-574v434q0 24.75-17.62 42.37Q764.75-80 740-80H220Zm0-60h520v-434H220v434Zm314.5-162.03Q557-324.06 557-355q0-30-22.67-54.5t-54.5-24.5q-31.83 0-54.33 24.5t-22.5 55q0 30.5 22.67 52.5t54.5 22q31.83 0 54.33-22.03ZM350-634h260v-96q0-54.17-37.88-92.08-37.88-37.92-92-37.92T388-822.08q-38 37.91-38 92.08v96ZM220-140v-434 434Z"/></svg>
       </div>
       <span class="text-xs font-bold uppercase tracking-wider text-indigo-600" id="pl-locked-modal-step">Step 2 of 10</span>
-      <h3 class="pl-modal-title text-lg font-bold text-slate-900 mt-1 mb-2" id="pl-locked-modal-title">Question is Locked</h3>
-      <p class="pl-modal-subtitle text-sm text-slate-500 mb-6 leading-relaxed" id="pl-locked-modal-msg">
+      <h3 class="pl-modal-title font-title-md text-title-md text-on-surface mt-1 mb-2" id="pl-locked-modal-title">Question is Locked</h3>
+      <p class="pl-modal-subtitle text-sm text-on-surface-variant mb-6 leading-relaxed" id="pl-locked-modal-msg">
         Please complete the previous problem first before moving forward. DevPilot-AI follows a sequential 1 → 10 curriculum to guarantee progressive pattern mastery!
       </p>
       <div class="flex items-center justify-center gap-3">
@@ -743,8 +828,8 @@
         <svg class="material-symbols-outlined text-[28px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="warning"><path d="m40-120 440-760 440 760H40Zm104-60h672L480-760 144-180Zm361.5-65.68q8.5-8.67 8.5-21.5 0-12.82-8.68-21.32-8.67-8.5-21.5-8.5-12.82 0-21.32 8.68-8.5 8.67-8.5 21.5 0 12.82 8.68 21.32 8.67 8.5 21.5 8.5 12.82 0 21.32-8.68ZM454-348h60v-224h-60v224Zm26-122Z"/></svg>
       </div>
       <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Pattern Mastery Alert</span>
-      <h3 class="pl-modal-title text-lg font-bold text-slate-900 mt-1 mb-2" id="pl-excessive-help-title">Pattern Flagged as Weak</h3>
-      <p class="pl-modal-subtitle text-sm text-slate-500 mb-5 leading-relaxed" id="pl-excessive-help-msg">
+      <h3 class="pl-modal-title font-title-md text-title-md text-on-surface mt-1 mb-2" id="pl-excessive-help-title">Pattern Flagged as Weak</h3>
+      <p class="pl-modal-subtitle text-sm text-on-surface-variant mb-5 leading-relaxed" id="pl-excessive-help-msg">
         You have selected AI help or copy/paste on <strong class="text-amber-600" id="pl-excessive-help-count">2</strong> problems in this pattern. Exceeding 1 assisted solve (≥ 2) flags this pattern as <strong class="text-amber-600">Weak</strong>.
       </p>
       <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 text-left mb-6">
@@ -769,7 +854,7 @@
   <!-- Training Arena Modal -->
   <div class="modal-backdrop hidden" id="pl-arena-modal" role="dialog" aria-modal="true" aria-labelledby="arena-modal-title">
     <div class="modal-card max-w-2xl p-6 relative">
-      <button class="absolute top-4 right-4 text-slate-400 hover:text-slate-600" id="pl-arena-close" aria-label="Close Arena">
+      <button class="absolute top-4 right-4 text-outline hover:text-on-surface-variant" id="pl-arena-close" aria-label="Close Arena">
         <svg class="material-symbols-outlined" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="close"><path d="m249-207-42-42 231-231-231-231 42-42 231 231 231-231 42 42-231 231 231 231-42 42-231-231-231 231Z"/></svg>
       </button>
       <div id="pl-arena-content">

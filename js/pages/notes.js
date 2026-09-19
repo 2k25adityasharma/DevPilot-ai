@@ -286,8 +286,8 @@ function renderNotes() {
           </div>
 
           <div class="note-meta-row">
-            <span class="font-medium text-slate-500">${escapeHtml(note.category || 'General')}</span>
-            ${note.subcategory ? `<span>•</span> <span class="text-slate-600 font-semibold">${escapeHtml(note.subcategory)}</span>` : ''}
+            <span class="font-medium text-on-surface-variant">${escapeHtml(note.category || 'General')}</span>
+            ${note.subcategory ? `<span>•</span> <span class="text-on-surface-variant font-semibold">${escapeHtml(note.subcategory)}</span>` : ''}
             ${diffBadge ? `<span>•</span> ${diffBadge}` : ''}
           </div>
 
