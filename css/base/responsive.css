@@ -100,3 +100,24 @@
     background: #ffffff !important;
   }
 }
+
+/* ==========================================================================
+   Notification Dropdown - Responsive Positioning
+   ========================================================================== */
+@media (max-width: 639px) {
+  #notification-panel {
+    position: fixed !important;
+    top: 76px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    z-index: 100 !important;
+  }
+
+  #notification-panel #notification-list {
+    max-height: 60vh !important;
+  }
+}

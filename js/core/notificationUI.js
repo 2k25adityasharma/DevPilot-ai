@@ -212,6 +212,32 @@
   }
 
   /**
+   * Adjust panel position dynamically based on viewport width
+   */
+  function adjustPanelPosition() {
+    const { panel } = getElements();
+    if (!panel) return;
+
+    if (window.innerWidth < 640) {
+      panel.style.position = 'fixed';
+      panel.style.left = '12px';
+      panel.style.right = '12px';
+      panel.style.width = 'auto';
+      panel.style.maxWidth = 'calc(100vw - 24px)';
+      panel.style.top = '76px';
+      panel.style.zIndex = '100';
+    } else {
+      panel.style.position = '';
+      panel.style.left = '';
+      panel.style.right = '';
+      panel.style.width = '';
+      panel.style.maxWidth = '';
+      panel.style.top = '';
+      panel.style.zIndex = '';
+    }
+  }
+
+  /**
    * Open the notifications dropdown panel
    */
   function openPanel() {
@@ -219,6 +245,7 @@
     if (!panel) return;
 
     isPanelOpen = true;
+    adjustPanelPosition();
     panel.classList.remove('hidden');
     if (bellBtn) {
       bellBtn.setAttribute('aria-expanded', 'true');
@@ -322,6 +349,13 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && isPanelOpen) {
         closePanel();
+      }
+    });
+
+    // Window resize handler for dynamic responsive positioning
+    window.addEventListener('resize', () => {
+      if (isPanelOpen) {
+        adjustPanelPosition();
       }
     });
 

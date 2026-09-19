@@ -417,18 +417,18 @@
 </button>
 
 <!-- Notification Dropdown Panel -->
-<div id="notification-panel" class="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-surface border border-outline-variant rounded-2xl shadow-2xl overflow-hidden z-50 hidden" role="dialog" aria-label="Notifications">
+<div id="notification-panel" class="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-[76px] sm:top-full mt-0 sm:mt-2 w-auto sm:w-96 max-w-[calc(100vw-24px)] sm:max-w-md bg-surface border border-outline-variant rounded-2xl shadow-2xl overflow-hidden z-50 hidden" role="dialog" aria-label="Notifications">
   <!-- Header -->
-  <div class="px-4 py-3 border-b border-outline-variant flex items-center justify-between bg-surface-container-low/60">
-    <div class="flex items-center gap-2">
-      <h3 class="font-title-md text-title-md text-on-surface font-bold">Notifications</h3>
-      <span id="notification-header-count" class="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold hidden">0 unread</span>
+  <div class="px-3.5 sm:px-4 py-3 border-b border-outline-variant flex items-center justify-between bg-surface-container-low/60 gap-2">
+    <div class="flex items-center gap-2 min-w-0">
+      <h3 class="font-title-md text-title-md text-on-surface font-bold truncate">Notifications</h3>
+      <span id="notification-header-count" class="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold shrink-0 hidden">0 unread</span>
     </div>
-    <div class="flex items-center gap-1.5">
+    <div class="flex items-center gap-1.5 shrink-0">
       <button id="notification-mark-all-read" class="text-label-sm font-label-sm text-primary hover:text-primary-container font-medium px-2 py-1 rounded hover:bg-surface-container transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer" title="Mark all as read">
         Mark all as read
       </button>
-      <button id="notification-close-btn" class="p-1 rounded-lg text-slate-400 hover:text-on-surface hover:bg-surface-container transition-colors flex items-center justify-center cursor-pointer" title="Close notifications" aria-label="Close notifications">
+      <button id="notification-close-btn" class="p-1 rounded-lg text-slate-400 hover:text-on-surface hover:bg-surface-container transition-colors flex items-center justify-center cursor-pointer shrink-0" title="Close notifications" aria-label="Close notifications">
         <svg class="material-symbols-outlined text-[18px]" viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true" data-icon="close"><path d="m249-207-42-42 231-231-231-231 42-42 231 231 231-231 42 42-231 231 231 231-42 42-231-231-231 231Z"/></svg>
       </button>
     </div>
